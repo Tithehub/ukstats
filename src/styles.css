@@ -73,10 +73,18 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --ground: oklch(0.945 0.006 250);
+  --ink: oklch(0.212 0.012 265);
+  --steel: oklch(0.315 0.019 265);
+  --fresh: oklch(0.55 0.115 160);
+  --ageing: oklch(0.675 0.128 80);
+  --overdue: oklch(0.545 0.165 30);
+  --brand: oklch(0.72 0.088 213);
+  --background: var(--ground);
+  --foreground: var(--ink);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: var(--ink);
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
   --primary: oklch(0.208 0.042 265.755);
