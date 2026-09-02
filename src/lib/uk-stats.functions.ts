@@ -700,16 +700,38 @@ async function defenceSpend(): Promise<Metric> {
   }
 }
 
-/** Current national threat level, parsed live from the GOV.UK page maintained with JTAC/MI5. */
-async function threatLevel(): Promise<Metric> {
-  const base: Metric = {
-    id: "uk-threat-level",
+/* ------------------- Official alert / threat level indicators ---------------- */
+
+const TERROR_STEPS = [
+  { label: "Low", tone: "green" as const },
+  { label: "Moderate", tone: "yellow" as const },
+  { label: "Substantial", tone: "amber" as const },
+  { label: "Severe", tone: "red" as const },
+  { label: "Critical", tone: "crimson" as const },
+];
+
+async function getText(url: string, ms = 20_000): Promise<string> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { headers: { ...UA }, signal: ctrl.signal });
+    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    return await res.text();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** UK-wide and Northern Ireland-related terrorism threat levels, set by JTAC and MI5. */
+async function threatLevels(): Promise<Metric[]> {
+  const mk = (id: string, title: string, sub: string): Metric => ({
+    id,
     category: "Defence & security",
-    title: "National terrorism threat level",
+    title,
     source: "MI5 / JTAC via GOV.UK",
     sourceUrl: "https://www.gov.uk/terrorism-national-emergency",
     value: null,
-    sub: "Set by the Joint Terrorism Analysis Centre and MI5",
+    sub,
     period: null,
     asOf: null,
     nextDue: null,
@@ -718,30 +740,277 @@ async function threatLevel(): Promise<Metric> {
     spark: [],
     status: "unavailable",
     note: null,
+    scale: { kind: "terror", authority: "JTAC / MI5 · 5 levels", steps: TERROR_STEPS, current: null },
+  });
+
+  const uk = mk(
+    "uk-threat-level",
+    "National terrorism threat level",
+    "Threat to the UK from terrorism, set by JTAC",
+  );
+  const ni = mk(
+    "uk-threat-level-ni",
+    "Northern Ireland-related terrorism threat level",
+    "Threat to Northern Ireland from NI-related terrorism, set by MI5",
+  );
+
+  try {
+    const c = await getJson<GovukContent & { details?: { parts?: { body: string }[] } }>(
+      "https://www.gov.uk/api/content/terrorism-national-emergency",
+    );
+    const text = stripTags((c.details?.parts ?? []).map((p) => p.body).join(" "));
+    const asOf = c.public_updated_at ?? null;
+    const note =
+      "Official five-step scale: low, moderate, substantial, severe, critical. Threat levels have no expiry date, so the date shown is when the official page last changed.";
+
+    const read = (re: RegExp, m: Metric): Metric => {
+      const hit = re.exec(text);
+      if (!hit) return m;
+      const level = hit[1]!.toLowerCase();
+      const idx = TERROR_STEPS.findIndex((s) => s.label.toLowerCase() === level);
+      if (idx < 0) return m;
+      return {
+        ...m,
+        value: TERROR_STEPS[idx]!.label,
+        period: "Current",
+        asOf,
+        status: "ok",
+        note,
+        scale: { ...m.scale!, current: idx },
+      };
+    };
+
+    return [
+      read(/threat to the UK[^.]*from terrorism is (\w+)/i, uk),
+      read(/threat to Northern Ireland[^.]*is (\w+)/i, ni),
+    ];
+  } catch (e) {
+    const note = `Source unreachable: ${(e as Error).message}`;
+    return [
+      { ...uk, note },
+      { ...ni, note },
+    ];
+  }
+}
+
+/** Met Office National Severe Weather Warning Service — yellow / amber / red. */
+async function metOfficeWarnings(): Promise<Metric> {
+  const steps = [
+    { label: "None in force", tone: "neutral" as const },
+    { label: "Yellow", tone: "yellow" as const },
+    { label: "Amber", tone: "amber" as const },
+    { label: "Red", tone: "red" as const },
+  ];
+  const base: Metric = {
+    id: "uk-metoffice-warnings",
+    category: "National alerts",
+    title: "Severe weather warnings in force",
+    source: "Met Office · NSWWS",
+    sourceUrl: "https://www.metoffice.gov.uk/weather/warnings-and-advice/uk-warnings",
+    value: null,
+    sub: "National Severe Weather Warning Service, UK-wide",
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence: "Issued and withdrawn continuously",
+    change: null,
+    spark: [],
+    status: "unavailable",
+    note: null,
+    scale: { kind: "metoffice", authority: "Met Office · yellow / amber / red", steps, current: null },
   };
   try {
-    const c = await getJson<
-      GovukContent & { details?: { parts?: { body: string }[] } }
-    >("https://www.gov.uk/api/content/terrorism-national-emergency");
-    const body = (c.details?.parts ?? []).map((p) => p.body).join(" ");
-    const text = stripTags(body);
-    const uk = /threat to the UK[^.]*from terrorism is (\w+)/i.exec(text);
-    const ni = /threat to Northern Ireland[^.]*is (\w+)/i.exec(text);
-    if (!uk) return base;
-    const level = uk[1]!.toLowerCase();
+    const xml = await getText("https://www.metoffice.gov.uk/public/data/PWSCache/WarningsRSS/Region/uk");
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => m[1]!);
+    const titles = items
+      .map((i) => /<title>([\s\S]*?)<\/title>/.exec(i)?.[1] ?? "")
+      .map((t) => stripTags(t).trim())
+      .filter(Boolean);
+    const counts = { Yellow: 0, Amber: 0, Red: 0 } as Record<string, number>;
+    for (const t of titles) {
+      const c = /\b(yellow|amber|red)\b/i.exec(t)?.[1];
+      if (c) counts[c.charAt(0).toUpperCase() + c.slice(1).toLowerCase()]!++;
+    }
+    const highest = counts["Red"] ? 3 : counts["Amber"] ? 2 : counts["Yellow"] ? 1 : 0;
+    const pub = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(xml)?.[1]?.trim();
     return {
       ...base,
-      value: level.charAt(0).toUpperCase() + level.slice(1),
-      sub: ni ? `Northern Ireland-related threat: ${ni[1]!.toLowerCase()}` : base.sub,
+      value: highest === 0 ? "None in force" : `${steps[highest]!.label} · ${titles.length} in force`,
+      sub:
+        titles.length === 0
+          ? "No Met Office warnings are currently in force for the UK"
+          : titles.slice(0, 3).join(" · "),
       period: "Current",
-      asOf: c.public_updated_at ?? null,
+      asOf: new Date().toISOString(),
       status: "ok",
-      note: "Five levels: low, moderate, substantial, severe, critical. Levels have no expiry date, so 'age' here is the date the official page last changed.",
+      note: `Read live from the Met Office warnings feed${pub ? ` (feed timestamp ${pub})` : ""}. Colours are the Met Office's own impact/likelihood matrix; this service does not assign them.`,
+      scale: { ...base.scale!, current: highest },
     };
   } catch (e) {
     return { ...base, note: `Source unreachable: ${(e as Error).message}` };
   }
 }
+
+/** Environment Agency flood alerts and warnings in force (England). */
+async function floodWarnings(): Promise<Metric> {
+  const steps = [
+    { label: "None in force", tone: "neutral" as const },
+    { label: "Flood alert", tone: "amber" as const },
+    { label: "Flood warning", tone: "red" as const },
+    { label: "Severe flood warning", tone: "crimson" as const },
+  ];
+  const base: Metric = {
+    id: "uk-flood-warnings",
+    category: "National alerts",
+    title: "Flood alerts and warnings in force",
+    source: "Environment Agency",
+    sourceUrl: "https://check-for-flooding.service.gov.uk/alerts-and-warnings",
+    value: null,
+    sub: "England, live flood-monitoring service",
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence: "Updated every 15 minutes",
+    change: null,
+    spark: [],
+    status: "unavailable",
+    note: null,
+    scale: { kind: "flood", authority: "Environment Agency · 3 levels", steps, current: null },
+  };
+  try {
+    const data = await getJson<{
+      items: { severityLevel: number; timeMessageChanged?: string }[];
+    }>("https://environment.data.gov.uk/flood-monitoring/id/floods");
+    const items = data.items ?? [];
+    const severe = items.filter((i) => i.severityLevel === 1).length;
+    const warning = items.filter((i) => i.severityLevel === 2).length;
+    const alert = items.filter((i) => i.severityLevel === 3).length;
+    const highest = severe ? 3 : warning ? 2 : alert ? 1 : 0;
+    return {
+      ...base,
+      value: highest === 0 ? "None in force" : `${alert + warning + severe} in force`,
+      sub: `${severe} severe flood warnings · ${warning} flood warnings · ${alert} flood alerts`,
+      period: "Current",
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: "Counts are the Environment Agency's own published records for England, excluding areas where a warning is no longer in force. Scotland (SEPA) and Wales (NRW) publish separately.",
+      scale: { ...base.scale!, current: highest },
+    };
+  } catch (e) {
+    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+  }
+}
+
+/** UKHSA weather-health alerts — green / yellow / amber / red. */
+async function healthAlerts(): Promise<Metric> {
+  const steps = [
+    { label: "Green", tone: "green" as const },
+    { label: "Yellow", tone: "yellow" as const },
+    { label: "Amber", tone: "amber" as const },
+    { label: "Red", tone: "red" as const },
+  ];
+  const base: Metric = {
+    id: "uk-health-alerts",
+    category: "National alerts",
+    title: "Weather-health alert level",
+    source: "UKHSA / Met Office",
+    sourceUrl: "https://weather-health-alerts.service.gov.uk/",
+    value: null,
+    sub: "Heat and cold health alerting system, England",
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence: "Issued through the alerting season, reviewed daily",
+    change: null,
+    spark: [],
+    status: "unavailable",
+    note: null,
+    scale: { kind: "ukhsa", authority: "UKHSA · green / yellow / amber / red", steps, current: null },
+  };
+  try {
+    const html = await getText("https://weather-health-alerts.service.gov.uk/");
+    const text = stripTags(html).replace(/\s+/g, " ");
+    const hit = /\b(red|amber|yellow|green)\b[^.]{0,40}(heat|cold)[- ]health alert/i.exec(text);
+    if (!hit) {
+      return {
+        ...base,
+        note: "No alert level could be read from the UKHSA alerting service. Check the official service directly — no level is assumed here.",
+      };
+    }
+    const colour = hit[1]!.toLowerCase();
+    const idx = steps.findIndex((s) => s.label.toLowerCase() === colour);
+    return {
+      ...base,
+      value: steps[idx]!.label,
+      sub: `${hit[2]!.toLowerCase()}-health alert, as published by UKHSA`,
+      period: "Current",
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: "Levels are set jointly by UKHSA and the Met Office. Green means no alert is in force; alerts are regional, and the highest level in force is shown.",
+      scale: { ...base.scale!, current: idx < 0 ? null : idx },
+    };
+  } catch (e) {
+    return {
+      ...base,
+      note: `Source unreachable: ${(e as Error).message}. No level is assumed — check the official UKHSA service.`,
+    };
+  }
+}
+
+/** Defra Daily Air Quality Index (DAQI) — official 1-10 bandings. */
+async function airQuality(): Promise<Metric> {
+  const steps = [
+    { label: "Low (1-3)", tone: "green" as const },
+    { label: "Moderate (4-6)", tone: "yellow" as const },
+    { label: "High (7-9)", tone: "amber" as const },
+    { label: "Very high (10)", tone: "red" as const },
+  ];
+  const base: Metric = {
+    id: "uk-air-quality",
+    category: "National alerts",
+    title: "Air pollution index, highest forecast",
+    source: "Defra · UK-AIR",
+    sourceUrl: "https://uk-air.defra.gov.uk/forecasting/",
+    value: null,
+    sub: "Daily Air Quality Index, highest forecast band across UK sites",
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence: "Forecast issued daily",
+    change: null,
+    spark: [],
+    status: "unavailable",
+    note: null,
+    scale: { kind: "daqi", authority: "Defra / COMEAP · DAQI 1-10", steps, current: null },
+  };
+  try {
+    const xml = await getText("https://uk-air.defra.gov.uk/assets/rss/forecast.xml");
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => m[1]!);
+    const todays: number[] = [];
+    for (const it of items) {
+      const desc = /<description>([\s\S]*?)<\/description>/.exec(it)?.[1] ?? "";
+      const nums = [...stripTags(desc).matchAll(/:\s*(\d{1,2})\b/g)].map((m) => Number(m[1]));
+      if (nums.length && Number.isFinite(nums[0])) todays.push(nums[0]!);
+    }
+    if (!todays.length) return base;
+    const max = Math.max(...todays);
+    const idx = max >= 10 ? 3 : max >= 7 ? 2 : max >= 4 ? 1 : 0;
+    const build = /<lastBuildDate>([\s\S]*?)<\/lastBuildDate>/.exec(xml)?.[1]?.trim() ?? null;
+    return {
+      ...base,
+      value: `${max} · ${steps[idx]!.label.split(" (")[0]}`,
+      sub: `Highest index forecast today across ${todays.length} Defra forecast sites`,
+      period: "Today's forecast",
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: `Defra's published Daily Air Quality Index, banded 1-10 by COMEAP. Forecast issued ${build ?? "daily"}; the highest site value is shown, not a national average.`,
+      scale: { ...base.scale!, current: idx },
+    };
+  } catch (e) {
+    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+  }
+}
+
 
 /* --------------- Cost of irregular immigration (Home Office accounts) -------- */
 
