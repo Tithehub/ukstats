@@ -555,6 +555,93 @@ async function immigrationSystem(): Promise<Metric[]> {
   }
 }
 
+/** Lawful (non-irregular) immigration: work, study and family visa grants from the same Home Office release. */
+async function legalImmigration(): Promise<Metric[]> {
+  const collection = "https://www.gov.uk/government/collections/immigration-statistics-quarterly-release";
+  const base = {
+    category: "Immigration" as const,
+    source: "Home Office · entry clearance visas",
+    cadence: "Quarterly official statistics",
+    change: null,
+    spark: [] as number[],
+    status: "unavailable" as const,
+    value: null,
+    period: null,
+    asOf: null,
+    nextDue: null,
+    sourceUrl: collection,
+    note: "Home Office release could not be read.",
+  };
+  const specs = [
+    {
+      id: "uk-visas-work",
+      slug: "why-do-people-come-to-the-uk-work",
+      title: "Work visas granted",
+      sub: "All work categories, main applicants and dependants",
+      re: /There were ([\d,]+) visas issued \(including dependants\) in all work categories/i,
+      note: "Lawful migration route. Visa grants are not the same as arrivals or net migration.",
+    },
+    {
+      id: "uk-visas-study",
+      slug: "why-do-people-come-to-the-uk-study",
+      title: "Sponsored study visas granted",
+      sub: "Sponsored study grants, main applicants and dependants",
+      re: /there were ([\d,]+) sponsored study visas grants/i,
+      note: "Lawful migration route. Excludes short-term study of under 6 months.",
+    },
+    {
+      id: "uk-visas-family",
+      slug: "why-do-people-come-to-the-uk-family",
+      title: "Family visas granted",
+      sub: "Family route grants, excluding work and study dependants",
+      re: /([\d,]+) Family visas were granted/i,
+      note: "Lawful migration route. Dependants on work and study visas are counted in those routes.",
+    },
+  ];
+  const fallback: Metric[] = specs.map((s) => ({ ...base, id: s.id, title: s.title, sub: s.sub }));
+
+  try {
+    const search = await getJson<{ results: { link: string; public_timestamp: string }[] }>(
+      "https://www.gov.uk/api/search.json?q=Immigration%20system%20statistics%20year%20ending&count=10&fields=link,public_timestamp",
+    );
+    const release = (search.results ?? [])
+      .filter((r) => /^\/government\/statistics\/immigration-system-statistics-year-ending-/.test(r.link))
+      .sort((a, b) => b.public_timestamp.localeCompare(a.public_timestamp))[0];
+    if (!release) return fallback;
+
+    const pm = /year-ending-([a-z]+)-(\d{4})$/.exec(release.link);
+    const period = pm ? `Year ending ${pm[1]!.charAt(0).toUpperCase()}${pm[1]!.slice(1)} ${pm[2]}` : null;
+    const due = await nextAnnounced("Immigration system statistics");
+
+    const pages = await Promise.all(
+      specs.map((s) =>
+        getJson<GovukContent>(`https://www.gov.uk/api/content${release.link}/${s.slug}`).catch(() => null),
+      ),
+    );
+
+    return specs.map((s, i) => {
+      const page = pages[i];
+      const fb = fallback[i]!;
+      if (!page?.details?.body) return fb;
+      const m = s.re.exec(stripTags(page.details.body));
+      if (!m) return fb;
+      return {
+        ...fb,
+        value: Number(m[1]!.replace(/,/g, "")).toLocaleString("en-GB"),
+        period,
+        asOf: page.public_updated_at ?? null,
+        nextDue: due,
+        sourceUrl: `https://www.gov.uk${release.link}/${s.slug}`,
+        status: "ok" as const,
+        note: s.note,
+      };
+    });
+  } catch {
+    return fallback;
+  }
+}
+
+
 /** UK defence spending from the World Bank API (SIPRI Military Expenditure Database). */
 async function defenceSpend(): Promise<Metric> {
   const base: Metric = {
