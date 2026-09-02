@@ -121,6 +121,7 @@ export const CATEGORIES: Category[] = [
   "Finance",
   "Cost of living",
   "Crime",
+  "Population & migration",
   "Immigration",
   "Housing",
   "Weather",
