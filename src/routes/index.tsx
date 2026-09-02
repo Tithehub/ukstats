@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
-import { CATEGORIES, freshnessOf, fmtDate, type StatsPayload } from "@/lib/uk-stats";
-import { MetricCard } from "@/components/MetricCard";
-import { ThreatBoard, isStatusMetric } from "@/components/ThreatBoard";
-
+import { CATEGORIES, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
+import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
+import heroNetwork from "@/assets/hero-network.jpg";
 
 const statsQuery = queryOptions<StatsPayload>({
   queryKey: ["uk-stats"],
@@ -17,17 +16,17 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
   head: () => ({
     meta: [
-      { title: "UK National Data Register — live official statistics in one place" },
+      { title: "UKStats — the UK in numbers, live from official sources" },
       {
         name: "description",
         content:
-          "Live UK statistics from ONS, Home Office, Police.uk, HM Land Registry and MOD — every figure timestamped, dated, and embeddable. No estimated numbers.",
+          "Live UK official statistics at a glance: debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.",
       },
-      { property: "og:title", content: "UK National Data Register — live official statistics" },
+      { property: "og:title", content: "UKStats — the UK in numbers, live from official sources" },
       {
         property: "og:description",
         content:
-          "Crime, debt, inflation, immigration, house prices and weather from official UK sources — with data age and next release date on every figure.",
+          "Key UK indicators and official alert levels on one calm page, every figure timestamped and embeddable. Nothing estimated.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/" },
@@ -35,293 +34,260 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }],
   }),
-  component: Dashboard,
+  component: Home,
 });
 
-function Dashboard() {
+const KEY_IDS = [
+  "uk-national-debt",
+  "uk-cpi",
+  "uk-unemployment",
+  "uk-house-prices",
+  "uk-irregular-migration",
+  "uk-defence-spend",
+];
+
+const PANELS: { category: Category; blurb: string }[] = [
+  { category: "Finance", blurb: "Public finances and the wider economy, as published by the ONS." },
+  { category: "Cost of living", blurb: "Consumer price measures on the ONS's own published basis." },
+  {
+    category: "Crime",
+    blurb: "Police recorded crime for England and Wales, with the published rates per head of population.",
+  },
+  { category: "Immigration", blurb: "Lawful migration routes and visa grants published by the Home Office." },
+  {
+    category: "Irregular immigration & cost",
+    blurb: "Detected irregular arrivals and the published asylum support outturn behind the cost figures.",
+  },
+  { category: "Housing", blurb: "HM Land Registry house price data as published." },
+  { category: "Weather", blurb: "Observed conditions and environmental readings." },
+  { category: "Defence & security", blurb: "Defence spending and security indicators from official releases." },
+];
+
+function Home() {
   const { data } = useSuspenseQuery(statsQuery);
-  const [filter, setFilter] = useState<string>("All");
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const metrics = data.metrics;
+  const live = metrics.filter((m) => m.status === "ok").length;
 
-  const debt = data.metrics.find((m) => m.id === "uk-national-debt");
-  const statusMetrics = useMemo(
-    () => data.metrics.filter((m) => isStatusMetric(m) && (filter === "All" || m.category === filter)),
-    [data.metrics, filter],
-  );
-  const shown = useMemo(
-    () => data.metrics.filter((m) => !isStatusMetric(m) && (filter === "All" || m.category === filter)),
-    [data.metrics, filter],
-  );
-  const live = data.metrics.filter((m) => m.status === "ok").length;
-
-  const irregularGroups = useMemo(() => {
-    const irr = shown.filter((m) => m.category === "Irregular immigration & cost");
-    const isDemo = (id: string) => id.startsWith("uk-boats-");
-    const isNat = (id: string) => id.startsWith("uk-boats-nat-");
-    const isCost = (id: string) => id.startsWith("uk-irregular-cost");
-    return [
-      {
-        title: "Arrivals",
-        blurb: "Detected arrivals and boats, as published by the Home Office",
-        metrics: irr.filter((m) => !isDemo(m.id) && !isCost(m.id)),
-      },
-      {
-        title: "Demographics",
-        blurb: "Age group and sex of small boat arrivals, Home Office table IER_02c",
-        metrics: irr.filter((m) => isDemo(m.id) && !isNat(m.id)),
-      },
-      {
-        title: "Nationality",
-        blurb: "Nationality of small boat arrivals, Home Office table IER_02b",
-        metrics: irr.filter((m) => isNat(m.id)),
-      },
-      {
-        title: "Cost",
-        blurb: "Published asylum support outturn and rates derived from it",
-        metrics: irr.filter((m) => isCost(m.id)),
-      },
-    ];
-  }, [shown]);
-
-  const crimeGroups = useMemo(() => {
-    const cr = shown.filter((m) => m.category === "Crime");
-    const isKnife = (id: string) => id === "uk-crime-knife-selected-offences";
-    const isPop = (id: string) => id === "uk-crime-population-denominator";
-    const isLocal = (id: string) => id === "uk-street-crime";
-    const isSexual = (id: string) => id.startsWith("uk-crime-sexual-");
-    return [
-      {
-        title: "Offence groups and rates",
-        blurb: "Police recorded crime, England and Wales — counts and the published rate per 1,000 population",
-        metrics: cr.filter((m) => !isKnife(m.id) && !isPop(m.id) && !isLocal(m.id) && !isSexual(m.id)),
-      },
-      {
-        title: "Sexual offences",
-        blurb:
-          "ONS appendix tables A6 and A5a — published counts, the rate per 1,000 population and each recorded offence category",
-        metrics: cr.filter((m) => isSexual(m.id)),
-      },
-      {
-        title: "Weapon-enabled crime",
-        blurb: "Knife and sharp instrument offences, with the published rate per 100,000 population",
-        metrics: cr.filter((m) => isKnife(m.id)),
-      },
-      {
-        title: "Rate basis and local data",
-        blurb: "The population denominator behind the rates, plus street-level records",
-        metrics: cr.filter((m) => isPop(m.id) || isLocal(m.id)),
-      },
-    ];
-  }, [shown]);
-
-
+  const byId = useMemo(() => new Map(metrics.map((m) => [m.id, m])), [metrics]);
+  const keyMetrics = KEY_IDS.map((id) => byId.get(id)).filter(Boolean) as Metric[];
+  const dials = metrics.filter((m) => m.scale);
+  const debt = byId.get("uk-national-debt");
 
   return (
-    <div className="min-h-screen bg-ground font-sans text-ink selection:bg-steel/20">
-      <header className="sticky top-0 z-30 border-b border-steel/10 bg-ground/80 backdrop-blur-md">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
-          <div className="flex items-center justify-between gap-4 py-3">
-            <div className="flex items-center gap-3">
-              <span className="grid size-8 place-items-center rounded-lg bg-ink font-mono text-xs font-semibold tracking-tight text-ground">
-                UK
+    <div className="min-h-screen bg-night font-sans text-night-fg">
+      <header className="sticky top-0 z-30 border-b border-night-line/60 bg-night/85 backdrop-blur-md">
+        <div className="mx-auto grid max-w-[1280px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-6">
+            <span className="flex shrink-0 items-baseline gap-0.5 text-lg font-semibold tracking-tight">
+              <span className="mr-1.5 inline-flex items-end gap-[2px]" aria-hidden="true">
+                <span className="block h-2.5 w-1 rounded-[1px] bg-electric" />
+                <span className="block h-4 w-1 rounded-[1px] bg-electric" />
+                <span className="block h-3 w-1 rounded-[1px] bg-electric-soft" />
               </span>
-              <div className="leading-none">
-                <p className="text-[13px] font-semibold tracking-tight">National Data Register</p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60">Single source of truth</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-full bg-card/40 px-3 py-1.5 ring-1 ring-steel/10 md:flex">
-                <span className="size-2 rounded-full bg-fresh pulse-dot" />
-                <span className="font-mono text-[11px] text-steel">
-                  {live} of {data.metrics.length} feeds live · pulled {new Date(data.fetchedAt).toLocaleTimeString("en-GB")}
-                </span>
-              </div>
-              <Link
-                to="/create"
-                className="rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel"
-              >
-                Create live page
+              UK<span className="text-electric">Stats</span>
+            </span>
+            <nav className="hidden items-center gap-5 font-mono text-[12px] text-night-muted md:flex">
+              <span className="text-night-fg">Home</span>
+              <Link to="/register" className="hover:text-electric-soft">
+                Data
               </Link>
-              <Link to="/widget" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
-                Widget builder
+              <Link to="/widget" className="hover:text-electric-soft">
+                Widgets
               </Link>
-              <Link to="/my-pages" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
+              <Link to="/create" className="hover:text-electric-soft">
+                Reports
+              </Link>
+              <Link to="/my-pages" className="hover:text-electric-soft">
                 My pages
               </Link>
-            </div>
-
+            </nav>
           </div>
-
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pb-3">
-            <div className="leading-none">
-              <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-steel/60">
-                UK public sector net debt · as published
-              </p>
-              <div className="flex items-end gap-2">
-                <span className="roll font-mono text-3xl font-semibold tracking-tighter tabular-nums sm:text-4xl">
-                  {debt?.value ?? "Unavailable"}
-                </span>
-                {debt?.change ? (
-                  <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-fresh/10 px-2 py-0.5 font-mono text-[10px] font-medium text-fresh">
-                    <span className="size-1.5 rounded-full bg-fresh pulse-dot" />
-                    {debt.change.label}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            <div className="ml-auto text-right leading-tight">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60">Source · ONS PUSF (HF6W)</p>
-              <p className="font-mono text-[11px] text-steel">
-                {debt?.period ?? "—"} · published {fmtDate(debt?.asOf ?? null)} · next {fmtDate(debt?.nextDue ?? null)}
-              </p>
-            </div>
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="hidden items-center gap-2 rounded-full border border-night-line/70 px-3 py-1.5 font-mono text-[11px] text-night-muted lg:inline-flex">
+              <span className="size-1.5 rounded-full bg-fresh pulse-dot" />
+              {live} of {metrics.length} feeds live
+            </span>
+            <Link
+              to="/create"
+              className="rounded-md bg-electric px-3 py-2 text-[12px] font-medium text-night transition-opacity hover:opacity-90"
+            >
+              Create live page
+            </Link>
           </div>
         </div>
-
-        <nav className="border-t border-steel/10 bg-ground/60">
-          <div className="mx-auto flex max-w-[1440px] gap-1 overflow-x-auto px-4 py-2 sm:px-6">
-            {["All", ...CATEGORIES].map((c) => (
-              <button
-                key={c}
-                onClick={() => setFilter(c)}
-                className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${
-                  filter === c ? "bg-ink text-ground" : "text-steel hover:bg-steel/5"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </nav>
       </header>
 
-      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
-        <h1 className="sr-only">UK National Data Register — live official statistics</h1>
-
-        {statusMetrics.length ? (
-          <div className="pb-6">
-            <ThreatBoard metrics={statusMetrics} />
+      <main className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
+        {/* Hero */}
+        <section className="relative overflow-hidden rounded-2xl border border-night-line/50">
+          <img
+            src={heroNetwork}
+            alt=""
+            width={1408}
+            height={1024}
+            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-70 sm:w-[62%]"
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-night via-night/90 to-night/20" />
+          <div className="relative grid gap-6 px-6 py-14 sm:px-10 sm:py-20 lg:max-w-[58%]">
+            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-5xl">
+              The UK in numbers,
+              <br />
+              <span className="text-electric">live from the source</span>
+            </h1>
+            <p className="max-w-xl text-[15px] leading-relaxed text-night-muted text-pretty">
+              Official statistics from the ONS, Home Office, Police.uk, HM Land Registry, MOD and the Met Office —
+              gathered at request time, never estimated, every figure carrying its age and next release date.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 rounded-md bg-electric px-4 py-2.5 text-[13px] font-medium text-night transition-opacity hover:opacity-90"
+              >
+                Explore the full register →
+              </Link>
+              <Link
+                to="/widget"
+                className="inline-flex items-center gap-2 rounded-md border border-night-line px-4 py-2.5 text-[13px] font-medium text-night-fg transition-colors hover:border-electric"
+              >
+                Build an embeddable widget
+              </Link>
+            </div>
+            {debt ? (
+              <p className="font-mono text-[11px] text-night-muted">
+                Public sector net debt · <span className="text-night-fg">{debt.value ?? "Unavailable"}</span> ·{" "}
+                {debt.period ?? "—"} · published {fmtDate(debt.asOf)}
+              </p>
+            ) : null}
           </div>
-        ) : null}
+        </section>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-5 font-mono text-[11px] text-steel">
-          <span className="font-semibold uppercase tracking-[0.14em] text-steel/70">Data age</span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-fresh" />Fresh · updated &lt;7d
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-ageing" />Ageing · 7–28d
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-overdue" />Overdue · past due date
-          </span>
-          <span className="ml-auto hidden text-steel/50 sm:inline">
-            Figures are reproduced verbatim from the issuing body; nothing is estimated.
-          </span>
-        </div>
+        {/* Capability strip */}
+        <section className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-night-line/50 bg-night-line/50 sm:grid-cols-3">
+          {[
+            {
+              title: "Live dashboards",
+              body: "One page pulling every connected official feed, refreshed on request.",
+            },
+            {
+              title: "Embeddable widgets",
+              body: "Drop any figure or the alert board into your own site with one iframe.",
+            },
+            {
+              title: "Shareable live pages",
+              body: "Publish a timed snapshot link that keeps updating while it is live.",
+            },
+          ].map((c) => (
+            <div key={c.title} className="bg-night-panel/60 p-5">
+              <h2 className="text-sm font-semibold text-night-fg">{c.title}</h2>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-night-muted text-pretty">{c.body}</p>
+            </div>
+          ))}
+        </section>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {shown
-            .filter((m) => m.category !== "Irregular immigration & cost" && m.category !== "Crime")
-            .slice()
-            .sort((a, b) => {
-              const order = { fresh: 0, ageing: 1, overdue: 2, unknown: 3 } as const;
-              return order[freshnessOf(a)] - order[freshnessOf(b)];
-            })
-            .map((m) => (
-              <MetricCard key={m.id} metric={m} origin={origin} />
+        {/* Key indicators */}
+        <section className="mt-10">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold tracking-tight">Key indicators at a glance</h2>
+            <Link to="/register" className="font-mono text-[11px] text-electric hover:underline">
+              View all data →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {keyMetrics.map((m) => (
+              <IndicatorCard key={m.id} metric={m} />
             ))}
-        </div>
-
-        {crimeGroups.some((g) => g.metrics.length) ? (
-          <section className="mt-10">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">Crime</h2>
-            {crimeGroups
-              .filter((g) => g.metrics.length)
-              .map((g) => (
-                <div key={g.title} className="mt-5">
-                  <div className="flex flex-wrap items-baseline gap-x-3">
-                    <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
-                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
-                  </div>
-                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {g.metrics.map((m) => (
-                      <MetricCard key={m.id} metric={m} origin={origin} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </section>
-        ) : null}
-
-
-        {irregularGroups.some((g) => g.metrics.length) ? (
-          <section className="mt-10">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">
-              Irregular immigration &amp; cost
-            </h2>
-            {irregularGroups
-              .filter((g) => g.metrics.length)
-              .map((g) => (
-                <div key={g.title} className="mt-5">
-                  <div className="flex flex-wrap items-baseline gap-x-3">
-                    <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
-                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
-                  </div>
-                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {g.metrics.map((m) => (
-                      <MetricCard key={m.id} metric={m} origin={origin} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </section>
-        ) : null}
-
-
-
-        <section className="relative mt-8 overflow-hidden rounded-2xl bg-steel p-6 text-ground/90 ring-1 ring-ink/10">
-          <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/70 to-transparent" />
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-1">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand">Data provenance</p>
-              <h2 className="mt-2 text-xl font-semibold leading-tight tracking-tight text-balance">
-                Every figure is sourced. Nothing is estimated.
-              </h2>
-            </div>
-            <div className="grid gap-4 font-mono text-[12px] text-ground/70 sm:grid-cols-2 md:col-span-2">
-              <div>
-                <p className="font-medium text-ground">Direct source feeds</p>
-                <p className="mt-1 text-pretty">
-                  Values are pulled at request time from the issuing bodies — ONS, Home Office, HM Land Registry,
-                  Police.uk and Open-Meteo — and never modelled, interpolated or rounded by this service.
-                </p>
-              </div>
-              <div>
-                <p className="font-medium text-ground">Age is always stated</p>
-                <p className="mt-1 text-pretty">
-                  Each card carries an explicit "as of" date and the publisher's next scheduled release. Where a body
-                  publishes only spreadsheets, the card shows no number at all — it tracks the publication instead.
-                </p>
-              </div>
-            </div>
           </div>
-          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-ground/10 pt-4">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ground/50">Issuing bodies</span>
-            {["ONS", "Home Office", "HM Land Registry", "Police.uk", "MOD", "MI5 / JTAC", "Open-Meteo"].map((s) => (
-              <span key={s} className="rounded-md bg-ground/10 px-2 py-1 font-mono text-[11px]">
-                {s}
-              </span>
+        </section>
+
+        {/* Official alert levels */}
+        {dials.length ? (
+          <section className="mt-10">
+            <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 className="text-lg font-semibold tracking-tight">National alert levels</h2>
+              <p className="font-mono text-[11px] text-night-muted">
+                Each shown on the issuing body's own published scale — no composite score.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {dials.map((m) => (
+                <AlertDial key={m.id} metric={m} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Categories */}
+        <section className="mt-10">
+          <h2 className="mb-4 text-lg font-semibold tracking-tight">Browse by category</h2>
+          <div className="space-y-3">
+            {PANELS.filter((p) => CATEGORIES.includes(p.category)).map((p, i) => (
+              <CategoryPanel
+                key={p.category}
+                title={p.category}
+                blurb={p.blurb}
+                defaultOpen={i === 0}
+                metrics={metrics.filter((m) => m.category === p.category && !m.scale)}
+              />
             ))}
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-steel/10">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2 px-4 py-4 font-mono text-[11px] text-steel/60 sm:px-6">
-          <span>National Data Register · independent aggregator, not a government service</span>
-          <span>Every card embeddable · {new Date(data.fetchedAt).toLocaleString("en-GB")}</span>
+      <footer className="border-t border-night-line/60 bg-night-panel/40">
+        <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div>
+            <p className="text-base font-semibold">
+              UK<span className="text-electric">Stats</span>
+            </p>
+            <p className="mt-2 max-w-xs text-[13px] leading-relaxed text-night-muted text-pretty">
+              An independent aggregator of official UK statistics. Not a government service. Nothing on this site is
+              estimated, modelled or interpolated.
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Data</p>
+            <ul className="mt-3 space-y-2 text-[13px]">
+              <li>
+                <Link to="/register" className="text-night-muted hover:text-electric-soft">
+                  Full register
+                </Link>
+              </li>
+              <li>
+                <Link to="/widget" className="text-night-muted hover:text-electric-soft">
+                  Widget builder
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Insights</p>
+            <ul className="mt-3 space-y-2 text-[13px]">
+              <li>
+                <Link to="/create" className="text-night-muted hover:text-electric-soft">
+                  Create a live page
+                </Link>
+              </li>
+              <li>
+                <Link to="/my-pages" className="text-night-muted hover:text-electric-soft">
+                  My pages
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Sources</p>
+            <ul className="mt-3 space-y-2 text-[13px] text-night-muted">
+              <li>ONS · Home Office</li>
+              <li>Police.uk · HM Land Registry</li>
+              <li>MOD · MI5 / JTAC · Met Office</li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-night-line/50">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2 px-4 py-4 font-mono text-[11px] text-night-muted sm:px-6">
+            <span>Every figure sourced · nothing estimated</span>
+            <span>Last pull {new Date(data.fetchedAt).toLocaleString("en-GB")}</span>
+          </div>
         </div>
       </footer>
     </div>
