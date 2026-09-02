@@ -28,6 +28,11 @@
   --color-ageing: var(--ageing);
   --color-overdue: var(--overdue);
   --color-brand: var(--brand);
+  --color-alert-green: var(--alert-green);
+  --color-alert-yellow: var(--alert-yellow);
+  --color-alert-amber: var(--alert-amber);
+  --color-alert-red: var(--alert-red);
+  --color-alert-crimson: var(--alert-crimson);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -80,6 +85,11 @@
   --ageing: oklch(0.675 0.128 80);
   --overdue: oklch(0.545 0.165 30);
   --brand: oklch(0.72 0.088 213);
+  --alert-green: oklch(0.62 0.15 148);
+  --alert-yellow: oklch(0.82 0.16 92);
+  --alert-amber: oklch(0.73 0.17 62);
+  --alert-red: oklch(0.55 0.21 27);
+  --alert-crimson: oklch(0.42 0.17 22);
   --background: var(--ground);
   --foreground: var(--ink);
   --card: oklch(1 0 0);
