@@ -15,7 +15,7 @@ export const Route = createFileRoute("/p/$slug")({
       .filter((m): m is Metric => Boolean(m));
     return { page, expired: false as const, metrics, fetchedAt: stats.fetchedAt };
   },
-  head: ({ loaderData }) => ({
+  head: ({ params, loaderData }) => ({
     meta: [
       { title: loaderData?.page ? `${loaderData.page.title} — live UK statistics` : "Live page unavailable" },
       {
@@ -30,9 +30,11 @@ export const Route = createFileRoute("/p/$slug")({
         content: "Live official UK statistics — sourced, timestamped, and downloadable as a PDF.",
       },
       { property: "og:type", content: "article" },
+      { property: "og:url", content: `https://ukstats.co.uk/p/${params.slug}` },
       { name: "twitter:card", content: "summary_large_image" },
       ...(loaderData?.expired ? [{ name: "robots", content: "noindex" }] : []),
     ],
+    links: [{ rel: "canonical", href: `https://ukstats.co.uk/p/${params.slug}` }],
   }),
   component: LivePage,
 });

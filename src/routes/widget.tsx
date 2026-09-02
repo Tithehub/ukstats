@@ -27,8 +27,10 @@ export const Route = createFileRoute("/widget")({
         content: "Pick figures, choose a theme, copy the embed code. Always live, always sourced.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://ukstats.co.uk/widget" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://ukstats.co.uk/widget" }],
   }),
   component: WidgetBuilder,
 });
@@ -91,7 +93,10 @@ function WidgetBuilder() {
       </header>
 
       <main className="mx-auto grid max-w-[1200px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,380px)_1fr]">
-        <section className="space-y-5">
+        <section className="space-y-5" aria-labelledby="widget-options-heading">
+          <h2 id="widget-options-heading" className="sr-only">
+            Widget options
+          </h2>
           <div className="rounded-[14px] bg-card/60 p-4 ring-1 ring-ink/10">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/60">1 · What to show</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -214,9 +219,14 @@ function WidgetBuilder() {
           </div>
         </section>
 
-        <section>
+        <section aria-labelledby="widget-preview-heading">
           <div className="mb-2 flex items-baseline justify-between">
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/60">Live preview</p>
+            <h2
+              id="widget-preview-heading"
+              className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/60"
+            >
+              Live preview
+            </h2>
             <a
               href={src}
               target="_blank"

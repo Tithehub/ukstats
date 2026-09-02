@@ -151,6 +151,11 @@ function EmbedWidget() {
 
   return (
     <div className={`${search.theme === "dark" ? "dark" : ""} min-h-screen bg-ground p-3 font-sans text-ink`}>
+      <h1 className="sr-only">
+        {board
+          ? "UK alert and threat levels — live widget"
+          : `${metrics.map((m) => m.title).join(", ")} — live UK statistics widget`}
+      </h1>
       <div className={`grid gap-3 ${metrics.length > 1 ? "sm:grid-cols-2" : ""}`}>
         {metrics.map((m) =>
           board || isStatusMetric(m) ? (

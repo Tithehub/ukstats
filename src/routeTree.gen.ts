@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
@@ -29,6 +30,11 @@ const CreateRoute = CreateRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WidgetRoute = WidgetRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/my-pages': typeof MyPagesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/p/$slug': typeof PSlugRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/my-pages': typeof MyPagesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/p/$slug': typeof PSlugRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/my-pages': typeof MyPagesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/p/$slug': typeof PSlugRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/create' | '/my-pages' | '/widget' | '/embed/$metric' | '/p/$slug'
+    | '/'
+    | '/create'
+    | '/my-pages'
+    | '/sitemap.xml'
+    | '/widget'
+    | '/embed/$metric'
+    | '/p/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/my-pages' | '/widget' | '/embed/$metric' | '/p/$slug'
+  to:
+    | '/'
+    | '/create'
+    | '/my-pages'
+    | '/sitemap.xml'
+    | '/widget'
+    | '/embed/$metric'
+    | '/p/$slug'
   id:
     | '__root__'
     | '/'
     | '/create'
     | '/my-pages'
+    | '/sitemap.xml'
     | '/widget'
     | '/embed/$metric'
     | '/p/$slug'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   MyPagesRoute: typeof MyPagesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   PSlugRoute: typeof PSlugRoute
@@ -118,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/widget': {
@@ -148,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   MyPagesRoute: MyPagesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   PSlugRoute: PSlugRoute,

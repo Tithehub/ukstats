@@ -23,15 +23,17 @@ export const Route = createFileRoute("/")({
         content:
           "Live UK statistics from ONS, Home Office, Police.uk, HM Land Registry and MOD — every figure timestamped, dated, and embeddable. No estimated numbers.",
       },
-      { property: "og:title", content: "UK National Data Register" },
+      { property: "og:title", content: "UK National Data Register — live official statistics" },
       {
         property: "og:description",
         content:
           "Crime, debt, inflation, immigration, house prices and weather from official UK sources — with data age and next release date on every figure.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://ukstats.co.uk/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }],
   }),
   component: Dashboard,
 });
