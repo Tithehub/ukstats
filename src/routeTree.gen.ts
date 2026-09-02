@@ -16,6 +16,7 @@ import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
@@ -56,6 +57,11 @@ const SupportRoute = SupportRouteImport.update({
   path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxVsWelfareRoute = TaxVsWelfareRouteImport.update({
+  id: '/tax-vs-welfare',
+  path: '/tax-vs-welfare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WidgetRoute = WidgetRouteImport.update({
   id: '/widget',
   path: '/widget',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/sitemap.xml'
     | '/support'
+    | '/tax-vs-welfare'
     | '/widget'
     | '/embed/$metric'
     | '/history/$metricId'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/sitemap.xml'
     | '/support'
+    | '/tax-vs-welfare'
     | '/widget'
     | '/embed/$metric'
     | '/history/$metricId'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/sitemap.xml'
     | '/support'
+    | '/tax-vs-welfare'
     | '/widget'
     | '/embed/$metric'
     | '/history/$metricId'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
+  TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tax-vs-welfare': {
+      id: '/tax-vs-welfare'
+      path: '/tax-vs-welfare'
+      fullPath: '/tax-vs-welfare'
+      preLoaderRoute: typeof TaxVsWelfareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/widget': {
       id: '/widget'
       path: '/widget'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
+  TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
