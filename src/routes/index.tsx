@@ -126,6 +126,12 @@ function Dashboard() {
       <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
         <h1 className="sr-only">UK National Data Register — live official statistics</h1>
 
+        {statusMetrics.length ? (
+          <div className="pb-6">
+            <ThreatBoard metrics={statusMetrics} />
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-5 font-mono text-[11px] text-steel">
           <span className="font-semibold uppercase tracking-[0.14em] text-steel/70">Data age</span>
           <span className="inline-flex items-center gap-1.5">
@@ -153,6 +159,7 @@ function Dashboard() {
               <MetricCard key={m.id} metric={m} origin={origin} />
             ))}
         </div>
+
 
         <section className="relative mt-8 overflow-hidden rounded-2xl bg-steel p-6 text-ground/90 ring-1 ring-ink/10">
           <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/70 to-transparent" />
