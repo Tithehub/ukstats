@@ -1990,7 +1990,11 @@ async function smallBoatDemographics(): Promise<Metric[]> {
 
 /* ---------------------------------- assembly -------------------------------- */
 
-export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Promise<StatsPayload> => {
+/** Cached payload: the feeds behind it publish daily at best, and ONS rate-limits bursts. */
+let payloadCache: { at: number; data: Promise<StatsPayload> } | null = null;
+const PAYLOAD_TTL = 5 * 60_000;
+
+async function collectStats(): Promise<StatsPayload> {
   const tasks: Promise<Metric | Metric[]>[] = [
     ...ONS_DEFS.map((d) => onsMetric(d)),
 
@@ -2024,6 +2028,16 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     }
   }
   return { metrics, fetchedAt: new Date().toISOString() };
+}
+
+export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Promise<StatsPayload> => {
+  if (payloadCache && Date.now() - payloadCache.at < PAYLOAD_TTL) return payloadCache.data;
+  const data = collectStats();
+  payloadCache = { at: Date.now(), data };
+  data.catch(() => {
+    payloadCache = null;
+  });
+  return data;
 });
 
 /* ------------------ ONS / Home Office recorded crime (E&W) ------------------ */
