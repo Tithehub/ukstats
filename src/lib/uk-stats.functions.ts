@@ -1614,6 +1614,8 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
 
     irregularCost(),
     smallBoatDemographics(),
+    recordedCrime(),
+
 
   ];
 
@@ -1627,3 +1629,180 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
   }
   return { metrics, fetchedAt: new Date().toISOString() };
 });
+
+/* ------------------ ONS / Home Office recorded crime (E&W) ------------------ */
+
+const CRIME_DATASET = "/peoplepopulationandcommunity/crimeandjustice/datasets/policeforceareadatatables";
+
+function sheetsByName(files: Record<string, Uint8Array>, strFromU8: (u: Uint8Array) => string) {
+  const wb = strFromU8(files["xl/workbook.xml"]!);
+  const rels = strFromU8(files["xl/_rels/workbook.xml.rels"]!);
+  const relMap = new Map<string, string>();
+  for (const m of rels.matchAll(/Id="(rId\d+)"[^>]*Target="([^"]+)"/g)) relMap.set(m[1]!, m[2]!);
+  const out = new Map<string, string>();
+  for (const m of wb.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*r:id="(rId\d+)"/g)) {
+    const target = relMap.get(m[2]!);
+    if (!target) continue;
+    out.set(xmlText(m[1]!).trim(), `xl/${target.replace(/^\/?xl\//, "")}`);
+  }
+  return out;
+}
+
+/** Reads the England and Wales row of an ONS PFA table, keyed by its published column headings. */
+function nationalRow(rows: SheetRow[]): { values: Map<string, string>; title: string } | null {
+  const header = rows.find((r) => r.cells["A"]?.trim() === "Area Code");
+  const national = rows.find((r) => r.cells["A"]?.trim() === "K04000001");
+  if (!header || !national) return null;
+  const values = new Map<string, string>();
+  for (const [col, head] of Object.entries(header.cells)) {
+    const key = head.replace(/\s+/g, " ").replace(/\[note \d+\]/gi, "").trim();
+    const v = national.cells[col];
+    if (key && v !== undefined) values.set(key, v);
+  }
+  return { values, title: rows[0]?.label ?? "" };
+}
+
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+async function recordedCrime(): Promise<Metric[]> {
+  const base = {
+    category: "Crime" as const,
+    source: "Police recorded crime, Home Office (published by ONS)",
+    sourceUrl: `https://www.ons.gov.uk${CRIME_DATASET}`,
+    cadence: "Quarterly, with the Crime in England and Wales release",
+    spark: [] as number[],
+  };
+  try {
+    const landing = await getJson<{
+      datasets?: { uri: string }[];
+      description?: { nextRelease?: string };
+    }>(`https://www.ons.gov.uk${CRIME_DATASET}/data`);
+    const versionUri = landing.datasets?.[0]?.uri;
+    if (!versionUri) return [];
+
+    const version = await getJson<{
+      downloads?: { file: string }[];
+      description?: { releaseDate?: string };
+    }>(`https://www.ons.gov.uk${versionUri}/data`);
+    const file = version.downloads?.[0]?.file;
+    if (!file) return [];
+
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(
+      await getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000),
+    ) as unknown as Record<string, Uint8Array>;
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const names = sheetsByName(files, strFromU8);
+    const read = (name: string) => {
+      const path = names.get(name);
+      if (!path || !files[path]) return null;
+      return nationalRow(parseSheet(strFromU8(files[path]!), shared));
+    };
+
+    const counts = read("Table P1");
+    if (!counts) return [];
+    const changes = read("Table P2");
+    const rates = read("Table P3");
+    const knifeCounts = read("Table P5");
+    const knifeRates = read("Table P7");
+
+    const periodMatch = /year ending \w+ \d{4}/i.exec(counts.title);
+    const period = periodMatch ? `${periodMatch[0]}, England and Wales` : "England and Wales";
+    const asOf = version.description?.releaseDate ?? null;
+    const nextAnnouncedDate = landing.description?.nextRelease;
+    const parsedNext = nextAnnouncedDate ? new Date(nextAnnouncedDate) : null;
+    const nextDue =
+      parsedNext && !Number.isNaN(parsedNext.getTime())
+        ? parsedNext.toISOString()
+        : await onsNextRelease("Crime in England and Wales");
+
+    const population = Number(rates?.values.get("Population figures (mid-2024) rounded to 100") ?? NaN);
+    const popLabel = [...(rates?.values.keys() ?? [])].find((k) => k.startsWith("Population figures"));
+    const popNote = popLabel ? popLabel.replace("Population figures ", "").replace(/rounded to 100/i, "").trim() : "";
+
+    const skip = new Set(["Area Code", "Area Name"]);
+    const metrics: Metric[] = [];
+
+    for (const [name, raw] of counts.values) {
+      if (skip.has(name)) continue;
+      const n = Number(raw);
+      if (!Number.isFinite(n)) continue;
+      const rate = Number(rates?.values.get(name) ?? NaN);
+      const pct = Number(changes?.values.get(name) ?? NaN);
+      const clean = name.replace(/\s+/g, " ").trim();
+      const rateText = Number.isFinite(rate)
+        ? `${rate < 1 ? rate.toFixed(2) : rate.toFixed(1)} per 1,000 population`
+        : "rate per 1,000 not published";
+      metrics.push({
+        ...base,
+        id: `uk-crime-${slug(clean)}`,
+        title: clean,
+        value: n.toLocaleString("en-GB"),
+        sub: `${rateText}${popNote ? ` · ${popNote} population estimate` : ""}`,
+        period,
+        asOf,
+        nextDue,
+        change: Number.isFinite(pct)
+          ? {
+              label: `${pct > 0 ? "+" : ""}${pct.toFixed(1)}% vs previous year`,
+              dir: pct > 0 ? "up" : pct < 0 ? "down" : "flat",
+            }
+          : null,
+        status: "ok",
+        note:
+          "Offences recorded by the police in England and Wales, table P1. Rates are the published rate per 1,000 population in table P3 — no figure is calculated here.",
+      });
+    }
+
+    const knifeTotalKey = [...(knifeCounts?.values.keys() ?? [])].find((k) => /Total of selected/i.test(k));
+    const knifeTotal = Number(knifeCounts?.values.get(knifeTotalKey ?? "") ?? NaN);
+    if (Number.isFinite(knifeTotal)) {
+      const rateKeys = [...(knifeRates?.values ?? new Map()).keys()].filter((k) => /\d{4}$/.test(k));
+      const latestRateKey = rateKeys[rateKeys.length - 1];
+      const knifeRate = Number(knifeRates?.values.get(latestRateKey ?? "") ?? NaN);
+      metrics.push({
+        ...base,
+        id: "uk-crime-knife-selected-offences",
+        title: "Selected offences involving a knife or sharp instrument",
+        value: knifeTotal.toLocaleString("en-GB"),
+        sub: Number.isFinite(knifeRate)
+          ? `${knifeRate.toFixed(1)} per 100,000 population`
+          : "rate per 100,000 not published",
+        period,
+        asOf,
+        nextDue,
+        change: null,
+        status: "ok",
+        note:
+          "Attempted murder, threats to kill, assault with injury or intent, robbery, rape and sexual assault, and homicide involving a knife — tables P5 and P7. Population rate is per 100,000, as the Home Office publishes it.",
+      });
+    }
+
+    if (Number.isFinite(population)) {
+      metrics.push({
+        ...base,
+        id: "uk-crime-population-denominator",
+        title: "Population used for crime rates",
+        value: population.toLocaleString("en-GB"),
+        sub: `${popNote || "ONS mid-year"} population estimate for England and Wales`,
+        period,
+        asOf,
+        nextDue,
+        change: null,
+        status: "ok",
+        note: "The denominator the Home Office uses for its published per-population crime rates.",
+      });
+    }
+
+    return metrics;
+  } catch {
+    return [];
+  }
+}

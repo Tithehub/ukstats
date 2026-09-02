@@ -30,8 +30,10 @@ export const Route = createFileRoute("/create")({
         content: "Pick your official UK figures, choose how long the page stays live, then share or download it as a PDF.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://ukstats.co.uk/create" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://ukstats.co.uk/create" }],
   }),
   component: CreatePage,
 });

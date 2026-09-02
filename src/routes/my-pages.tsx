@@ -18,6 +18,7 @@ export const Route = createFileRoute("/my-pages")({
       { property: "og:title", content: "My live statistics pages" },
       { property: "og:description", content: "Manage, extend and share the live UK statistics pages you created." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://ukstats.co.uk/my-pages" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
