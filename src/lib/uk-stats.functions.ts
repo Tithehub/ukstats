@@ -2014,7 +2014,8 @@ async function sexualOffences(): Promise<Metric[]> {
     }
 
     return metrics;
-  } catch {
+  } catch (e) {
+    console.error("sexualOffences failed", e);
     return [];
   }
 }
