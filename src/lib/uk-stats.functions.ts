@@ -238,7 +238,7 @@ async function smallBoats(): Promise<Metric[]> {
     "https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats";
   const mk = (id: string, title: string, sub: string): Metric => ({
     id,
-    category: "Immigration",
+    category: "Irregular immigration & cost",
     title,
     source: "Home Office · small boat activity",
     sourceUrl: pageUrl,
@@ -253,8 +253,21 @@ async function smallBoats(): Promise<Metric[]> {
     status: "unavailable",
     note: null,
   });
-  const daily = mk("uk-small-boats-daily", "Small boat arrivals, latest day", "Migrants detected crossing the Channel");
-  const weekly = mk("uk-small-boats-week", "Small boat arrivals, last 7 days", "Rolling seven-day published total");
+  const daily = mk(
+    "uk-small-boats-daily",
+    "Irregular arrivals detected, latest day",
+    "People detected crossing the Channel in small boats",
+  );
+  const weekly = mk(
+    "uk-small-boats-week",
+    "Total irregular arrivals, last 7 days",
+    "People detected crossing the Channel in small boats",
+  );
+  const boatsWeek = mk(
+    "uk-small-boats-count-week",
+    "Number of boats detected, last 7 days",
+    "Small boats recorded arriving over the same seven days",
+  );
   try {
     const data = await getJson<GovukContent>(url);
     const body = data.details?.body ?? "";
@@ -266,10 +279,16 @@ async function smallBoats(): Promise<Metric[]> {
       )
       .filter((cells) => cells.length >= 3 && /\d{4}$/.test(cells[0] ?? ""));
     if (!rows.length) throw new Error("no data rows in published table");
-    const series = rows.map((c) => ({ date: c[0]!, arrivals: Number((c[1] ?? "").replace(/,/g, "")) }));
+    const series = rows.map((c) => ({
+      date: c[0]!,
+      arrivals: Number((c[1] ?? "").replace(/,/g, "")),
+      boats: Number((c[2] ?? "").replace(/,/g, "")),
+    }));
     const last = series[series.length - 1]!;
     const prev = series[series.length - 2];
     const total = series.reduce((a, b) => a + (Number.isFinite(b.arrivals) ? b.arrivals : 0), 0);
+    const boatsTotal = series.reduce((a, b) => a + (Number.isFinite(b.boats) ? b.boats : 0), 0);
+    const range = `${series[0]!.date} – ${series[series.length - 1]!.date}`;
     const asOf = data.public_updated_at ?? null;
     const nextDue = asOf ? new Date(new Date(asOf).getTime() + 86_400_000).toISOString() : null;
     const delta = prev ? last.arrivals - prev.arrivals : null;
@@ -277,6 +296,7 @@ async function smallBoats(): Promise<Metric[]> {
       {
         ...daily,
         value: last.arrivals.toLocaleString("en-GB"),
+        sub: `${last.arrivals.toLocaleString("en-GB")} people in ${last.boats.toLocaleString("en-GB")} boat${last.boats === 1 ? "" : "s"} detected on ${last.date}`,
         period: last.date,
         asOf,
         nextDue,
@@ -293,13 +313,25 @@ async function smallBoats(): Promise<Metric[]> {
       },
       {
         ...weekly,
-        value: total.toLocaleString("en-GB"),
-        period: `${series[0]!.date} – ${last.date}`,
+        value: `${total.toLocaleString("en-GB")} people`,
+        sub: `${total.toLocaleString("en-GB")} people arrived in ${boatsTotal.toLocaleString("en-GB")} boat${boatsTotal === 1 ? "" : "s"} over ${range}`,
+        period: range,
         asOf,
         nextDue,
         spark: series.map((s) => s.arrivals),
         status: "ok",
-        note: "Sum of the seven daily figures exactly as published; no smoothing or estimation.",
+        note: "Small boat detections only, summed from the seven published daily figures. This is the small boat route, not every irregular arrival route; the quarterly illegal-entry total below covers all detected routes.",
+      },
+      {
+        ...boatsWeek,
+        value: `${boatsTotal.toLocaleString("en-GB")} boats`,
+        sub: `${boatsTotal.toLocaleString("en-GB")} boat${boatsTotal === 1 ? "" : "s"} carrying ${total.toLocaleString("en-GB")} people over ${range}`,
+        period: range,
+        asOf,
+        nextDue,
+        spark: series.map((s) => s.boats),
+        status: "ok",
+        note: "Boats arriving as published daily by the Home Office; boats involved in uncontrolled landings are counted separately in the source table.",
       },
     ];
   } catch (e) {
@@ -307,6 +339,7 @@ async function smallBoats(): Promise<Metric[]> {
     return [
       { ...daily, note },
       { ...weekly, note },
+      { ...boatsWeek, note },
     ];
   }
 }
@@ -417,7 +450,7 @@ async function nextAnnounced(query: string): Promise<string | null> {
 async function immigrationSystem(): Promise<Metric[]> {
   const collection = "https://www.gov.uk/government/collections/immigration-statistics-quarterly-release";
   const base = {
-    category: "Immigration" as const,
+    category: "Irregular immigration & cost" as const,
     source: "Home Office",
     cadence: "Quarterly official statistics",
     change: null,
@@ -521,6 +554,93 @@ async function immigrationSystem(): Promise<Metric[]> {
     return fallback;
   }
 }
+
+/** Lawful (non-irregular) immigration: work, study and family visa grants from the same Home Office release. */
+async function legalImmigration(): Promise<Metric[]> {
+  const collection = "https://www.gov.uk/government/collections/immigration-statistics-quarterly-release";
+  const base = {
+    category: "Immigration" as const,
+    source: "Home Office · entry clearance visas",
+    cadence: "Quarterly official statistics",
+    change: null,
+    spark: [] as number[],
+    status: "unavailable" as const,
+    value: null,
+    period: null,
+    asOf: null,
+    nextDue: null,
+    sourceUrl: collection,
+    note: "Home Office release could not be read.",
+  };
+  const specs = [
+    {
+      id: "uk-visas-work",
+      slug: "why-do-people-come-to-the-uk-work",
+      title: "Work visas granted",
+      sub: "All work categories, main applicants and dependants",
+      re: /There were ([\d,]+) visas issued \(including dependants\) in all work categories/i,
+      note: "Lawful migration route. Visa grants are not the same as arrivals or net migration.",
+    },
+    {
+      id: "uk-visas-study",
+      slug: "why-do-people-come-to-the-uk-study",
+      title: "Sponsored study visas granted",
+      sub: "Sponsored study grants, main applicants and dependants",
+      re: /there were ([\d,]+) sponsored study visas grants/i,
+      note: "Lawful migration route. Excludes short-term study of under 6 months.",
+    },
+    {
+      id: "uk-visas-family",
+      slug: "why-do-people-come-to-the-uk-family",
+      title: "Family visas granted",
+      sub: "Family route grants, excluding work and study dependants",
+      re: /([\d,]+) Family visas were granted/i,
+      note: "Lawful migration route. Dependants on work and study visas are counted in those routes.",
+    },
+  ];
+  const fallback: Metric[] = specs.map((s) => ({ ...base, id: s.id, title: s.title, sub: s.sub }));
+
+  try {
+    const search = await getJson<{ results: { link: string; public_timestamp: string }[] }>(
+      "https://www.gov.uk/api/search.json?q=Immigration%20system%20statistics%20year%20ending&count=10&fields=link,public_timestamp",
+    );
+    const release = (search.results ?? [])
+      .filter((r) => /^\/government\/statistics\/immigration-system-statistics-year-ending-/.test(r.link))
+      .sort((a, b) => b.public_timestamp.localeCompare(a.public_timestamp))[0];
+    if (!release) return fallback;
+
+    const pm = /year-ending-([a-z]+)-(\d{4})$/.exec(release.link);
+    const period = pm ? `Year ending ${pm[1]!.charAt(0).toUpperCase()}${pm[1]!.slice(1)} ${pm[2]}` : null;
+    const due = await nextAnnounced("Immigration system statistics");
+
+    const pages = await Promise.all(
+      specs.map((s) =>
+        getJson<GovukContent>(`https://www.gov.uk/api/content${release.link}/${s.slug}`).catch(() => null),
+      ),
+    );
+
+    return specs.map((s, i) => {
+      const page = pages[i];
+      const fb = fallback[i]!;
+      if (!page?.details?.body) return fb;
+      const m = s.re.exec(stripTags(page.details.body));
+      if (!m) return fb;
+      return {
+        ...fb,
+        value: Number(m[1]!.replace(/,/g, "")).toLocaleString("en-GB"),
+        period,
+        asOf: page.public_updated_at ?? null,
+        nextDue: due,
+        sourceUrl: `https://www.gov.uk${release.link}/${s.slug}`,
+        status: "ok" as const,
+        note: s.note,
+      };
+    });
+  } catch {
+    return fallback;
+  }
+}
+
 
 /** UK defence spending from the World Bank API (SIPRI Military Expenditure Database). */
 async function defenceSpend(): Promise<Metric> {
@@ -681,7 +801,7 @@ const money = (pounds: number) => {
  */
 async function irregularCost(): Promise<Metric[]> {
   const base = {
-    category: "Cost of irregular immigration" as const,
+    category: "Irregular immigration & cost" as const,
     source: "Home Office annual report and accounts",
     cadence: "Annual, published each summer with the departmental accounts",
     change: null,
@@ -925,6 +1045,7 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     smallBoats(),
     weather(),
     immigrationSystem(),
+    legalImmigration(),
     defenceSpend(),
     threatLevel(),
     irregularCost(),
