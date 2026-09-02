@@ -1851,6 +1851,8 @@ async function sexualOffences(): Promise<Metric[]> {
     cadence: "Quarterly, with the Crime in England and Wales release",
   };
   try {
+    // Stagger behind the other ONS workbook fetch so the publisher does not rate-limit us.
+    await wait(4_000);
     const landing = await retrying(() => getJson<{
       datasets?: { uri: string }[];
       description?: { nextRelease?: string };
