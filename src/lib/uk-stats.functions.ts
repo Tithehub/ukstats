@@ -1803,7 +1803,8 @@ async function recordedCrime(): Promise<Metric[]> {
     }
 
     return metrics;
-  } catch {
+  } catch (e) {
+    console.error("recordedCrime failed", e);
     return [];
   }
 }
