@@ -61,6 +61,8 @@ export interface Metric {
   scale?: MetricScale | null;
   /** Published component parts behind the figure, in the publisher's own order. */
   breakdown?: { label: string; value: number; highlight?: boolean }[] | null;
+  /** Wording to show in place of a value when the publisher does not collect this figure. */
+  emptyLabel?: string | null;
 
 }
 
