@@ -10,7 +10,7 @@ export type Category =
   | "Housing"
   | "Weather"
   | "Defence & security"
-  | "Cost of irregular immigration";
+  | "Irregular immigration & cost";
 
 export interface Metric {
   id: string;
