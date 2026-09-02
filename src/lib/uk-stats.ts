@@ -9,7 +9,8 @@ export type Category =
   | "Immigration"
   | "Housing"
   | "Weather"
-  | "Defence & security";
+  | "Defence & security"
+  | "Cost of irregular immigration";
 
 export interface Metric {
   id: string;
@@ -33,6 +34,12 @@ export interface Metric {
   spark: number[];
   status: MetricStatus;
   note: string | null;
+  /** Set when the figure is arithmetic on a published total rather than published directly. */
+  derivedFrom?: string | null;
+  /** Period the money actually relates to, as published. */
+  covers?: string | null;
+  /** ISO date from which no published figure exists yet. */
+  unknownFrom?: string | null;
 }
 
 export interface StatsPayload {
@@ -48,6 +55,7 @@ export const CATEGORIES: Category[] = [
   "Housing",
   "Weather",
   "Defence & security",
+  "Cost of irregular immigration",
 ];
 
 export type Freshness = "fresh" | "ageing" | "overdue" | "unknown";
@@ -57,7 +65,8 @@ const DAY = 86_400_000;
 export function freshnessOf(m: Metric, now = Date.now()): Freshness {
   if (m.status !== "ok" || !m.asOf) return "unknown";
   if (m.nextDue && new Date(m.nextDue).getTime() < now) return "overdue";
-  const age = now - new Date(m.asOf).getTime();
+  const basis = m.unknownFrom ?? m.asOf;
+  const age = now - new Date(basis).getTime();
   if (age < 7 * DAY) return "fresh";
   if (age < 28 * DAY) return "ageing";
   return "overdue";

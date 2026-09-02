@@ -50,6 +50,11 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">{metric.category}</p>
           <h3 className="mt-0.5 text-base font-semibold tracking-tight text-balance">{metric.title}</h3>
+          {metric.derivedFrom ? (
+            <span className="mt-1 inline-block rounded bg-ageing/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-ageing">
+              Derived
+            </span>
+          ) : null}
         </div>
         <span className="shrink-0 rounded-md bg-ink/5 px-2 py-1 font-mono text-[10px] text-steel">
           {metric.source.split(" · ")[0]}
@@ -90,6 +95,16 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
       <p className="mt-1 font-mono text-[10px] text-steel/50">
         {ageLabel(metric.asOf)} · {metric.cadence}
       </p>
+      {metric.covers || metric.unknownFrom ? (
+        <div className="mt-2 rounded-md bg-ink/[0.04] px-2 py-1.5 font-mono text-[10px] leading-relaxed text-steel/70">
+          {metric.covers ? <p>Covers: {metric.covers}</p> : null}
+          {metric.unknownFrom ? (
+            <p className="text-overdue/80">
+              Unknown from {fmtDate(metric.unknownFrom)} · published {fmtDate(metric.asOf)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-3 flex items-center gap-2 border-t border-ink/10 pt-3">
         <button

@@ -623,6 +623,231 @@ async function threatLevel(): Promise<Metric> {
   }
 }
 
+/* --------------- Cost of irregular immigration (Home Office accounts) -------- */
+
+async function getBytes(url: string, ms = 25_000): Promise<Uint8Array> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { headers: { ...UA }, signal: ctrl.signal });
+    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    return new Uint8Array(await res.arrayBuffer());
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function xmlText(s: string): string {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+interface SheetRow {
+  label: string;
+  cells: Record<string, string>;
+}
+
+function parseSheet(xml: string, shared: string[]): SheetRow[] {
+  const rows: SheetRow[] = [];
+  for (const rm of xml.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)) {
+    const cells: Record<string, string> = {};
+    for (const cm of (rm[1] ?? "").matchAll(
+      /<c r="([A-Z]+)\d+"([^>]*)>(?:<f[^>]*>[\s\S]*?<\/f>)?(?:<v>([^<]*)<\/v>)?/g,
+    )) {
+      const col = cm[1]!;
+      const raw = cm[3] ?? "";
+      if (!raw) continue;
+      cells[col] = cm[2]!.includes('t="s"') ? (shared[Number(raw)] ?? "") : raw;
+    }
+    rows.push({ label: cells["A"] ?? "", cells });
+  }
+  return rows;
+}
+
+const bn = (pounds: number) => `£${(pounds / 1_000_000_000).toFixed(2)}bn`;
+const money = (pounds: number) => {
+  if (pounds >= 1_000_000_000) return `£${(pounds / 1_000_000_000).toFixed(2)}bn`;
+  if (pounds >= 1_000_000) return `£${(pounds / 1_000_000).toFixed(1)}m`;
+  return `£${Math.round(pounds).toLocaleString("en-GB")}`;
+};
+
+/**
+ * Published asylum support / accommodation outturn from the Home Office annual report
+ * core data tables, plus day / week / month rates derived from that published annual total.
+ */
+async function irregularCost(): Promise<Metric[]> {
+  const base = {
+    category: "Cost of irregular immigration" as const,
+    source: "Home Office annual report and accounts",
+    cadence: "Annual, published each summer with the departmental accounts",
+    change: null,
+    spark: [] as number[],
+  };
+  const unavailable = (id: string, title: string, sub: string): Metric => ({
+    ...base,
+    id,
+    title,
+    sourceUrl: "https://www.gov.uk/government/collections/home-office-annual-reports-and-accounts",
+    value: null,
+    sub,
+    period: null,
+    asOf: null,
+    nextDue: null,
+    status: "unavailable",
+    note: "Not published: the Home Office accounts could not be read, so no figure is shown.",
+  });
+  const fallback = [
+    unavailable("uk-irregular-cost-day", "Cost of asylum support per day", "Derived from the published annual outturn"),
+    unavailable("uk-irregular-cost-week", "Cost of asylum support per week", "Derived from the published annual outturn"),
+    unavailable("uk-irregular-cost-month", "Cost of asylum support per month", "Derived from the published annual outturn"),
+    unavailable("uk-irregular-cost-year", "Cost of asylum support per year", "Published resource outturn"),
+    unavailable("uk-irregular-cost-decade", "Cost of asylum support per decade", "Sum of published annual outturns"),
+  ];
+
+  try {
+    const search = await getJson<{ results: { link: string; public_timestamp: string }[] }>(
+      "https://www.gov.uk/api/search.json?q=Home%20Office%20annual%20report%20and%20accounts&filter_format=corporate_report&count=10&fields=link,public_timestamp",
+    );
+    const pub = (search.results ?? [])
+      .filter((r) => /^\/government\/publications\/home-office-annual-report-and-accounts-\d{4}-to-\d{4}$/.test(r.link))
+      .sort((a, b) => b.link.localeCompare(a.link))[0];
+    if (!pub) return fallback;
+
+    const content = await getJson<{
+      public_updated_at?: string;
+      first_published_at?: string;
+      details?: { attachments?: { title?: string; url?: string; content_type?: string }[] };
+    }>(`https://www.gov.uk/api/content${pub.link}`);
+    const xlsxUrl = (content.details?.attachments ?? []).find(
+      (a) => /core data tables/i.test(a.title ?? "") && /\.xlsx$/i.test(a.url ?? ""),
+    )?.url;
+    if (!xlsxUrl) return fallback;
+
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(await getBytes(xlsxUrl));
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const rows = parseSheet(strFromU8(files["xl/worksheets/sheet1.xml"]!), shared);
+
+    // Column -> financial year, restricted to outturn (not plans) columns.
+    const yearRow = rows.find((r) => Object.values(r.cells).some((v) => /^\d{4}-\d{2}$/.test(v)));
+    const typeRow = rows.find((r) => Object.values(r.cells).some((v) => /^(OUTTURN|PLANS)$/i.test(v)));
+    if (!yearRow || !typeRow) return fallback;
+    const cols: { col: string; year: string }[] = [];
+    for (const [col, v] of Object.entries(yearRow.cells)) {
+      if (/^\d{4}-\d{2}$/.test(v) && /outturn/i.test(typeRow.cells[col] ?? "")) cols.push({ col, year: v });
+    }
+    cols.sort((a, b) => a.year.localeCompare(b.year));
+
+    // Asylum rows inside the Resource DEL block only (day-to-day spend).
+    const start = rows.findIndex((r) => /^resource del$/i.test(r.label.trim()));
+    const end = rows.findIndex((r) => /^total resource del/i.test(r.label.trim()));
+    const asylumRows = rows.slice(start + 1, end > start ? end : rows.length).filter((r) => /^asylum/i.test(r.label));
+    if (!asylumRows.length) return fallback;
+
+    const byYear: { year: string; pounds: number }[] = [];
+    for (const { col, year } of cols) {
+      let total = 0;
+      let seen = false;
+      for (const r of asylumRows) {
+        const n = Number(r.cells[col]);
+        if (Number.isFinite(n) && r.cells[col] !== undefined) {
+          total += n;
+          if (n > 0) seen = true;
+        }
+      }
+      if (seen) byYear.push({ year, pounds: total * 1000 });
+    }
+    if (!byYear.length) return fallback;
+
+    const latest = byYear[byYear.length - 1]!;
+    const prev = byYear[byYear.length - 2];
+    const endYear = Number(latest.year.slice(0, 4)) + 1;
+    const unknownFrom = `${endYear}-04-01`;
+    const covers = `Financial year ${latest.year} (1 Apr ${latest.year.slice(0, 4)} to 31 Mar ${endYear})`;
+    const asOf = content.public_updated_at ?? content.first_published_at ?? pub.public_timestamp ?? null;
+    const due = await nextAnnounced("Home Office annual report and accounts");
+    const sourceUrl = `https://www.gov.uk${pub.link}`;
+    const spark = byYear.map((y) => y.pounds / 1_000_000_000);
+    const change = prev
+      ? {
+          label: `${(((latest.pounds - prev.pounds) / prev.pounds) * 100).toFixed(1)}% vs ${prev.year}`,
+          dir: (latest.pounds > prev.pounds ? "up" : latest.pounds < prev.pounds ? "down" : "flat") as
+            | "up"
+            | "down"
+            | "flat",
+        }
+      : null;
+    const line = asylumRows.map((r) => r.label).join(" + ");
+    const shared_ = {
+      ...base,
+      sourceUrl,
+      period: `Financial year ${latest.year}`,
+      asOf,
+      nextDue: due,
+      covers,
+      unknownFrom,
+      status: "ok" as const,
+    };
+
+    const rate = (id: string, title: string, pounds: number, per: string): Metric => ({
+      ...shared_,
+      id,
+      title,
+      value: money(pounds),
+      sub: `Derived from the published ${latest.year} outturn of ${bn(latest.pounds)} — ${per}`,
+      spark: [],
+      change: null,
+      derivedFrom: `Published annual outturn ${bn(latest.pounds)} for ${latest.year}, divided to a ${per.split(" ")[0]} rate`,
+      note: `Derived figure, not published as such. The Home Office publishes only the annual outturn (${line}); this card divides that published total. No spend after 31 Mar ${endYear} is published yet.`,
+    });
+
+    const years = byYear.map((y) => y.year);
+    const decadeTotal = byYear.reduce((a, y) => a + y.pounds, 0);
+    const firstYear = Number(years[0]!.slice(0, 4));
+    const missing: string[] = [];
+    for (let y = endYear - 10; y < firstYear; y++) missing.push(`${y}-${String((y + 1) % 100).padStart(2, "0")}`);
+
+    return [
+      rate("uk-irregular-cost-day", "Cost of asylum support per day", latest.pounds / 365, "daily rate"),
+      rate("uk-irregular-cost-week", "Cost of asylum support per week", (latest.pounds / 365) * 7, "weekly rate"),
+      rate("uk-irregular-cost-month", "Cost of asylum support per month", latest.pounds / 12, "monthly rate"),
+      {
+        ...shared_,
+        id: "uk-irregular-cost-year",
+        title: "Cost of asylum support per year",
+        value: bn(latest.pounds),
+        sub: "Resource DEL outturn on asylum support, resettlement and accommodation",
+        spark,
+        change,
+        note: `Published exactly as reported in the Home Office accounts (${line}), resource DEL outturn. Covers asylum accommodation and support, not the whole cost of the immigration system.`,
+      },
+      {
+        ...shared_,
+        id: "uk-irregular-cost-decade",
+        title: "Cost of asylum support per decade",
+        value: bn(decadeTotal),
+        sub: `Sum of ${years.length} published years of the last 10: ${years.join(", ")}`,
+        period: `${years[0]} to ${latest.year}`,
+        spark,
+        change: null,
+        covers: `Financial years ${years.join(", ")}`,
+        note: missing.length
+          ? `Partial total. Published outturn is only available in this table for ${years.join(", ")}; no comparable figure is published here for ${missing.join(", ")}, so those years are excluded rather than estimated.`
+          : "Sum of the published annual outturns for the last ten financial years.",
+      },
+    ];
+  } catch {
+    return fallback;
+  }
+}
+
 
 /* ---------------------------------- assembly -------------------------------- */
 
@@ -702,6 +927,7 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     immigrationSystem(),
     defenceSpend(),
     threatLevel(),
+    irregularCost(),
 
   ];
 
