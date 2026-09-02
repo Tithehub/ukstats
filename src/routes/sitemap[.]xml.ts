@@ -13,6 +13,7 @@ interface SitemapEntry {
 // /p/$slug pages are private, time-limited links.
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "hourly", priority: "1.0" },
+  { path: "/register", changefreq: "hourly", priority: "0.9" },
   { path: "/widget", changefreq: "monthly", priority: "0.8" },
   { path: "/create", changefreq: "monthly", priority: "0.6" },
 ];
