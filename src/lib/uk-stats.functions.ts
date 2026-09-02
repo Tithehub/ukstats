@@ -15,6 +15,23 @@ async function getJson<T>(url: string, ms = 20_000): Promise<T> {
   }
 }
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** ONS rate-limits bursts with HTTP 429; retry with backoff before giving up on the feed. */
+async function retrying<T>(fn: () => Promise<T>, attempts = 6): Promise<T> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      last = e;
+      if (!/\b429\b/.test(String(e)) || i === attempts - 1) throw e;
+      await wait(1_200 * (i + 1) + Math.floor(Math.random() * 600));
+    }
+  }
+  throw last;
+}
+
 /* ------------------------------ ONS time series ----------------------------- */
 
 interface OnsPoint {
@@ -1615,6 +1632,7 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     irregularCost(),
     smallBoatDemographics(),
     recordedCrime(),
+    sexualOffences(),
 
 
   ];
@@ -1677,23 +1695,23 @@ async function recordedCrime(): Promise<Metric[]> {
     spark: [] as number[],
   };
   try {
-    const landing = await getJson<{
+    const landing = await retrying(() => getJson<{
       datasets?: { uri: string }[];
       description?: { nextRelease?: string };
-    }>(`https://www.ons.gov.uk${CRIME_DATASET}/data`);
+    }>(`https://www.ons.gov.uk${CRIME_DATASET}/data`));
     const versionUri = landing.datasets?.[0]?.uri;
     if (!versionUri) return [];
 
-    const version = await getJson<{
+    const version = await retrying(() => getJson<{
       downloads?: { file: string }[];
       description?: { releaseDate?: string };
-    }>(`https://www.ons.gov.uk${versionUri}/data`);
+    }>(`https://www.ons.gov.uk${versionUri}/data`));
     const file = version.downloads?.[0]?.file;
     if (!file) return [];
 
     const { unzipSync, strFromU8 } = await import("fflate");
     const files = unzipSync(
-      await getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000),
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000)),
     ) as unknown as Record<string, Uint8Array>;
     const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
     const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
@@ -1802,7 +1820,221 @@ async function recordedCrime(): Promise<Metric[]> {
     }
 
     return metrics;
-  } catch {
+  } catch (e) {
+    console.error("recordedCrime failed", e);
+    return [];
+  }
+}
+
+/* ------------------ Sexual offences in detail (ONS appendix tables) ------------------ */
+
+const CRIME_APPENDIX =
+  "/peoplepopulationandcommunity/crimeandjustice/datasets/crimeinenglandandwalesappendixtables";
+
+const norm = (s: string) => s.replace(/\s+/g, " ").replace(/\[note[^\]]*\]/gi, "").trim();
+const num = (v: string | undefined) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+const pctLabel = (p: number) => `${p > 0 ? "+" : ""}${p.toFixed(1)}% vs previous year`;
+
+/**
+ * Published sexual offence detail from the ONS "Crime in England and Wales: Appendix tables"
+ * release: table A6 (rate per 1,000 population, count, changes), A5a (offence-level counts)
+ * and A7 (published rate series). Every figure shown is read from the publisher's own cells.
+ */
+async function sexualOffences(): Promise<Metric[]> {
+  const base = {
+    category: "Crime" as const,
+    source: "Police recorded crime, Home Office (published by ONS)",
+    sourceUrl: `https://www.ons.gov.uk${CRIME_APPENDIX}`,
+    cadence: "Quarterly, with the Crime in England and Wales release",
+  };
+  try {
+    // Stagger behind the other ONS workbook fetch so the publisher does not rate-limit us.
+    await wait(4_000);
+    const landing = await retrying(() => getJson<{
+      datasets?: { uri: string }[];
+      description?: { nextRelease?: string };
+    }>(`https://www.ons.gov.uk${CRIME_APPENDIX}/data`));
+    const versionUri = landing.datasets?.[0]?.uri;
+    if (!versionUri) return [];
+
+    const version = await retrying(() => getJson<{
+      downloads?: { file: string }[];
+      description?: { releaseDate?: string };
+    }>(`https://www.ons.gov.uk${versionUri}/data`));
+    const file = version.downloads?.[0]?.file;
+    if (!file) return [];
+
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000)),
+    ) as unknown as Record<string, Uint8Array>;
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const names = sheetsByName(files, strFromU8);
+    const read = (name: string): SheetRow[] => {
+      const path = names.get(name);
+      if (!path || !files[path]) return [];
+      return parseSheet(strFromU8(files[path]!), shared);
+    };
+
+    const a6 = read("Table A6");
+    const a7 = read("Table A7");
+    const a5 = read("Table A5a");
+    if (!a6.length || !a5.length) return [];
+
+    const asOf = version.description?.releaseDate ?? null;
+    const announced = landing.description?.nextRelease
+      ? new Date(landing.description.nextRelease)
+      : null;
+    const nextDue =
+      announced && !Number.isNaN(announced.getTime())
+        ? announced.toISOString()
+        : await onsNextRelease("Crime in England and Wales");
+
+    const yearEnding = /year ending \w+ \d{4}/i.exec(a6[1]?.label ?? a6[0]?.label ?? "");
+    const period = yearEnding ? `${yearEnding[0]}, England and Wales` : "England and Wales";
+
+    /* ---- Table A6: rate per 1,000 population, count, year-on-year and ten-year change ---- */
+    const a6Header = a6.find((r) => norm(r.cells["A"] ?? "").startsWith("Offence type"));
+    if (!a6Header) return [];
+    const colWith = (header: SheetRow, needle: RegExp) =>
+      Object.entries(header.cells).find(([, v]) => needle.test(norm(v)))?.[0];
+    const rateCol = colWith(a6Header, /^Rate per 1,000/i);
+    const countCol = colWith(a6Header, /^Number of recorded/i);
+    const decadeCol = colWith(a6Header, /with Apr \d{4}/i);
+    const yoyCol = colWith(a6Header, /with previous year/i);
+
+    const a6Row = (label: string) =>
+      a6.find((r) => norm(r.cells["A"] ?? "").toLowerCase() === label.toLowerCase());
+
+    /* ---- Table A7: published rate per 1,000 population series, for the sparkline ---- */
+    const a7Header = a7.find((r) => norm(r.cells["A"] ?? "").startsWith("Offence group"));
+    const a7YearCols = a7Header
+      ? Object.entries(a7Header.cells)
+          .filter(([, v]) => /^Apr \d{4} to/i.test(norm(v)))
+          .map(([c]) => c)
+      : [];
+    const seriesFor = (label: string): number[] => {
+      const row = a7.find((r) => norm(r.cells["A"] ?? "").toLowerCase() === label.toLowerCase());
+      if (!row) return [];
+      return a7YearCols.map((c) => num(row.cells[c])).filter((n): n is number => n !== null);
+    };
+
+    const metrics: Metric[] = [];
+    const rape = num(a6Row("Rape")?.cells[countCol ?? ""]);
+    const other = num(a6Row("Other sexual offences")?.cells[countCol ?? ""]);
+
+    const headline: { label: string; title: string; id: string; note: string }[] = [
+      {
+        label: "Sexual offences",
+        title: "Sexual offences recorded by the police",
+        id: "uk-crime-sexual-offences-total",
+        note: "Total sexual offences recorded by the police in England and Wales, ONS appendix table A6. The rate per 1,000 population is the publisher's own figure.",
+      },
+      {
+        label: "Rape",
+        title: "Rape offences recorded by the police",
+        id: "uk-crime-sexual-rape",
+        note: "Rape offences recorded by the police, ONS appendix table A6. Recorded crime counts reflect reporting and recording practice as well as offending.",
+      },
+      {
+        label: "Other sexual offences",
+        title: "Other sexual offences recorded by the police",
+        id: "uk-crime-sexual-other",
+        note: "All sexual offences other than rape, ONS appendix table A6.",
+      },
+    ];
+
+    for (const h of headline) {
+      const row = a6Row(h.label);
+      const count = num(row?.cells[countCol ?? ""]);
+      if (count === null) continue;
+      const rate = num(row?.cells[rateCol ?? ""]);
+      const yoy = num(row?.cells[yoyCol ?? ""]);
+      const decade = num(row?.cells[decadeCol ?? ""]);
+      metrics.push({
+        ...base,
+        id: h.id,
+        title: h.title,
+        value: count.toLocaleString("en-GB"),
+        sub: [
+          rate !== null ? `${rate.toFixed(2)} per 1,000 population` : "rate per 1,000 not published",
+          decade !== null
+            ? `${decade > 0 ? "+" : ""}${decade.toFixed(1)}% vs ten years earlier`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        period,
+        asOf,
+        nextDue,
+        change: yoy !== null ? { label: pctLabel(yoy), dir: yoy > 0 ? "up" : yoy < 0 ? "down" : "flat" } : null,
+        spark: seriesFor(h.label),
+        status: "ok",
+        note: h.note,
+        breakdown:
+          h.label === "Sexual offences" && rape !== null && other !== null
+            ? [
+                { label: "Rape", value: rape, highlight: true },
+                { label: "Other sexual offences", value: other },
+              ]
+            : null,
+      });
+    }
+
+    /* ---- Table A5a: individual published sexual offence categories ---- */
+    const a5Header = a5.find((r) => norm(r.cells["B"] ?? "") === "Offence category");
+    if (a5Header) {
+      const a5YearCols = Object.entries(a5Header.cells)
+        .filter(([, v]) => /^Apr \d{4} to/i.test(norm(v)) && !/% change/i.test(norm(v)))
+        .map(([c]) => c);
+      const latestCol = a5YearCols[a5YearCols.length - 1];
+      const a5PctCol = Object.entries(a5Header.cells).find(([, v]) => /% change/i.test(norm(v)))?.[0];
+      const summary = /^(rape|other sexual offences|total sexual offences)$/i;
+      for (const row of a5) {
+        const label = norm(row.cells["B"] ?? "");
+        if (!label || !/rape|sexual/i.test(label)) continue;
+        if (summary.test(label)) continue;
+        if (/obscene publications/i.test(label)) continue;
+        const raw = (row.cells[latestCol ?? ""] ?? "").trim();
+        const count = num(raw);
+        const code = (row.cells["A"] ?? "").trim();
+        const codeLabel = code && /^[0-9]+[A-Z]?$/.test(code) ? `Home Office offence code ${code}` : null;
+        const pct = num(row.cells[a5PctCol ?? ""]);
+        metrics.push({
+          ...base,
+          id: `uk-crime-sexual-${slug(label)}`,
+          title: label,
+          value: count !== null ? count.toLocaleString("en-GB") : null,
+          emptyLabel: count === null ? "Not published" : null,
+          sub: [codeLabel, "rate per 1,000 not published at this level of detail"]
+            .filter(Boolean)
+            .join(" · "),
+          period,
+          asOf,
+          nextDue,
+          change:
+            count !== null && pct !== null
+              ? { label: pctLabel(pct), dir: pct > 0 ? "up" : pct < 0 ? "down" : "flat" }
+              : null,
+          spark: [],
+          status: count !== null ? "ok" : "unavailable",
+          note:
+            count !== null
+              ? "Offence-level count from ONS appendix table A5a. ONS publishes a rate per 1,000 population only at offence-group level, so none is shown here."
+              : "ONS publishes this category as unavailable or suppressed in appendix table A5a, so no figure is shown.",
+        });
+      }
+    }
+
+    return metrics;
+  } catch (e) {
+    console.error("sexualOffences failed", e);
     return [];
   }
 }
