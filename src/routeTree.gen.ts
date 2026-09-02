@@ -14,8 +14,10 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
+import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +45,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WidgetRoute = WidgetRouteImport.update({
   id: '/widget',
   path: '/widget',
@@ -51,6 +58,11 @@ const WidgetRoute = WidgetRouteImport.update({
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
   id: '/embed/$metric',
   path: '/embed/$metric',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryMetricIdRoute = HistoryMetricIdRouteImport.update({
+  id: '/history/$metricId',
+  path: '/history/$metricId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PSlugRoute = PSlugRouteImport.update({
@@ -65,8 +77,10 @@ export interface FileRoutesByFullPath {
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
 }
 export interface FileRoutesByTo {
@@ -75,8 +89,10 @@ export interface FileRoutesByTo {
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
 }
 export interface FileRoutesById {
@@ -86,8 +102,10 @@ export interface FileRoutesById {
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
 }
 export interface FileRouteTypes {
@@ -98,8 +116,10 @@ export interface FileRouteTypes {
     | '/my-pages'
     | '/register'
     | '/sitemap.xml'
+    | '/support'
     | '/widget'
     | '/embed/$metric'
+    | '/history/$metricId'
     | '/p/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -108,8 +128,10 @@ export interface FileRouteTypes {
     | '/my-pages'
     | '/register'
     | '/sitemap.xml'
+    | '/support'
     | '/widget'
     | '/embed/$metric'
+    | '/history/$metricId'
     | '/p/$slug'
   id:
     | '__root__'
@@ -118,8 +140,10 @@ export interface FileRouteTypes {
     | '/my-pages'
     | '/register'
     | '/sitemap.xml'
+    | '/support'
     | '/widget'
     | '/embed/$metric'
+    | '/history/$metricId'
     | '/p/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -129,8 +153,10 @@ export interface RootRouteChildren {
   MyPagesRoute: typeof MyPagesRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SupportRoute: typeof SupportRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
+  HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
 }
 
@@ -171,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/widget': {
       id: '/widget'
       path: '/widget'
@@ -183,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/embed/$metric'
       fullPath: '/embed/$metric'
       preLoaderRoute: typeof EmbedMetricRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history/$metricId': {
+      id: '/history/$metricId'
+      path: '/history/$metricId'
+      fullPath: '/history/$metricId'
+      preLoaderRoute: typeof HistoryMetricIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/p/$slug': {
@@ -201,8 +241,10 @@ const rootRouteChildren: RootRouteChildren = {
   MyPagesRoute: MyPagesRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SupportRoute: SupportRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
+  HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
 }
 export const routeTree = rootRouteImport

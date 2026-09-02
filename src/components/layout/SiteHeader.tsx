@@ -8,6 +8,7 @@ const NAV = [
   { to: "/widget", label: "Widgets" },
   { to: "/create", label: "Reports" },
   { to: "/my-pages", label: "My pages" },
+  { to: "/support", label: "Support" },
 ] as const;
 
 export function Wordmark() {

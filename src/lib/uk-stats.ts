@@ -29,6 +29,43 @@ export interface MetricScale {
 }
 
 
+/** One observation of a published series, reproduced verbatim. */
+export interface HistoryPoint {
+  label: string;
+  value: number;
+  formatted: string;
+  updated: string | null;
+}
+
+export interface HistoryPayload {
+  id: string;
+  title: string;
+  category: Category;
+  subcategory: string | null;
+  sub: string | null;
+  source: string;
+  sourceUrl: string;
+  seriesTitle: string;
+  cadence: string;
+  unit: string;
+  nextDue: string | null;
+  points: HistoryPoint[];
+  fetchedAt: string;
+}
+
+/** Cost of living groupings, in the order they are shown. */
+export const COST_GROUPS: { name: string; blurb: string }[] = [
+  { name: "Headline inflation", blurb: "The ONS's own headline consumer price measures." },
+  { name: "Household shopping", blurb: "Food, drink, clothing, household goods and eating out." },
+  { name: "Energy & fuel", blurb: "Electricity, gas, motor fuels and the wider housing and fuels division." },
+  { name: "Council tax", blurb: "Council tax and rates, as measured inside CPIH." },
+  { name: "Telephone & internet", blurb: "Communication services and telephone equipment price indices." },
+  { name: "Water & sewerage", blurb: "Water supply and sewerage collection charges." },
+  { name: "House prices & rents", blurb: "Rents inside the price indices; sale prices sit under Housing." },
+  { name: "Travel costs", blurb: "Rail, road and air fares, plus transport as a whole." },
+  { name: "Wages", blurb: "Average weekly earnings, for comparison against prices." },
+];
+
 export interface Metric {
   id: string;
   category: Category;
@@ -63,6 +100,14 @@ export interface Metric {
   breakdown?: { label: string; value: number; highlight?: boolean }[] | null;
   /** Wording to show in place of a value when the publisher does not collect this figure. */
   emptyLabel?: string | null;
+  /** Cost of living grouping, or another sub-grouping within the category. */
+  subcategory?: string | null;
+  /** True when the full published series can be loaded for this metric. */
+  hasHistory?: boolean;
+  /** Label of the first published observation, e.g. "1989 JAN". */
+  historyFrom?: string | null;
+  /** Number of published observations available. */
+  historyPoints?: number | null;
 
 }
 
