@@ -927,6 +927,7 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     immigrationSystem(),
     defenceSpend(),
     threatLevel(),
+    irregularCost(),
 
   ];
 
