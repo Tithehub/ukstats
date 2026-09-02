@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { extendSharedPage, listOwnedPages } from "@/lib/shared-pages.functions";
 import { getOwnerToken } from "@/lib/owner-token";
 import { TIERS, countdown } from "@/lib/tiers";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { fmtDate } from "@/lib/uk-stats";
 
 export const Route = createFileRoute("/my-pages")({
@@ -55,20 +56,9 @@ function MyPages() {
   }
 
   return (
-    <div className="min-h-screen bg-ground font-sans text-ink">
-      <header className="border-b border-steel/10">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="grid size-8 place-items-center rounded-lg bg-ink font-mono text-xs font-semibold text-ground">
-              UK
-            </span>
-            <span className="text-[13px] font-semibold tracking-tight">National Data Register</span>
-          </Link>
-          <Link to="/create" className="rounded-md bg-ink px-3 py-2 text-[13px] font-medium text-ground hover:bg-steel">
-            New live page
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-night font-sans text-night-fg">
+      <SiteHeader />
+
 
       <main className="mx-auto max-w-[1100px] px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">My live pages</h1>

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { createSharedPage } from "@/lib/shared-pages.functions";
 import { getOwnerToken } from "@/lib/owner-token";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { TIERS } from "@/lib/tiers";
 import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
 
@@ -71,20 +72,9 @@ function CreatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-ground font-sans text-ink">
-      <header className="border-b border-steel/10">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="grid size-8 place-items-center rounded-lg bg-ink font-mono text-xs font-semibold text-ground">
-              UK
-            </span>
-            <span className="text-[13px] font-semibold tracking-tight">National Data Register</span>
-          </Link>
-          <Link to="/my-pages" className="font-mono text-[11px] text-steel underline decoration-brand underline-offset-4">
-            My live pages
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-night font-sans text-night-fg">
+      <SiteHeader />
+
 
       <main className="mx-auto max-w-[1100px] px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-semibold tracking-tight text-balance">Create a live, shareable stats page</h1>

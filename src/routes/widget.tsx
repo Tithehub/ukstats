@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { isStatusMetric } from "@/components/ThreatBoard";
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -74,23 +75,15 @@ function WidgetBuilder() {
   const valid = mode === "board" || selected.length > 0;
 
   return (
-    <div className="min-h-screen bg-ground font-sans text-ink">
-      <header className="border-b border-steel/10">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-steel/60">Widget builder</p>
-            <h1 className="text-lg font-semibold tracking-tight">Embed live UK statistics anywhere</h1>
-          </div>
-          <div className="flex items-center gap-3 font-mono text-[11px] text-steel">
-            <Link to="/" className="hover:underline">
-              Dashboard
-            </Link>
-            <Link to="/create" className="hover:underline">
-              Live page
-            </Link>
-          </div>
+    <div className="min-h-screen bg-night font-sans text-night-fg">
+      <SiteHeader />
+      <div className="border-b border-night-line/60 bg-night-panel/40">
+        <div className="mx-auto max-w-[1200px] px-4 py-5 sm:px-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-night-muted">Widget builder</p>
+          <h1 className="mt-1 text-lg font-semibold tracking-tight">Embed live UK statistics anywhere</h1>
         </div>
-      </header>
+      </div>
+
 
       <main className="mx-auto grid max-w-[1200px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,380px)_1fr]">
         <section className="space-y-5" aria-labelledby="widget-options-heading">
