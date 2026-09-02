@@ -160,3 +160,40 @@
     color: var(--color-foreground);
   }
 }
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+}
+
+@keyframes pulse-fresh {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes roll-num {
+  from {
+    transform: translateY(-3px);
+    opacity: 0.2;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility pulse-dot {
+  animation: pulse-fresh 1.8s ease-in-out infinite;
+}
+
+@utility roll {
+  animation: roll-num 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
