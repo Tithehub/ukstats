@@ -52,6 +52,30 @@ function Dashboard() {
   );
   const live = data.metrics.filter((m) => m.status === "ok").length;
 
+  const irregularGroups = useMemo(() => {
+    const irr = shown.filter((m) => m.category === "Irregular immigration & cost");
+    const isDemo = (id: string) => id.startsWith("uk-boats-");
+    const isCost = (id: string) => id.startsWith("uk-irregular-cost");
+    return [
+      {
+        title: "Arrivals",
+        blurb: "Detected arrivals and boats, as published by the Home Office",
+        metrics: irr.filter((m) => !isDemo(m.id) && !isCost(m.id)),
+      },
+      {
+        title: "Demographics",
+        blurb: "Age group and sex of small boat arrivals, Home Office table IER_02c",
+        metrics: irr.filter((m) => isDemo(m.id)),
+      },
+      {
+        title: "Cost",
+        blurb: "Published asylum support outturn and rates derived from it",
+        metrics: irr.filter((m) => isCost(m.id)),
+      },
+    ];
+  }, [shown]);
+
+
 
   return (
     <div className="min-h-screen bg-ground font-sans text-ink selection:bg-steel/20">
