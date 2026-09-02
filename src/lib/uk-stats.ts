@@ -6,6 +6,7 @@ export type Category =
   | "Finance"
   | "Cost of living"
   | "Crime"
+  | "Population & migration"
   | "Immigration"
   | "Housing"
   | "Weather"
