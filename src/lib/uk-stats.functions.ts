@@ -1711,7 +1711,7 @@ async function recordedCrime(): Promise<Metric[]> {
 
     const { unzipSync, strFromU8 } = await import("fflate");
     const files = unzipSync(
-      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000),
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000)),
     ) as unknown as Record<string, Uint8Array>;
     const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
     const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
@@ -1867,7 +1867,7 @@ async function sexualOffences(): Promise<Metric[]> {
 
     const { unzipSync, strFromU8 } = await import("fflate");
     const files = unzipSync(
-      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000),
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000)),
     ) as unknown as Record<string, Uint8Array>;
     const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
     const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
