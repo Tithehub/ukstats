@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, freshnessOf, fmtDate, type StatsPayload } from "@/lib/uk-stats";
 import { MetricCard } from "@/components/MetricCard";
+import { ThreatBoard, isStatusMetric } from "@/components/ThreatBoard";
+
 
 const statsQuery = queryOptions<StatsPayload>({
   queryKey: ["uk-stats"],
@@ -40,11 +42,16 @@ function Dashboard() {
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   const debt = data.metrics.find((m) => m.id === "uk-national-debt");
+  const statusMetrics = useMemo(
+    () => data.metrics.filter((m) => isStatusMetric(m) && (filter === "All" || m.category === filter)),
+    [data.metrics, filter],
+  );
   const shown = useMemo(
-    () => data.metrics.filter((m) => filter === "All" || m.category === filter),
+    () => data.metrics.filter((m) => !isStatusMetric(m) && (filter === "All" || m.category === filter)),
     [data.metrics, filter],
   );
   const live = data.metrics.filter((m) => m.status === "ok").length;
+
 
   return (
     <div className="min-h-screen bg-ground font-sans text-ink selection:bg-steel/20">
@@ -72,6 +79,9 @@ function Dashboard() {
                 className="rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel"
               >
                 Create live page
+              </Link>
+              <Link to="/widget" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
+                Widget builder
               </Link>
               <Link to="/my-pages" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
                 My pages
@@ -126,6 +136,12 @@ function Dashboard() {
       <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
         <h1 className="sr-only">UK National Data Register — live official statistics</h1>
 
+        {statusMetrics.length ? (
+          <div className="pb-6">
+            <ThreatBoard metrics={statusMetrics} />
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-5 font-mono text-[11px] text-steel">
           <span className="font-semibold uppercase tracking-[0.14em] text-steel/70">Data age</span>
           <span className="inline-flex items-center gap-1.5">
@@ -153,6 +169,7 @@ function Dashboard() {
               <MetricCard key={m.id} metric={m} origin={origin} />
             ))}
         </div>
+
 
         <section className="relative mt-8 overflow-hidden rounded-2xl bg-steel p-6 text-ground/90 ring-1 ring-ink/10">
           <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/70 to-transparent" />
