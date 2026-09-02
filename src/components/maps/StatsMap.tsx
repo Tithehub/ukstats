@@ -72,10 +72,11 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
           [54.3, -2.5],
           6,
         );
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>. Boundaries: ONS Open Geography Portal, Crown copyright.',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Boundaries: ONS Open Geography Portal, Crown copyright.',
           maxZoom: 18,
+          className: "basemap-tiles",
         }).addTo(map.current);
         markers.current = L.layerGroup().addTo(map.current);
       }
