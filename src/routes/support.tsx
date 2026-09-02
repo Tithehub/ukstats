@@ -74,6 +74,22 @@ function AddressCard({ a }: { a: DonationAddress }) {
     }
   }
 
+  async function connect() {
+    const eth = metamask();
+    if (!eth) {
+      setState("MetaMask was not detected in this browser.");
+      return;
+    }
+    try {
+      const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
+      setState(
+        `Connected ${accounts[0]?.slice(0, 8)}…${accounts[0]?.slice(-4)}. In MetaMask, choose Send and paste the ${a.label} address above (or scan the QR).`,
+      );
+    } catch (e) {
+      setState((e as Error).message ?? "The wallet was not connected.");
+    }
+  }
+
   return (
     <article className="rounded-xl border border-night-line/60 bg-night-panel/60 p-5">
       <div className="flex items-baseline justify-between gap-3">
@@ -98,8 +114,8 @@ function AddressCard({ a }: { a: DonationAddress }) {
             {copied ? "Address copied" : "Copy address"}
           </button>
 
-          {a.evm ? (
-            <div className="mt-4">
+          <div className="mt-4">
+            {a.evm ? (
               <div className="flex flex-wrap items-center gap-1.5">
                 {DONATION_SUGGESTIONS.map((s) => (
                   <button
@@ -125,16 +141,16 @@ function AddressCard({ a }: { a: DonationAddress }) {
                   className="w-24 rounded-md border border-night-line/60 bg-night px-2 py-1 font-mono text-[11px] text-night-fg"
                 />
               </div>
-              <button
-                type="button"
-                onClick={() => void send()}
-                className="mt-3 rounded-md bg-electric px-3 py-2 text-[12px] font-medium text-night hover:opacity-90"
-              >
-                Donate with MetaMask
-              </button>
-              {state ? <p className="mt-2 font-mono text-[11px] text-night-muted">{state}</p> : null}
-            </div>
-          ) : null}
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void (a.evm ? send() : connect())}
+              className="mt-3 rounded-md bg-electric px-3 py-2 text-[12px] font-medium text-night hover:opacity-90"
+            >
+              {a.evm ? "Donate with MetaMask" : "Connect with MetaMask"}
+            </button>
+            {state ? <p className="mt-2 font-mono text-[11px] text-night-muted">{state}</p> : null}
+          </div>
         </div>
       </div>
     </article>
