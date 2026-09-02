@@ -63,7 +63,7 @@ function WidgetBuilder() {
     return `${origin}/embed/board?${params.toString()}`;
   }, [mode, selected, theme, density, provenance, origin]);
 
-  const height = mode === "board" ? 620 : density === "compact" ? 190 + 150 * Math.max(0, selected.length - 1) : 260 + 200 * Math.max(0, selected.length - 1);
+  const height = mode === "board" ? 780 : density === "compact" ? 190 + 150 * Math.max(0, selected.length - 1) : 260 + 200 * Math.max(0, selected.length - 1);
   const snippet = `<iframe src="${src}" width="100%" height="${height}" style="border:0;max-width:760px" title="UK National Data Register live widget" loading="lazy"></iframe>`;
 
   const toggle = (id: string) =>
