@@ -126,7 +126,7 @@ export function AlertDial({ metric }: { metric: Metric }) {
   const each = (total - gap * (steps.length - 1)) / steps.length;
 
   const arc = (startDeg: number, endDeg: number) => {
-    const p = (deg: number) => {
+    const p = (deg: number): [number, number] => {
       const rad = (Math.PI * (180 - deg)) / 180;
       return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
     };
