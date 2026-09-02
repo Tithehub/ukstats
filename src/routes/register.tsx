@@ -17,23 +17,23 @@ export const Route = createFileRoute("/register")({
   loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
   head: () => ({
     meta: [
-      { title: "UK National Data Register — live official statistics in one place" },
+      { title: "Full UK data register — every official figure, timestamped" },
       {
         name: "description",
         content:
-          "Live UK statistics from ONS, Home Office, Police.uk, HM Land Registry and MOD — every figure timestamped, dated, and embeddable. No estimated numbers.",
+          "The complete register: crime, debt, inflation, immigration, house prices, alerts and weather from ONS, Home Office, Police.uk, HM Land Registry and MOD, each with data age and next release.",
       },
-      { property: "og:title", content: "UK National Data Register — live official statistics" },
+      { property: "og:title", content: "Full UK data register — every official figure" },
       {
         property: "og:description",
         content:
-          "Crime, debt, inflation, immigration, house prices and weather from official UK sources — with data age and next release date on every figure.",
+          "Every live UK official statistic this service tracks, with source, reference period, data age and next scheduled release on each figure.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://ukstats.co.uk/" },
+      { property: "og:url", content: "https://ukstats.co.uk/register" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }],
+    links: [{ rel: "canonical", href: "https://ukstats.co.uk/register" }],
   }),
   component: Dashboard,
 });
