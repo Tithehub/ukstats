@@ -388,58 +388,241 @@ async function weather(): Promise<Metric[]> {
   }
 }
 
-/* ------------------- GOV.UK publication-tracked reference cards -------------- */
+/* ------------------------- GOV.UK / Home Office / MOD ----------------------- */
 
-async function govukTracked(opts: {
-  id: string;
-  category: Metric["category"];
-  title: string;
-  sub: string;
-  path: string;
-  source: string;
-  cadence: string;
-  note: string;
-  announcementQuery?: string;
-}): Promise<Metric> {
+function stripTags(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function nextAnnounced(query: string): Promise<string | null> {
+  try {
+    const r = await getJson<{ results: { release_timestamp: string }[] }>(
+      `https://www.gov.uk/api/search.json?filter_format=statistics_announcement&q=${encodeURIComponent(query)}&count=10&fields=release_timestamp&order=release_timestamp`,
+    );
+    const up = (r.results ?? [])
+      .map((x) => x.release_timestamp)
+      .filter((d) => d && new Date(d).getTime() > Date.now())
+      .sort();
+    return up[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Detected illegal-entry arrivals + people in asylum hotels, from the Home Office HTML release. */
+async function immigrationSystem(): Promise<Metric[]> {
+  const collection = "https://www.gov.uk/government/collections/immigration-statistics-quarterly-release";
+  const base = {
+    category: "Immigration" as const,
+    source: "Home Office",
+    cadence: "Quarterly official statistics",
+    change: null,
+    spark: [] as number[],
+  };
+  const fallback: Metric[] = [
+    {
+      ...base,
+      id: "uk-irregular-migration",
+      title: "Detected arrivals via illegal entry routes",
+      sourceUrl: collection,
+      value: null,
+      sub: "All detected illegal entry methods, rolling 12 months",
+      period: null,
+      asOf: null,
+      nextDue: null,
+      status: "unavailable",
+      note: "Home Office release could not be read.",
+    },
+    {
+      ...base,
+      id: "uk-asylum-cost",
+      title: "Asylum seekers in hotel accommodation",
+      sourceUrl: collection,
+      value: null,
+      sub: "People supported in hotels at the end of the quarter",
+      period: null,
+      asOf: null,
+      nextDue: null,
+      status: "unavailable",
+      note: "Home Office release could not be read.",
+    },
+  ];
+
+  try {
+    const search = await getJson<{ results: { link: string; public_timestamp: string }[] }>(
+      "https://www.gov.uk/api/search.json?q=Immigration%20system%20statistics%20year%20ending&count=10&fields=link,public_timestamp",
+    );
+    const release = (search.results ?? [])
+      .filter((r) => /^\/government\/statistics\/immigration-system-statistics-year-ending-/.test(r.link))
+      .sort((a, b) => b.public_timestamp.localeCompare(a.public_timestamp))[0];
+    if (!release) return fallback;
+
+    const periodMatch = /year-ending-([a-z]+)-(\d{4})$/.exec(release.link);
+    const period = periodMatch
+      ? `Year ending ${periodMatch[1]!.charAt(0).toUpperCase()}${periodMatch[1]!.slice(1)} ${periodMatch[2]}`
+      : null;
+
+    const [illegal, asylum, due] = await Promise.all([
+      getJson<GovukContent>(
+        `https://www.gov.uk/api/content${release.link}/how-many-people-come-to-the-uk-via-illegal-entry-routes`,
+      ).catch(() => null),
+      getJson<GovukContent>(
+        `https://www.gov.uk/api/content${release.link}/how-many-people-are-in-the-uk-asylum-system`,
+      ).catch(() => null),
+      nextAnnounced("Immigration system statistics"),
+    ]);
+
+    const out = [...fallback];
+    if (illegal?.details?.body) {
+      const text = stripTags(illegal.details.body);
+      const m = /there were ([\d,]+) detected arrivals via illegal entry routes/i.exec(text);
+      const pct = /([\d.]+)% (fewer|more) than in the YE/i.exec(text);
+      if (m) {
+        out[0] = {
+          ...out[0]!,
+          value: Number(m[1]!.replace(/,/g, "")).toLocaleString("en-GB"),
+          period,
+          asOf: illegal.public_updated_at ?? null,
+          nextDue: due,
+          sourceUrl: `https://www.gov.uk${release.link}/how-many-people-come-to-the-uk-via-illegal-entry-routes`,
+          status: "ok",
+          change: pct
+            ? {
+                label: `${pct[1]}% ${pct[2] === "fewer" ? "vs previous year" : "vs previous year"}`,
+                dir: pct[2] === "fewer" ? "down" : "up",
+              }
+            : null,
+          note: "Detections only; not all arrivals via illegal routes are detected. Small boats are around 88% of this total.",
+        };
+      }
+    }
+    if (asylum?.details?.body) {
+      const text = stripTags(asylum.details.body);
+      const m = /([\d,]+) \(\d+%\) were in hotel accommodation/i.exec(text);
+      if (m) {
+        out[1] = {
+          ...out[1]!,
+          value: Number(m[1]!.replace(/,/g, "")).toLocaleString("en-GB"),
+          period,
+          asOf: asylum.public_updated_at ?? null,
+          nextDue: due,
+          sourceUrl: `https://www.gov.uk${release.link}/how-many-people-are-in-the-uk-asylum-system`,
+          status: "ok",
+          note: "Hotel accommodation is the main driver of asylum support spend. The Home Office publishes the audited cash cost only in its annual report, so no running cost figure is invented here.",
+        };
+      }
+    }
+    return out;
+  } catch {
+    return fallback;
+  }
+}
+
+/** UK defence spending from the World Bank API (SIPRI Military Expenditure Database). */
+async function defenceSpend(): Promise<Metric> {
   const base: Metric = {
-    id: opts.id,
-    category: opts.category,
-    title: opts.title,
-    source: opts.source,
-    sourceUrl: `https://www.gov.uk${opts.path}`,
+    id: "uk-defence-spend",
+    category: "Defence & security",
+    title: "UK defence expenditure",
+    source: "World Bank / SIPRI",
+    sourceUrl: "https://data.worldbank.org/indicator/MS.MIL.XPND.CD?locations=GB",
     value: null,
-    sub: opts.sub,
+    sub: "Total military expenditure, current US dollars",
     period: null,
     asOf: null,
     nextDue: null,
-    cadence: opts.cadence,
+    cadence: "Annual, SIPRI release each April",
     change: null,
     spark: [],
-    status: "no-feed",
-    note: opts.note,
+    status: "unavailable",
+    note: null,
   };
+  type WbRow = { date: string; value: number | null };
+  type WbResp = [{ lastupdated?: string }, WbRow[] | null];
   try {
-    const [content, announced] = await Promise.all([
-      getJson<GovukContent>(`https://www.gov.uk/api/content${opts.path}`).catch(() => null),
-      opts.announcementQuery
-        ? getJson<{ results: { release_timestamp: string }[] }>(
-            `https://www.gov.uk/api/search.json?filter_format=statistics_announcement&q=${encodeURIComponent(opts.announcementQuery)}&count=10&fields=release_timestamp&order=release_timestamp`,
-          ).catch(() => null)
-        : Promise.resolve(null),
+    const [usd, share] = await Promise.all([
+      getJson<WbResp>(
+        "https://api.worldbank.org/v2/country/GBR/indicator/MS.MIL.XPND.CD?format=json&per_page=15&date=2010:2030",
+      ),
+      getJson<WbResp>(
+        "https://api.worldbank.org/v2/country/GBR/indicator/MS.MIL.XPND.GD.ZS?format=json&per_page=15&date=2010:2030",
+      ).catch(() => null),
     ]);
-    const upcoming = (announced?.results ?? [])
-      .map((r) => r.release_timestamp)
-      .filter((d) => d && new Date(d).getTime() > Date.now())
-      .sort();
+    const rows = (usd[1] ?? []).filter((r) => r.value != null).sort((a, b) => a.date.localeCompare(b.date));
+    const latest = rows[rows.length - 1];
+    if (!latest) return base;
+    const prev = rows[rows.length - 2];
+    const pctRow = (share?.[1] ?? []).find((r) => r.date === latest.date);
+    const bn = latest.value! / 1_000_000_000;
+    const delta = prev ? (latest.value! - prev.value!) / 1_000_000_000 : null;
     return {
       ...base,
-      asOf: content?.public_updated_at ?? null,
-      nextDue: upcoming[0] ?? null,
+      value: `$${bn.toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`,
+      sub: pctRow?.value != null ? `${pctRow.value.toFixed(2)}% of GDP` : base.sub,
+      period: latest.date,
+      asOf: usd[0]?.lastupdated ? `${usd[0].lastupdated}T00:00:00Z` : null,
+      spark: rows.slice(-10).map((r) => r.value!),
+      change: delta
+        ? {
+            label: `$${Math.abs(delta).toFixed(1)}bn vs previous year`,
+            dir: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
+          }
+        : null,
+      status: "ok",
+      note: "SIPRI's standard NATO-comparable definition, compiled from MOD accounts. MOD's own departmental resources tables are spreadsheet-only.",
     };
-  } catch {
-    return base;
+  } catch (e) {
+    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
   }
 }
+
+/** Current national threat level, parsed live from the GOV.UK page maintained with JTAC/MI5. */
+async function threatLevel(): Promise<Metric> {
+  const base: Metric = {
+    id: "uk-threat-level",
+    category: "Defence & security",
+    title: "National terrorism threat level",
+    source: "MI5 / JTAC via GOV.UK",
+    sourceUrl: "https://www.gov.uk/terrorism-national-emergency",
+    value: null,
+    sub: "Set by the Joint Terrorism Analysis Centre and MI5",
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence: "Reviewed continuously; can change without notice",
+    change: null,
+    spark: [],
+    status: "unavailable",
+    note: null,
+  };
+  try {
+    const c = await getJson<
+      GovukContent & { details?: { parts?: { body: string }[] } }
+    >("https://www.gov.uk/api/content/terrorism-national-emergency");
+    const body = (c.details?.parts ?? []).map((p) => p.body).join(" ");
+    const text = stripTags(body);
+    const uk = /threat to the UK[^.]*from terrorism is (\w+)/i.exec(text);
+    const ni = /threat to Northern Ireland[^.]*is (\w+)/i.exec(text);
+    if (!uk) return base;
+    const level = uk[1]!.toLowerCase();
+    return {
+      ...base,
+      value: level.charAt(0).toUpperCase() + level.slice(1),
+      sub: ni ? `Northern Ireland-related threat: ${ni[1]!.toLowerCase()}` : base.sub,
+      period: "Current",
+      asOf: c.public_updated_at ?? null,
+      status: "ok",
+      note: "Five levels: low, moderate, substantial, severe, critical. Levels have no expiry date, so 'age' here is the date the official page last changed.",
+    };
+  } catch (e) {
+    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+  }
+}
+
 
 /* ---------------------------------- assembly -------------------------------- */
 
@@ -516,49 +699,10 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     crime(),
     smallBoats(),
     weather(),
-    govukTracked({
-      id: "uk-irregular-migration",
-      category: "Immigration",
-      title: "Irregular migration to the UK",
-      sub: "Detected irregular arrivals by route",
-      path: "/government/collections/irregular-migration-to-the-uk-statistics",
-      source: "Home Office",
-      cadence: "Quarterly official statistics",
-      note: "The Home Office publishes this only as spreadsheets, with no machine-readable feed. Publication dates are tracked live; figures are not restated here so nothing can be misquoted.",
-      announcementQuery: "Irregular migration to the UK",
-    }),
-    govukTracked({
-      id: "uk-asylum-cost",
-      category: "Immigration",
-      title: "Cost of the asylum system",
-      sub: "Asylum support and accommodation spend",
-      path: "/government/collections/immigration-statistics-quarterly-release",
-      source: "Home Office annual report and accounts",
-      cadence: "Annual, with quarterly context releases",
-      note: "No live API exists for asylum and accommodation spend. Any single running 'cost' figure circulating online is an estimate, so this register links the audited source instead of publishing one.",
-      announcementQuery: "Immigration system statistics",
-    }),
-    govukTracked({
-      id: "uk-defence-spend",
-      category: "Defence & security",
-      title: "MOD departmental resources",
-      sub: "Defence expenditure and personnel",
-      path: "/government/collections/departmental-resources",
-      source: "Ministry of Defence",
-      cadence: "Annual official statistics",
-      note: "MOD publishes departmental resources as statistical spreadsheets only. Release timing is tracked here; the figures stay at the source.",
-      announcementQuery: "MOD departmental resources",
-    }),
-    govukTracked({
-      id: "uk-threat-level",
-      category: "Defence & security",
-      title: "National terrorism threat level",
-      sub: "Set by the Joint Terrorism Analysis Centre and MI5",
-      path: "/terrorism-national-emergency-planning",
-      source: "MI5 / Home Office",
-      cadence: "Reviewed continuously; changed without notice",
-      note: "The threat level is a published judgement, not a dataset. This card tracks when the official page last changed — read the current level at the source.",
-    }),
+    immigrationSystem(),
+    defenceSpend(),
+    threatLevel(),
+
   ];
 
   const settled = await Promise.allSettled(tasks);
