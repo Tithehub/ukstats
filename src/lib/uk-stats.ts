@@ -55,7 +55,7 @@ export const CATEGORIES: Category[] = [
   "Housing",
   "Weather",
   "Defence & security",
-  "Cost of irregular immigration",
+  "Irregular immigration & cost",
 ];
 
 export type Freshness = "fresh" | "ageing" | "overdue" | "unknown";
