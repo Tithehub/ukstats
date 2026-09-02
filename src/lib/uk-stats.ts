@@ -1,0 +1,94 @@
+// Browser-safe shared types + helpers for the UK statistics register.
+
+export type MetricStatus = "ok" | "unavailable" | "no-feed";
+
+export type Category =
+  | "Finance"
+  | "Cost of living"
+  | "Crime"
+  | "Immigration"
+  | "Housing"
+  | "Weather"
+  | "Defence & security";
+
+export interface Metric {
+  id: string;
+  category: Category;
+  title: string;
+  source: string;
+  sourceUrl: string;
+  /** Formatted headline value exactly as published. Null when no machine-readable feed exists. */
+  value: string | null;
+  /** Secondary line, e.g. reference period or breakdown. */
+  sub: string | null;
+  /** Period the figure covers, as published. */
+  period: string | null;
+  /** ISO date the source published this figure. */
+  asOf: string | null;
+  /** ISO date/time of the next scheduled release, when the publisher has announced one. */
+  nextDue: string | null;
+  /** Human description of the publication cadence. */
+  cadence: string;
+  change: { label: string; dir: "up" | "down" | "flat" } | null;
+  spark: number[];
+  status: MetricStatus;
+  note: string | null;
+}
+
+export interface StatsPayload {
+  metrics: Metric[];
+  fetchedAt: string;
+}
+
+export const CATEGORIES: Category[] = [
+  "Finance",
+  "Cost of living",
+  "Crime",
+  "Immigration",
+  "Housing",
+  "Weather",
+  "Defence & security",
+];
+
+export type Freshness = "fresh" | "ageing" | "overdue" | "unknown";
+
+const DAY = 86_400_000;
+
+export function freshnessOf(m: Metric, now = Date.now()): Freshness {
+  if (m.status !== "ok" || !m.asOf) return "unknown";
+  if (m.nextDue && new Date(m.nextDue).getTime() < now) return "overdue";
+  const age = now - new Date(m.asOf).getTime();
+  if (age < 7 * DAY) return "fresh";
+  if (age < 28 * DAY) return "ageing";
+  return "overdue";
+}
+
+export function ageLabel(iso: string | null, now = Date.now()): string {
+  if (!iso) return "unknown";
+  const diff = Math.max(0, now - new Date(iso).getTime());
+  const hours = Math.floor(diff / 3_600_000);
+  if (hours < 1) return "under 1h old";
+  if (hours < 48) return `${hours}h old`;
+  const days = Math.floor(diff / DAY);
+  if (days < 60) return `${days}d old`;
+  return `${Math.floor(days / 30)} months old`;
+}
+
+export function dueLabel(iso: string | null, now = Date.now()): string {
+  if (!iso) return "no date announced";
+  const diff = new Date(iso).getTime() - now;
+  const days = Math.round(diff / DAY);
+  if (diff < 0) return `overdue by ${Math.abs(days)}d`;
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  return `due in ${days}d`;
+}
+
+export function fmtDate(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}

@@ -19,6 +19,15 @@
  */
 
 @theme inline {
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-ground: var(--ground);
+  --color-ink: var(--ink);
+  --color-steel: var(--steel);
+  --color-fresh: var(--fresh);
+  --color-ageing: var(--ageing);
+  --color-overdue: var(--overdue);
+  --color-brand: var(--brand);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -26,6 +35,7 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -63,10 +73,18 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --ground: oklch(0.945 0.006 250);
+  --ink: oklch(0.212 0.012 265);
+  --steel: oklch(0.315 0.019 265);
+  --fresh: oklch(0.55 0.115 160);
+  --ageing: oklch(0.675 0.128 80);
+  --overdue: oklch(0.545 0.165 30);
+  --brand: oklch(0.72 0.088 213);
+  --background: var(--ground);
+  --foreground: var(--ink);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: var(--ink);
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
   --primary: oklch(0.208 0.042 265.755);
@@ -141,4 +159,41 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+}
+
+@keyframes pulse-fresh {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes roll-num {
+  from {
+    transform: translateY(-3px);
+    opacity: 0.2;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility pulse-dot {
+  animation: pulse-fresh 1.8s ease-in-out infinite;
+}
+
+@utility roll {
+  animation: roll-num 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
 }

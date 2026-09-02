@@ -1,0 +1,148 @@
+import { useState } from "react";
+import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
+
+const freshText: Record<Freshness, string> = {
+  fresh: "text-fresh",
+  ageing: "text-ageing",
+  overdue: "text-overdue",
+  unknown: "text-steel/60",
+};
+const freshBg: Record<Freshness, string> = {
+  fresh: "bg-fresh",
+  ageing: "bg-ageing",
+  overdue: "bg-overdue",
+  unknown: "bg-steel/40",
+};
+const freshLabel: Record<Freshness, string> = {
+  fresh: "Fresh",
+  ageing: "Ageing",
+  overdue: "Overdue",
+  unknown: "No feed",
+};
+
+function Spark({ values, tone }: { values: number[]; tone: Freshness }) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  return (
+    <div className="flex h-8 items-end gap-[3px]" aria-hidden="true">
+      {values.slice(-8).map((v, i, arr) => (
+        <span
+          key={i}
+          className={`w-1.5 ${i === arr.length - 1 ? `${freshBg[tone]} opacity-70` : "bg-steel/30"}`}
+          style={{ height: `${20 + ((v - min) / span) * 80}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function MetricCard({ metric, origin }: { metric: Metric; origin: string }) {
+  const [panel, setPanel] = useState<"none" | "embed" | "provenance">("none");
+  const tone = freshnessOf(metric);
+  const snippet = `<iframe src="${origin}/embed/${metric.id}" width="360" height="220" style="border:0" title="${metric.title}" loading="lazy"></iframe>`;
+
+  return (
+    <article className="group relative overflow-hidden rounded-[14px] bg-card/60 p-4 ring-1 ring-ink/10 backdrop-blur-sm">
+      <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent" />
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">{metric.category}</p>
+          <h3 className="mt-0.5 text-base font-semibold tracking-tight text-balance">{metric.title}</h3>
+        </div>
+        <span className="shrink-0 rounded-md bg-ink/5 px-2 py-1 font-mono text-[10px] text-steel">
+          {metric.source.split(" · ")[0]}
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="leading-none">
+          {metric.value ? (
+            <span className="font-mono text-[2.1rem] font-semibold tracking-tighter tabular-nums">{metric.value}</span>
+          ) : (
+            <span className="font-mono text-[1.35rem] font-semibold tracking-tight text-steel/70">
+              {metric.status === "no-feed" ? "No live feed" : "Unavailable"}
+            </span>
+          )}
+          <p className="mt-1 font-mono text-[11px] text-steel/70">
+            {metric.period ?? metric.sub}
+            {metric.change ? (
+              <>
+                {" · "}
+                <span className={metric.change.dir === "up" ? "text-ageing" : metric.change.dir === "down" ? "text-fresh" : "text-steel"}>
+                  {metric.change.label}
+                </span>
+              </>
+            ) : null}
+          </p>
+        </div>
+        <Spark values={metric.spark} tone={tone} />
+      </div>
+
+      <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
+        <span className={`inline-flex items-center gap-1.5 ${freshText[tone]}`}>
+          <span className={`size-1.5 rounded-full ${freshBg[tone]} ${tone === "fresh" ? "pulse-dot" : ""}`} />
+          {freshLabel[tone]} · as of {fmtDate(metric.asOf)}
+        </span>
+        <span className={tone === "overdue" ? "text-overdue/80" : "text-steel/60"}>{dueLabel(metric.nextDue)}</span>
+      </div>
+      <p className="mt-1 font-mono text-[10px] text-steel/50">
+        {ageLabel(metric.asOf)} · {metric.cadence}
+      </p>
+
+      <div className="mt-3 flex items-center gap-2 border-t border-ink/10 pt-3">
+        <button
+          onClick={() => setPanel(panel === "embed" ? "none" : "embed")}
+          className="inline-flex items-center rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel"
+        >
+          Embed
+        </button>
+        <button
+          onClick={() => setPanel(panel === "provenance" ? "none" : "provenance")}
+          className="inline-flex items-center rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5"
+        >
+          Provenance
+        </button>
+        <code className="ml-auto hidden font-mono text-[10px] text-steel/50 lg:block">{metric.id}</code>
+      </div>
+
+      {panel === "embed" ? (
+        <div className="mt-3 rounded-md bg-ink p-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand">Paste anywhere</p>
+          <code className="mt-2 block break-all font-mono text-[10px] leading-relaxed text-ground/80">{snippet}</code>
+          <button
+            onClick={() => void navigator.clipboard?.writeText(snippet)}
+            className="mt-2 rounded bg-ground/15 px-2 py-1 font-mono text-[10px] text-ground hover:bg-ground/25"
+          >
+            Copy code
+          </button>
+        </div>
+      ) : null}
+
+      {panel === "provenance" ? (
+        <div className="mt-3 rounded-md bg-ink/5 p-3 font-mono text-[11px] text-steel">
+          <p>
+            <span className="text-steel/60">Issuing body:</span> {metric.source}
+          </p>
+          <p className="mt-1">
+            <span className="text-steel/60">Reference period:</span> {metric.period ?? "—"}
+          </p>
+          <p className="mt-1">
+            <span className="text-steel/60">Next scheduled release:</span>{" "}
+            {metric.nextDue ? fmtDate(metric.nextDue) : "not announced by the publisher"}
+          </p>
+          {metric.note ? <p className="mt-2 text-pretty text-steel/80">{metric.note}</p> : null}
+          <a
+            href={metric.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-block underline decoration-brand underline-offset-2"
+          >
+            Open the source →
+          </a>
+        </div>
+      ) : null}
+    </article>
+  );
+}
