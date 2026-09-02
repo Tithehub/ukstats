@@ -463,7 +463,7 @@ async function immigrationSystem(): Promise<Metric[]> {
 
     const periodMatch = /year-ending-([a-z]+)-(\d{4})$/.exec(release.link);
     const period = periodMatch
-      ? `Year ending ${periodMatch[1]![charUp]}${periodMatch[1]!.slice(1)} ${periodMatch[2]}`
+      ? `Year ending ${periodMatch[1]!.charAt(0).toUpperCase()}${periodMatch[1]!.slice(1)} ${periodMatch[2]}`
       : null;
 
     const [illegal, asylum, due] = await Promise.all([
