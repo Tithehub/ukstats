@@ -260,8 +260,8 @@ async function smallBoats(): Promise<Metric[]> {
     const body = data.details?.body ?? "";
     const rows = [...body.matchAll(/<tr>([\s\S]*?)<\/tr>/g)]
       .map((r) =>
-        [...r[1]!.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) =>
-          c[1]!.replace(/<[^>]+>/g, "").trim(),
+        [...r[1]!.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g)].map((c) =>
+          c[1]!.replace(/<[^>]+>/g, "").replace(/\u00a0/g, " ").trim(),
         ),
       )
       .filter((cells) => cells.length >= 3 && /\d{4}$/.test(cells[0] ?? ""));
