@@ -450,7 +450,7 @@ async function nextAnnounced(query: string): Promise<string | null> {
 async function immigrationSystem(): Promise<Metric[]> {
   const collection = "https://www.gov.uk/government/collections/immigration-statistics-quarterly-release";
   const base = {
-    category: "Immigration" as const,
+    category: "Irregular immigration & cost" as const,
     source: "Home Office",
     cadence: "Quarterly official statistics",
     change: null,
