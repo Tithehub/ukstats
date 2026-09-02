@@ -41,6 +41,11 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
                 My pages
               </Link>
             </li>
+            <li>
+              <Link to="/support" className="text-night-muted hover:text-electric-soft">
+                Support UKStats
+              </Link>
+            </li>
           </ul>
         </div>
         <div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
 
 const freshText: Record<Freshness, string> = {
@@ -147,6 +148,15 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
         >
           Provenance
         </button>
+        {metric.hasHistory ? (
+          <Link
+            to="/history/$metricId"
+            params={{ metricId: metric.id }}
+            className="inline-flex items-center rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5"
+          >
+            Full history →
+          </Link>
+        ) : null}
         <code className="ml-auto hidden font-mono text-[10px] text-steel/50 lg:block">{metric.id}</code>
       </div>
 

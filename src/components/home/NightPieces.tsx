@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type AlertTone, type Freshness, type Metric } from "@/lib/uk-stats";
 
 const freshDot: Record<Freshness, string> = {
@@ -105,6 +106,20 @@ export function IndicatorCard({ metric }: { metric: Metric }) {
           <dt className="sr-only">Next release</dt>
           <dd>{dueLabel(metric.nextDue)}</dd>
         </div>
+        {metric.hasHistory ? (
+          <div className="col-span-2 pt-1">
+            <dt className="sr-only">History</dt>
+            <dd>
+              <Link
+                to="/history/$metricId"
+                params={{ metricId: metric.id }}
+                className="text-electric-soft hover:underline"
+              >
+                Full published history{metric.historyFrom ? ` from ${metric.historyFrom}` : ""} →
+              </Link>
+            </dd>
+          </div>
+        ) : null}
       </dl>
     </article>
   );

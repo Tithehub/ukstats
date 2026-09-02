@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
-import { CATEGORIES, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
+import { CATEGORIES, COST_GROUPS, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
+import { VitalSigns } from "@/components/VitalSigns";
+import { ShareRow } from "@/components/ShareRow";
 import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -50,7 +52,6 @@ const KEY_IDS = [
 
 const PANELS: { category: Category; blurb: string }[] = [
   { category: "Finance", blurb: "Public finances and the wider economy, as published by the ONS." },
-  { category: "Cost of living", blurb: "Consumer price measures on the ONS's own published basis." },
   {
     category: "Crime",
     blurb: "Police recorded crime for England and Wales, with the published rates per head of population.",
@@ -88,6 +89,11 @@ function Home() {
 
 
       <main className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
+        {/* Vital signs */}
+        <div className="pt-4 pb-4">
+          <VitalSigns metrics={metrics} />
+        </div>
+
         {/* Hero */}
         <section className="relative overflow-hidden rounded-2xl border border-night-line/50">
           <img
@@ -186,6 +192,27 @@ function Home() {
           </section>
         ) : null}
 
+        {/* Cost of living */}
+        <section className="mt-10">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 className="text-lg font-semibold tracking-tight">Cost of living, by category</h2>
+            <p className="font-mono text-[11px] text-night-muted">
+              ONS consumer price series, each with its full published history back to the first release.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {COST_GROUPS.map((g, i) => (
+              <CategoryPanel
+                key={g.name}
+                title={g.name}
+                blurb={g.blurb}
+                defaultOpen={i === 0}
+                metrics={metrics.filter((m) => m.category === "Cost of living" && m.subcategory === g.name)}
+              />
+            ))}
+          </div>
+        </section>
+
         {/* Categories */}
         <section className="mt-10">
           <h2 className="mb-4 text-lg font-semibold tracking-tight">Browse by category</h2>
@@ -201,6 +228,11 @@ function Home() {
             ))}
           </div>
         </section>
+        <ShareRow
+          className="mt-10"
+          path="/"
+          title="UKStats — live UK official statistics, every figure sourced and timestamped"
+        />
       </main>
 
       <SiteFooter fetchedAt={data.fetchedAt} />

@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
-import { CATEGORIES, freshnessOf, fmtDate, type StatsPayload } from "@/lib/uk-stats";
+import { CATEGORIES, COST_GROUPS, freshnessOf, fmtDate, type StatsPayload } from "@/lib/uk-stats";
+import { VitalSigns } from "@/components/VitalSigns";
+import { ShareRow } from "@/components/ShareRow";
 import { MetricCard } from "@/components/MetricCard";
 import { ThreatBoard, isStatusMetric } from "@/components/ThreatBoard";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -83,6 +85,19 @@ function Dashboard() {
         metrics: irr.filter((m) => isCost(m.id)),
       },
     ];
+  }, [shown]);
+
+  const costGroups = useMemo(() => {
+    const col = shown.filter((m) => m.category === "Cost of living");
+    return COST_GROUPS.map((g) => ({
+      title: g.name,
+      blurb: g.blurb,
+      metrics: col.filter((m) => m.subcategory === g.name),
+    })).concat(
+      col.some((m) => !m.subcategory)
+        ? [{ title: "Other price measures", blurb: "Further published price series.", metrics: col.filter((m) => !m.subcategory) }]
+        : [],
+    );
   }, [shown]);
 
   const crimeGroups = useMemo(() => {
@@ -203,9 +218,18 @@ function Dashboard() {
           </span>
         </div>
 
+        <div className="pb-6">
+          <VitalSigns metrics={data.metrics} />
+        </div>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown
-            .filter((m) => m.category !== "Irregular immigration & cost" && m.category !== "Crime")
+            .filter(
+              (m) =>
+                m.category !== "Irregular immigration & cost" &&
+                m.category !== "Crime" &&
+                m.category !== "Cost of living",
+            )
             .slice()
             .sort((a, b) => {
               const order = { fresh: 0, ageing: 1, overdue: 2, unknown: 3 } as const;
@@ -215,6 +239,27 @@ function Dashboard() {
               <MetricCard key={m.id} metric={m} origin={origin} />
             ))}
         </div>
+
+        {costGroups.some((g) => g.metrics.length) ? (
+          <section className="mt-10">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">Cost of living</h2>
+            {costGroups
+              .filter((g) => g.metrics.length)
+              .map((g) => (
+                <div key={g.title} className="mt-5">
+                  <div className="flex flex-wrap items-baseline gap-x-3">
+                    <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
+                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {g.metrics.map((m) => (
+                      <MetricCard key={m.id} metric={m} origin={origin} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </section>
+        ) : null}
 
         {crimeGroups.some((g) => g.metrics.length) ? (
           <section className="mt-10">
@@ -302,6 +347,10 @@ function Dashboard() {
           </div>
         </section>
       </main>
+
+      <div className="mx-auto max-w-[1440px] px-4 pb-8 sm:px-6">
+        <ShareRow path="/register" title="The full UK data register — every official figure, timestamped" />
+      </div>
 
       <SiteFooter fetchedAt={data.fetchedAt} />
 

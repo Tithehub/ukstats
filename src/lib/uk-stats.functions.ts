@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { Metric, StatsPayload } from "./uk-stats";
+import type { HistoryPayload, Metric, StatsPayload } from "./uk-stats";
 
 const UA = { "user-agent": "uk-national-data-register/1.0 (+aggregator)" };
 
@@ -47,27 +47,53 @@ interface OnsSeries {
   years?: OnsPoint[];
 }
 
+const releaseCache = new Map<string, Promise<string | null>>();
+
 async function onsNextRelease(query: string): Promise<string | null> {
-  try {
-    const data = await getJson<{
-      releases: { description: { title: string; release_date: string; cancelled: boolean } }[];
-    }>(
-      `https://api.beta.ons.gov.uk/v1/search/releases?query=${encodeURIComponent(query)}&release-type=type-upcoming&limit=20`,
-    );
-    const dates = (data.releases ?? [])
-      .filter((r) => !r.description.cancelled)
-      .map((r) => r.description.release_date)
-      .filter(Boolean)
-      .sort();
-    return dates[0] ?? null;
-  } catch {
-    return null;
-  }
+  const hit = releaseCache.get(query);
+  if (hit) return hit;
+  const p = (async () => {
+    try {
+      const data = await getJson<{
+        releases: { description: { title: string; release_date: string; cancelled: boolean } }[];
+      }>(
+        `https://api.beta.ons.gov.uk/v1/search/releases?query=${encodeURIComponent(query)}&release-type=type-upcoming&limit=20`,
+      );
+      const dates = (data.releases ?? [])
+        .filter((r) => !r.description.cancelled)
+        .map((r) => r.description.release_date)
+        .filter(Boolean)
+        .sort();
+      return dates[0] ?? null;
+    } catch {
+      return null;
+    }
+  })();
+  releaseCache.set(query, p);
+  return p;
 }
 
-async function onsMetric(opts: {
+/** Keeps concurrent ONS requests low; the API rate-limits bursts with HTTP 429. */
+function pool(limit: number) {
+  let active = 0;
+  const queue: (() => void)[] = [];
+  return async function run<T>(fn: () => Promise<T>): Promise<T> {
+    if (active >= limit) await new Promise<void>((r) => queue.push(r));
+    active++;
+    try {
+      return await fn();
+    } finally {
+      active--;
+      queue.shift()?.();
+    }
+  };
+}
+const onsPool = pool(4);
+
+export interface OnsDef {
   id: string;
   category: Metric["category"];
+  subcategory?: string;
   title: string;
   uri: string;
   releaseQuery: string;
@@ -76,10 +102,24 @@ async function onsMetric(opts: {
   changeUnit: string;
   sub?: string;
   frequency?: "months" | "quarters";
-}): Promise<Metric> {
+  /** Axis unit used on the full-history chart. */
+  unit?: string;
+}
+
+async function onsSeries(uri: string): Promise<OnsSeries> {
+  return onsPool(() => retrying(() => getJson<OnsSeries>(`https://api.beta.ons.gov.uk/v1/data?uri=${uri}`)));
+}
+
+function onsPoints(series: OnsSeries, frequency?: "months" | "quarters") {
+  const freq = frequency ?? "months";
+  return (series[freq] ?? series.quarters ?? series.years ?? []).filter((p) => p.value !== "");
+}
+
+async function onsMetric(opts: OnsDef): Promise<Metric> {
   const base: Metric = {
     id: opts.id,
     category: opts.category,
+    subcategory: opts.subcategory ?? null,
     title: opts.title,
     source: "Office for National Statistics",
     sourceUrl: `https://www.ons.gov.uk${opts.uri}`,
@@ -93,16 +133,13 @@ async function onsMetric(opts: {
     spark: [],
     status: "unavailable",
     note: null,
+    hasHistory: true,
   };
   try {
-    const [series, nextDue] = await Promise.all([
-      getJson<OnsSeries>(`https://api.beta.ons.gov.uk/v1/data?uri=${opts.uri}`),
-      onsNextRelease(opts.releaseQuery),
-    ]);
-    const freq = opts.frequency ?? "months";
-    const points = (series[freq] ?? series.quarters ?? series.years ?? []).filter((p) => p.value !== "");
+    const [series, nextDue] = await Promise.all([onsSeries(opts.uri), onsNextRelease(opts.releaseQuery)]);
+    const points = onsPoints(series, opts.frequency);
     const last = points[points.length - 1];
-    if (!last) return { ...base, note: "Source returned no observations." };
+    if (!last) return { ...base, note: "Source returned no observations.", hasHistory: false };
     const prev = points[points.length - 2];
     const v = Number(last.value);
     const pv = prev ? Number(prev.value) : null;
@@ -114,6 +151,8 @@ async function onsMetric(opts: {
       asOf: last.updateDate ?? null,
       nextDue,
       spark: points.slice(-14).map((p) => Number(p.value)),
+      historyFrom: points[0]?.label ?? null,
+      historyPoints: points.length,
       change:
         delta === null
           ? null
@@ -124,9 +163,401 @@ async function onsMetric(opts: {
       status: "ok",
     };
   } catch (e) {
-    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+    return { ...base, note: `Source unreachable: ${(e as Error).message}`, hasHistory: false };
   }
 }
+
+const pct = (v: number) => `${v.toFixed(1)}%`;
+const idx = (v: number) => v.toFixed(1);
+const CPI_RELEASE = "Consumer price inflation";
+const CPI_CADENCE = "Monthly, mid-month";
+const mm23 = (code: string) => `/economy/inflationandpriceindices/timeseries/${code}/mm23`;
+
+/**
+ * Every ONS time series this service reproduces. Values, periods and revision
+ * dates all come straight from the published series; nothing is recalculated.
+ */
+export const ONS_DEFS: OnsDef[] = [
+  {
+    id: "uk-national-debt",
+    category: "Finance",
+    title: "UK public sector net debt",
+    uri: "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/hf6w/pusf",
+    releaseQuery: "Public sector finances",
+    cadence: "Monthly, around the 21st",
+    format: (v) => `£${v.toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`,
+    changeUnit: "bn",
+    unit: "£bn",
+    sub: "Excluding public sector banks, not seasonally adjusted",
+  },
+  {
+    id: "uk-debt-gdp",
+    category: "Finance",
+    title: "Net debt as a share of GDP",
+    uri: "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/hf6x/pusf",
+    releaseQuery: "Public sector finances",
+    cadence: "Monthly, around the 21st",
+    format: pct,
+    changeUnit: "pp",
+    unit: "% of GDP",
+    sub: "Excluding public sector banks",
+  },
+  {
+    id: "uk-unemployment",
+    category: "Finance",
+    title: "Unemployment rate",
+    uri: "/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
+    releaseQuery: "Labour market overview",
+    cadence: "Monthly, rolling three-month estimate",
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "Aged 16 and over, seasonally adjusted",
+  },
+  {
+    id: "uk-gdp",
+    category: "Finance",
+    title: "GDP growth, quarter on quarter",
+    uri: "/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
+    releaseQuery: "GDP quarterly national accounts",
+    cadence: "Quarterly",
+    format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "Chained volume measure, seasonally adjusted",
+    frequency: "quarters",
+  },
+
+  /* ---- Cost of living: headline ---- */
+  {
+    id: "uk-cpi",
+    category: "Cost of living",
+    subcategory: "Headline inflation",
+    title: "CPI inflation, annual rate",
+    uri: mm23("d7g7"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "All items, 12-month rate",
+  },
+  {
+    id: "uk-cpih",
+    category: "Cost of living",
+    subcategory: "Headline inflation",
+    title: "CPIH inflation, annual rate",
+    uri: mm23("l55o"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "All items including owner occupiers' housing costs",
+  },
+
+  /* ---- Household shopping ---- */
+  {
+    id: "uk-cpi-food",
+    category: "Cost of living",
+    subcategory: "Household shopping",
+    title: "Food and non-alcoholic drinks",
+    uri: mm23("d7g8"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 01",
+  },
+  {
+    id: "uk-cpi-alcohol-tobacco",
+    category: "Cost of living",
+    subcategory: "Household shopping",
+    title: "Alcohol and tobacco",
+    uri: mm23("d7g9"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 02",
+  },
+  {
+    id: "uk-cpi-clothing",
+    category: "Cost of living",
+    subcategory: "Household shopping",
+    title: "Clothing and footwear",
+    uri: mm23("d7ga"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 03",
+  },
+  {
+    id: "uk-cpi-household-goods",
+    category: "Cost of living",
+    subcategory: "Household shopping",
+    title: "Furniture and household equipment",
+    uri: mm23("d7gc"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 05",
+  },
+  {
+    id: "uk-cpi-restaurants",
+    category: "Cost of living",
+    subcategory: "Household shopping",
+    title: "Restaurants, cafés and hotels",
+    uri: mm23("d7gi"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 11",
+  },
+
+  /* ---- Energy & fuel ---- */
+  {
+    id: "uk-cpi-electricity",
+    category: "Cost of living",
+    subcategory: "Energy & fuel",
+    title: "Electricity prices",
+    uri: mm23("d7i7"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 04.5.1",
+  },
+  {
+    id: "uk-cpi-gas",
+    category: "Cost of living",
+    subcategory: "Energy & fuel",
+    title: "Gas prices",
+    uri: mm23("d7i8"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 04.5.2",
+  },
+  {
+    id: "uk-cpi-motor-fuels",
+    category: "Cost of living",
+    subcategory: "Energy & fuel",
+    title: "Motor fuels and lubricants",
+    uri: mm23("d7io"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 07.2.2",
+  },
+  {
+    id: "uk-cpi-housing-fuels",
+    category: "Cost of living",
+    subcategory: "Energy & fuel",
+    title: "Housing, water and fuels",
+    uri: mm23("d7gb"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 04",
+  },
+
+  /* ---- Council tax ---- */
+  {
+    id: "uk-council-tax-rate",
+    category: "Cost of living",
+    subcategory: "Council tax",
+    title: "Council tax and rates, annual rate",
+    uri: mm23("dhyu"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPIH annual rate, class 04.9",
+  },
+  {
+    id: "uk-council-tax-index",
+    category: "Cost of living",
+    subcategory: "Council tax",
+    title: "Council tax and rates, price index",
+    uri: mm23("dhyr"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: idx,
+    changeUnit: " pts",
+    unit: "index, 2015 = 100",
+    sub: "CPIH index, class 04.9 (2015 = 100)",
+  },
+
+  /* ---- Telephone & internet ---- */
+  {
+    id: "uk-cpi-communication",
+    category: "Cost of living",
+    subcategory: "Telephone & internet",
+    title: "Communication services",
+    uri: mm23("d7gf"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 08",
+  },
+  {
+    id: "uk-cpi-mobile-services",
+    category: "Cost of living",
+    subcategory: "Telephone & internet",
+    title: "Wireless telephone services, price index",
+    uri: mm23("l7gi"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: idx,
+    changeUnit: " pts",
+    unit: "index, 2015 = 100",
+    sub: "CPI index, class 08.3.0.2 (2015 = 100)",
+  },
+  {
+    id: "uk-cpi-fixed-telephone",
+    category: "Cost of living",
+    subcategory: "Telephone & internet",
+    title: "Fixed telephone equipment, price index",
+    uri: mm23("l7ge"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: idx,
+    changeUnit: " pts",
+    unit: "index, 2015 = 100",
+    sub: "CPI index, class 08.2.0.1 (2015 = 100)",
+  },
+
+  /* ---- Water & sewerage ---- */
+  {
+    id: "uk-cpi-water",
+    category: "Cost of living",
+    subcategory: "Water & sewerage",
+    title: "Water supply",
+    uri: mm23("d7i5"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 04.4.1",
+  },
+  {
+    id: "uk-cpi-sewerage",
+    category: "Cost of living",
+    subcategory: "Water & sewerage",
+    title: "Sewerage collection",
+    uri: mm23("d7i4"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 04.4.3",
+  },
+
+  /* ---- House prices & rents ---- */
+  {
+    id: "uk-cpi-rents",
+    category: "Cost of living",
+    subcategory: "House prices & rents",
+    title: "Actual rents for housing",
+    uri: mm23("d7gq"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, group 04.1",
+  },
+
+  /* ---- Travel costs ---- */
+  {
+    id: "uk-cpi-transport",
+    category: "Cost of living",
+    subcategory: "Travel costs",
+    title: "Transport, all items",
+    uri: mm23("d7ge"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, division 07",
+  },
+  {
+    id: "uk-cpi-rail",
+    category: "Cost of living",
+    subcategory: "Travel costs",
+    title: "Passenger transport by railway",
+    uri: mm23("d7ir"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 07.3.1",
+  },
+  {
+    id: "uk-cpi-road-transport",
+    category: "Cost of living",
+    subcategory: "Travel costs",
+    title: "Passenger transport by road",
+    uri: mm23("d7is"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, classes 07.3.2 and 07.3.6",
+  },
+  {
+    id: "uk-cpi-air",
+    category: "Cost of living",
+    subcategory: "Travel costs",
+    title: "Passenger transport by air",
+    uri: mm23("d7it"),
+    releaseQuery: CPI_RELEASE,
+    cadence: CPI_CADENCE,
+    format: pct,
+    changeUnit: "pp",
+    unit: "%",
+    sub: "CPI annual rate, class 07.3.3",
+  },
+
+  /* ---- Wages ---- */
+  {
+    id: "uk-average-weekly-earnings",
+    category: "Cost of living",
+    subcategory: "Wages",
+    title: "Average weekly earnings, total pay",
+    uri: "/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kab9/lms",
+    releaseQuery: "Labour market overview",
+    cadence: "Monthly, with the labour market release",
+    format: (v) => `£${v.toLocaleString("en-GB")}`,
+    changeUnit: "",
+    unit: "£ per week",
+    sub: "Whole economy, seasonally adjusted, excluding arrears",
+  },
+];
 
 /* --------------------------- HM Land Registry HPI --------------------------- */
 
@@ -1549,73 +1980,8 @@ async function smallBoatDemographics(): Promise<Metric[]> {
 
 export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Promise<StatsPayload> => {
   const tasks: Promise<Metric | Metric[]>[] = [
-    onsMetric({
-      id: "uk-national-debt",
-      category: "Finance",
-      title: "UK public sector net debt",
-      uri: "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/hf6w/pusf",
-      releaseQuery: "Public sector finances",
-      cadence: "Monthly, around the 21st",
-      format: (v) => `£${v.toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`,
-      changeUnit: "bn",
-      sub: "Excluding public sector banks, not seasonally adjusted",
-    }),
-    onsMetric({
-      id: "uk-debt-gdp",
-      category: "Finance",
-      title: "Net debt as a share of GDP",
-      uri: "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/hf6x/pusf",
-      releaseQuery: "Public sector finances",
-      cadence: "Monthly, around the 21st",
-      format: (v) => `${v.toFixed(1)}%`,
-      changeUnit: "pp",
-      sub: "Excluding public sector banks",
-    }),
-    onsMetric({
-      id: "uk-cpi",
-      category: "Cost of living",
-      title: "CPI inflation, annual rate",
-      uri: "/economy/inflationandpriceindices/timeseries/d7g7/mm23",
-      releaseQuery: "Consumer price inflation",
-      cadence: "Monthly, mid-month",
-      format: (v) => `${v.toFixed(1)}%`,
-      changeUnit: "pp",
-      sub: "All items, 12-month rate",
-    }),
-    onsMetric({
-      id: "uk-cpih",
-      category: "Cost of living",
-      title: "CPIH inflation, annual rate",
-      uri: "/economy/inflationandpriceindices/timeseries/l55o/mm23",
-      releaseQuery: "Consumer price inflation",
-      cadence: "Monthly, mid-month",
-      format: (v) => `${v.toFixed(1)}%`,
-      changeUnit: "pp",
-      sub: "All items including owner occupiers' housing costs",
-    }),
-    onsMetric({
-      id: "uk-unemployment",
-      category: "Finance",
-      title: "Unemployment rate",
-      uri: "/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
-      releaseQuery: "Labour market overview",
-      cadence: "Monthly, rolling three-month estimate",
-      format: (v) => `${v.toFixed(1)}%`,
-      changeUnit: "pp",
-      sub: "Aged 16 and over, seasonally adjusted",
-    }),
-    onsMetric({
-      id: "uk-gdp",
-      category: "Finance",
-      title: "GDP growth, quarter on quarter",
-      uri: "/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
-      releaseQuery: "GDP quarterly national accounts",
-      cadence: "Quarterly",
-      format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`,
-      changeUnit: "pp",
-      sub: "Chained volume measure, seasonally adjusted",
-      frequency: "quarters",
-    }),
+    ...ONS_DEFS.map((d) => onsMetric(d)),
+
     housePrices(),
     crime(),
     smallBoats(),
@@ -2038,3 +2404,38 @@ async function sexualOffences(): Promise<Metric[]> {
     return [];
   }
 }
+
+/* ------------------------------- full history ------------------------------- */
+
+/**
+ * Returns the complete published series for one ONS-backed metric, exactly as
+ * the publisher releases it. Gaps in the source stay gaps: nothing is filled in.
+ */
+export const getMetricHistory = createServerFn({ method: "GET" })
+  .inputValidator((data: { id: string }) => ({ id: String(data.id) }))
+  .handler(async ({ data }): Promise<HistoryPayload | null> => {
+    const def = ONS_DEFS.find((d) => d.id === data.id);
+    if (!def) return null;
+    const [series, nextDue] = await Promise.all([onsSeries(def.uri), onsNextRelease(def.releaseQuery)]);
+    const points = onsPoints(series, def.frequency).map((p) => ({
+      label: p.label,
+      value: Number(p.value),
+      formatted: def.format(Number(p.value)),
+      updated: p.updateDate ?? null,
+    }));
+    return {
+      id: def.id,
+      title: def.title,
+      category: def.category,
+      subcategory: def.subcategory ?? null,
+      sub: def.sub ?? null,
+      source: "Office for National Statistics",
+      sourceUrl: `https://www.ons.gov.uk${def.uri}`,
+      seriesTitle: series.description?.title ?? def.title,
+      cadence: def.cadence,
+      unit: def.unit ?? "",
+      nextDue,
+      points,
+      fetchedAt: new Date().toISOString(),
+    };
+  });
