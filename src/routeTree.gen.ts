@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmbedMetricRoute = EmbedMetricRouteImport.update({
+  id: '/embed/$metric',
+  path: '/embed/$metric',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/embed/$metric': typeof EmbedMetricRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/embed/$metric': typeof EmbedMetricRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/embed/$metric': typeof EmbedMetricRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/embed/$metric'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/embed/$metric'
+  id: '__root__' | '/' | '/embed/$metric'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EmbedMetricRoute: typeof EmbedMetricRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embed/$metric': {
+      id: '/embed/$metric'
+      path: '/embed/$metric'
+      fullPath: '/embed/$metric'
+      preLoaderRoute: typeof EmbedMetricRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EmbedMetricRoute: EmbedMetricRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
