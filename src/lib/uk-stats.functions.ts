@@ -2720,12 +2720,6 @@ async function migrationFlows(): Promise<Metric[]> {
         spark: rows.slice(-16).map((r) => pick(r)!),
         status: "ok",
         note,
-        breakdown:
-          flow === "Net migration" || flow === "Immigration" || flow === "Emigration"
-            ? [
-                { label: "British", value: pick === allOf ? (last.british ?? 0) : 0 },
-              ].filter(() => false)
-            : null,
       };
     };
 
