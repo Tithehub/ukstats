@@ -33,6 +33,13 @@
   --color-alert-amber: var(--alert-amber);
   --color-alert-red: var(--alert-red);
   --color-alert-crimson: var(--alert-crimson);
+  --color-night: var(--night);
+  --color-night-panel: var(--night-panel);
+  --color-night-line: var(--night-line);
+  --color-night-fg: var(--night-fg);
+  --color-night-muted: var(--night-muted);
+  --color-electric: var(--electric);
+  --color-electric-soft: var(--electric-soft);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
