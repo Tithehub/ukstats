@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CreateRouteImport } from './routes/create'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
@@ -25,27 +31,31 @@ const EmbedMetricRoute = EmbedMetricRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
   '/embed/$metric': typeof EmbedMetricRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
   '/embed/$metric': typeof EmbedMetricRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
   '/embed/$metric': typeof EmbedMetricRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/embed/$metric'
+  fullPaths: '/' | '/create' | '/embed/$metric'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/embed/$metric'
-  id: '__root__' | '/' | '/embed/$metric'
+  to: '/' | '/create' | '/embed/$metric'
+  id: '__root__' | '/' | '/create' | '/embed/$metric'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CreateRoute: typeof CreateRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/embed/$metric': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CreateRoute: CreateRoute,
   EmbedMetricRoute: EmbedMetricRoute,
 }
 export const routeTree = rootRouteImport
