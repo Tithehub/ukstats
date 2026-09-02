@@ -15,6 +15,23 @@ async function getJson<T>(url: string, ms = 20_000): Promise<T> {
   }
 }
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** ONS rate-limits bursts with HTTP 429; retry a few times before giving up on the feed. */
+async function retrying<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      last = e;
+      if (!/\b429\b/.test(String(e)) || i === attempts - 1) throw e;
+      await wait(700 * (i + 1) * (i + 1));
+    }
+  }
+  throw last;
+}
+
 /* ------------------------------ ONS time series ----------------------------- */
 
 interface OnsPoint {
