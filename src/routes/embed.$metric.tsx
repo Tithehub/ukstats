@@ -5,7 +5,7 @@ import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric }
 import { ThreatTile, isStatusMetric } from "@/components/ThreatBoard";
 
 interface EmbedSearch {
-  ids?: string;
+  ids?: string | undefined;
   theme?: "light" | "dark";
   density?: "compact" | "full";
   provenance?: boolean;
