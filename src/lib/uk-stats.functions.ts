@@ -93,23 +93,6 @@ async function onsNextRelease(query: string): Promise<string | null> {
   return p;
 }
 
-/** Keeps concurrent ONS requests low; the API rate-limits bursts with HTTP 429. */
-function pool(limit: number) {
-  let active = 0;
-  const queue: (() => void)[] = [];
-  return async function run<T>(fn: () => Promise<T>): Promise<T> {
-    if (active >= limit) await new Promise<void>((r) => queue.push(r));
-    active++;
-    try {
-      return await fn();
-    } finally {
-      active--;
-      queue.shift()?.();
-    }
-  };
-}
-const onsPool = pool(4);
-
 export interface OnsDef {
   id: string;
   category: Metric["category"];
@@ -126,8 +109,17 @@ export interface OnsDef {
   unit?: string;
 }
 
+/** Short-lived cache of published series; the publisher revises at most daily. */
+const seriesCache = new Map<string, { at: number; data: Promise<OnsSeries> }>();
+const SERIES_TTL = 10 * 60_000;
+
 async function onsSeries(uri: string): Promise<OnsSeries> {
-  return onsPool(() => retrying(() => getJson<OnsSeries>(`https://api.beta.ons.gov.uk/v1/data?uri=${uri}`)));
+  const hit = seriesCache.get(uri);
+  if (hit && Date.now() - hit.at < SERIES_TTL) return hit.data;
+  const data = retrying(() => getJson<OnsSeries>(`https://api.beta.ons.gov.uk/v1/data?uri=${uri}`));
+  seriesCache.set(uri, { at: Date.now(), data });
+  data.catch(() => seriesCache.delete(uri));
+  return data;
 }
 
 function onsPoints(series: OnsSeries, frequency?: "months" | "quarters") {
