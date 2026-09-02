@@ -57,6 +57,9 @@ export interface Metric {
   covers?: string | null;
   /** ISO date from which no published figure exists yet. */
   unknownFrom?: string | null;
+  /** Present when the figure is a status on an official published scale. */
+  scale?: MetricScale | null;
+
 }
 
 export interface StatsPayload {
