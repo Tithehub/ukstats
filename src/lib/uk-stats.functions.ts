@@ -989,7 +989,9 @@ async function airQuality(): Promise<Metric> {
     const todays: number[] = [];
     for (const it of items) {
       const desc = /<description>([\s\S]*?)<\/description>/.exec(it)?.[1] ?? "";
-      const nums = [...stripTags(desc).matchAll(/:\s*(\d{1,2})\b/g)].map((m) => Number(m[1]));
+      const nums = [...stripTags(desc).matchAll(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun):\s*(\d{1,2})\b/g)].map((m) =>
+        Number(m[1]),
+      );
       if (nums.length && Number.isFinite(nums[0])) todays.push(nums[0]!);
     }
     if (!todays.length) return base;
