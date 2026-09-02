@@ -38,6 +38,32 @@ function Spark({ values, tone }: { values: number[]; tone: Freshness }) {
   );
 }
 
+function Breakdown({ parts }: { parts: NonNullable<Metric["breakdown"]> }) {
+  const total = parts.reduce((a, p) => a + p.value, 0);
+  if (!total) return null;
+  return (
+    <div className="mt-3">
+      <div className="flex h-2 overflow-hidden rounded-full bg-ink/10" aria-hidden="true">
+        {parts.map((p) => (
+          <span
+            key={p.label}
+            className={p.highlight ? "bg-brand" : "bg-steel/35"}
+            style={{ width: `${(p.value / total) * 100}%` }}
+          />
+        ))}
+      </div>
+      <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] text-steel/70">
+        {parts.map((p) => (
+          <li key={p.label} className={p.highlight ? "text-ink" : undefined}>
+            <span className={`mr-1 inline-block size-1.5 rounded-full align-middle ${p.highlight ? "bg-brand" : "bg-steel/35"}`} />
+            {p.label} {p.value.toLocaleString("en-GB")} · {((p.value / total) * 100).toFixed(1)}%
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function MetricCard({ metric, origin }: { metric: Metric; origin: string }) {
   const [panel, setPanel] = useState<"none" | "embed" | "provenance">("none");
   const tone = freshnessOf(metric);
@@ -84,6 +110,8 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
         </div>
         <Spark values={metric.spark} tone={tone} />
       </div>
+
+      {metric.breakdown?.length ? <Breakdown parts={metric.breakdown} /> : null}
 
       <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
         <span className={`inline-flex items-center gap-1.5 ${freshText[tone]}`}>

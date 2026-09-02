@@ -59,6 +59,8 @@ export interface Metric {
   unknownFrom?: string | null;
   /** Present when the figure is a status on an official published scale. */
   scale?: MetricScale | null;
+  /** Published component parts behind the figure, in the publisher's own order. */
+  breakdown?: { label: string; value: number; highlight?: boolean }[] | null;
 
 }
 

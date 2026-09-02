@@ -1239,6 +1239,219 @@ async function irregularCost(): Promise<Metric[]> {
   }
 }
 
+/* ------- Demographics of small boat arrivals (Home Office table IER_02c) ------ */
+
+/** Expand an ODS row into plain display strings, honouring repeated-cell counts. */
+function odsRow(rowXml: string): string[] {
+  const out: string[] = [];
+  for (const m of rowXml.matchAll(/<table:table-cell([^>]*)(?:\/>|>([\s\S]*?)<\/table:table-cell>)/g)) {
+    const attrs = m[1] ?? "";
+    const text = xmlText(stripTags(m[2] ?? "")).trim();
+    const rep = Number(/table:number-columns-repeated="(\d+)"/.exec(attrs)?.[1] ?? "1");
+    for (let i = 0; i < Math.min(rep, 40); i++) out.push(text);
+  }
+  return out;
+}
+
+const ukDate = (s: string | null | undefined): string | null => {
+  if (!s) return null;
+  const d = new Date(`${s} UTC`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+};
+
+/** Age group and sex of small boat arrivals, reproduced from the published summary table. */
+async function smallBoatDemographics(): Promise<Metric[]> {
+  const tablesPage = "https://www.gov.uk/government/statistical-data-sets/immigration-system-statistics-data-tables";
+  const base = {
+    category: "Irregular immigration & cost" as const,
+    source: "Home Office",
+    cadence: "Quarterly, with the immigration system statistics release",
+    change: null,
+    spark: [] as number[],
+    sourceUrl: tablesPage,
+  };
+  const unavailable = (id: string, title: string, sub: string): Metric => ({
+    ...base,
+    id,
+    title,
+    value: null,
+    sub,
+    period: null,
+    asOf: null,
+    nextDue: null,
+    status: "unavailable",
+    note: "Not published here: the Home Office summary workbook (table IER_02c) could not be read, so no figure is shown.",
+  });
+  const ids: [string, string, string][] = [
+    ["uk-boats-male", "Small boat arrivals: male", "Published sex split, table IER_02c"],
+    ["uk-boats-female", "Small boat arrivals: female", "Published sex split, table IER_02c"],
+    ["uk-boats-sex-unknown", "Small boat arrivals: sex not recorded", "Published sex split, table IER_02c"],
+    ["uk-boats-age-under18", "Small boat arrivals aged 17 and under", "Published age group, table IER_02c"],
+    ["uk-boats-age-18-24", "Small boat arrivals aged 18 to 24", "Published age group, table IER_02c"],
+    ["uk-boats-age-25-39", "Small boat arrivals aged 25 to 39", "Published age group, table IER_02c"],
+    ["uk-boats-age-40plus", "Small boat arrivals aged 40 and over", "Published age group, table IER_02c"],
+  ];
+  const fallback = ids.map(([id, title, sub]) => unavailable(id, title, sub));
+
+  try {
+    const content = await getJson<{
+      details?: { attachments?: { title?: string; url?: string }[] };
+    }>(`https://www.gov.uk/api/content/government/statistical-data-sets/immigration-system-statistics-data-tables`);
+    const file = (content.details?.attachments ?? []).find(
+      (a) => /illegal entry routes .* summary tables/i.test(a.title ?? "") && /\.ods$/i.test(a.url ?? ""),
+    );
+    if (!file?.url) return fallback;
+
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(await getBytes(file.url));
+    const xml = strFromU8(files["content.xml"]!);
+
+    const flat = xmlText(stripTags(xml)).replace(/\s+/g, " ");
+    const published = ukDate(/Published:\s*(\d{1,2} [A-Za-z]+ \d{4})/.exec(flat)?.[1]);
+    const nextDue = ukDate(/Next update:\s*(\d{1,2} [A-Za-z]+ \d{4})/.exec(flat)?.[1]);
+
+    const tbl = /<table:table table:name="IER_02c"[\s\S]*?<\/table:table>/.exec(xml)?.[0];
+    if (!tbl) return fallback;
+    const rows = [...tbl.matchAll(/<table:table-row[\s\S]*?<\/table:table-row>/g)].map((m) => odsRow(m[0]));
+
+    const header = rows.find((r) => /^age group and sex$/i.test((r[0] ?? "").trim()));
+    if (!header) return fallback;
+    // Last non-empty header cell is the most recent published period.
+    let col = -1;
+    for (let i = header.length - 1; i > 0; i--) {
+      if ((header[i] ?? "").trim()) {
+        col = i;
+        break;
+      }
+    }
+    if (col < 1) return fallback;
+    const period = header[col]!.trim();
+    const num = (s: string | undefined): number | null => {
+      const v = Number((s ?? "").replace(/,/g, ""));
+      return Number.isFinite(v) && (s ?? "").trim() !== "" ? v : null;
+    };
+
+    // Walk the table: each age-group row is followed by its Male / Female / Unknown rows.
+    const ageBands = ["17 and under", "18 to 24", "25 to 39", "40 and over"];
+    const bands: Record<string, { total: number | null; male: number | null; female: number | null; unknown: number | null }> = {};
+    let current: string | null = null;
+    let notRecorded: number | null = null;
+    let total: number | null = null;
+    for (const r of rows) {
+      const label = (r[0] ?? "").trim();
+      const v = num(r[col]);
+      if (ageBands.includes(label)) {
+        current = label;
+        bands[label] = { total: v, male: null, female: null, unknown: null };
+      } else if (current && /^(male|female|unknown)$/i.test(label)) {
+        const band = bands[current]!;
+        if (/male/i.test(label) && !/female/i.test(label)) band.male = v;
+        else if (/female/i.test(label)) band.female = v;
+        else band.unknown = v;
+      } else if (/^not currently recorded$/i.test(label)) {
+        notRecorded = v;
+        current = null;
+      } else if (/^total$/i.test(label)) {
+        total = v;
+        current = null;
+      }
+    }
+    if (!total || ageBands.some((b) => bands[b]?.total == null)) return fallback;
+
+    const sum = (pick: "male" | "female" | "unknown") =>
+      ageBands.reduce((acc, b) => acc + (bands[b]?.[pick] ?? 0), 0);
+    const male = sum("male");
+    const female = sum("female");
+    const sexUnknown = sum("unknown") + (notRecorded ?? 0);
+
+    const sexParts = [
+      { label: "Male", value: male },
+      { label: "Female", value: female },
+      { label: "Not recorded", value: sexUnknown },
+    ];
+    const ageParts = ageBands.map((b) => ({ label: b, value: bands[b]!.total! }));
+
+    const share = (v: number) => `${((v / total!) * 100).toFixed(1)}% of the published total`;
+    const tableUrl =
+      "https://www.gov.uk/government/statistical-data-sets/immigration-system-statistics-data-tables#illegal-entry-routes";
+    const partial = /january|-|to /i.test(period) && !/^year ending/i.test(period) && !/^\d{4}$/.test(period);
+    const note = `Reproduced from Home Office table IER_02c, "Small boat arrivals, by age group and sex". Covers the small boat route only, not every detected illegal entry route. Shares are calculated from the published counts in the same column and nothing is estimated.${
+      partial ? " This column is a part-year period as published and is not annualised." : ""
+    }`;
+
+    const card = (
+      id: string,
+      title: string,
+      value: number,
+      sub: string,
+      parts: { label: string; value: number }[],
+      highlight: string,
+    ): Metric => ({
+      ...base,
+      id,
+      title,
+      sourceUrl: tableUrl,
+      value: value.toLocaleString("en-GB"),
+      sub,
+      period,
+      asOf: published,
+      nextDue,
+      status: "ok",
+      note,
+      derivedFrom: "Share calculated from the published counts in table IER_02c",
+      covers: `${period}, small boat arrivals only`,
+      breakdown: parts.map((p) => ({ ...p, highlight: p.label === highlight })),
+    });
+
+    return [
+      card("uk-boats-male", "Small boat arrivals: male", male, share(male), sexParts, "Male"),
+      card("uk-boats-female", "Small boat arrivals: female", female, share(female), sexParts, "Female"),
+      card(
+        "uk-boats-sex-unknown",
+        "Small boat arrivals: sex not recorded",
+        sexUnknown,
+        share(sexUnknown),
+        sexParts,
+        "Not recorded",
+      ),
+      card(
+        "uk-boats-age-under18",
+        "Small boat arrivals aged 17 and under",
+        bands["17 and under"]!.total!,
+        share(bands["17 and under"]!.total!),
+        ageParts,
+        "17 and under",
+      ),
+      card(
+        "uk-boats-age-18-24",
+        "Small boat arrivals aged 18 to 24",
+        bands["18 to 24"]!.total!,
+        share(bands["18 to 24"]!.total!),
+        ageParts,
+        "18 to 24",
+      ),
+      card(
+        "uk-boats-age-25-39",
+        "Small boat arrivals aged 25 to 39",
+        bands["25 to 39"]!.total!,
+        share(bands["25 to 39"]!.total!),
+        ageParts,
+        "25 to 39",
+      ),
+      card(
+        "uk-boats-age-40plus",
+        "Small boat arrivals aged 40 and over",
+        bands["40 and over"]!.total!,
+        share(bands["40 and over"]!.total!),
+        ageParts,
+        "40 and over",
+      ),
+    ];
+  } catch {
+    return fallback;
+  }
+}
+
 
 /* ---------------------------------- assembly -------------------------------- */
 
@@ -1325,6 +1538,7 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     airQuality(),
 
     irregularCost(),
+    smallBoatDemographics(),
 
   ];
 
