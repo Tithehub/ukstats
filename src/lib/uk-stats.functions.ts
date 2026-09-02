@@ -801,7 +801,7 @@ const money = (pounds: number) => {
  */
 async function irregularCost(): Promise<Metric[]> {
   const base = {
-    category: "Cost of irregular immigration" as const,
+    category: "Irregular immigration & cost" as const,
     source: "Home Office annual report and accounts",
     cadence: "Annual, published each summer with the departmental accounts",
     change: null,
