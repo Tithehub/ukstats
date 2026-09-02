@@ -1695,23 +1695,23 @@ async function recordedCrime(): Promise<Metric[]> {
     spark: [] as number[],
   };
   try {
-    const landing = await getJson<{
+    const landing = await retrying(() => getJson<{
       datasets?: { uri: string }[];
       description?: { nextRelease?: string };
-    }>(`https://www.ons.gov.uk${CRIME_DATASET}/data`);
+    }>(`https://www.ons.gov.uk${CRIME_DATASET}/data`));
     const versionUri = landing.datasets?.[0]?.uri;
     if (!versionUri) return [];
 
-    const version = await getJson<{
+    const version = await retrying(() => getJson<{
       downloads?: { file: string }[];
       description?: { releaseDate?: string };
-    }>(`https://www.ons.gov.uk${versionUri}/data`);
+    }>(`https://www.ons.gov.uk${versionUri}/data`));
     const file = version.downloads?.[0]?.file;
     if (!file) return [];
 
     const { unzipSync, strFromU8 } = await import("fflate");
     const files = unzipSync(
-      await getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000),
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000),
     ) as unknown as Record<string, Uint8Array>;
     const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
     const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
@@ -1851,23 +1851,23 @@ async function sexualOffences(): Promise<Metric[]> {
     cadence: "Quarterly, with the Crime in England and Wales release",
   };
   try {
-    const landing = await getJson<{
+    const landing = await retrying(() => getJson<{
       datasets?: { uri: string }[];
       description?: { nextRelease?: string };
-    }>(`https://www.ons.gov.uk${CRIME_APPENDIX}/data`);
+    }>(`https://www.ons.gov.uk${CRIME_APPENDIX}/data`));
     const versionUri = landing.datasets?.[0]?.uri;
     if (!versionUri) return [];
 
-    const version = await getJson<{
+    const version = await retrying(() => getJson<{
       downloads?: { file: string }[];
       description?: { releaseDate?: string };
-    }>(`https://www.ons.gov.uk${versionUri}/data`);
+    }>(`https://www.ons.gov.uk${versionUri}/data`));
     const file = version.downloads?.[0]?.file;
     if (!file) return [];
 
     const { unzipSync, strFromU8 } = await import("fflate");
     const files = unzipSync(
-      await getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000),
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000),
     ) as unknown as Record<string, Uint8Array>;
     const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
     const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
