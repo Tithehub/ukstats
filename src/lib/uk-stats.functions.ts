@@ -116,8 +116,10 @@ export interface OnsDef {
   cadence: string;
   format: (v: number) => string;
   changeUnit: string;
+  /** Overrides the default change wording, e.g. for counts of people. */
+  changeFormat?: (delta: number) => string;
   sub?: string;
-  frequency?: "months" | "quarters";
+  frequency?: "months" | "quarters" | "years";
   /** Axis unit used on the full-history chart. */
   unit?: string;
 }
@@ -135,7 +137,7 @@ async function onsSeries(uri: string): Promise<OnsSeries> {
   return data;
 }
 
-function onsPoints(series: OnsSeries, frequency?: "months" | "quarters") {
+function onsPoints(series: OnsSeries, frequency?: "months" | "quarters" | "years") {
   const freq = frequency ?? "months";
   return (series[freq] ?? series.quarters ?? series.years ?? []).filter((p) => p.value !== "");
 }
@@ -182,7 +184,9 @@ async function onsMetric(opts: OnsDef): Promise<Metric> {
         delta === null
           ? null
           : {
-              label: `${delta > 0 ? "▲" : delta < 0 ? "▼" : "■"} ${Math.abs(delta).toFixed(1)}${opts.changeUnit} vs previous`,
+              label: opts.changeFormat
+                ? opts.changeFormat(delta)
+                : `${delta > 0 ? "▲" : delta < 0 ? "▼" : "■"} ${Math.abs(delta).toFixed(1)}${opts.changeUnit} vs previous`,
               dir: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
             },
       status: "ok",
