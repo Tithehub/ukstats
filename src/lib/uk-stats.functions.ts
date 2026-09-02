@@ -2109,6 +2109,8 @@ async function collectStats(): Promise<StatsPayload> {
     smallBoatDemographics(),
     recordedCrime(),
     sexualOffences(),
+    migrationFlows(),
+    Promise.resolve(unpublishedSplits()),
 
 
   ];
