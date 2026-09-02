@@ -55,6 +55,7 @@ function Dashboard() {
   const irregularGroups = useMemo(() => {
     const irr = shown.filter((m) => m.category === "Irregular immigration & cost");
     const isDemo = (id: string) => id.startsWith("uk-boats-");
+    const isNat = (id: string) => id.startsWith("uk-boats-nat-");
     const isCost = (id: string) => id.startsWith("uk-irregular-cost");
     return [
       {
@@ -65,7 +66,12 @@ function Dashboard() {
       {
         title: "Demographics",
         blurb: "Age group and sex of small boat arrivals, Home Office table IER_02c",
-        metrics: irr.filter((m) => isDemo(m.id)),
+        metrics: irr.filter((m) => isDemo(m.id) && !isNat(m.id)),
+      },
+      {
+        title: "Nationality",
+        blurb: "Nationality of small boat arrivals, Home Office table IER_02b",
+        metrics: irr.filter((m) => isNat(m.id)),
       },
       {
         title: "Cost",

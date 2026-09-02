@@ -1290,6 +1290,8 @@ async function smallBoatDemographics(): Promise<Metric[]> {
     ["uk-boats-age-18-24", "Small boat arrivals aged 18 to 24", "Published age group, table IER_02c"],
     ["uk-boats-age-25-39", "Small boat arrivals aged 25 to 39", "Published age group, table IER_02c"],
     ["uk-boats-age-40plus", "Small boat arrivals aged 40 and over", "Published age group, table IER_02c"],
+    ["uk-boats-religion", "Religion of irregular arrivals", "The Home Office does not publish religion for irregular arrivals"],
+    ["uk-boats-ethnicity", "Ethnicity of irregular arrivals", "The Home Office does not publish race or ethnicity for irregular arrivals"],
   ];
   const fallback = ids.map(([id, title, sub]) => unavailable(id, title, sub));
 
