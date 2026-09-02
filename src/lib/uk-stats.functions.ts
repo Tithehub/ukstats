@@ -313,13 +313,25 @@ async function smallBoats(): Promise<Metric[]> {
       },
       {
         ...weekly,
-        value: total.toLocaleString("en-GB"),
-        period: `${series[0]!.date} – ${last.date}`,
+        value: `${total.toLocaleString("en-GB")} people`,
+        sub: `${total.toLocaleString("en-GB")} people arrived in ${boatsTotal.toLocaleString("en-GB")} boat${boatsTotal === 1 ? "" : "s"} over ${range}`,
+        period: range,
         asOf,
         nextDue,
         spark: series.map((s) => s.arrivals),
         status: "ok",
-        note: "Sum of the seven daily figures exactly as published; no smoothing or estimation.",
+        note: "Small boat detections only, summed from the seven published daily figures. This is the small boat route, not every irregular arrival route; the quarterly illegal-entry total below covers all detected routes.",
+      },
+      {
+        ...boatsWeek,
+        value: `${boatsTotal.toLocaleString("en-GB")} boats`,
+        sub: `${boatsTotal.toLocaleString("en-GB")} boat${boatsTotal === 1 ? "" : "s"} carrying ${total.toLocaleString("en-GB")} people over ${range}`,
+        period: range,
+        asOf,
+        nextDue,
+        spark: series.map((s) => s.boats),
+        status: "ok",
+        note: "Boats arriving as published daily by the Home Office; boats involved in uncontrolled landings are counted separately in the source table.",
       },
     ];
   } catch (e) {
@@ -327,6 +339,7 @@ async function smallBoats(): Promise<Metric[]> {
     return [
       { ...daily, note },
       { ...weekly, note },
+      { ...boatsWeek, note },
     ];
   }
 }
