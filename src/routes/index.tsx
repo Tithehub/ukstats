@@ -40,11 +40,16 @@ function Dashboard() {
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   const debt = data.metrics.find((m) => m.id === "uk-national-debt");
+  const statusMetrics = useMemo(
+    () => data.metrics.filter((m) => isStatusMetric(m) && (filter === "All" || m.category === filter)),
+    [data.metrics, filter],
+  );
   const shown = useMemo(
-    () => data.metrics.filter((m) => filter === "All" || m.category === filter),
+    () => data.metrics.filter((m) => !isStatusMetric(m) && (filter === "All" || m.category === filter)),
     [data.metrics, filter],
   );
   const live = data.metrics.filter((m) => m.status === "ok").length;
+
 
   return (
     <div className="min-h-screen bg-ground font-sans text-ink selection:bg-steel/20">
