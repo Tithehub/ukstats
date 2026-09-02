@@ -49,6 +49,7 @@ function CreatePage() {
   const [tier, setTier] = useState("preview");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkout, setCheckout] = useState<{ slug: string; tier: string; ownerToken: string } | null>(null);
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -61,9 +62,15 @@ function CreatePage() {
     }
     setBusy(true);
     try {
+      const ownerToken = getOwnerToken();
       const page = await create({
-        data: { title: title.trim() || "UK live statistics", metricIds: selected, tier, ownerToken: getOwnerToken() },
+        data: { title: title.trim() || "UK live statistics", metricIds: selected, tier, ownerToken },
       });
+      if (page.pricePence > 0) {
+        setCheckout({ slug: page.slug, tier, ownerToken });
+        setBusy(false);
+        return;
+      }
       void navigate({ to: "/p/$slug", params: { slug: page.slug } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create the page.");
