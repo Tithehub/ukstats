@@ -1538,6 +1538,7 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     airQuality(),
 
     irregularCost(),
+    smallBoatDemographics(),
 
   ];
 
