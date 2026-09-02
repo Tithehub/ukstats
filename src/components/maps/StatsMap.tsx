@@ -166,7 +166,7 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
         className="h-[70vh] min-h-[420px] w-full rounded-lg border border-night-line/70 bg-night-panel"
       />
       {error ? (
-        <p className="mt-2 font-mono text-[12px] text-status-overdue">Boundary service unreachable: {error}</p>
+        <p className="mt-2 font-mono text-[12px] text-overdue">Boundary service unreachable: {error}</p>
       ) : null}
     </div>
   );
