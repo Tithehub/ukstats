@@ -56,6 +56,11 @@ const PANELS: { category: Category; blurb: string }[] = [
     category: "Crime",
     blurb: "Police recorded crime for England and Wales, with the published rates per head of population.",
   },
+  {
+    category: "Population & migration",
+    blurb:
+      "Resident population and long-term international migration, including British nationals leaving and returning.",
+  },
   { category: "Immigration", blurb: "Lawful migration routes and visa grants published by the Home Office." },
   {
     category: "Irregular immigration & cost",
