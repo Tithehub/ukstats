@@ -127,20 +127,14 @@ function Row({ metric, compact, provenance }: { metric: Metric; compact: boolean
 function EmbedWidget() {
   const { metrics, fetchedAt, board } = Route.useLoaderData();
   const search = Route.useSearch();
-  const router = Route.useRouteContext();
-  void router;
   const compact = search.density === "compact";
   const provenance = search.provenance !== false;
-  const navigate = Route.useNavigate();
 
-  // Keep the widget live: re-fetch the route data periodically.
+  // Keep the widget live: reload the embedded page periodically.
   useEffect(() => {
-    const t = setInterval(() => {
-      void navigate({ to: ".", search: (s) => s, replace: true });
-      window.location.reload();
-    }, 15 * 60_000);
+    const t = setInterval(() => window.location.reload(), 15 * 60_000);
     return () => clearInterval(t);
-  }, [navigate]);
+  }, []);
 
   // Report height to the host page so it can size the iframe.
   useEffect(() => {
