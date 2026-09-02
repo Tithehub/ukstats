@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, freshnessOf, fmtDate, type StatsPayload } from "@/lib/uk-stats";
 import { MetricCard } from "@/components/MetricCard";
+import { ThreatBoard, isStatusMetric } from "@/components/ThreatBoard";
+
 
 const statsQuery = queryOptions<StatsPayload>({
   queryKey: ["uk-stats"],
