@@ -5,6 +5,8 @@ import { ageLabel, dueLabel, type Metric } from "@/lib/uk-stats";
 export const VITAL_IDS = [
   "uk-national-debt",
   "uk-cpi",
+  "uk-population",
+  "uk-net-migration",
   "uk-unemployment",
   "uk-house-prices",
   "uk-irregular-arrivals-ytd",
@@ -27,7 +29,7 @@ export function VitalSigns({ metrics }: { metrics: Metric[] }) {
           Pinned figures, each straight from its issuing body
         </p>
       </div>
-      <ul className="grid grid-cols-2 divide-night-line/50 md:grid-cols-3 xl:grid-cols-6">
+      <ul className="grid grid-cols-2 divide-night-line/50 md:grid-cols-4 xl:grid-cols-8">
         {fallback.map((m) => {
           const body = (
             <>

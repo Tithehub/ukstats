@@ -304,3 +304,11 @@
     margin: 12mm;
   }
 }
+
+/* Leaflet base tiles: muted in light, inverted for the dark instrument theme. */
+.basemap-tiles {
+  filter: grayscale(0.55) contrast(0.95);
+}
+.dark .basemap-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.72) contrast(1.05) grayscale(0.5);
+}

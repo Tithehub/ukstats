@@ -116,8 +116,10 @@ export interface OnsDef {
   cadence: string;
   format: (v: number) => string;
   changeUnit: string;
+  /** Overrides the default change wording, e.g. for counts of people. */
+  changeFormat?: (delta: number) => string;
   sub?: string;
-  frequency?: "months" | "quarters";
+  frequency?: "months" | "quarters" | "years";
   /** Axis unit used on the full-history chart. */
   unit?: string;
 }
@@ -135,7 +137,7 @@ async function onsSeries(uri: string): Promise<OnsSeries> {
   return data;
 }
 
-function onsPoints(series: OnsSeries, frequency?: "months" | "quarters") {
+function onsPoints(series: OnsSeries, frequency?: "months" | "quarters" | "years") {
   const freq = frequency ?? "months";
   return (series[freq] ?? series.quarters ?? series.years ?? []).filter((p) => p.value !== "");
 }
@@ -182,7 +184,9 @@ async function onsMetric(opts: OnsDef): Promise<Metric> {
         delta === null
           ? null
           : {
-              label: `${delta > 0 ? "▲" : delta < 0 ? "▼" : "■"} ${Math.abs(delta).toFixed(1)}${opts.changeUnit} vs previous`,
+              label: opts.changeFormat
+                ? opts.changeFormat(delta)
+                : `${delta > 0 ? "▲" : delta < 0 ? "▼" : "■"} ${Math.abs(delta).toFixed(1)}${opts.changeUnit} vs previous`,
               dir: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
             },
       status: "ok",
@@ -581,6 +585,83 @@ export const ONS_DEFS: OnsDef[] = [
     changeUnit: "",
     unit: "£ per week",
     sub: "Whole economy, seasonally adjusted, excluding arrears",
+  },
+
+  /* ---- Population ---- */
+  {
+    id: "uk-population",
+    category: "Population & migration",
+    subcategory: "Population",
+    title: "UK resident population",
+    uri: "/peoplepopulationandcommunity/populationandmigration/populationestimates/timeseries/ukpop/pop",
+    releaseQuery: "Population estimates for the UK",
+    cadence: "Annual mid-year estimate",
+    format: (v) => v.toLocaleString("en-GB"),
+    changeFormat: (d) => `${d > 0 ? "▲" : "▼"} ${Math.abs(d).toLocaleString("en-GB")} vs previous year`,
+    changeUnit: "",
+    unit: "people",
+    sub: "Mid-year estimate, all ages, United Kingdom",
+    frequency: "years",
+  },
+
+  /* ---- Tax and welfare ---- */
+  {
+    id: "uk-total-receipts",
+    category: "Finance",
+    title: "Total public sector current receipts",
+    uri: "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anbt/pusf",
+    releaseQuery: "Public sector finances",
+    cadence: "Annual calendar-year total, revised monthly",
+    format: (v) => `£${(v / 1000).toFixed(1)}bn`,
+    changeFormat: (d) => `${d > 0 ? "▲" : "▼"} £${Math.abs(d / 1000).toFixed(1)}bn vs previous year`,
+    changeUnit: "",
+    unit: "£m",
+    sub: "All taxes and other current receipts, cash terms, not seasonally adjusted",
+    frequency: "years",
+  },
+  {
+    id: "uk-welfare-bill",
+    category: "Finance",
+    title: "Total welfare bill (net social benefits)",
+    uri: "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anly/pusf",
+    releaseQuery: "Public sector finances",
+    cadence: "Annual calendar-year total, revised monthly",
+    format: (v) => `£${(v / 1000).toFixed(1)}bn`,
+    changeFormat: (d) => `${d > 0 ? "▲" : "▼"} £${Math.abs(d / 1000).toFixed(1)}bn vs previous year`,
+    changeUnit: "",
+    unit: "£m",
+    sub: "Public sector net social benefits paid, cash terms, not seasonally adjusted",
+    frequency: "years",
+  },
+
+  /* ---- Personnel ---- */
+  {
+    id: "uk-hm-forces-personnel",
+    category: "Defence & security",
+    title: "HM Forces personnel",
+    uri: "/employmentandlabourmarket/peopleinwork/publicsectorpersonnel/timeseries/c9ll/pse",
+    releaseQuery: "Public sector employment",
+    cadence: "Quarterly, with public sector employment",
+    format: (v) => `${Math.round(v * 1000).toLocaleString("en-GB")}`,
+    changeFormat: (d) => `${d > 0 ? "▲" : "▼"} ${Math.abs(Math.round(d * 1000)).toLocaleString("en-GB")} vs previous quarter`,
+    changeUnit: "",
+    unit: "thousands (FTE)",
+    sub: "Full-time equivalent, UK, not seasonally adjusted",
+    frequency: "quarters",
+  },
+  {
+    id: "uk-police-personnel",
+    category: "Crime",
+    title: "Police service personnel",
+    uri: "/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/g7ex/pse",
+    releaseQuery: "Public sector employment",
+    cadence: "Quarterly, with public sector employment",
+    format: (v) => `${Math.round(v * 1000).toLocaleString("en-GB")}`,
+    changeFormat: (d) => `${d > 0 ? "▲" : "▼"} ${Math.abs(Math.round(d * 1000)).toLocaleString("en-GB")} vs previous quarter`,
+    changeUnit: "",
+    unit: "thousands (headcount)",
+    sub: "Headcount, UK police service, seasonally adjusted",
+    frequency: "quarters",
   },
 ];
 
@@ -2028,6 +2109,8 @@ async function collectStats(): Promise<StatsPayload> {
     smallBoatDemographics(),
     recordedCrime(),
     sexualOffences(),
+    migrationFlows(),
+    Promise.resolve(unpublishedSplits()),
 
 
   ];
@@ -2486,3 +2569,512 @@ export const getMetricHistory = createServerFn({ method: "GET" })
       fetchedAt: new Date().toISOString(),
     };
   });
+
+/* ------------------------- Long-term international migration ------------------------- */
+
+const LTIM_DATASET =
+  "/peoplepopulationandcommunity/populationandmigration/internationalmigration/datasets/longterminternationalimmigrationemigrationandnetmigrationflowsprovisional";
+
+interface LtimRow {
+  flow: string;
+  period: string;
+  all: number | null;
+  british: number | null;
+  eu: number | null;
+  nonEu: number | null;
+}
+
+interface LtimTable {
+  rows: LtimRow[];
+  asOf: string | null;
+  nextDue: string | null;
+  sourceUrl: string;
+}
+
+let ltimCache: { at: number; data: Promise<LtimTable | null> } | null = null;
+
+async function ltimTable(): Promise<LtimTable | null> {
+  if (ltimCache && Date.now() - ltimCache.at < 60 * 60_000) return ltimCache.data;
+  const p = (async (): Promise<LtimTable | null> => {
+    const landing = await retrying(() =>
+      getJson<{ datasets?: { uri: string }[]; description?: { nextRelease?: string } }>(
+        `https://www.ons.gov.uk${LTIM_DATASET}/data`,
+      ),
+    );
+    const versionUri = landing.datasets?.[0]?.uri;
+    if (!versionUri) return null;
+    const version = await retrying(() =>
+      getJson<{ downloads?: { file: string }[]; description?: { releaseDate?: string } }>(
+        `https://www.ons.gov.uk${versionUri}/data`,
+      ),
+    );
+    const file = version.downloads?.[0]?.file;
+    if (!file) return null;
+
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000)),
+    ) as unknown as Record<string, Uint8Array>;
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const names = sheetsByName(files, strFromU8);
+    const path = names.get("1");
+    if (!path || !files[path]) return null;
+    const sheet = parseSheet(strFromU8(files[path]!), shared);
+
+    const numOf = (v: string | undefined) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    const rows: LtimRow[] = [];
+    for (const r of sheet) {
+      const flow = (r.cells["A"] ?? "").trim();
+      if (!/^(Immigration|Emigration|Net migration)$/i.test(flow)) continue;
+      rows.push({
+        flow,
+        period: (r.cells["B"] ?? "").trim(),
+        all: numOf(r.cells["C"]),
+        british: numOf(r.cells["D"]),
+        eu: numOf(r.cells["E"]),
+        nonEu: numOf(r.cells["F"]),
+      });
+    }
+    if (!rows.length) return null;
+
+    const announced = landing.description?.nextRelease ? new Date(landing.description.nextRelease) : null;
+    return {
+      rows,
+      asOf: version.description?.releaseDate ?? null,
+      nextDue:
+        announced && !Number.isNaN(announced.getTime())
+          ? announced.toISOString()
+          : await onsNextRelease("Long-term international migration"),
+      sourceUrl: `https://www.ons.gov.uk${versionUri}`,
+    };
+  })();
+  ltimCache = { at: Date.now(), data: p };
+  p.catch(() => (ltimCache = null));
+  return p;
+}
+
+/** Expands "YE Dec 25 P" into the published period wording. */
+function ltimPeriodLabel(raw: string): string {
+  const m = /YE (\w{3}) (\d{2})/i.exec(raw);
+  if (!m) return raw;
+  const months: Record<string, string> = {
+    jan: "January", feb: "February", mar: "March", apr: "April", may: "May", jun: "June",
+    jul: "July", aug: "August", sep: "September", oct: "October", nov: "November", dec: "December",
+  };
+  const month = months[m[1]!.toLowerCase()] ?? m[1]!;
+  const flags = /\bP\b/.test(raw) ? " (provisional)" : /\bR\b/.test(raw) ? " (revised)" : "";
+  return `Year ending ${month} 20${m[2]}${flags}`;
+}
+
+async function migrationFlows(): Promise<Metric[]> {
+  const base = {
+    category: "Population & migration" as const,
+    subcategory: "Migration",
+    source: "Office for National Statistics · Long-term international migration",
+    cadence: "Twice yearly, provisional estimates",
+    spark: [] as number[],
+  };
+  const fallbackUrl = `https://www.ons.gov.uk${LTIM_DATASET}`;
+  try {
+    const table = await ltimTable();
+    if (!table) return [];
+    const url = table.sourceUrl || fallbackUrl;
+    const series = (flow: string) => table.rows.filter((r) => r.flow.toLowerCase() === flow.toLowerCase());
+    const count = (n: number | null) => (n === null ? null : n.toLocaleString("en-GB"));
+
+    const build = (
+      id: string,
+      title: string,
+      flow: string,
+      pick: (r: LtimRow) => number | null,
+      sub: string,
+      note: string,
+    ): Metric | null => {
+      const rows = series(flow).filter((r) => pick(r) !== null);
+      const last = rows[rows.length - 1];
+      if (!last) return null;
+      const prev = rows[rows.length - 2];
+      const v = pick(last)!;
+      const pv = prev ? pick(prev) : null;
+      return {
+        ...base,
+        id,
+        title,
+        sourceUrl: url,
+        value: count(v),
+        sub,
+        period: ltimPeriodLabel(last.period),
+        asOf: table.asOf,
+        nextDue: table.nextDue,
+        change:
+          pv === null
+            ? null
+            : {
+                label: `${v > pv ? "▲" : v < pv ? "■" : "■"} ${Math.abs(v - pv).toLocaleString("en-GB")} vs previous quarter estimate`,
+                dir: v > pv ? "up" : v < pv ? "down" : "flat",
+              },
+        spark: rows.slice(-16).map((r) => pick(r)!),
+        status: "ok",
+        note,
+      };
+    };
+
+    const allOf = (r: LtimRow) => r.all;
+    const britishOf = (r: LtimRow) => r.british;
+    const nonEuOf = (r: LtimRow) => r.nonEu;
+
+    const published = "Figures are published rounded by the ONS in table 1 of the long-term international migration release; nothing is recalculated here.";
+
+    const metrics = [
+      build("uk-net-migration", "Net migration to the UK", "Net migration", allOf, "All nationalities, long-term international migration", published),
+      build("uk-ltim-immigration", "Long-term immigration", "Immigration", allOf, "All nationalities, people arriving for 12 months or more", published),
+      build("uk-ltim-emigration", "Long-term emigration", "Emigration", allOf, "All nationalities, people leaving for 12 months or more", published),
+      build("uk-ltim-emigration-british", "British nationals emigrating", "Emigration", britishOf, "British nationals leaving the UK long term — remigration", published),
+      build("uk-ltim-immigration-british", "British nationals returning", "Immigration", britishOf, "British nationals arriving in the UK long term", published),
+      build("uk-ltim-immigration-noneu", "Non-EU+ long-term immigration", "Immigration", nonEuOf, "Non-EU+ nationals arriving for 12 months or more", published),
+    ].filter((m): m is Metric => m !== null);
+
+    return metrics;
+  } catch (e) {
+    return [
+      {
+        ...base,
+        id: "uk-net-migration",
+        title: "Net migration to the UK",
+        sourceUrl: fallbackUrl,
+        value: null,
+        sub: "All nationalities, long-term international migration",
+        period: null,
+        asOf: null,
+        nextDue: null,
+        change: null,
+        status: "unavailable",
+        note: `Source unreachable: ${(e as Error).message}`,
+      },
+    ];
+  }
+}
+
+/** Country-of-birth and service-level personnel splits with no machine-readable feed. */
+function unpublishedSplits(): Metric[] {
+  const noFeed = (
+    id: string,
+    category: Metric["category"],
+    title: string,
+    sub: string,
+    source: string,
+    sourceUrl: string,
+    cadence: string,
+    note: string,
+  ): Metric => ({
+    id,
+    category,
+    subcategory: category === "Population & migration" ? "Population" : "Personnel",
+    title,
+    source,
+    sourceUrl,
+    value: null,
+    sub,
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence,
+    change: null,
+    spark: [],
+    status: "no-feed",
+    note,
+    emptyLabel: "No live feed",
+  });
+
+  return [
+    noFeed(
+      "uk-born-population",
+      "Population & migration",
+      "UK-born population",
+      "Population born in the United Kingdom",
+      "Office for National Statistics",
+      "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/a12employmentunemploymentandeconomicinactivitybynationalityandcountryofbirth",
+      "No current machine-readable series",
+      "The ONS discontinued its country-of-birth population series after June 2021. Country-of-birth estimates are now published only in survey tables (A12 / EMP06) and Census 2021, so no live figure is shown rather than an estimate.",
+    ),
+    noFeed(
+      "uk-foreign-born-population",
+      "Population & migration",
+      "Non-UK-born population",
+      "Population born outside the United Kingdom",
+      "Office for National Statistics",
+      "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/a12employmentunemploymentandeconomicinactivitybynationalityandcountryofbirth",
+      "No current machine-readable series",
+      "The ONS discontinued its country-of-birth population series after June 2021. Follow the source link for the published survey tables and the Census 2021 estimates.",
+    ),
+    noFeed(
+      "uk-armed-forces-by-service",
+      "Defence & security",
+      "Army, Royal Navy and RAF strength",
+      "Trained and untrained strength by service",
+      "Ministry of Defence · Quarterly service personnel statistics",
+      "https://www.gov.uk/government/collections/uk-armed-forces-quarterly-service-personnel-statistics",
+      "Quarterly, published by the MOD",
+      "The MOD publishes service-level strength only as spreadsheet tables with no API, so the split is not reproduced here. The UK total above is the ONS full-time equivalent series.",
+    ),
+  ];
+}
+
+/* ------------------------------- map data ------------------------------- */
+
+export interface MapArea {
+  code: string;
+  name: string;
+  value: number;
+  formatted: string;
+}
+
+export interface MapLayer {
+  id: string;
+  title: string;
+  unit: string;
+  source: string;
+  sourceUrl: string;
+  period: string | null;
+  asOf: string | null;
+  /** Boundary service on the ONS Open Geography portal. */
+  boundary: "pfa" | "region";
+  areas: MapArea[];
+}
+
+/** Recorded crime rate per 1,000 population for every police force area, as published. */
+async function crimeMapLayers(): Promise<MapLayer[]> {
+  const landing = await retrying(() =>
+    getJson<{ datasets?: { uri: string }[] }>(`https://www.ons.gov.uk${CRIME_DATASET}/data`),
+  );
+  const versionUri = landing.datasets?.[0]?.uri;
+  if (!versionUri) return [];
+  const version = await retrying(() =>
+    getJson<{ downloads?: { file: string }[]; description?: { releaseDate?: string } }>(
+      `https://www.ons.gov.uk${versionUri}/data`,
+    ),
+  );
+  const file = version.downloads?.[0]?.file;
+  if (!file) return [];
+  const { unzipSync, strFromU8 } = await import("fflate");
+  const files = unzipSync(
+    await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 40_000)),
+  ) as unknown as Record<string, Uint8Array>;
+  const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+  const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+    xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+  );
+  const names = sheetsByName(files, strFromU8);
+  const path = names.get("Table P3");
+  if (!path || !files[path]) return [];
+  const rows = parseSheet(strFromU8(files[path]!), shared);
+  const header = rows.find((r) => (r.cells["A"] ?? "").trim() === "Area Code");
+  if (!header) return [];
+  const title = rows[0]?.label ?? "";
+  const period = /year ending \w+ \d{4}/i.exec(title)?.[0] ?? null;
+
+  const col = (needle: RegExp) =>
+    Object.entries(header.cells).find(([, v]) => needle.test(v.replace(/\s+/g, " ")))?.[0];
+  const totalCol = col(/^TOTAL RECORDED CRIME/i) ?? col(/Total recorded crime/i);
+  const violenceCol = col(/^Violence against the person/i);
+  const sexualCol = col(/^Sexual offences/i);
+  const theftCol = col(/^Theft offences/i);
+  const nameCol = Object.entries(header.cells).find(([, v]) => /Area Name/i.test(v))?.[0] ?? "B";
+
+  const layerFor = (id: string, layerTitle: string, column: string | undefined): MapLayer | null => {
+    if (!column) return null;
+    const areas: MapArea[] = [];
+    for (const r of rows) {
+      const code = (r.cells["A"] ?? "").trim();
+      if (!/^E23|^W15/.test(code)) continue;
+      const value = Number(r.cells[column]);
+      if (!Number.isFinite(value)) continue;
+      areas.push({
+        code,
+        name: (r.cells[nameCol] ?? "").trim(),
+        value,
+        formatted: `${value.toFixed(1)} per 1,000`,
+      });
+    }
+    if (!areas.length) return null;
+    return {
+      id,
+      title: layerTitle,
+      unit: "offences per 1,000 population",
+      source: "Police recorded crime, Home Office (published by ONS)",
+      sourceUrl: `https://www.ons.gov.uk${CRIME_DATASET}`,
+      period,
+      asOf: version.description?.releaseDate ?? null,
+      boundary: "pfa",
+      areas,
+    };
+  };
+
+  return [
+    layerFor("crime-total", "All recorded crime", totalCol),
+    layerFor("crime-violence", "Violence against the person", violenceCol),
+    layerFor("crime-sexual", "Sexual offences", sexualCol),
+    layerFor("crime-theft", "Theft offences", theftCol),
+  ].filter((l): l is MapLayer => l !== null);
+}
+
+const HPI_REGIONS: { code: string; slug: string; name: string }[] = [
+  { code: "E12000001", slug: "north-east", name: "North East" },
+  { code: "E12000002", slug: "north-west", name: "North West" },
+  { code: "E12000003", slug: "yorkshire-and-the-humber", name: "Yorkshire and The Humber" },
+  { code: "E12000004", slug: "east-midlands", name: "East Midlands" },
+  { code: "E12000005", slug: "west-midlands", name: "West Midlands" },
+  { code: "E12000006", slug: "east-of-england", name: "East of England" },
+  { code: "E12000007", slug: "london", name: "London" },
+  { code: "E12000008", slug: "south-east", name: "South East" },
+  { code: "E12000009", slug: "south-west", name: "South West" },
+];
+
+/** Average house price for each English region, from the HM Land Registry UK HPI API. */
+async function housePriceMapLayer(): Promise<MapLayer | null> {
+  const results = await Promise.all(
+    HPI_REGIONS.map(async (r) => {
+      try {
+        const data = await getJson<{
+          result: { items: { averagePrice: number; refMonth: string }[] };
+        }>(
+          `https://landregistry.data.gov.uk/data/ukhpi/region/${r.slug}/month?_sort=-refMonth&_pageSize=1&_view=all`,
+        );
+        const item = data.result.items?.[0];
+        if (!item || typeof item.averagePrice !== "number") return null;
+        return {
+          area: {
+            code: r.code,
+            name: r.name,
+            value: item.averagePrice,
+            formatted: `£${item.averagePrice.toLocaleString("en-GB")}`,
+          } satisfies MapArea,
+          refMonth: item.refMonth,
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const ok = results.filter((r): r is NonNullable<typeof r> => r !== null);
+  if (!ok.length) return null;
+  const refMonth = ok[0]!.refMonth;
+  const [y, m] = refMonth.split("-").map(Number);
+  return {
+    id: "house-prices",
+    title: "Average house price",
+    unit: "average price paid",
+    source: "HM Land Registry · UK HPI",
+    sourceUrl: "https://landregistry.data.gov.uk/app/ukhpi",
+    period: new Date(Date.UTC(y!, m! - 1, 1)).toLocaleDateString("en-GB", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }),
+    asOf: null,
+    boundary: "region",
+    areas: ok.map((r) => r.area),
+  };
+}
+
+let mapCache: { at: number; data: Promise<MapLayer[]> } | null = null;
+
+/** Every regional layer the map can draw, each straight from its publisher. */
+export const getMapLayers = createServerFn({ method: "GET" }).handler(async (): Promise<MapLayer[]> => {
+  if (mapCache && Date.now() - mapCache.at < 30 * 60_000) return mapCache.data;
+  const p = (async () => {
+    const [crime, houses] = await Promise.all([
+      crimeMapLayers().catch(() => [] as MapLayer[]),
+      housePriceMapLayer().catch(() => null),
+    ]);
+    return [...crime, ...(houses ? [houses] : [])];
+  })();
+  mapCache = { at: Date.now(), data: p };
+  p.catch(() => (mapCache = null));
+  return p;
+});
+
+export interface StreetCrime {
+  category: string;
+  street: string;
+  lat: number;
+  lng: number;
+  month: string;
+  outcome: string | null;
+}
+
+/** Street-level crimes published by Police.uk around a point. */
+export const getStreetCrime = createServerFn({ method: "GET" })
+  .validator((data: { lat: number; lng: number }) => ({ lat: Number(data.lat), lng: Number(data.lng) }))
+  .handler(async ({ data }): Promise<{ points: StreetCrime[]; month: string | null; error: string | null }> => {
+    try {
+      const raw = await getJson<
+        {
+          category: string;
+          location: { latitude: string; longitude: string; street?: { name?: string } };
+          month: string;
+          outcome_status?: { category?: string } | null;
+        }[]
+      >(
+        `https://data.police.uk/api/crimes-street/all-crime?lat=${data.lat.toFixed(5)}&lng=${data.lng.toFixed(5)}`,
+        25_000,
+      );
+      const points = raw
+        .map((c) => ({
+          category: c.category.replace(/-/g, " "),
+          street: c.location.street?.name ?? "Location approximated by Police.uk",
+          lat: Number(c.location.latitude),
+          lng: Number(c.location.longitude),
+          month: c.month,
+          outcome: c.outcome_status?.category ?? null,
+        }))
+        .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+      return { points, month: points[0]?.month ?? null, error: null };
+    } catch (e) {
+      return { points: [], month: null, error: (e as Error).message };
+    }
+  });
+
+export interface TaxWelfarePoint {
+  year: string;
+  receipts: number | null;
+  welfare: number | null;
+}
+
+/** Published annual public sector receipts against the published welfare bill. */
+export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{
+    points: TaxWelfarePoint[];
+    asOf: string | null;
+    nextDue: string | null;
+  }> => {
+    const receiptsUri = "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anbt/pusf";
+    const welfareUri = "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anly/pusf";
+    const [receipts, welfare, nextDue] = await Promise.all([
+      onsSeries(receiptsUri),
+      onsSeries(welfareUri),
+      onsNextRelease("Public sector finances"),
+    ]);
+    const map = new Map<string, TaxWelfarePoint>();
+    for (const p of receipts.years ?? []) {
+      if (p.value === "") continue;
+      map.set(p.label, { year: p.label, receipts: Number(p.value), welfare: null });
+    }
+    for (const p of welfare.years ?? []) {
+      if (p.value === "") continue;
+      const row = map.get(p.label) ?? { year: p.label, receipts: null, welfare: null };
+      row.welfare = Number(p.value);
+      map.set(p.label, row);
+    }
+    const points = [...map.values()].sort((a, b) => a.year.localeCompare(b.year));
+    const asOf =
+      (receipts.years ?? []).slice(-1)[0]?.updateDate ?? (welfare.years ?? []).slice(-1)[0]?.updateDate ?? null;
+    return { points, asOf, nextDue };
+  },
+);

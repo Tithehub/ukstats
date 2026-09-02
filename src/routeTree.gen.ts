@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
@@ -28,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapsRoute = MapsRouteImport.update({
+  id: '/maps',
+  path: '/maps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyPagesRoute = MyPagesRouteImport.update({
@@ -48,6 +55,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxVsWelfareRoute = TaxVsWelfareRouteImport.update({
+  id: '/tax-vs-welfare',
+  path: '/tax-vs-welfare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WidgetRoute = WidgetRouteImport.update({
@@ -74,10 +86,12 @@ const PSlugRoute = PSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -86,10 +100,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -99,10 +115,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -113,10 +131,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/create'
+    | '/maps'
     | '/my-pages'
     | '/register'
     | '/sitemap.xml'
     | '/support'
+    | '/tax-vs-welfare'
     | '/widget'
     | '/embed/$metric'
     | '/history/$metricId'
@@ -125,10 +145,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/create'
+    | '/maps'
     | '/my-pages'
     | '/register'
     | '/sitemap.xml'
     | '/support'
+    | '/tax-vs-welfare'
     | '/widget'
     | '/embed/$metric'
     | '/history/$metricId'
@@ -137,10 +159,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/create'
+    | '/maps'
     | '/my-pages'
     | '/register'
     | '/sitemap.xml'
     | '/support'
+    | '/tax-vs-welfare'
     | '/widget'
     | '/embed/$metric'
     | '/history/$metricId'
@@ -150,10 +174,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
+  TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -174,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maps': {
+      id: '/maps'
+      path: '/maps'
+      fullPath: '/maps'
+      preLoaderRoute: typeof MapsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-pages': {
@@ -202,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tax-vs-welfare': {
+      id: '/tax-vs-welfare'
+      path: '/tax-vs-welfare'
+      fullPath: '/tax-vs-welfare'
+      preLoaderRoute: typeof TaxVsWelfareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/widget': {
@@ -238,10 +278,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
+  TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
