@@ -18,7 +18,16 @@ function makeGate(limit: number) {
     }
   };
 }
-const onsGate = makeGate(3);
+const onsGate = makeGate(2);
+let lastOns = 0;
+/** Minimum spacing between ONS requests, on top of the concurrency cap. */
+async function onsSpace() {
+  const gap = 220;
+  const now = Date.now();
+  const waitFor = Math.max(0, lastOns + gap - now);
+  lastOns = now + waitFor;
+  if (waitFor) await new Promise((r) => setTimeout(r, waitFor));
+}
 
 async function getJson<T>(url: string, ms = 20_000): Promise<T> {
   const run = async () => {
@@ -32,7 +41,11 @@ async function getJson<T>(url: string, ms = 20_000): Promise<T> {
       clearTimeout(t);
     }
   };
-  return /ons\.gov\.uk/.test(url) ? onsGate(run) : run();
+  if (!/ons\.gov\.uk/.test(url)) return run();
+  return onsGate(async () => {
+    await onsSpace();
+    return run();
+  });
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -2438,7 +2451,7 @@ async function sexualOffences(): Promise<Metric[]> {
  * the publisher releases it. Gaps in the source stay gaps: nothing is filled in.
  */
 export const getMetricHistory = createServerFn({ method: "GET" })
-  .inputValidator((data: { id: string }) => ({ id: String(data.id) }))
+  .validator((data: { id: string }) => ({ id: String(data.id) }))
   .handler(async ({ data }): Promise<HistoryPayload | null> => {
     const def = ONS_DEFS.find((d) => d.id === data.id);
     if (!def) return null;
