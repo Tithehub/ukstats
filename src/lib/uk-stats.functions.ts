@@ -296,6 +296,7 @@ async function smallBoats(): Promise<Metric[]> {
       {
         ...daily,
         value: last.arrivals.toLocaleString("en-GB"),
+        sub: `${last.arrivals.toLocaleString("en-GB")} people in ${last.boats.toLocaleString("en-GB")} boat${last.boats === 1 ? "" : "s"} detected on ${last.date}`,
         period: last.date,
         asOf,
         nextDue,
