@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import heroNetwork from "@/assets/hero-network.jpg";
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -75,47 +77,15 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-night font-sans text-night-fg">
-      <header className="sticky top-0 z-30 border-b border-night-line/60 bg-night/85 backdrop-blur-md">
-        <div className="mx-auto grid max-w-[1280px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-6">
-            <span className="flex shrink-0 items-baseline gap-0.5 text-lg font-semibold tracking-tight">
-              <span className="mr-1.5 inline-flex items-end gap-[2px]" aria-hidden="true">
-                <span className="block h-2.5 w-1 rounded-[1px] bg-electric" />
-                <span className="block h-4 w-1 rounded-[1px] bg-electric" />
-                <span className="block h-3 w-1 rounded-[1px] bg-electric-soft" />
-              </span>
-              UK<span className="text-electric">Stats</span>
-            </span>
-            <nav className="hidden items-center gap-5 font-mono text-[12px] text-night-muted md:flex">
-              <span className="text-night-fg">Home</span>
-              <Link to="/register" className="hover:text-electric-soft">
-                Data
-              </Link>
-              <Link to="/widget" className="hover:text-electric-soft">
-                Widgets
-              </Link>
-              <Link to="/create" className="hover:text-electric-soft">
-                Reports
-              </Link>
-              <Link to="/my-pages" className="hover:text-electric-soft">
-                My pages
-              </Link>
-            </nav>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="hidden items-center gap-2 rounded-full border border-night-line/70 px-3 py-1.5 font-mono text-[11px] text-night-muted lg:inline-flex">
-              <span className="size-1.5 rounded-full bg-fresh pulse-dot" />
-              {live} of {metrics.length} feeds live
-            </span>
-            <Link
-              to="/create"
-              className="rounded-md bg-electric px-3 py-2 text-[12px] font-medium text-night transition-opacity hover:opacity-90"
-            >
-              Create live page
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        status={
+          <>
+            <span className="size-1.5 rounded-full bg-fresh pulse-dot" />
+            {live} of {metrics.length} feeds live
+          </>
+        }
+      />
+
 
       <main className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
         {/* Hero */}
@@ -233,63 +203,8 @@ function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-night-line/60 bg-night-panel/40">
-        <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-          <div>
-            <p className="text-base font-semibold">
-              UK<span className="text-electric">Stats</span>
-            </p>
-            <p className="mt-2 max-w-xs text-[13px] leading-relaxed text-night-muted text-pretty">
-              An independent aggregator of official UK statistics. Not a government service. Nothing on this site is
-              estimated, modelled or interpolated.
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Data</p>
-            <ul className="mt-3 space-y-2 text-[13px]">
-              <li>
-                <Link to="/register" className="text-night-muted hover:text-electric-soft">
-                  Full register
-                </Link>
-              </li>
-              <li>
-                <Link to="/widget" className="text-night-muted hover:text-electric-soft">
-                  Widget builder
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Insights</p>
-            <ul className="mt-3 space-y-2 text-[13px]">
-              <li>
-                <Link to="/create" className="text-night-muted hover:text-electric-soft">
-                  Create a live page
-                </Link>
-              </li>
-              <li>
-                <Link to="/my-pages" className="text-night-muted hover:text-electric-soft">
-                  My pages
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Sources</p>
-            <ul className="mt-3 space-y-2 text-[13px] text-night-muted">
-              <li>ONS · Home Office</li>
-              <li>Police.uk · HM Land Registry</li>
-              <li>MOD · MI5 / JTAC · Met Office</li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-night-line/50">
-          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2 px-4 py-4 font-mono text-[11px] text-night-muted sm:px-6">
-            <span>Every figure sourced · nothing estimated</span>
-            <span>Last pull {new Date(data.fetchedAt).toLocaleString("en-GB")}</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter fetchedAt={data.fetchedAt} />
+
     </div>
   );
 }
