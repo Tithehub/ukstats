@@ -83,6 +83,30 @@ function Dashboard() {
     ];
   }, [shown]);
 
+  const crimeGroups = useMemo(() => {
+    const cr = shown.filter((m) => m.category === "Crime");
+    const isKnife = (id: string) => id === "uk-crime-knife-selected-offences";
+    const isPop = (id: string) => id === "uk-crime-population-denominator";
+    const isLocal = (id: string) => id === "uk-street-crime";
+    return [
+      {
+        title: "Offence groups and rates",
+        blurb: "Police recorded crime, England and Wales — counts and the published rate per 1,000 population",
+        metrics: cr.filter((m) => !isKnife(m.id) && !isPop(m.id) && !isLocal(m.id)),
+      },
+      {
+        title: "Weapon-enabled crime",
+        blurb: "Knife and sharp instrument offences, with the published rate per 100,000 population",
+        metrics: cr.filter((m) => isKnife(m.id)),
+      },
+      {
+        title: "Rate basis and local data",
+        blurb: "The population denominator behind the rates, plus street-level records",
+        metrics: cr.filter((m) => isPop(m.id) || isLocal(m.id)),
+      },
+    ];
+  }, [shown]);
+
 
 
   return (
