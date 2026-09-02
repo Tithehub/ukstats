@@ -33,6 +33,13 @@
   --color-alert-amber: var(--alert-amber);
   --color-alert-red: var(--alert-red);
   --color-alert-crimson: var(--alert-crimson);
+  --color-night: var(--night);
+  --color-night-panel: var(--night-panel);
+  --color-night-line: var(--night-line);
+  --color-night-fg: var(--night-fg);
+  --color-night-muted: var(--night-muted);
+  --color-electric: var(--electric);
+  --color-electric-soft: var(--electric-soft);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -90,6 +97,13 @@
   --alert-amber: oklch(0.73 0.17 62);
   --alert-red: oklch(0.55 0.21 27);
   --alert-crimson: oklch(0.42 0.17 22);
+  --night: oklch(0.176 0.038 259);
+  --night-panel: oklch(0.226 0.043 260);
+  --night-line: oklch(0.33 0.048 262);
+  --night-fg: oklch(0.972 0.008 250);
+  --night-muted: oklch(0.72 0.028 254);
+  --electric: oklch(0.652 0.196 255);
+  --electric-soft: oklch(0.78 0.13 250);
   --background: var(--ground);
   --foreground: var(--ink);
   --card: oklch(1 0 0);

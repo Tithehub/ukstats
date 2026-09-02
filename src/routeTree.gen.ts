@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
@@ -30,6 +31,11 @@ const CreateRoute = CreateRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/my-pages': typeof MyPagesRoute
+  '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/my-pages': typeof MyPagesRoute
+  '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/my-pages': typeof MyPagesRoute
+  '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/widget': typeof WidgetRoute
   '/embed/$metric': typeof EmbedMetricRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/my-pages'
+    | '/register'
     | '/sitemap.xml'
     | '/widget'
     | '/embed/$metric'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/my-pages'
+    | '/register'
     | '/sitemap.xml'
     | '/widget'
     | '/embed/$metric'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/my-pages'
+    | '/register'
     | '/sitemap.xml'
     | '/widget'
     | '/embed/$metric'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   MyPagesRoute: typeof MyPagesRoute
+  RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   MyPagesRoute: MyPagesRoute,
+  RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
