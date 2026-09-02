@@ -6,6 +6,7 @@ import { getUkStats } from "@/lib/uk-stats.functions";
 import { createSharedPage } from "@/lib/shared-pages.functions";
 import { getOwnerToken } from "@/lib/owner-token";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { CryptoCheckout } from "@/components/payments/CryptoCheckout";
 import { TIERS } from "@/lib/tiers";
 import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
 
@@ -49,6 +50,7 @@ function CreatePage() {
   const [tier, setTier] = useState("preview");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkout, setCheckout] = useState<{ slug: string; tier: string; ownerToken: string } | null>(null);
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -61,9 +63,15 @@ function CreatePage() {
     }
     setBusy(true);
     try {
+      const ownerToken = getOwnerToken();
       const page = await create({
-        data: { title: title.trim() || "UK live statistics", metricIds: selected, tier, ownerToken: getOwnerToken() },
+        data: { title: title.trim() || "UK live statistics", metricIds: selected, tier, ownerToken },
       });
+      if (page.pricePence > 0) {
+        setCheckout({ slug: page.slug, tier, ownerToken });
+        setBusy(false);
+        return;
+      }
       void navigate({ to: "/p/$slug", params: { slug: page.slug } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create the page.");
@@ -166,25 +174,48 @@ function CreatePage() {
             ))}
           </div>
           <p className="mt-3 font-mono text-[11px] text-steel/60">
-            Card payments are being set up. Paid tiers activate straight away for now and are marked payment pending — you
-            will be able to settle them once checkout goes live.
+            Paid durations are settled in crypto — Ethereum, Bitcoin, Solana or Tron. The page opens as a 60-minute
+            preview and unlocks the full duration as soon as your payment confirms on chain.
           </p>
         </section>
 
         {error ? <p className="mt-6 font-mono text-[12px] text-overdue">{error}</p> : null}
 
-        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
-          <button
-            onClick={() => void submit()}
-            disabled={busy}
-            className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-ground transition-colors hover:bg-steel disabled:opacity-50"
-          >
-            {busy ? "Creating…" : "Create my live page"}
-          </button>
-          <Link to="/" className="text-sm text-steel hover:underline">
-            Back to the register
-          </Link>
-        </div>
+        {checkout ? (
+          <div className="mt-6 border-t border-ink/10 pt-6">
+            <CryptoCheckout
+              slug={checkout.slug}
+              tier={checkout.tier}
+              ownerToken={checkout.ownerToken}
+              onConfirmed={() => undefined}
+            />
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Link
+                to="/p/$slug"
+                params={{ slug: checkout.slug }}
+                className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-ground hover:bg-steel"
+              >
+                Open my live page
+              </Link>
+              <Link to="/my-pages" className="text-sm text-steel hover:underline">
+                My pages
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
+            <button
+              onClick={() => void submit()}
+              disabled={busy}
+              className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-ground transition-colors hover:bg-steel disabled:opacity-50"
+            >
+              {busy ? "Creating…" : "Create my live page"}
+            </button>
+            <Link to="/" className="text-sm text-steel hover:underline">
+              Back to the register
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );

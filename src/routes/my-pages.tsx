@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { extendSharedPage, listOwnedPages } from "@/lib/shared-pages.functions";
+import { listOwnedPages } from "@/lib/shared-pages.functions";
 import { getOwnerToken } from "@/lib/owner-token";
 import { TIERS, countdown } from "@/lib/tiers";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { fmtDate } from "@/lib/uk-stats";
+import { CryptoCheckout } from "@/components/payments/CryptoCheckout";
 
 export const Route = createFileRoute("/my-pages")({
   head: () => ({
@@ -29,10 +30,9 @@ export const Route = createFileRoute("/my-pages")({
 
 function MyPages() {
   const list = useServerFn(listOwnedPages);
-  const extend = useServerFn(extendSharedPage);
   const [token, setToken] = useState("");
   const [origin, setOrigin] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
+  const [pay, setPay] = useState<{ slug: string; tier: string } | null>(null);
 
   useEffect(() => {
     setToken(getOwnerToken());
@@ -45,15 +45,6 @@ function MyPages() {
     enabled: token.length > 0,
   });
 
-  async function doExtend(slug: string, tier: string) {
-    setBusy(slug);
-    try {
-      await extend({ data: { slug, tier, ownerToken: token } });
-      await refetch();
-    } finally {
-      setBusy(null);
-    }
-  }
 
   return (
     <div className="min-h-screen bg-night font-sans text-night-fg">
@@ -112,18 +103,38 @@ function MyPages() {
                     >
                       Copy link
                     </button>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/50">Extend</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/50">Extend with crypto</span>
                     {TIERS.filter((t) => t.id !== "preview").map((t) => (
                       <button
                         key={t.id}
-                        disabled={busy === p.slug}
-                        onClick={() => void doExtend(p.slug, t.id)}
-                        className="rounded-md bg-ink/5 px-2.5 py-1.5 font-mono text-[11px] text-steel hover:bg-ink/10 disabled:opacity-50"
+                        onClick={() => setPay({ slug: p.slug, tier: t.id })}
+                        className={`rounded-md px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
+                          pay?.slug === p.slug && pay?.tier === t.id
+                            ? "bg-ink text-ground"
+                            : "bg-ink/5 text-steel hover:bg-ink/10"
+                        }`}
                       >
                         {t.price} · {t.label}
                       </button>
                     ))}
                   </div>
+
+                  {pay?.slug === p.slug ? (
+                    <div className="mt-3">
+                      <CryptoCheckout
+                        slug={p.slug}
+                        tier={pay.tier}
+                        ownerToken={token}
+                        onConfirmed={() => void refetch()}
+                      />
+                      <button
+                        onClick={() => setPay(null)}
+                        className="mt-2 font-mono text-[11px] text-steel/60 hover:underline"
+                      >
+                        Cancel payment
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

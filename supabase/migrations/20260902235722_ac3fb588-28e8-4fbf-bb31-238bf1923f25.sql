@@ -1,0 +1,1 @@
+CREATE POLICY "No public access to shared pages" ON public.shared_pages FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);

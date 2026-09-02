@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { getSharedPage } from "@/lib/shared-pages.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { getSharedPage, listOwnedPages } from "@/lib/shared-pages.functions";
+import { getOwnerToken } from "@/lib/owner-token";
+import { CryptoCheckout } from "@/components/payments/CryptoCheckout";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
 import { countdown } from "@/lib/tiers";
@@ -136,7 +139,22 @@ function Row({ metric }: { metric: Metric }) {
 function LivePage() {
   const { page, expired, metrics, fetchedAt } = Route.useLoaderData();
   const [url, setUrl] = useState("");
+  const [ownerToken, setOwnerToken] = useState<string | null>(null);
+  const owned = useServerFn(listOwnedPages);
   useEffect(() => setUrl(window.location.href), []);
+
+  const slug = page?.slug;
+  const pending = page?.paymentStatus === "pending";
+  useEffect(() => {
+    if (!slug || !pending) return;
+    const token = getOwnerToken();
+    void owned({ data: { ownerToken: token } })
+      .then((pages) => {
+        if (pages.some((p) => p.slug === slug)) setOwnerToken(token);
+      })
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, pending]);
 
   if (!page) {
     return (
@@ -192,6 +210,17 @@ function LivePage() {
             <ShareBar url={url} title={page.title} />
           </div>
         </header>
+
+        {pending && ownerToken ? (
+          <div className="no-print mt-6">
+            <CryptoCheckout
+              slug={page.slug}
+              tier={page.tier}
+              ownerToken={ownerToken}
+              onConfirmed={() => window.location.reload()}
+            />
+          </div>
+        ) : null}
 
         <main className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2">
           {metrics.map((m) => (

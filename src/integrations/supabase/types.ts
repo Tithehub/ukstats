@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      payment_orders: {
+        Row: {
+          address: string
+          chain: string
+          confirmed_at: string | null
+          created_at: string
+          expected_amount: number
+          gbp_pence: number
+          id: string
+          owner_hash: string
+          quote_expires_at: string
+          quote_rate: number
+          slug: string
+          status: string
+          tier: string
+          tx_hash: string | null
+        }
+        Insert: {
+          address: string
+          chain: string
+          confirmed_at?: string | null
+          created_at?: string
+          expected_amount: number
+          gbp_pence: number
+          id?: string
+          owner_hash: string
+          quote_expires_at: string
+          quote_rate: number
+          slug: string
+          status?: string
+          tier: string
+          tx_hash?: string | null
+        }
+        Update: {
+          address?: string
+          chain?: string
+          confirmed_at?: string | null
+          created_at?: string
+          expected_amount?: number
+          gbp_pence?: number
+          id?: string
+          owner_hash?: string
+          quote_expires_at?: string
+          quote_rate?: number
+          slug?: string
+          status?: string
+          tier?: string
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
       shared_pages: {
         Row: {
           created_at: string
