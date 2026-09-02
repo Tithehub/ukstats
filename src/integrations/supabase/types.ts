@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      shared_pages: {
+        Row: {
+          created_at: string
+          duration_hours: number
+          expires_at: string
+          id: string
+          metric_ids: string[]
+          owner_hash: string
+          payment_status: string
+          price_pence: number
+          slug: string
+          tier: string
+          title: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          duration_hours: number
+          expires_at: string
+          id?: string
+          metric_ids?: string[]
+          owner_hash: string
+          payment_status?: string
+          price_pence?: number
+          slug: string
+          tier: string
+          title: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          duration_hours?: number
+          expires_at?: string
+          id?: string
+          metric_ids?: string[]
+          owner_hash?: string
+          payment_status?: string
+          price_pence?: number
+          slug?: string
+          tier?: string
+          title?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
