@@ -93,7 +93,7 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
             <span className="font-mono text-[2.1rem] font-semibold tracking-tighter tabular-nums">{metric.value}</span>
           ) : (
             <span className="font-mono text-[1.35rem] font-semibold tracking-tight text-steel/70">
-              {metric.status === "no-feed" ? "No live feed" : "Unavailable"}
+              {metric.emptyLabel ?? (metric.status === "no-feed" ? "No live feed" : "Unavailable")}
             </span>
           )}
           <p className="mt-1 font-mono text-[11px] text-steel/70">
