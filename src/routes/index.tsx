@@ -83,6 +83,30 @@ function Dashboard() {
     ];
   }, [shown]);
 
+  const crimeGroups = useMemo(() => {
+    const cr = shown.filter((m) => m.category === "Crime");
+    const isKnife = (id: string) => id === "uk-crime-knife-selected-offences";
+    const isPop = (id: string) => id === "uk-crime-population-denominator";
+    const isLocal = (id: string) => id === "uk-street-crime";
+    return [
+      {
+        title: "Offence groups and rates",
+        blurb: "Police recorded crime, England and Wales — counts and the published rate per 1,000 population",
+        metrics: cr.filter((m) => !isKnife(m.id) && !isPop(m.id) && !isLocal(m.id)),
+      },
+      {
+        title: "Weapon-enabled crime",
+        blurb: "Knife and sharp instrument offences, with the published rate per 100,000 population",
+        metrics: cr.filter((m) => isKnife(m.id)),
+      },
+      {
+        title: "Rate basis and local data",
+        blurb: "The population denominator behind the rates, plus street-level records",
+        metrics: cr.filter((m) => isPop(m.id) || isLocal(m.id)),
+      },
+    ];
+  }, [shown]);
+
 
 
   return (
@@ -192,7 +216,7 @@ function Dashboard() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown
-            .filter((m) => m.category !== "Irregular immigration & cost")
+            .filter((m) => m.category !== "Irregular immigration & cost" && m.category !== "Crime")
             .slice()
             .sort((a, b) => {
               const order = { fresh: 0, ageing: 1, overdue: 2, unknown: 3 } as const;
@@ -202,6 +226,28 @@ function Dashboard() {
               <MetricCard key={m.id} metric={m} origin={origin} />
             ))}
         </div>
+
+        {crimeGroups.some((g) => g.metrics.length) ? (
+          <section className="mt-10">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">Crime</h2>
+            {crimeGroups
+              .filter((g) => g.metrics.length)
+              .map((g) => (
+                <div key={g.title} className="mt-5">
+                  <div className="flex flex-wrap items-baseline gap-x-3">
+                    <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
+                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {g.metrics.map((m) => (
+                      <MetricCard key={m.id} metric={m} origin={origin} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </section>
+        ) : null}
+
 
         {irregularGroups.some((g) => g.metrics.length) ? (
           <section className="mt-10">
