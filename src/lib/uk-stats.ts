@@ -10,7 +10,24 @@ export type Category =
   | "Housing"
   | "Weather"
   | "Defence & security"
+  | "National alerts"
   | "Irregular immigration & cost";
+
+/** Colour vocabulary used by the issuing bodies' own published scales. */
+export type AlertTone = "neutral" | "green" | "yellow" | "amber" | "red" | "crimson";
+
+export type ScaleKind = "terror" | "metoffice" | "flood" | "ukhsa" | "daqi";
+
+/** The official published scale a status metric sits on, reproduced step for step. */
+export interface MetricScale {
+  kind: ScaleKind;
+  /** Who sets the scale and how many steps it has, e.g. "JTAC / MI5 · 5 levels". */
+  authority: string;
+  steps: { label: string; tone: AlertTone }[];
+  /** Index of the current step, or null when the level cannot be read. */
+  current: number | null;
+}
+
 
 export interface Metric {
   id: string;
