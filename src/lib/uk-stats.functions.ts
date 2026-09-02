@@ -1403,7 +1403,76 @@ async function smallBoatDemographics(): Promise<Metric[]> {
       breakdown: parts.map((p) => ({ ...p, highlight: p.label === highlight })),
     });
 
+    /* -------- Nationality (table IER_02b), same published period -------- */
+    const natMetrics: Metric[] = [];
+    const natTbl = /<table:table table:name="IER_02b"[\s\S]*?<\/table:table>/.exec(xml)?.[0];
+    if (natTbl) {
+      const natRows = [...natTbl.matchAll(/<table:table-row[\s\S]*?<\/table:table-row>/g)].map((m) => odsRow(m[0]));
+      const natHeader = natRows.find((r) => /^nationality$/i.test((r[0] ?? "").trim()));
+      // Use the same reference period column as the age/sex table.
+      const natCol = natHeader ? natHeader.findIndex((c, i) => i > 0 && c.trim() === period) : -1;
+      if (natHeader && natCol > 0) {
+        const entries: { label: string; value: number }[] = [];
+        let natTotal: number | null = null;
+        for (const r of natRows) {
+          const label = (r[0] ?? "").trim();
+          const v = num(r[natCol]);
+          if (!label || v == null) continue;
+          if (/^total$/i.test(label)) natTotal = v;
+          else if (/^nationality$/i.test(label)) continue;
+          else entries.push({ label, value: v });
+        }
+        if (natTotal && entries.length) {
+          const named = entries.filter((e) => !/^all other nationalities$|^not currently recorded$/i.test(e.label));
+          const other = entries.find((e) => /^all other nationalities$/i.test(e.label));
+          const unrecorded = entries.find((e) => /^not currently recorded$/i.test(e.label));
+          const ranked = named.slice().sort((a, b) => b.value - a.value);
+          const parts = [...ranked, ...(other ? [other] : []), ...(unrecorded ? [unrecorded] : [])];
+          const natNote = `Reproduced from Home Office table IER_02b, "Small boat arrivals, by nationality". Nationality is the only origin characteristic the Home Office publishes for this route; it is not a measure of religion or ethnicity. Shares are calculated from the published counts in the same column.`;
+          const top = ranked.slice(0, 8);
+          for (const e of [...top, ...(other ? [other] : [])]) {
+            natMetrics.push({
+              ...base,
+              id: `uk-boats-nat-${e.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+              title: /^all other nationalities$/i.test(e.label)
+                ? "Small boat arrivals: all other nationalities"
+                : `Small boat arrivals: ${e.label}`,
+              sourceUrl: tableUrl,
+              value: e.value.toLocaleString("en-GB"),
+              sub: `${((e.value / natTotal) * 100).toFixed(1)}% of the published total`,
+              period,
+              asOf: published,
+              nextDue,
+              status: "ok",
+              note: natNote,
+              derivedFrom: "Share calculated from the published counts in table IER_02b",
+              covers: `${period}, small boat arrivals only`,
+              breakdown: parts.map((p) => ({ ...p, highlight: p.label === e.label })),
+            });
+          }
+        }
+      }
+    }
+
+    /* -------- Characteristics the Home Office does not publish -------- */
+    const notCollected = (id: string, title: string, what: string): Metric => ({
+      ...base,
+      id,
+      title,
+      sourceUrl: tableUrl,
+      value: null,
+      emptyLabel: "Not published",
+      sub: `The Home Office does not publish ${what} for irregular arrivals`,
+      period,
+      asOf: published,
+      nextDue,
+      status: "unavailable",
+      note: `Checked against the current Home Office release "Illegal entry routes to the UK summary tables" (${period}), which publishes nationality, age group and sex only. No ${what} is collected or released for detected irregular arrivals, so no figure is shown here rather than an estimate. This check runs on every refresh and the card will populate if the Home Office starts publishing it.`,
+      covers: `${period}, small boat arrivals only`,
+    });
+
     return [
+
       card("uk-boats-male", "Small boat arrivals: male", male, share(male), sexParts, "Male"),
       card("uk-boats-female", "Small boat arrivals: female", female, share(female), sexParts, "Female"),
       card(
