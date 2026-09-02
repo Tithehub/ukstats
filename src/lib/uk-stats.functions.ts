@@ -2040,6 +2040,14 @@ async function collectStats(): Promise<StatsPayload> {
       else metrics.push(r.value);
     }
   }
+  // Publishers occasionally repeat an offence label; keep every row but make
+  // the ids unique so nothing is dropped from the register.
+  const seen = new Map<string, number>();
+  for (const m of metrics) {
+    const n = (seen.get(m.id) ?? 0) + 1;
+    seen.set(m.id, n);
+    if (n > 1) m.id = `${m.id}-${n}`;
+  }
   return { metrics, fetchedAt: new Date().toISOString() };
 }
 

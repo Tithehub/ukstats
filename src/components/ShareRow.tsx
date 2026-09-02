@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { SHARE_TARGETS, absoluteUrl } from "@/lib/share";
+import { useEffect, useState } from "react";
+import { SHARE_TARGETS, SITE_ORIGIN, absoluteUrl } from "@/lib/share";
 
 /** Share the current page, plus a direct link to the official source. */
 export function ShareRow({
@@ -16,7 +16,10 @@ export function ShareRow({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const url = absoluteUrl(path);
+  // Render the canonical URL first so SSR and hydration agree, then switch to
+  // the origin the visitor is actually on.
+  const [url, setUrl] = useState(`${SITE_ORIGIN}${path}`);
+  useEffect(() => setUrl(absoluteUrl(path)), [path]);
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
