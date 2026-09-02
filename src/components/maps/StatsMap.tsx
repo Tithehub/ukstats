@@ -4,9 +4,9 @@ import type { MapLayer, StreetCrime } from "@/lib/uk-stats.functions";
 
 /** ONS Open Geography boundary services, generalised and clipped to the coastline. */
 const BOUNDARY_URL: Record<MapLayer["boundary"], string> = {
-  pfa: "https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Police_Force_Areas_(December_2024)_Boundaries_EW_BUC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
+  pfa: "https://services1.arcgis.com/ESMARspQHYMw9BZ9/ArcGIS/rest/services/Police_Force_Areas_Dec_2024_EW_BUC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
   region:
-    "https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Regions_(December_2025)_Boundaries_EN_BUC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
+    "https://services1.arcgis.com/ESMARspQHYMw9BZ9/ArcGIS/rest/services/Regions_December_2025_Boundaries_EN_BUC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
 };
 
 interface Feature {
