@@ -1,0 +1,1 @@
+CREATE POLICY "No public access to payment orders" ON public.payment_orders FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
