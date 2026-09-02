@@ -80,6 +80,9 @@ function Dashboard() {
               >
                 Create live page
               </Link>
+              <Link to="/widget" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
+                Widget builder
+              </Link>
               <Link to="/my-pages" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
                 My pages
               </Link>
