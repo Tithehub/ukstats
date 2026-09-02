@@ -63,7 +63,11 @@ export const createSharedPage = createServerFn({ method: "POST" })
     if (!tier) throw new Error("Unknown duration tier");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const expiresAt = new Date(Date.now() + tier.hours * 3_600_000).toISOString();
+    // Paid tiers start as a 60-minute preview; crypto confirmation extends
+    // the page to the full purchased duration.
+    const paid = tier.pricePence > 0;
+    const initialHours = paid ? 1 : tier.hours;
+    const expiresAt = new Date(Date.now() + initialHours * 3_600_000).toISOString();
     const ownerHash = await hashToken(data.ownerToken);
 
     const { data: row, error } = await supabaseAdmin
