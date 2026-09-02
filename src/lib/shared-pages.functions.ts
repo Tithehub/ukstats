@@ -124,44 +124,5 @@ export const listOwnedPages = createServerFn({ method: "POST" })
     return (rows ?? []).map(row2page);
   });
 
-export const extendSharedPage = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z
-      .object({
-        slug: z.string().min(1).max(80),
-        tier: z.string().min(1).max(32),
-        ownerToken: z.string().min(16).max(128),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data }) => {
-    const tier = tierById(data.tier);
-    if (!tier) throw new Error("Unknown duration tier");
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const ownerHash = await hashToken(data.ownerToken);
-    const { data: row } = await supabaseAdmin
-      .from("shared_pages")
-      .select("*")
-      .eq("slug", data.slug)
-      .maybeSingle();
-
-    if (!row || row.owner_hash !== ownerHash) throw new Error("Not your page");
-
-    const from = Math.max(Date.now(), new Date(row.expires_at).getTime());
-    const { data: updated, error } = await supabaseAdmin
-      .from("shared_pages")
-      .update({
-        expires_at: new Date(from + tier.hours * 3_600_000).toISOString(),
-        tier: tier.id,
-        duration_hours: tier.hours,
-        price_pence: tier.pricePence,
-        payment_status: tier.pricePence === 0 ? "free" : "pending",
-      })
-      .eq("id", row.id)
-      .select()
-      .single();
-
-    if (error) throw new Error(error.message);
-    return row2page(updated);
-  });
+// Extending a page now happens through a confirmed crypto payment
+// (see src/lib/payments.functions.ts) rather than a free server call.
