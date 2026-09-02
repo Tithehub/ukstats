@@ -279,10 +279,16 @@ async function smallBoats(): Promise<Metric[]> {
       )
       .filter((cells) => cells.length >= 3 && /\d{4}$/.test(cells[0] ?? ""));
     if (!rows.length) throw new Error("no data rows in published table");
-    const series = rows.map((c) => ({ date: c[0]!, arrivals: Number((c[1] ?? "").replace(/,/g, "")) }));
+    const series = rows.map((c) => ({
+      date: c[0]!,
+      arrivals: Number((c[1] ?? "").replace(/,/g, "")),
+      boats: Number((c[2] ?? "").replace(/,/g, "")),
+    }));
     const last = series[series.length - 1]!;
     const prev = series[series.length - 2];
     const total = series.reduce((a, b) => a + (Number.isFinite(b.arrivals) ? b.arrivals : 0), 0);
+    const boatsTotal = series.reduce((a, b) => a + (Number.isFinite(b.boats) ? b.boats : 0), 0);
+    const range = `${series[0]!.date} – ${series[series.length - 1]!.date}`;
     const asOf = data.public_updated_at ?? null;
     const nextDue = asOf ? new Date(new Date(asOf).getTime() + 86_400_000).toISOString() : null;
     const delta = prev ? last.arrivals - prev.arrivals : null;
