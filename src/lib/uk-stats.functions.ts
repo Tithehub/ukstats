@@ -1515,7 +1515,11 @@ async function smallBoatDemographics(): Promise<Metric[]> {
         ageParts,
         "40 and over",
       ),
+      notCollected("uk-boats-religion", "Religion of irregular arrivals", "religion"),
+      notCollected("uk-boats-ethnicity", "Ethnicity of irregular arrivals", "race or ethnicity"),
+      ...natMetrics,
     ];
+
   } catch {
     return fallback;
   }
