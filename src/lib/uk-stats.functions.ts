@@ -3,16 +3,36 @@ import type { HistoryPayload, Metric, StatsPayload } from "./uk-stats";
 
 const UA = { "user-agent": "uk-national-data-register/1.0 (+aggregator)" };
 
+/** Caps concurrent requests to one host; ONS rate-limits bursts with HTTP 429. */
+function makeGate(limit: number) {
+  let active = 0;
+  const queue: (() => void)[] = [];
+  return async function run<T>(fn: () => Promise<T>): Promise<T> {
+    if (active >= limit) await new Promise<void>((r) => queue.push(r));
+    active++;
+    try {
+      return await fn();
+    } finally {
+      active--;
+      queue.shift()?.();
+    }
+  };
+}
+const onsGate = makeGate(3);
+
 async function getJson<T>(url: string, ms = 20_000): Promise<T> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
-  try {
-    const res = await fetch(url, { headers: { accept: "application/json", ...UA }, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
-    return (await res.json()) as T;
-  } finally {
-    clearTimeout(t);
-  }
+  const run = async () => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const res = await fetch(url, { headers: { accept: "application/json", ...UA }, signal: ctrl.signal });
+      if (!res.ok) throw new Error(`${res.status} ${url}`);
+      return (await res.json()) as T;
+    } finally {
+      clearTimeout(t);
+    }
+  };
+  return /ons\.gov\.uk/.test(url) ? onsGate(run) : run();
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
