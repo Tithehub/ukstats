@@ -238,7 +238,7 @@ async function smallBoats(): Promise<Metric[]> {
     "https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats";
   const mk = (id: string, title: string, sub: string): Metric => ({
     id,
-    category: "Immigration",
+    category: "Irregular immigration & cost",
     title,
     source: "Home Office · small boat activity",
     sourceUrl: pageUrl,
@@ -253,8 +253,21 @@ async function smallBoats(): Promise<Metric[]> {
     status: "unavailable",
     note: null,
   });
-  const daily = mk("uk-small-boats-daily", "Small boat arrivals, latest day", "Migrants detected crossing the Channel");
-  const weekly = mk("uk-small-boats-week", "Small boat arrivals, last 7 days", "Rolling seven-day published total");
+  const daily = mk(
+    "uk-small-boats-daily",
+    "Irregular arrivals detected, latest day",
+    "People detected crossing the Channel in small boats",
+  );
+  const weekly = mk(
+    "uk-small-boats-week",
+    "Total irregular arrivals, last 7 days",
+    "People detected crossing the Channel in small boats",
+  );
+  const boatsWeek = mk(
+    "uk-small-boats-count-week",
+    "Number of boats detected, last 7 days",
+    "Small boats recorded arriving over the same seven days",
+  );
   try {
     const data = await getJson<GovukContent>(url);
     const body = data.details?.body ?? "";
