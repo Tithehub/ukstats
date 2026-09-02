@@ -13,7 +13,7 @@ const statsQuery = queryOptions<StatsPayload>({
   staleTime: 5 * 60_000,
 });
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/register")({
   loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
   head: () => ({
     meta: [
