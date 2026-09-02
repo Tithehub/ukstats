@@ -197,3 +197,24 @@
 @utility roll {
   animation: roll-num 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  article {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  @page {
+    margin: 12mm;
+  }
+}
