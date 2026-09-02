@@ -10,11 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CreateRouteImport } from './routes/create'
+import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyPagesRoute = MyPagesRouteImport.update({
+  id: '/my-pages',
+  path: '/my-pages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
@@ -22,31 +35,48 @@ const EmbedMetricRoute = EmbedMetricRouteImport.update({
   path: '/embed/$metric',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
+  '/my-pages': typeof MyPagesRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/p/$slug': typeof PSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
+  '/my-pages': typeof MyPagesRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/p/$slug': typeof PSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
+  '/my-pages': typeof MyPagesRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/p/$slug': typeof PSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/embed/$metric'
+  fullPaths: '/' | '/create' | '/my-pages' | '/embed/$metric' | '/p/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/embed/$metric'
-  id: '__root__' | '/' | '/embed/$metric'
+  to: '/' | '/create' | '/my-pages' | '/embed/$metric' | '/p/$slug'
+  id: '__root__' | '/' | '/create' | '/my-pages' | '/embed/$metric' | '/p/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CreateRoute: typeof CreateRoute
+  MyPagesRoute: typeof MyPagesRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
+  PSlugRoute: typeof PSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +88,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-pages': {
+      id: '/my-pages'
+      path: '/my-pages'
+      fullPath: '/my-pages'
+      preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/$metric': {
       id: '/embed/$metric'
       path: '/embed/$metric'
@@ -65,12 +109,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbedMetricRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CreateRoute: CreateRoute,
+  MyPagesRoute: MyPagesRoute,
   EmbedMetricRoute: EmbedMetricRoute,
+  PSlugRoute: PSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

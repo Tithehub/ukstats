@@ -1,0 +1,199 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { getUkStats } from "@/lib/uk-stats.functions";
+import { createSharedPage } from "@/lib/shared-pages.functions";
+import { getOwnerToken } from "@/lib/owner-token";
+import { TIERS } from "@/lib/tiers";
+import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
+
+const statsQuery = queryOptions<StatsPayload>({
+  queryKey: ["uk-stats"],
+  queryFn: () => getUkStats(),
+  staleTime: 5 * 60_000,
+});
+
+export const Route = createFileRoute("/create")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
+  head: () => ({
+    meta: [
+      { title: "Create a live UK statistics page — National Data Register" },
+      {
+        name: "description",
+        content:
+          "Build a one-page, PDF-ready live UK statistics sheet you can share to socials and keep live from 24 hours up to a year.",
+      },
+      { property: "og:title", content: "Create a live UK statistics page" },
+      {
+        property: "og:description",
+        content: "Pick your official UK figures, choose how long the page stays live, then share or download it as a PDF.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: CreatePage,
+});
+
+function CreatePage() {
+  const { data } = useSuspenseQuery(statsQuery);
+  const navigate = useNavigate();
+  const create = useServerFn(createSharedPage);
+
+  const [title, setTitle] = useState("UK National Data Register — live sheet");
+  const [selected, setSelected] = useState<string[]>(data.metrics.map((m) => m.id));
+  const [tier, setTier] = useState("preview");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const toggle = (id: string) =>
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+
+  async function submit() {
+    setError(null);
+    if (selected.length === 0) {
+      setError("Pick at least one statistic.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const page = await create({
+        data: { title: title.trim() || "UK live statistics", metricIds: selected, tier, ownerToken: getOwnerToken() },
+      });
+      void navigate({ to: "/p/$slug", params: { slug: page.slug } });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not create the page.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-ground font-sans text-ink">
+      <header className="border-b border-steel/10">
+        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <Link to="/" className="flex items-center gap-3">
+            <span className="grid size-8 place-items-center rounded-lg bg-ink font-mono text-xs font-semibold text-ground">
+              UK
+            </span>
+            <span className="text-[13px] font-semibold tracking-tight">National Data Register</span>
+          </Link>
+          <Link to="/my-pages" className="font-mono text-[11px] text-steel underline decoration-brand underline-offset-4">
+            My live pages
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-[1100px] px-4 py-8 sm:px-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance">Create a live, shareable stats page</h1>
+        <p className="mt-2 max-w-2xl text-pretty text-sm text-steel">
+          Your page always re-reads the official sources when someone opens it — the figures are never frozen. Download it
+          as a PDF at any time, post the link to socials, or keep it for yourself.
+        </p>
+
+        <section className="mt-8">
+          <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60" htmlFor="title">
+            Page headline
+          </label>
+          <input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="mt-2 w-full rounded-lg bg-card/60 px-3 py-2.5 text-sm ring-1 ring-ink/10 outline-none focus:ring-brand"
+          />
+        </section>
+
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60">
+              Statistics · {selected.length} of {data.metrics.length} selected
+            </p>
+            <button
+              onClick={() => setSelected(data.metrics.map((m) => m.id))}
+              className="rounded-full bg-ink/5 px-2.5 py-1 font-mono text-[11px] text-steel hover:bg-ink/10"
+            >
+              Select all
+            </button>
+            <button
+              onClick={() => setSelected([])}
+              className="rounded-full bg-ink/5 px-2.5 py-1 font-mono text-[11px] text-steel hover:bg-ink/10"
+            >
+              Clear
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-5">
+            {CATEGORIES.map((cat) => {
+              const items = data.metrics.filter((m) => m.category === cat);
+              if (items.length === 0) return null;
+              return (
+                <div key={cat}>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/50">{cat}</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((m) => {
+                      const on = selected.includes(m.id);
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => toggle(m.id)}
+                          className={`rounded-lg px-3 py-2.5 text-left text-[13px] ring-1 transition-colors ${
+                            on ? "bg-ink text-ground ring-ink" : "bg-card/50 text-ink ring-ink/10 hover:bg-card"
+                          }`}
+                        >
+                          <span className="block font-medium leading-snug">{m.title}</span>
+                          <span className={`mt-0.5 block font-mono text-[10px] ${on ? "text-ground/60" : "text-steel/60"}`}>
+                            {m.value ?? "no live value"} · {m.source.split(" · ")[0]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60">How long should it stay live?</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {TIERS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTier(t.id)}
+                className={`rounded-xl p-3 text-left ring-1 transition-colors ${
+                  tier === t.id ? "bg-steel text-ground ring-steel" : "bg-card/50 ring-ink/10 hover:bg-card"
+                }`}
+              >
+                <span className="font-mono text-lg font-semibold tracking-tight">{t.price}</span>
+                <span className="mt-0.5 block text-[13px] font-medium">{t.label}</span>
+                <span className={`mt-0.5 block font-mono text-[10px] ${tier === t.id ? "text-ground/60" : "text-steel/60"}`}>
+                  {t.blurb}
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 font-mono text-[11px] text-steel/60">
+            Card payments are being set up. Paid tiers activate straight away for now and are marked payment pending — you
+            will be able to settle them once checkout goes live.
+          </p>
+        </section>
+
+        {error ? <p className="mt-6 font-mono text-[12px] text-overdue">{error}</p> : null}
+
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
+          <button
+            onClick={() => void submit()}
+            disabled={busy}
+            className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-ground transition-colors hover:bg-steel disabled:opacity-50"
+          >
+            {busy ? "Creating…" : "Create my live page"}
+          </button>
+          <Link to="/" className="text-sm text-steel hover:underline">
+            Back to the register
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}

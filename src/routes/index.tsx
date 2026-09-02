@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
@@ -60,12 +60,24 @@ function Dashboard() {
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60">Single source of truth</p>
               </div>
             </div>
-            <div className="hidden items-center gap-2 rounded-full bg-card/40 px-3 py-1.5 ring-1 ring-steel/10 md:flex">
-              <span className="size-2 rounded-full bg-fresh pulse-dot" />
-              <span className="font-mono text-[11px] text-steel">
-                {live} of {data.metrics.length} feeds live · pulled {new Date(data.fetchedAt).toLocaleTimeString("en-GB")}
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 rounded-full bg-card/40 px-3 py-1.5 ring-1 ring-steel/10 md:flex">
+                <span className="size-2 rounded-full bg-fresh pulse-dot" />
+                <span className="font-mono text-[11px] text-steel">
+                  {live} of {data.metrics.length} feeds live · pulled {new Date(data.fetchedAt).toLocaleTimeString("en-GB")}
+                </span>
+              </div>
+              <Link
+                to="/create"
+                className="rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel"
+              >
+                Create live page
+              </Link>
+              <Link to="/my-pages" className="hidden font-mono text-[11px] text-steel hover:underline sm:block">
+                My pages
+              </Link>
             </div>
+
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pb-3">
