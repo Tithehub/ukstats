@@ -128,6 +128,7 @@ export const CATEGORIES: Category[] = [
   "Weather",
   "Defence & security",
   "National alerts",
+  "NHS & doctors",
 
   "Irregular immigration & cost",
 ];
