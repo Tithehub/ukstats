@@ -3052,7 +3052,7 @@ SELECT ?area ?name ?crime ?count WHERE {
 
   return SCOT_CRIME_TYPES.map((t): MapLayer | null => {
     const areas: MapArea[] = rows
-      .filter((r) => r.period === latest && r.crime === t.slug && Number.isFinite(r.count))
+      .filter((r) => r.crime === t.slug && Number.isFinite(r.count))
       .map((r) => ({
         code: r.area,
         name: r.name,
