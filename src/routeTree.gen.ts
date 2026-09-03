@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
+import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as PollingRouteImport } from './routes/polling'
@@ -37,6 +38,11 @@ const CreateRoute = CreateRouteImport.update({
 const ForeignAidRoute = ForeignAidRouteImport.update({
   id: '/foreign-aid',
   path: '/foreign-aid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernmentsRoute = GovernmentsRouteImport.update({
+  id: '/governments',
+  path: '/governments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsRoute = MapsRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/polling': typeof PollingRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/polling': typeof PollingRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/polling': typeof PollingRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/foreign-aid'
+    | '/governments'
     | '/maps'
     | '/my-pages'
     | '/polling'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/foreign-aid'
+    | '/governments'
     | '/maps'
     | '/my-pages'
     | '/polling'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/foreign-aid'
+    | '/governments'
     | '/maps'
     | '/my-pages'
     | '/polling'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   ForeignAidRoute: typeof ForeignAidRoute
+  GovernmentsRoute: typeof GovernmentsRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
   PollingRoute: typeof PollingRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/foreign-aid'
       fullPath: '/foreign-aid'
       preLoaderRoute: typeof ForeignAidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governments': {
+      id: '/governments'
+      path: '/governments'
+      fullPath: '/governments'
+      preLoaderRoute: typeof GovernmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps': {
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   ForeignAidRoute: ForeignAidRoute,
+  GovernmentsRoute: GovernmentsRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
   PollingRoute: PollingRoute,
