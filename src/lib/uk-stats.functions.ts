@@ -4013,14 +4013,14 @@ export interface PollingPayload {
   configured: boolean;
 }
 
-const POLLSTERS: { name: string; url: string }[] = [
-  { name: "YouGov", url: "https://yougov.co.uk/topics/politics/trackers/voting-intention" },
-  { name: "Ipsos", url: "https://www.ipsos.com/en-uk/ipsos-political-pulse" },
-  { name: "More in Common", url: "https://www.moreincommon.org.uk/polling/" },
-  { name: "Opinium", url: "https://opinium.com/political-polling/" },
-  { name: "Savanta", url: "https://savanta.com/knowledge-centre/polls/" },
-  { name: "Find Out Now", url: "https://findoutnow.co.uk/voting-intention/" },
-  { name: "BMG Research", url: "https://www.bmgresearch.co.uk/polls/" },
+const POLLSTERS: { name: string; url: string; domain: string }[] = [
+  { name: "YouGov", url: "https://yougov.co.uk/politics", domain: "yougov.co.uk" },
+  { name: "Ipsos", url: "https://www.ipsos.com/en-uk", domain: "ipsos.com" },
+  { name: "More in Common", url: "https://www.moreincommon.org.uk/research/", domain: "moreincommon.org.uk" },
+  { name: "Opinium", url: "https://opinium.com/political-polling/", domain: "opinium.com" },
+  { name: "Savanta", url: "https://savanta.com/knowledge-centre/", domain: "savanta.com" },
+  { name: "Find Out Now", url: "https://findoutnow.co.uk/", domain: "findoutnow.co.uk" },
+  { name: "BMG Research", url: "https://www.bmgresearch.co.uk/", domain: "bmgresearch.co.uk" },
 ];
 
 export const POLL_PARTIES = [
@@ -4035,14 +4035,10 @@ export const POLL_PARTIES = [
 
 const POLL_WINDOW_DAYS = 21;
 
-/** Scrape one pollster's own published release through Firecrawl's structured extraction. */
-async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease> {
+function firecrawlCall(pathname: string, body: unknown) {
   const key = process.env["FIRECRAWL_API_KEY"];
   const lovable = process.env["LOVABLE_API_KEY"];
   const gateway = !!key && key.startsWith("lovc_");
-  const endpoint = gateway
-    ? "https://connector-gateway.lovable.dev/firecrawl/v2/scrape"
-    : "https://api.firecrawl.dev/v2/scrape";
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (gateway) {
     headers["authorization"] = `Bearer ${lovable}`;
@@ -4050,19 +4046,51 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
   } else {
     headers["authorization"] = `Bearer ${key}`;
   }
+  const base = gateway ? "https://connector-gateway.lovable.dev/firecrawl/v2" : "https://api.firecrawl.dev/v2";
+  return fetch(`${base}${pathname}`, { method: "POST", headers, body: JSON.stringify(body) });
+}
+
+/** The pollster's own most recent voting intention release, found on their own site. */
+async function latestReleaseUrl(p: { name: string; url: string; domain: string }): Promise<string | null> {
+  try {
+    const res = await firecrawlCall("/search", {
+      query: `site:${p.domain} voting intention poll`,
+      limit: 3,
+      tbs: "qdr:m",
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { data?: { web?: { url?: string; title?: string }[] } };
+    const hits = data.data?.web ?? [];
+    // Only accept a UK Westminster voting intention release; a general article from the
+    // same pollster is not a published poll and must never be read as one.
+    const match = hits.find((h) => {
+      const text = `${h.url ?? ""} ${h.title ?? ""}`.toLowerCase();
+      if (/\/us\/|\bus:|united states/.test(text)) return false;
+      return /voting[- ]intention|westminster|political (poll|tracker)/.test(text);
+    });
+    return match?.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Scrape one pollster's own published release through Firecrawl's structured extraction. */
+async function scrapePoll(p: { name: string; url: string; domain: string }): Promise<PollRelease> {
+  const found = await latestReleaseUrl(p);
+  const target = found ?? p.url;
   const blank: PollRelease = {
     pollster: p.name,
-    url: p.url,
+    url: target,
     fieldworkEnd: null,
     sampleSize: null,
     shares: {},
   };
+  if (!found) {
+    return { ...blank, error: "No voting intention release published in the last month." };
+  }
   try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        url: p.url,
+    const res = await firecrawlCall("/scrape", {
+        url: target,
         onlyMainContent: true,
         formats: [
           {
@@ -4072,10 +4100,14 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
               "Return fieldwork_end as an ISO date (YYYY-MM-DD) exactly as published, sample_size as an " +
               "integer if published, and shares as published percentages for Labour, Conservative, " +
               "Reform UK, Liberal Democrats, Green Party, SNP and Plaid Cymru. Omit any party whose " +
-              "share is not published on the page. Never estimate or infer a number.",
+              "share is not published on the page. Never estimate or infer a number. Use only the " +
+              "headline table for all adults across Great Britain or the United Kingdom: ignore " +
+              "subgroups, regional splits, hypothetical scenarios and polls for other countries. " +
+              "Set is_uk_westminster_voting_intention to true only when the page publishes such a table.",
             schema: {
               type: "object",
               properties: {
+                is_uk_westminster_voting_intention: { type: "boolean" },
                 fieldwork_end: { type: "string" },
                 sample_size: { type: "number" },
                 shares: {
@@ -4086,8 +4118,7 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
             },
           },
         ],
-      }),
-    });
+      });
     if (!res.ok) {
       const body = await res.text();
       console.error(`Firecrawl ${p.name} [${res.status}]: ${body.slice(0, 300)}`);
@@ -4098,10 +4129,14 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
       data?: { json?: Record<string, unknown> };
     };
     const j = (raw.json ?? raw.data?.json ?? {}) as {
+      is_uk_westminster_voting_intention?: boolean;
       fieldwork_end?: string;
       sample_size?: number;
       shares?: Record<string, number>;
     };
+    if (j.is_uk_westminster_voting_intention === false) {
+      return { ...blank, error: "Page does not publish a UK Westminster voting intention table." };
+    }
     const shares: Record<string, number> = {};
     for (const party of POLL_PARTIES) {
       const v = j.shares?.[party];
@@ -4122,7 +4157,7 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
     }
     return {
       pollster: p.name,
-      url: p.url,
+      url: target,
       fieldworkEnd: end,
       sampleSize: typeof j.sample_size === "number" ? Math.round(j.sample_size) : null,
       shares,
@@ -4332,10 +4367,27 @@ const quarterKey = (iso: string) => {
   return `${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth() / 3) + 1}`;
 };
 
+/** ONS publishes dates as "1979", "1997 MAY" or "1955 Q2"; parse to the period start. */
+function onsDateMs(date: string): number {
+  const raw = (date ?? "").trim().toUpperCase();
+  const year = Number(raw.slice(0, 4));
+  if (!Number.isFinite(year)) return NaN;
+  const rest = raw.slice(4).trim();
+  if (!rest) return Date.UTC(year, 0, 1);
+  const q = /^Q([1-4])$/.exec(rest);
+  if (q) return Date.UTC(year, (Number(q[1]) - 1) * 3, 1);
+  const m = MONTHS3.indexOf(rest.slice(0, 3));
+  if (m >= 0) return Date.UTC(year, m, 1);
+  return Date.UTC(year, 0, 1);
+}
+
 /** Nearest published observation on or before the boundary date, never interpolated. */
 function pointAt(series: OnsSeries, freq: "months" | "quarters" | "years", iso: string) {
   const target = iso ? new Date(iso).getTime() : Date.now();
-  const pts = onsPoints(series, freq).filter((p) => new Date(p.date).getTime() <= target);
+  const pts = onsPoints(series, freq).filter((p) => {
+    const t = onsDateMs(p.date);
+    return Number.isFinite(t) && t <= target;
+  });
   return pts[pts.length - 1] ?? null;
 }
 
@@ -4466,6 +4518,7 @@ async function buildEras(): Promise<ErasPayload> {
       (v) => `${v.toFixed(1)}%`,
       (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
       monthKey,
+      "This ONS series is published from March 1993 onwards",
     );
     seriesRow(
       "Total public sector current receipts",
