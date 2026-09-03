@@ -187,7 +187,7 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
         ref={el}
         role="application"
         aria-label={`Map of ${layer.title}`}
-        className="h-[70vh] min-h-[420px] w-full rounded-lg border border-night-line/70 bg-night-panel"
+        className="h-[60vh] min-h-[340px] w-full sm:h-[70vh] sm:min-h-[420px] rounded-lg border border-night-line/70 bg-night-panel"
       />
       {error ? (
         <p className="mt-2 font-mono text-[12px] text-overdue">Boundary service unreachable: {error}</p>
