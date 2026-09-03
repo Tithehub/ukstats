@@ -16,6 +16,7 @@ import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -60,6 +61,11 @@ const MapsRoute = MapsRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OutreachRoute = OutreachRouteImport.update({
+  id: '/outreach',
+  path: '/outreach',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PollingRoute = PollingRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/outreach'
     | '/polling'
     | '/register'
     | '/sitemap.xml'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/outreach'
     | '/polling'
     | '/register'
     | '/sitemap.xml'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/outreach'
     | '/polling'
     | '/register'
     | '/sitemap.xml'
@@ -239,6 +251,7 @@ export interface RootRouteChildren {
   GovernmentsRoute: typeof GovernmentsRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
+  OutreachRoute: typeof OutreachRoute
   PollingRoute: typeof PollingRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -300,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/outreach': {
+      id: '/outreach'
+      path: '/outreach'
+      fullPath: '/outreach'
+      preLoaderRoute: typeof OutreachRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/polling': {
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   GovernmentsRoute: GovernmentsRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
+  OutreachRoute: OutreachRoute,
   PollingRoute: PollingRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
