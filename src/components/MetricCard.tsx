@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
-import { btn, categoryIcon } from "@/lib/ui";
+import { categoryIcon } from "@/lib/ui";
 
 const freshText: Record<Freshness, string> = {
   fresh: "text-fresh",
@@ -87,6 +87,7 @@ function Breakdown({ parts }: { parts: NonNullable<Metric["breakdown"]> }) {
 
 export function MetricCard({ metric, origin }: { metric: Metric; origin: string }) {
   const [panel, setPanel] = useState<"none" | "embed" | "provenance">("none");
+  const [copied, setCopied] = useState(false);
   const tone = freshnessOf(metric);
   const snippet = `<iframe src="${origin}/embed/${metric.id}" width="360" height="220" style="border:0" title="${metric.title}" loading="lazy"></iframe>`;
 
