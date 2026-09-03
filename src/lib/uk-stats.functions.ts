@@ -3542,6 +3542,7 @@ export const getStreetCrime = createServerFn({ method: "GET" })
 export interface TaxWelfarePoint {
   year: string;
   receipts: number | null;
+  incomeTax: number | null;
   welfare: number | null;
   partial?: boolean;
   monthsCovered?: string;
