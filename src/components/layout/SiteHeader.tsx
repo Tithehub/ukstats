@@ -68,6 +68,8 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
 const PRIMARY: NavItem[] = [
   { to: "/register", label: "Data", icon: Table2 },
   { to: "/daily", label: "Daily", icon: CalendarDays },
+  { to: "/maps", label: "Maps", icon: MapIcon },
+
   { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
   { to: "/polling", label: "Polling", icon: Vote },
 ];
