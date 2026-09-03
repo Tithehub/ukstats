@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
@@ -38,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectionsRoute = ConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateRoute = CreateRouteImport.update({
@@ -134,6 +140,7 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/connections'
     | '/create'
     | '/feed.xml'
     | '/foreign-aid'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/connections'
     | '/create'
     | '/feed.xml'
     | '/foreign-aid'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/connections'
     | '/create'
     | '/feed.xml'
     | '/foreign-aid'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  ConnectionsRoute: typeof ConnectionsRoute
   CreateRoute: typeof CreateRoute
   FeedDotxmlRoute: typeof FeedDotxmlRoute
   ForeignAidRoute: typeof ForeignAidRoute
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connections': {
+      id: '/connections'
+      path: '/connections'
+      fullPath: '/connections'
+      preLoaderRoute: typeof ConnectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/create': {
@@ -438,6 +458,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  ConnectionsRoute: ConnectionsRoute,
   CreateRoute: CreateRoute,
   FeedDotxmlRoute: FeedDotxmlRoute,
   ForeignAidRoute: ForeignAidRoute,
