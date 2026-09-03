@@ -1,4 +1,25 @@
 import { Link } from "@tanstack/react-router";
+import { Bot, Building2, FileText, LayoutGrid, LifeBuoy, PlusCircle, Rss, Table2 } from "lucide-react";
+
+const COLUMNS = [
+  {
+    name: "Data",
+    links: [
+      { to: "/register", label: "Full register", icon: Table2 },
+      { to: "/maps", label: "Heat maps", icon: Building2 },
+      { to: "/widget", label: "Widget builder", icon: LayoutGrid },
+    ],
+  },
+  {
+    name: "Insights",
+    links: [
+      { to: "/create", label: "Create a live page", icon: PlusCircle },
+      { to: "/my-pages", label: "My pages", icon: FileText },
+      { to: "/outreach", label: "Outreach queue", icon: Bot },
+      { to: "/support", label: "Support UKStats", icon: LifeBuoy },
+    ],
+  },
+] as const;
 
 export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }) {
   return (
@@ -12,42 +33,32 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
             An independent aggregator of official UK statistics. Not a government service. Nothing on this site is
             estimated, modelled or interpolated.
           </p>
+          <a
+            href="/feed.xml"
+            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+          >
+            <Rss className="size-4" aria-hidden="true" />
+            New figures feed
+          </a>
         </div>
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Data</p>
-          <ul className="mt-3 space-y-2 text-[13px]">
-            <li>
-              <Link to="/register" className="text-night-muted hover:text-electric-soft">
-                Full register
-              </Link>
-            </li>
-            <li>
-              <Link to="/widget" className="text-night-muted hover:text-electric-soft">
-                Widget builder
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Insights</p>
-          <ul className="mt-3 space-y-2 text-[13px]">
-            <li>
-              <Link to="/create" className="text-night-muted hover:text-electric-soft">
-                Create a live page
-              </Link>
-            </li>
-            <li>
-              <Link to="/my-pages" className="text-night-muted hover:text-electric-soft">
-                My pages
-              </Link>
-            </li>
-            <li>
-              <Link to="/support" className="text-night-muted hover:text-electric-soft">
-                Support UKStats
-              </Link>
-            </li>
-          </ul>
-        </div>
+        {COLUMNS.map((c) => (
+          <div key={c.name}>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">{c.name}</p>
+            <ul className="mt-3 space-y-1 text-[13px]">
+              {c.links.map((l) => (
+                <li key={l.to}>
+                  <Link
+                    to={l.to}
+                    className="inline-flex min-h-9 items-center gap-2 rounded-md text-night-muted hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+                  >
+                    <l.icon className="size-4 shrink-0 opacity-70" aria-hidden="true" />
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Sources</p>
           <ul className="mt-3 space-y-2 text-[13px] text-night-muted">
