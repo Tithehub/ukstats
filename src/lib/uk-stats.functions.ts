@@ -2844,8 +2844,11 @@ export interface MapLayer {
   period: string | null;
   asOf: string | null;
   /** Boundary service on the ONS Open Geography portal. */
-  boundary: "pfa" | "region";
+  boundary: "pfa" | "region-country" | "scotland-council";
+  /** Plain-English geographic coverage of this layer, as published. */
+  coverage: string;
   areas: MapArea[];
+
 }
 
 /** Recorded crime rate per 1,000 population for every police force area, as published. */
@@ -2912,9 +2915,11 @@ async function crimeMapLayers(): Promise<MapLayer[]> {
       period,
       asOf: version.description?.releaseDate ?? null,
       boundary: "pfa",
+      coverage: "England and Wales only — National Crime Recording Standard",
       areas,
     };
   };
+
 
   return [
     layerFor("crime-total", "All recorded crime", totalCol),
@@ -2934,33 +2939,43 @@ const HPI_REGIONS: { code: string; slug: string; name: string }[] = [
   { code: "E12000007", slug: "london", name: "London" },
   { code: "E12000008", slug: "south-east", name: "South East" },
   { code: "E12000009", slug: "south-west", name: "South West" },
+  { code: "S92000003", slug: "scotland", name: "Scotland" },
+  { code: "W92000004", slug: "wales", name: "Wales" },
+  { code: "N92000002", slug: "northern-ireland", name: "Northern Ireland" },
 ];
 
-/** Average house price for each English region, from the HM Land Registry UK HPI API. */
+/** Average house price for every English region and for Scotland, Wales and Northern Ireland. */
+
 async function housePriceMapLayer(): Promise<MapLayer | null> {
   const results = await Promise.all(
-    HPI_REGIONS.map(async (r) => {
-      try {
-        const data = await getJson<{
-          result: { items: { averagePrice: number; refMonth: string }[] };
-        }>(
-          `https://landregistry.data.gov.uk/data/ukhpi/region/${r.slug}/month?_sort=-refMonth&_pageSize=1&_view=all`,
-        );
-        const item = data.result.items?.[0];
-        if (!item || typeof item.averagePrice !== "number") return null;
-        return {
-          area: {
-            code: r.code,
-            name: r.name,
-            value: item.averagePrice,
-            formatted: `£${item.averagePrice.toLocaleString("en-GB")}`,
-          } satisfies MapArea,
-          refMonth: item.refMonth,
-        };
-      } catch {
-        return null;
+    HPI_REGIONS.map(async (r, i) => {
+      // Stagger and retry: the Land Registry endpoint drops occasional parallel requests.
+      await wait(i * 200);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const data = await getJson<{
+            result: { items: { averagePrice: number; refMonth: string }[] };
+          }>(
+            `https://landregistry.data.gov.uk/data/ukhpi/region/${r.slug}/month?_sort=-refMonth&_pageSize=1&_view=all`,
+          );
+          const item = data.result.items?.[0];
+          if (!item || typeof item.averagePrice !== "number") return null;
+          return {
+            area: {
+              code: r.code,
+              name: r.name,
+              value: item.averagePrice,
+              formatted: `£${item.averagePrice.toLocaleString("en-GB")}`,
+            } satisfies MapArea,
+            refMonth: item.refMonth,
+          };
+        } catch {
+          await wait(700 * (attempt + 1));
+        }
       }
+      return null;
     }),
+
   );
   const ok = results.filter((r): r is NonNullable<typeof r> => r !== null);
   if (!ok.length) return null;
@@ -2978,9 +2993,93 @@ async function housePriceMapLayer(): Promise<MapLayer | null> {
       timeZone: "UTC",
     }),
     asOf: null,
-    boundary: "region",
+    boundary: "region-country",
+    coverage: "United Kingdom — English regions, plus Scotland, Wales and Northern Ireland as published",
     areas: ok.map((r) => r.area),
   };
+}
+
+/** Council-area recorded crime published by the Scottish Government from Police Scotland returns. */
+const SCOT_CRIME_TYPES: { id: string; slug: string; title: string }[] = [
+  { id: "scotland-crime-total", slug: "all-crimes", title: "Scotland — all recorded crimes" },
+  {
+    id: "scotland-crime-violence",
+    slug: "all-group-1-non-sexual-crimes-of-violence",
+    title: "Scotland — non-sexual crimes of violence",
+  },
+  { id: "scotland-crime-sexual", slug: "all-group-2-sexual-crimes", title: "Scotland — sexual crimes" },
+  { id: "scotland-crime-dishonesty", slug: "all-group-3-crimes-of-dishonesty", title: "Scotland — crimes of dishonesty" },
+];
+
+async function scotlandCrimeLayers(): Promise<MapLayer[]> {
+  const sparql = async <T>(query: string) =>
+    getJson<T>(`https://statistics.gov.scot/sparql?query=${encodeURIComponent(query)}`, 45_000);
+
+  const periodRes = await sparql<{ results: { bindings: { p: { value: string } }[] } }>(
+    `PREFIX qb: <http://purl.org/linked-data/cube#>
+PREFIX sd: <http://purl.org/linked-data/sdmx/2009/dimension#>
+SELECT DISTINCT ?p WHERE {
+  ?s qb:dataSet <http://statistics.gov.scot/data/recorded-crime> ; sd:refPeriod ?p .
+} ORDER BY DESC(?p) LIMIT 1`,
+  );
+  const latest = periodRes.results.bindings[0]?.p.value;
+  if (!latest) return [];
+  const latestLabel = latest.replace(/.*\//, "");
+  const periodLabel = `${latestLabel.replace("-", "/")} financial year`;
+
+  const slugFilter = SCOT_CRIME_TYPES.map((t) => `"${t.slug}"`).join(", ");
+  const body = await sparql<{ results: { bindings: Record<string, { value: string }>[] } }>(
+    `PREFIX qb: <http://purl.org/linked-data/cube#>
+PREFIX sd: <http://purl.org/linked-data/sdmx/2009/dimension#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?area ?name ?crime ?count WHERE {
+  ?s qb:dataSet <http://statistics.gov.scot/data/recorded-crime> ;
+     sd:refPeriod <${latest}> ;
+     sd:refArea ?a ;
+     <http://statistics.gov.scot/def/dimension/crimeOrOffence> ?c ;
+     <http://statistics.gov.scot/def/measure-properties/count> ?count .
+  ?a rdfs:label ?name .
+  BIND(REPLACE(STR(?a), ".*/", "") AS ?area)
+  BIND(REPLACE(STR(?c), ".*/", "") AS ?crime)
+  FILTER(STRSTARTS(?area, "S12"))
+  FILTER(?crime IN (${slugFilter}))
+}`,
+  );
+
+  const rows = body.results.bindings.map((b) => ({
+    area: b["area"]!.value,
+    name: b["name"]!.value,
+    crime: b["crime"]!.value,
+    count: Number(b["count"]!.value),
+  }));
+  if (!rows.length) return [];
+
+
+
+  return SCOT_CRIME_TYPES.map((t): MapLayer | null => {
+    const areas: MapArea[] = rows
+      .filter((r) => r.crime === t.slug && Number.isFinite(r.count))
+      .map((r) => ({
+        code: r.area,
+        name: r.name,
+        value: r.count,
+        formatted: `${r.count.toLocaleString("en-GB")} recorded`,
+      }));
+    if (!areas.length) return null;
+    return {
+      id: t.id,
+      title: t.title,
+      unit: "crimes recorded",
+      source: "Recorded Crime in Scotland — Scottish Government / Police Scotland",
+      sourceUrl: "https://statistics.gov.scot/data/recorded-crime",
+      period: periodLabel,
+      asOf: null,
+      boundary: "scotland-council",
+      coverage:
+        "Scotland only — Scottish Crime Recording Standard; counts are not comparable with England and Wales figures",
+      areas,
+    };
+  }).filter((l): l is MapLayer => l !== null);
 }
 
 let mapCache: { at: number; data: Promise<MapLayer[]> } | null = null;
@@ -2989,16 +3088,18 @@ let mapCache: { at: number; data: Promise<MapLayer[]> } | null = null;
 export const getMapLayers = createServerFn({ method: "GET" }).handler(async (): Promise<MapLayer[]> => {
   if (mapCache && Date.now() - mapCache.at < 30 * 60_000) return mapCache.data;
   const p = (async () => {
-    const [crime, houses] = await Promise.all([
+    const [crime, scotland, houses] = await Promise.all([
       crimeMapLayers().catch(() => [] as MapLayer[]),
+      retrying(() => scotlandCrimeLayers()).catch(() => [] as MapLayer[]),
       housePriceMapLayer().catch(() => null),
     ]);
-    return [...crime, ...(houses ? [houses] : [])];
+    return [...crime, ...scotland, ...(houses ? [houses] : [])];
   })();
   mapCache = { at: Date.now(), data: p };
   p.catch(() => (mapCache = null));
   return p;
 });
+
 
 export interface StreetCrime {
   category: string;

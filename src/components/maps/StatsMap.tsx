@@ -3,10 +3,15 @@ import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LayerGroup } from "l
 import type { MapLayer, StreetCrime } from "@/lib/uk-stats.functions";
 
 /** ONS Open Geography boundary services, generalised and clipped to the coastline. */
-const BOUNDARY_URL: Record<MapLayer["boundary"], string> = {
-  pfa: "https://services1.arcgis.com/ESMARspQHYMw9BZ9/ArcGIS/rest/services/Police_Force_Areas_Dec_2024_EW_BUC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
-  region:
-    "https://services1.arcgis.com/ESMARspQHYMw9BZ9/ArcGIS/rest/services/Regions_December_2025_Boundaries_EN_BUC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
+const ARC = "https://services1.arcgis.com/ESMARspQHYMw9BZ9/ArcGIS/rest/services";
+const Q = "/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson";
+const BOUNDARY_URL: Record<MapLayer["boundary"], string[]> = {
+  pfa: [`${ARC}/Police_Force_Areas_Dec_2024_EW_BUC${Q}`],
+  "region-country": [
+    `${ARC}/Regions_December_2025_Boundaries_EN_BUC${Q}`,
+    `${ARC}/Countries_December_2025_Boundaries_UK_BUC${Q}`,
+  ],
+  "scotland-council": [`${ARC}/Local_Authority_Districts_December_2024_Boundaries_UK_BUC${Q}`],
 };
 
 interface Feature {
@@ -17,23 +22,34 @@ interface Feature {
 
 const codeOf = (props: Record<string, unknown>): string | null => {
   for (const [k, v] of Object.entries(props)) {
-    if (/^(PFA|RGN)\d{2}CD$/i.test(k) && typeof v === "string") return v;
+    if (/^(PFA|RGN|CTRY|LAD)\d{2}CD$/i.test(k) && typeof v === "string") return v;
   }
   return null;
+};
+
+const nameOf = (props: Record<string, unknown>): string | undefined => {
+  for (const [k, v] of Object.entries(props)) {
+    if (/^(PFA|RGN|CTRY|LAD)\d{2}NM$/i.test(k) && typeof v === "string") return v;
+  }
+  return undefined;
 };
 
 const boundaryCache = new Map<string, Promise<{ features: Feature[] }>>();
 function boundaries(kind: MapLayer["boundary"]) {
   const hit = boundaryCache.get(kind);
   if (hit) return hit;
-  const p = fetch(BOUNDARY_URL[kind]).then((r) => {
-    if (!r.ok) throw new Error(`Boundary service returned ${r.status}`);
-    return r.json() as Promise<{ features: Feature[] }>;
-  });
+  const p = Promise.all(
+    BOUNDARY_URL[kind].map(async (url) => {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Boundary service returned ${r.status}`);
+      return (await r.json()) as { features: Feature[] };
+    }),
+  ).then((sets) => ({ features: sets.flatMap((s) => s.features) }));
   boundaryCache.set(kind, p);
   p.catch(() => boundaryCache.delete(kind));
   return p;
 }
+
 
 /** Sequential ramp used for every choropleth, so layers stay comparable. */
 const RAMP = ["#0b2d4a", "#124a72", "#1a6b9c", "#2b8fc4", "#5cb6e2", "#9bd6f2"];
@@ -69,8 +85,8 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
       if (cancelled || !el.current) return;
       if (!map.current) {
         map.current = L.map(el.current, { scrollWheelZoom: true, attributionControl: true }).setView(
-          [54.3, -2.5],
-          6,
+          [55.2, -3.6],
+          5,
         );
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution:
@@ -85,8 +101,17 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
         const geo = await boundaries(layer.boundary);
         if (cancelled || !map.current) return;
         const byCode = new Map(layer.areas.map((a) => [a.code, a]));
+        // Keep only the shapes this layer's publisher actually covers, so overlapping
+        // country and region outlines never double up on the same ground.
+        const relevant = geo.features.filter((f) => {
+          const code = codeOf(f.properties) ?? "";
+          if (byCode.has(code)) return true;
+          if (layer.boundary === "region-country") return false;
+          if (layer.boundary === "scotland-council") return code.startsWith("S12");
+          return true;
+        });
         shapes.current?.remove();
-        shapes.current = L.geoJSON(geo as never, {
+        shapes.current = L.geoJSON({ type: "FeatureCollection", features: relevant } as never, {
           style: (feature) => {
             const area = byCode.get(codeOf((feature?.properties ?? {}) as Record<string, unknown>) ?? "");
             return {
@@ -99,18 +124,16 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
           onEachFeature: (feature, lyr) => {
             const props = (feature.properties ?? {}) as Record<string, unknown>;
             const area = byCode.get(codeOf(props) ?? "");
-            const name =
-              area?.name ??
-              (Object.entries(props).find(([k]) => /^(PFA|RGN)\d{2}NM$/i.test(k))?.[1] as string | undefined) ??
-              "Area";
+            const name = area?.name ?? nameOf(props) ?? "Area";
             lyr.bindTooltip(
               area
                 ? `<strong>${name}</strong><br>${area.formatted}<br><span style="opacity:.7">${layer.unit}</span>`
-                : `<strong>${name}</strong><br>No published figure`,
+                : `<strong>${name}</strong><br>Not published by this source`,
               { sticky: true },
             );
           },
         }).addTo(map.current);
+
         setError(null);
       } catch (e) {
         setError((e as Error).message);
@@ -119,7 +142,7 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
     return () => {
       cancelled = true;
     };
-  }, [layer, scale]);
+  }, [layer, scale, focus]);
 
   useEffect(() => {
     let cancelled = false;
