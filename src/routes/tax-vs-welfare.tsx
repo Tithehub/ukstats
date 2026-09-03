@@ -57,20 +57,22 @@ function TaxVsWelfarePage() {
     const max = Math.max(...values);
     const x = (i: number) => padL + (i * (w - padL - 8)) / Math.max(1, usable.length - 1);
     const y = (v: number) => padT + (1 - v / max) * (h - padT - padB);
-    const path = (pick: (i: number) => number | null) => {
+    const path = (pick: (i: number) => number | null, from = 0, to = usable.length - 1) => {
       let d = "";
       let open = false;
-      usable.forEach((_, i) => {
+      for (let i = from; i <= to; i++) {
         const v = pick(i);
         if (v === null) {
           open = false;
-          return;
+          continue;
         }
         d += `${open ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)} `;
         open = true;
-      });
+      }
       return d.trim();
     };
+    const partialIdx = usable.findIndex((p) => p.partial);
+    const solidEnd = partialIdx > 0 ? partialIdx - 1 : usable.length - 1;
     return {
       w,
       h,
@@ -80,15 +82,21 @@ function TaxVsWelfarePage() {
       max,
       x,
       y,
-      receipts: path((i) => usable[i]!.receipts),
-      welfare: path((i) => usable[i]!.welfare),
+      partialIdx,
+      receipts: path((i) => usable[i]!.receipts, 0, solidEnd),
+      welfare: path((i) => usable[i]!.welfare, 0, solidEnd),
+      receiptsPartial: partialIdx > 0 ? path((i) => usable[i]!.receipts, solidEnd, partialIdx) : "",
+      welfarePartial: partialIdx > 0 ? path((i) => usable[i]!.welfare, solidEnd, partialIdx) : "",
     };
   }, [usable]);
 
   function csv() {
     const rows = [
-      "Year,Total current receipts (£m),Net social benefits (£m)",
-      ...usable.map((p) => `${p.year},${p.receipts ?? ""},${p.welfare ?? ""}`),
+      "Year,Total current receipts (£m),Net social benefits (£m),Coverage",
+      ...usable.map(
+        (p) =>
+          `${p.year},${p.receipts ?? ""},${p.welfare ?? ""},${p.partial ? `${p.monthsCovered} part year` : "Full year"}`,
+      ),
     ].join("\n");
     const url = URL.createObjectURL(new Blob([rows], { type: "text/csv" }));
     const a = document.createElement("a");
@@ -97,6 +105,7 @@ function TaxVsWelfarePage() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
 
   const active = hover !== null ? usable[hover] : latest;
 
