@@ -35,3 +35,11 @@
 - [x] Change tracking: metric_snapshots + public metric_changes, swept by POST /api/public/outreach-tick (cron secret)
 - [x] /feed.xml RSS of newly published figures, linked from every page head
 - [ ] Phase B: authorised auto-posting via official APIs for accounts the user owns
+
+## Free site + accounts
+- [x] All paid tiers, crypto checkout and payment_orders removed — every feature, live page and widget is free
+- [x] Live pages default to a 12-month window with a one-tap "Keep it live" renewal
+- [x] Accounts: /auth (email+password, Google, forgot password) and /reset-password
+- [x] profiles + user_roles + has_role(); anonymous pages claimed onto the account on sign-in
+- [x] Donations stay voluntary on /support (ETH, BTC, Solana, Tron)
+- [ ] Announcement to the xpre.ai audience: send from a compliant marketing tool, not this app
