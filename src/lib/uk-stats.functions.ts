@@ -2169,7 +2169,7 @@ async function scotSql(sql: string): Promise<ScotRow[]> {
   return d.result?.records ?? [];
 }
 
-const num = (v: unknown) => (v == null ? null : Number(v));
+const scotNum = (v: unknown) => (v == null ? null : Number(v));
 
 function monthLabel(yyyymm: string): string {
   const y = yyyymm.slice(0, 4);
@@ -2194,7 +2194,7 @@ async function nhsScotlandAE(): Promise<Metric> {
       'SELECT "Month", SUM("NumberOfAttendancesAll") AS a, SUM("NumberWithin4HoursAll") AS b FROM "37ba17b1-c323-492c-87d5-e986aae9ab59" GROUP BY "Month" ORDER BY "Month" DESC LIMIT 25',
     );
     const pts = rows
-      .map((r) => ({ m: String(r["Month"]), a: num(r["a"]) ?? 0, b: num(r["b"]) ?? 0 }))
+      .map((r) => ({ m: String(r["Month"]), a: scotNum(r["a"]) ?? 0, b: scotNum(r["b"]) ?? 0 }))
       .filter((r) => r.a > 0)
       .reverse();
     const last = pts[pts.length - 1];
@@ -2242,7 +2242,7 @@ async function nhsScotlandCancer62(): Promise<Metric> {
       'SELECT "Quarter", SUM("NumberOfEligibleReferrals62DayStandard") AS n, SUM("NumberOfEligibleReferralsTreatedWithin62Days") AS t FROM "23b3bbf7-7a37-4f86-974b-6360d6748e08" WHERE "HB" = \'S92000003\' AND "CancerType" = \'All Cancer Types\' GROUP BY "Quarter" ORDER BY "Quarter" DESC LIMIT 20',
     );
     const pts = rows
-      .map((r) => ({ q: String(r["Quarter"]), n: num(r["n"]) ?? 0, t: num(r["t"]) ?? 0 }))
+      .map((r) => ({ q: String(r["Quarter"]), n: scotNum(r["n"]) ?? 0, t: scotNum(r["t"]) ?? 0 }))
       .filter((r) => r.n > 0)
       .reverse();
     const last = pts[pts.length - 1];
@@ -2313,8 +2313,8 @@ async function nhsScotlandWaits(): Promise<Metric[]> {
         const pts = rows
           .map((r) => ({
             m: String(r["MonthEnding"]),
-            v: num(r["Waits"]) ?? 0,
-            over52: num(r["WaitsOver52Weeks"]),
+            v: scotNum(r["Waits"]) ?? 0,
+            over52: scotNum(r["WaitsOver52Weeks"]),
           }))
           .filter((r) => r.v > 0)
           .reverse();
