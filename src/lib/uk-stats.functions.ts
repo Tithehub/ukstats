@@ -4518,6 +4518,7 @@ async function buildEras(): Promise<ErasPayload> {
       (v) => `${v.toFixed(1)}%`,
       (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
       monthKey,
+      "This ONS series is published from March 1993 onwards",
     );
     seriesRow(
       "Total public sector current receipts",
