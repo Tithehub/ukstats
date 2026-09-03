@@ -142,7 +142,7 @@ export default function StatsMap({ layer, points, focus }: StatsMapProps) {
     return () => {
       cancelled = true;
     };
-  }, [layer, scale]);
+  }, [layer, scale, focus]);
 
   useEffect(() => {
     let cancelled = false;
