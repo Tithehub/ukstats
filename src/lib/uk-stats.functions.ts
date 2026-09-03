@@ -2305,7 +2305,7 @@ async function nhsScotlandWaits(): Promise<Metric[]> {
 
   return Promise.all(
     defs.map(async (d) => {
-      const base = mk(d.id, d.title, d.patientType, d.sub);
+      const base = mk(d.id, d.title, d.sub);
       try {
         const rows = await scotSql(
           `SELECT "MonthEnding", "Waits", "WaitsOver52Weeks" FROM "ac63b747-fdcc-410c-ae43-de6fe3c46abf" WHERE "HBT" = 'S92000003' AND "PatientType" = '${d.patientType}' AND "WaitType" = 'Ongoing' AND "Specialty" = 'Z9' ORDER BY "MonthEnding" DESC LIMIT 25`,
