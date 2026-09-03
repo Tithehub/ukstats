@@ -127,9 +127,45 @@ function TaxVsWelfarePage() {
         <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-night-muted">Fiscal</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Total tax vs the total welfare bill</h1>
         <p className="mt-3 max-w-2xl text-night-muted">
-          Public sector total current receipts against public sector net social benefits paid, in cash terms, for every
-          year the ONS publishes. No figure is adjusted, deflated or estimated here.
+          Public sector total current receipts — or income tax alone — against public sector net social benefits paid,
+          in cash terms, for every year the ONS publishes. No figure is adjusted, deflated or estimated here.
         </p>
+
+        <div
+          role="group"
+          aria-label="Choose the tax measure"
+          className="mt-5 inline-flex rounded-md border border-night-line/70 p-1 font-mono text-[12px]"
+        >
+          {(
+            [
+              { key: "receipts", label: "Total receipts" },
+              { key: "incomeTax", label: "Income tax" },
+            ] as const
+          ).map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              aria-pressed={mode === o.key}
+              onClick={() => {
+                setMode(o.key);
+                setHover(null);
+              }}
+              className={`rounded px-3 py-1.5 transition-colors ${
+                mode === o.key ? "bg-electric/15 text-electric-soft" : "text-night-muted hover:text-night-fg"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        {mode === "incomeTax" ? (
+          <p className="mt-3 max-w-2xl font-mono text-[12px] text-night-muted">
+            Income tax here is the ONS&rsquo;s own published components added together: PAYE income tax (MS6W), self
+            assessed income tax (LISB) and other income tax (MF6X). Published from {incomeTaxFrom ?? "—"} onwards, so
+            this view is shorter than the total receipts series.
+          </p>
+        ) : null}
+
 
         {!chart ? (
           <p className="mt-8 rounded-lg border border-night-line/70 bg-night-panel p-6 font-mono text-[13px] text-overdue">
