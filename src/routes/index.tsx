@@ -110,6 +110,19 @@ function Home() {
           <VitalSigns metrics={metrics} />
         </div>
 
+        {/* Today's written statement */}
+        <Link
+          to="/daily"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-night-line/60 bg-night-panel/40 px-4 py-3 transition-colors hover:border-electric focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+        >
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">Daily statement</span>
+          <span className="text-[14px] text-night-fg/90">
+            What was published today, written down and kept in public history
+          </span>
+          <span className="font-mono text-[11px] text-night-muted">Read the archive →</span>
+        </Link>
+
+
         {/* Hero */}
         <section className="relative overflow-hidden rounded-2xl border border-night-line/50">
           <img
