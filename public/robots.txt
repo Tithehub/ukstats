@@ -14,3 +14,5 @@ User-agent: *
 Allow: /
 
 Sitemap: https://ukstats.co.uk/sitemap.xml
+
+Sitemap: https://ukstats.co.uk/feed.xml
