@@ -131,19 +131,19 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             <button
               type="button"
               onClick={() => void supabase.auth.signOut()}
-              className={btn("ghost", "sm", "hidden sm:inline-flex")}
+              className={btn("ghost", "sm", "max-sm:hidden")}
               title={user?.email ?? undefined}
             >
               <LogOut className="size-4" aria-hidden="true" />
               Sign out
             </button>
           ) : (
-            <Link to="/auth" className={btn("ghost", "sm", "hidden sm:inline-flex")}>
+            <Link to="/auth" className={btn("ghost", "sm", "max-sm:hidden")}>
               <LogIn className="size-4" aria-hidden="true" />
               Sign in
             </Link>
           )}
-          <Link to="/create" className={btn("primary", "sm", "hidden sm:inline-flex")}>
+          <Link to="/create" className={btn("primary", "sm", "max-sm:hidden")}>
             <PlusCircle className="size-4" aria-hidden="true" />
             Create live page
           </Link>
