@@ -330,9 +330,11 @@ function TaxVsWelfarePage() {
                 <thead>
                   <tr className="border-b border-night-line/70 text-night-muted">
                     <th className="px-3 py-2 text-left font-normal">Year</th>
-                    <th className="px-3 py-2 text-right font-normal">Total receipts</th>
+                    <th className="px-3 py-2 text-right font-normal">{taxLabel}</th>
                     <th className="px-3 py-2 text-right font-normal">Welfare bill</th>
-                    <th className="px-3 py-2 text-right font-normal">Welfare / receipts</th>
+                    <th className="px-3 py-2 text-right font-normal">
+                      Welfare / {mode === "receipts" ? "receipts" : "income tax"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
