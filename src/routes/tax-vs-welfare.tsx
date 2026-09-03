@@ -241,6 +241,19 @@ function TaxVsWelfarePage() {
                 <span className="flex items-center gap-2">
                   <span className="inline-block h-0.5 w-5 bg-overdue" /> Net social benefits (welfare)
                 </span>
+                {partYear ? (
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-0.5 w-5 bg-current opacity-70"
+                      style={{
+                        backgroundImage:
+                          "repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px)",
+                        backgroundColor: "transparent",
+                      }}
+                    />{" "}
+                    Dashed = {partYear.year} part year ({partYear.monthsCovered} only)
+                  </span>
+                ) : null}
               </figcaption>
             </figure>
 
@@ -253,10 +266,49 @@ function TaxVsWelfarePage() {
                 Download CSV
               </button>
               <span>
-                {usable.length} published years · last revised {fmtDate(asOf)} · next release{" "}
-                {nextDue ? fmtDate(nextDue) : "not announced"}
+                {usable.length} published years · last complete year {lastCompleteYear ?? "—"}
+                {partYear ? ` · ${partYear.year} covers ${partYear.monthsCovered} only` : ""} · last revised{" "}
+                {fmtDate(asOf)} · next release {nextDue ? fmtDate(nextDue) : "not announced"}
               </span>
             </div>
+
+            <h2 className="mt-10 text-lg font-semibold">Year by year</h2>
+            <p className="mt-2 max-w-2xl text-sm text-night-muted">
+              Every year the ONS publishes, in cash terms. Part-year rows are the publisher&rsquo;s own monthly figures
+              added together — nothing is annualised or projected.
+            </p>
+            <div className="mt-3 overflow-x-auto rounded-lg border border-night-line/70 bg-night-panel">
+              <table className="w-full min-w-[520px] border-collapse font-mono text-[12px]">
+                <thead>
+                  <tr className="border-b border-night-line/70 text-night-muted">
+                    <th className="px-3 py-2 text-left font-normal">Year</th>
+                    <th className="px-3 py-2 text-right font-normal">Total receipts</th>
+                    <th className="px-3 py-2 text-right font-normal">Welfare bill</th>
+                    <th className="px-3 py-2 text-right font-normal">Welfare / receipts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...usable].reverse().map((p) => (
+                    <tr key={p.year} className="border-b border-night-line/40 last:border-0">
+                      <td className="px-3 py-2 text-left tabular-nums">
+                        {p.year}
+                        {p.partial ? (
+                          <span className="ml-2 rounded border border-night-line/70 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-night-muted">
+                            {p.monthsCovered} part year
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-2 text-right tabular-nums">{p.receipts !== null ? bn(p.receipts) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{p.welfare !== null ? bn(p.welfare) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">
+                        {p.receipts && p.welfare ? `${((p.welfare / p.receipts) * 100).toFixed(1)}%` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
 
             <h2 className="mt-10 text-lg font-semibold">Official sources</h2>
             <ul className="mt-3 grid gap-2 font-mono text-[12px] text-night-muted">
