@@ -9,11 +9,11 @@ import { fmtDate } from "@/lib/uk-stats";
 export const Route = createFileRoute("/tax-vs-welfare")({
   head: () => ({
     meta: [
-      { title: "UK total tax receipts vs the total welfare bill" },
+      { title: "UK tax receipts and income tax vs the total welfare bill" },
       {
         name: "description",
         content:
-          "Total UK public sector current receipts compared with the total welfare bill (net social benefits), every published year, straight from the ONS public sector finances release.",
+          "Total UK public sector current receipts, and income tax alone, compared with the total welfare bill (net social benefits), every published year, straight from the ONS public sector finances release.",
       },
       { property: "og:title", content: "UK tax receipts vs the welfare bill" },
       {
@@ -32,14 +32,22 @@ export const Route = createFileRoute("/tax-vs-welfare")({
 
 const bn = (m: number) => `£${(m / 1000).toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`;
 
-function TaxVsWelfarePage() {
-  const { points, asOf, nextDue, lastCompleteYear } = Route.useLoaderData();
-  const [hover, setHover] = useState<number | null>(null);
+type Mode = "receipts" | "incomeTax";
 
+function TaxVsWelfarePage() {
+  const { points, asOf, nextDue, lastCompleteYear, incomeTaxFrom } = Route.useLoaderData();
+  const [hover, setHover] = useState<number | null>(null);
+  const [mode, setMode] = useState<Mode>("receipts");
+
+  const taxLabel = mode === "receipts" ? "Total receipts" : "Income tax";
   const usable = useMemo(
-    () => points.filter((p) => p.receipts !== null || p.welfare !== null),
-    [points],
+    () =>
+      mode === "receipts"
+        ? points.filter((p) => p.receipts !== null || p.welfare !== null)
+        : points.filter((p) => p.incomeTax !== null),
+    [points, mode],
   );
+  const taxOf = (p: (typeof points)[number]) => (mode === "receipts" ? p.receipts : p.incomeTax);
   const latest = usable[usable.length - 1];
   const partYear = useMemo(() => usable.find((p) => p.partial), [usable]);
   const yearLabel = (p: (typeof usable)[number]) =>
@@ -52,7 +60,7 @@ function TaxVsWelfarePage() {
     const padL = 64;
     const padB = 30;
     const padT = 14;
-    const values = usable.flatMap((p) => [p.receipts, p.welfare]).filter((v): v is number => v !== null);
+    const values = usable.flatMap((p) => [taxOf(p), p.welfare]).filter((v): v is number => v !== null);
     if (values.length < 2) return null;
     const max = Math.max(...values);
     const x = (i: number) => padL + (i * (w - padL - 8)) / Math.max(1, usable.length - 1);
@@ -83,25 +91,28 @@ function TaxVsWelfarePage() {
       x,
       y,
       partialIdx,
-      receipts: path((i) => usable[i]!.receipts, 0, solidEnd),
+      receipts: path((i) => taxOf(usable[i]!), 0, solidEnd),
       welfare: path((i) => usable[i]!.welfare, 0, solidEnd),
-      receiptsPartial: partialIdx > 0 ? path((i) => usable[i]!.receipts, solidEnd, partialIdx) : "",
+      receiptsPartial: partialIdx > 0 ? path((i) => taxOf(usable[i]!), solidEnd, partialIdx) : "",
       welfarePartial: partialIdx > 0 ? path((i) => usable[i]!.welfare, solidEnd, partialIdx) : "",
     };
-  }, [usable]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usable, mode]);
 
   function csv() {
+    const header =
+      mode === "receipts" ? "Total current receipts (£m)" : "Income tax: PAYE + self assessed + other (£m)";
     const rows = [
-      "Year,Total current receipts (£m),Net social benefits (£m),Coverage",
+      `Year,${header},Net social benefits (£m),Coverage`,
       ...usable.map(
         (p) =>
-          `${p.year},${p.receipts ?? ""},${p.welfare ?? ""},${p.partial ? `${p.monthsCovered} part year` : "Full year"}`,
+          `${p.year},${taxOf(p) ?? ""},${p.welfare ?? ""},${p.partial ? `${p.monthsCovered} part year` : "Full year"}`,
       ),
     ].join("\n");
     const url = URL.createObjectURL(new Blob([rows], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "uk-tax-vs-welfare.csv";
+    a.download = mode === "receipts" ? "uk-tax-vs-welfare.csv" : "uk-income-tax-vs-welfare.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -116,9 +127,45 @@ function TaxVsWelfarePage() {
         <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-night-muted">Fiscal</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Total tax vs the total welfare bill</h1>
         <p className="mt-3 max-w-2xl text-night-muted">
-          Public sector total current receipts against public sector net social benefits paid, in cash terms, for every
-          year the ONS publishes. No figure is adjusted, deflated or estimated here.
+          Public sector total current receipts — or income tax alone — against public sector net social benefits paid,
+          in cash terms, for every year the ONS publishes. No figure is adjusted, deflated or estimated here.
         </p>
+
+        <div
+          role="group"
+          aria-label="Choose the tax measure"
+          className="mt-5 inline-flex rounded-md border border-night-line/70 p-1 font-mono text-[12px]"
+        >
+          {(
+            [
+              { key: "receipts", label: "Total receipts" },
+              { key: "incomeTax", label: "Income tax" },
+            ] as const
+          ).map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              aria-pressed={mode === o.key}
+              onClick={() => {
+                setMode(o.key);
+                setHover(null);
+              }}
+              className={`rounded px-3 py-1.5 transition-colors ${
+                mode === o.key ? "bg-electric/15 text-electric-soft" : "text-night-muted hover:text-night-fg"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        {mode === "incomeTax" ? (
+          <p className="mt-3 max-w-2xl font-mono text-[12px] text-night-muted">
+            Income tax here is the ONS&rsquo;s own published components added together: PAYE income tax (MS6W), self
+            assessed income tax (LISB) and other income tax (MF6X). Published from {incomeTaxFrom ?? "—"} onwards, so
+            this view is shorter than the total receipts series.
+          </p>
+        ) : null}
+
 
         {!chart ? (
           <p className="mt-8 rounded-lg border border-night-line/70 bg-night-panel p-6 font-mono text-[13px] text-overdue">
@@ -128,8 +175,8 @@ function TaxVsWelfarePage() {
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <Stat
-                label="Total receipts"
-                value={active?.receipts !== null && active ? bn(active.receipts!) : "—"}
+                label={taxLabel}
+                value={active && taxOf(active) !== null ? bn(taxOf(active)!) : "—"}
                 note={active ? yearLabel(active) : ""}
               />
               <Stat
@@ -138,10 +185,10 @@ function TaxVsWelfarePage() {
                 note={active ? yearLabel(active) : ""}
               />
               <Stat
-                label="Welfare as a share of receipts"
+                label={`Welfare as a share of ${mode === "receipts" ? "receipts" : "income tax"}`}
                 value={
-                  active && active.receipts && active.welfare
-                    ? `${((active.welfare / active.receipts) * 100).toFixed(1)}%`
+                  active && taxOf(active) && active.welfare
+                    ? `${((active.welfare / taxOf(active)!) * 100).toFixed(1)}%`
                     : "—"
                 }
                 note="Arithmetic on the two published totals"
@@ -236,7 +283,8 @@ function TaxVsWelfarePage() {
               </svg>
               <figcaption className="mt-2 flex flex-wrap gap-4 font-mono text-[11px] text-night-muted">
                 <span className="flex items-center gap-2">
-                  <span className="inline-block h-0.5 w-5 bg-electric" /> Total current receipts
+                  <span className="inline-block h-0.5 w-5 bg-electric" />{" "}
+                  {mode === "receipts" ? "Total current receipts" : "Income tax (PAYE + self assessed + other)"}
                 </span>
                 <span className="flex items-center gap-2">
                   <span className="inline-block h-0.5 w-5 bg-overdue" /> Net social benefits (welfare)
@@ -282,9 +330,11 @@ function TaxVsWelfarePage() {
                 <thead>
                   <tr className="border-b border-night-line/70 text-night-muted">
                     <th className="px-3 py-2 text-left font-normal">Year</th>
-                    <th className="px-3 py-2 text-right font-normal">Total receipts</th>
+                    <th className="px-3 py-2 text-right font-normal">{taxLabel}</th>
                     <th className="px-3 py-2 text-right font-normal">Welfare bill</th>
-                    <th className="px-3 py-2 text-right font-normal">Welfare / receipts</th>
+                    <th className="px-3 py-2 text-right font-normal">
+                      Welfare / {mode === "receipts" ? "receipts" : "income tax"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -298,10 +348,10 @@ function TaxVsWelfarePage() {
                           </span>
                         ) : null}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{p.receipts !== null ? bn(p.receipts) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{taxOf(p) !== null ? bn(taxOf(p)!) : "—"}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{p.welfare !== null ? bn(p.welfare) : "—"}</td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {p.receipts && p.welfare ? `${((p.welfare / p.receipts) * 100).toFixed(1)}%` : "—"}
+                        {taxOf(p) && p.welfare ? `${((p.welfare / taxOf(p)!) * 100).toFixed(1)}%` : "—"}
                       </td>
                     </tr>
                   ))}
@@ -320,6 +370,18 @@ function TaxVsWelfarePage() {
                 {
                   label: "ONS · PS: Net social benefits (ANLY)",
                   url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anly/pusf",
+                },
+                {
+                  label: "ONS · CG: PAYE income tax (MS6W)",
+                  url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/ms6w/pusf",
+                },
+                {
+                  label: "ONS · CG: Self assessed income tax (LISB)",
+                  url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/lisb/pusf",
+                },
+                {
+                  label: "ONS · CG: Other income tax (MF6X)",
+                  url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/mf6x/pusf",
                 },
                 {
                   label: "HMRC · Tax receipts and National Insurance contributions",

@@ -3542,6 +3542,7 @@ export const getStreetCrime = createServerFn({ method: "GET" })
 export interface TaxWelfarePoint {
   year: string;
   receipts: number | null;
+  incomeTax: number | null;
   welfare: number | null;
   partial?: boolean;
   monthsCovered?: string;
@@ -3582,6 +3583,31 @@ function partYearTotals(series: OnsSeries) {
 
 const titleMonth = (m: string) => m.charAt(0) + m.slice(1).toLowerCase();
 
+const PSF = (cdid: string) =>
+  `/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/${cdid}/pusf`;
+
+/** Sum of the published income tax components, per year, only where every component is published. */
+function sumAnnual(all: OnsSeries[]) {
+  const out = new Map<string, number>();
+  const first = all[0];
+  if (!first) return out;
+  for (const p of first.years ?? []) {
+    if (p.value === "") continue;
+    let total = 0;
+    let complete = true;
+    for (const s of all) {
+      const hit = (s.years ?? []).find((q) => q.label === p.label);
+      if (!hit || hit.value === "") {
+        complete = false;
+        break;
+      }
+      total += Number(hit.value);
+    }
+    if (complete) out.set(p.label, total);
+  }
+  return out;
+}
+
 /** Published annual public sector receipts against the published welfare bill. */
 export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
   async (): Promise<{
@@ -3589,36 +3615,57 @@ export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
     asOf: string | null;
     nextDue: string | null;
     lastCompleteYear: string | null;
+    incomeTaxFrom: string | null;
   }> => {
-    const receiptsUri = "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anbt/pusf";
-    const welfareUri = "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anly/pusf";
-    const [receipts, welfare, nextDue] = await Promise.all([
-      onsSeries(receiptsUri),
-      onsSeries(welfareUri),
+    const [receipts, welfare, paye, saTax, otherTax, nextDue] = await Promise.all([
+      onsSeries(PSF("anbt")),
+      onsSeries(PSF("anly")),
+      onsSeries(PSF("ms6w")),
+      onsSeries(PSF("lisb")),
+      onsSeries(PSF("mf6x")),
       onsNextRelease("Public sector finances"),
     ]);
+    const incomeAnnual = sumAnnual([paye, saTax, otherTax]);
+    const blank = (year: string): TaxWelfarePoint => ({
+      year,
+      receipts: null,
+      incomeTax: null,
+      welfare: null,
+    });
     const map = new Map<string, TaxWelfarePoint>();
     for (const p of receipts.years ?? []) {
       if (p.value === "") continue;
-      map.set(p.label, { year: p.label, receipts: Number(p.value), welfare: null });
+      map.set(p.label, { ...blank(p.label), receipts: Number(p.value) });
     }
     for (const p of welfare.years ?? []) {
       if (p.value === "") continue;
-      const row = map.get(p.label) ?? { year: p.label, receipts: null, welfare: null };
+      const row = map.get(p.label) ?? blank(p.label);
       row.welfare = Number(p.value);
       map.set(p.label, row);
     }
+    for (const [year, total] of incomeAnnual) {
+      const row = map.get(year) ?? blank(year);
+      row.incomeTax = total;
+      map.set(year, row);
+    }
     const lastCompleteYear = [...map.keys()].sort().slice(-1)[0] ?? null;
+    const incomeTaxFrom = [...incomeAnnual.keys()].sort()[0] ?? null;
 
     // Years the ONS has not yet totalled annually: build a part-year row from published months.
     const rMonths = partYearTotals(receipts);
     const wMonths = partYearTotals(welfare);
+    const iMonths = [partYearTotals(paye), partYearTotals(saTax), partYearTotals(otherTax)];
     for (const year of new Set([...rMonths.keys(), ...wMonths.keys()])) {
       if (map.has(year)) continue;
       const r = rMonths.get(year);
       const w = wMonths.get(year);
       const months = (r?.months.length ?? 0) >= (w?.months.length ?? 0) ? (r?.months ?? []) : (w?.months ?? []);
       if (!months.length) continue;
+      const parts = iMonths.map((m) => m.get(year));
+      const incomeTax =
+        parts.every((p) => p && p.months.length === months.length)
+          ? parts.reduce((sum, p) => sum + (p?.total ?? 0), 0)
+          : null;
       const span =
         months.length === 1
           ? titleMonth(months[0]!)
@@ -3626,6 +3673,7 @@ export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
       map.set(year, {
         year,
         receipts: r ? r.total : null,
+        incomeTax,
         welfare: w ? w.total : null,
         partial: true,
         monthsCovered: span,
@@ -3635,7 +3683,7 @@ export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
     const points = [...map.values()].sort((a, b) => a.year.localeCompare(b.year));
     const asOf =
       (receipts.years ?? []).slice(-1)[0]?.updateDate ?? (welfare.years ?? []).slice(-1)[0]?.updateDate ?? null;
-    return { points, asOf, nextDue, lastCompleteYear };
+    return { points, asOf, nextDue, lastCompleteYear, incomeTaxFrom };
   },
 );
 
