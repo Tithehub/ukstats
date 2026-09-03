@@ -211,7 +211,7 @@ function OutreachPage() {
 
         <ShareRow className="mt-10" path="/" title="UKStats — live UK official statistics, every figure sourced" />
       </main>
-      <SiteFooter fetchedAt={data?.fetchedAt} />
+      <SiteFooter fetchedAt={data?.fetchedAt ?? null} />
     </div>
   );
 }
