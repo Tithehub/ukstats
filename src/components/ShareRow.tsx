@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Check, ExternalLink, Link2, Share2 } from "lucide-react";
 import { SHARE_TARGETS, SITE_ORIGIN, absoluteUrl } from "@/lib/share";
+import { btn } from "@/lib/ui";
 
 /** Share the current page, plus a direct link to the official source. */
 export function ShareRow({
@@ -23,16 +25,22 @@ export function ShareRow({
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
-      <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Share</span>
+      <span className="mr-1 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
+        <Share2 className="size-3.5" aria-hidden="true" />
+        Share
+      </span>
       {SHARE_TARGETS.map((t) => (
         <a
           key={t.key}
           href={t.href(url, title)}
           target="_blank"
           rel="noreferrer noopener"
-          className="rounded-md border border-night-line/60 px-2 py-1 font-mono text-[11px] text-night-muted transition-colors hover:border-electric hover:text-electric-soft"
+          title={`Share on ${t.label}`}
+          aria-label={`Share on ${t.label}`}
+          className={btn("toggle", "sm", "px-2.5")}
         >
-          {t.label}
+          <t.icon className="size-4" aria-hidden="true" />
+          <span className="sr-only sm:not-sr-only">{t.label}</span>
         </a>
       ))}
       <button
@@ -42,8 +50,9 @@ export function ShareRow({
           setCopied(true);
           setTimeout(() => setCopied(false), 1800);
         }}
-        className="rounded-md border border-night-line/60 px-2 py-1 font-mono text-[11px] text-night-muted transition-colors hover:border-electric hover:text-electric-soft"
+        className={btn("toggle", "sm")}
       >
+        {copied ? <Check className="size-4" aria-hidden="true" /> : <Link2 className="size-4" aria-hidden="true" />}
         {copied ? "Link copied" : "Copy link"}
       </button>
       {sourceUrl ? (
@@ -51,9 +60,10 @@ export function ShareRow({
           href={sourceUrl}
           target="_blank"
           rel="noreferrer"
-          className="rounded-md border border-electric/40 px-2 py-1 font-mono text-[11px] text-electric-soft hover:bg-electric/10"
+          className={btn("secondary", "sm", "border-electric/40 text-electric-soft hover:bg-electric/10")}
         >
-          {sourceLabel ?? "Official source"} ↗
+          <ExternalLink className="size-4" aria-hidden="true" />
+          {sourceLabel ?? "Official source"}
         </a>
       ) : null}
     </div>

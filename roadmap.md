@@ -28,3 +28,10 @@
 - [x] Live Scottish figures (A&E 4-hour, cancer 62-day, inpatient/day-case and outpatient waiting lists) from Public Health Scotland open data
 - [x] England/UK cards (HCHS doctors, GPs, RTT list, A&E, GMC IMG share, vacancies, cancer 62-day, ambulance Cat 2, bed occupancy) shown as "No live feed" with the official release link
 - [ ] Fill the England cards if NHS England / NHS Digital / GMC ever serve machine-readable data to automated clients
+
+## Outreach agent
+- [x] /outreach queue: platform-ready drafts (X, Bluesky, LinkedIn, Facebook, Threads, Reddit, Mastodon) built only from published figures
+- [x] Daily "UK by the numbers" digest draft from the vital signs
+- [x] Change tracking: metric_snapshots + public metric_changes, swept by POST /api/public/outreach-tick (cron secret)
+- [x] /feed.xml RSS of newly published figures, linked from every page head
+- [ ] Phase B: authorised auto-posting via official APIs for accounts the user owns

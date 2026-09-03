@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -24,6 +26,7 @@ import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForeignAidRoute = ForeignAidRouteImport.update({
@@ -53,6 +61,11 @@ const MapsRoute = MapsRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OutreachRoute = OutreachRouteImport.update({
+  id: '/outreach',
+  path: '/outreach',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PollingRoute = PollingRouteImport.update({
@@ -100,14 +113,21 @@ const PSlugRoute = PSlugRouteImport.update({
   path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
+  id: '/api/public/outreach-tick',
+  path: '/api/public/outreach-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -117,14 +137,17 @@ export interface FileRoutesByFullPath {
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -134,15 +157,18 @@ export interface FileRoutesByTo {
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -152,16 +178,19 @@ export interface FileRoutesById {
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/create'
+    | '/feed.xml'
     | '/foreign-aid'
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/outreach'
     | '/polling'
     | '/register'
     | '/sitemap.xml'
@@ -171,14 +200,17 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/api/public/outreach-tick'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/create'
+    | '/feed.xml'
     | '/foreign-aid'
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/outreach'
     | '/polling'
     | '/register'
     | '/sitemap.xml'
@@ -188,14 +220,17 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/api/public/outreach-tick'
   id:
     | '__root__'
     | '/'
     | '/create'
+    | '/feed.xml'
     | '/foreign-aid'
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/outreach'
     | '/polling'
     | '/register'
     | '/sitemap.xml'
@@ -205,15 +240,18 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/api/public/outreach-tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  FeedDotxmlRoute: typeof FeedDotxmlRoute
   ForeignAidRoute: typeof ForeignAidRoute
   GovernmentsRoute: typeof GovernmentsRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
+  OutreachRoute: typeof OutreachRoute
   PollingRoute: typeof PollingRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -223,6 +261,7 @@ export interface RootRouteChildren {
   EmbedMetricRoute: typeof EmbedMetricRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -239,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed.xml': {
+      id: '/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/feed.xml'
+      preLoaderRoute: typeof FeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/foreign-aid': {
@@ -267,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/outreach': {
+      id: '/outreach'
+      path: '/outreach'
+      fullPath: '/outreach'
+      preLoaderRoute: typeof OutreachRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/polling': {
@@ -332,16 +385,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/outreach-tick': {
+      id: '/api/public/outreach-tick'
+      path: '/api/public/outreach-tick'
+      fullPath: '/api/public/outreach-tick'
+      preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  FeedDotxmlRoute: FeedDotxmlRoute,
   ForeignAidRoute: ForeignAidRoute,
   GovernmentsRoute: GovernmentsRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
+  OutreachRoute: OutreachRoute,
   PollingRoute: PollingRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -351,6 +413,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmbedMetricRoute: EmbedMetricRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

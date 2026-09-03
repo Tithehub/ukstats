@@ -1,6 +1,19 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  Check,
+  CircleHelp,
+  Clock,
+  Code2,
+  Copy,
+  ExternalLink,
+  FileSearch,
+  LineChart,
+  type LucideIcon,
+} from "lucide-react";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
+import { categoryIcon } from "@/lib/ui";
 
 const freshText: Record<Freshness, string> = {
   fresh: "text-fresh",
@@ -20,6 +33,13 @@ const freshLabel: Record<Freshness, string> = {
   overdue: "Overdue",
   unknown: "No feed",
 };
+const freshIcon: Record<Freshness, LucideIcon> = {
+  fresh: Check,
+  ageing: Clock,
+  overdue: AlertTriangle,
+  unknown: CircleHelp,
+};
+
 
 function Spark({ values, tone }: { values: number[]; tone: Freshness }) {
   if (values.length < 2) return null;
@@ -67,6 +87,7 @@ function Breakdown({ parts }: { parts: NonNullable<Metric["breakdown"]> }) {
 
 export function MetricCard({ metric, origin }: { metric: Metric; origin: string }) {
   const [panel, setPanel] = useState<"none" | "embed" | "provenance">("none");
+  const [copied, setCopied] = useState(false);
   const tone = freshnessOf(metric);
   const snippet = `<iframe src="${origin}/embed/${metric.id}" width="360" height="220" style="border:0" title="${metric.title}" loading="lazy"></iframe>`;
 
@@ -74,9 +95,16 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
     <article className="group relative overflow-hidden rounded-[14px] bg-card/60 p-4 ring-1 ring-ink/10 backdrop-blur-sm">
       <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent" />
       <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">{metric.category}</p>
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">
+            {(() => {
+              const Icon = categoryIcon(metric.category);
+              return <Icon className="size-3.5 shrink-0" aria-hidden="true" />;
+            })()}
+            {metric.category}
+          </p>
           <h3 className="mt-0.5 text-base font-semibold tracking-tight text-balance">{metric.title}</h3>
+
           {metric.derivedFrom ? (
             <span className="mt-1 inline-block rounded bg-ageing/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-ageing">
               Derived
@@ -114,13 +142,18 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
 
       {metric.breakdown?.length ? <Breakdown parts={metric.breakdown} /> : null}
 
-      <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-mono text-[11px]">
         <span className={`inline-flex items-center gap-1.5 ${freshText[tone]}`}>
+          {(() => {
+            const Icon = freshIcon[tone];
+            return <Icon className="size-3.5 shrink-0" aria-hidden="true" />;
+          })()}
           <span className={`size-1.5 rounded-full ${freshBg[tone]} ${tone === "fresh" ? "pulse-dot" : ""}`} />
           {freshLabel[tone]} · as of {fmtDate(metric.asOf)}
         </span>
         <span className={tone === "overdue" ? "text-overdue/80" : "text-steel/60"}>{dueLabel(metric.nextDue)}</span>
       </div>
+
       <p className="mt-1 font-mono text-[10px] text-steel/50">
         {ageLabel(metric.asOf)} · {metric.cadence}
       </p>
@@ -135,41 +168,56 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center gap-2 border-t border-ink/10 pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-3">
         <button
+          type="button"
           onClick={() => setPanel(panel === "embed" ? "none" : "embed")}
-          className="inline-flex items-center rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel"
+          aria-expanded={panel === "embed"}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
+          <Code2 className="size-4" aria-hidden="true" />
           Embed
         </button>
         <button
+          type="button"
           onClick={() => setPanel(panel === "provenance" ? "none" : "provenance")}
-          className="inline-flex items-center rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5"
+          aria-expanded={panel === "provenance"}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
+          <FileSearch className="size-4" aria-hidden="true" />
           Provenance
         </button>
         {metric.hasHistory ? (
           <Link
             to="/history/$metricId"
             params={{ metricId: metric.id }}
-            className="inline-flex items-center rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
-            Full history →
+            <LineChart className="size-4" aria-hidden="true" />
+            Full history
           </Link>
         ) : null}
         <code className="ml-auto hidden font-mono text-[10px] text-steel/50 lg:block">{metric.id}</code>
       </div>
+
 
       {panel === "embed" ? (
         <div className="mt-3 rounded-md bg-ink p-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand">Paste anywhere</p>
           <code className="mt-2 block break-all font-mono text-[10px] leading-relaxed text-ground/80">{snippet}</code>
           <button
-            onClick={() => void navigator.clipboard?.writeText(snippet)}
-            className="mt-2 rounded bg-ground/15 px-2 py-1 font-mono text-[10px] text-ground hover:bg-ground/25"
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(snippet);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1800);
+            }}
+            className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-md bg-ground/15 px-3 py-2 font-mono text-[11px] text-ground hover:bg-ground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
-            Copy code
+            {copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+            {copied ? "Code copied" : "Copy code"}
           </button>
+
         </div>
       ) : null}
 
@@ -190,12 +238,14 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
             href={metric.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-block underline decoration-brand underline-offset-2"
+            className="mt-2 inline-flex min-h-11 items-center gap-1.5 underline decoration-brand underline-offset-2"
           >
-            Open the source →
+            <ExternalLink className="size-4" aria-hidden="true" />
+            Open the source
           </a>
         </div>
       ) : null}
     </article>
   );
 }
+

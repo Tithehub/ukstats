@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      metric_changes: {
+        Row: {
+          as_of: string | null
+          category: string
+          detected_at: string
+          id: string
+          metric_id: string
+          period: string | null
+          previous_value: string | null
+          source: string
+          source_url: string
+          title: string
+          value: string | null
+        }
+        Insert: {
+          as_of?: string | null
+          category: string
+          detected_at?: string
+          id?: string
+          metric_id: string
+          period?: string | null
+          previous_value?: string | null
+          source: string
+          source_url: string
+          title: string
+          value?: string | null
+        }
+        Update: {
+          as_of?: string | null
+          category?: string
+          detected_at?: string
+          id?: string
+          metric_id?: string
+          period?: string | null
+          previous_value?: string | null
+          source?: string
+          source_url?: string
+          title?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
+      metric_snapshots: {
+        Row: {
+          as_of: string | null
+          category: string
+          metric_id: string
+          period: string | null
+          source: string
+          source_url: string
+          title: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          as_of?: string | null
+          category: string
+          metric_id: string
+          period?: string | null
+          source?: string
+          source_url?: string
+          title: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          as_of?: string | null
+          category?: string
+          metric_id?: string
+          period?: string | null
+          source?: string
+          source_url?: string
+          title?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       payment_orders: {
         Row: {
           address: string
