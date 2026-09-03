@@ -32,14 +32,22 @@ export const Route = createFileRoute("/tax-vs-welfare")({
 
 const bn = (m: number) => `£${(m / 1000).toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`;
 
-function TaxVsWelfarePage() {
-  const { points, asOf, nextDue, lastCompleteYear } = Route.useLoaderData();
-  const [hover, setHover] = useState<number | null>(null);
+type Mode = "receipts" | "incomeTax";
 
+function TaxVsWelfarePage() {
+  const { points, asOf, nextDue, lastCompleteYear, incomeTaxFrom } = Route.useLoaderData();
+  const [hover, setHover] = useState<number | null>(null);
+  const [mode, setMode] = useState<Mode>("receipts");
+
+  const taxLabel = mode === "receipts" ? "Total receipts" : "Income tax";
   const usable = useMemo(
-    () => points.filter((p) => p.receipts !== null || p.welfare !== null),
-    [points],
+    () =>
+      mode === "receipts"
+        ? points.filter((p) => p.receipts !== null || p.welfare !== null)
+        : points.filter((p) => p.incomeTax !== null),
+    [points, mode],
   );
+  const taxOf = (p: (typeof points)[number]) => (mode === "receipts" ? p.receipts : p.incomeTax);
   const latest = usable[usable.length - 1];
   const partYear = useMemo(() => usable.find((p) => p.partial), [usable]);
   const yearLabel = (p: (typeof usable)[number]) =>
