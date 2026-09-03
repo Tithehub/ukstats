@@ -161,6 +161,36 @@ export type Database = {
         }
         Relationships: []
       }
+      social_accounts: {
+        Row: {
+          created_at: string
+          credentials: Json
+          id: string
+          label: string
+          last_posted_at: string | null
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credentials: Json
+          id?: string
+          label: string
+          last_posted_at?: string | null
+          platform: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credentials?: Json
+          id?: string
+          label?: string
+          last_posted_at?: string | null
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
