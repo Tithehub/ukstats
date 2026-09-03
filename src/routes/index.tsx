@@ -71,7 +71,13 @@ const PANELS: { category: Category; blurb: string }[] = [
     blurb:
       "NHS workforce, waiting lists and emergency care. Scottish figures come from Public Health Scotland's open data; NHS England and the GMC block automated access, so those cards carry the official release instead of a number.",
   },
+  {
+    category: "Politics & polling",
+    blurb:
+      "The Electoral Commission's live party register and Westminster voting intention taken from pollsters' own published releases.",
+  },
   { category: "Housing", blurb: "HM Land Registry house price data as published." },
+
   { category: "Weather", blurb: "Observed conditions and environmental readings." },
   { category: "Defence & security", blurb: "Defence spending and security indicators from official releases." },
 ];

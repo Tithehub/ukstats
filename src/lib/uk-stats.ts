@@ -13,6 +13,7 @@ export type Category =
   | "Defence & security"
   | "National alerts"
   | "NHS & doctors"
+  | "Politics & polling"
   | "Irregular immigration & cost";
 
 /** Colour vocabulary used by the issuing bodies' own published scales. */
@@ -129,6 +130,7 @@ export const CATEGORIES: Category[] = [
   "Defence & security",
   "National alerts",
   "NHS & doctors",
+  "Politics & polling",
 
   "Irregular immigration & cost",
 ];

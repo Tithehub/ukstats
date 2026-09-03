@@ -2477,6 +2477,7 @@ async function collectStats(): Promise<StatsPayload> {
     migrationFlows(),
     nhsMetrics(),
     foreignAid(),
+    politicsMetrics(),
     Promise.resolve(unpublishedSplits()),
 
 
@@ -3913,3 +3914,605 @@ async function aidHistory(id: string): Promise<HistoryPayload | null> {
     return null;
   }
 }
+
+/* =========================== Politics & polling =========================== */
+
+const EC_SEARCH = "https://search.electoralcommission.org.uk/api/search/Registrations";
+const EC_PUBLIC = "https://search.electoralcommission.org.uk/English/Registrations";
+
+export interface RegisteredParty {
+  id: number;
+  name: string;
+  status: string;
+  register: string;
+  town: string | null;
+  approved: string | null;
+  url: string;
+}
+
+interface EcRecord {
+  RegulatedEntityId: number;
+  RegulatedEntityName: string;
+  RegistrationStatusName: string | null;
+  RegisterName: string | null;
+  Town: string | null;
+  ApprovedDate: string | null;
+}
+
+const ecDate = (v: string | null): string | null => {
+  const m = v ? /\/Date\((-?\d+)\)\//.exec(v) : null;
+  return m ? new Date(Number(m[1])).toISOString() : null;
+};
+
+const titleCase = (s: string) =>
+  s.replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+
+let partyCache: { at: number; data: Promise<RegisteredParty[]> } | null = null;
+
+/** Every party currently on the Electoral Commission's GB and NI registers. */
+async function registeredParties(): Promise<RegisteredParty[]> {
+  if (partyCache && Date.now() - partyCache.at < 6 * 3_600_000) return partyCache.data;
+  const run = (async () => {
+    const out: RegisteredParty[] = [];
+    for (const register of ["gb", "ni"] as const) {
+      const url =
+        `${EC_SEARCH}?start=0&rows=1500&query=&sort=RegulatedEntityName&order=asc` +
+        `&et=pp&register=${register}&regStatus=registered`;
+      const data = await retrying(() => getJson<{ Total: number; Result: EcRecord[] }>(url, 30_000), 3);
+      for (const r of data.Result ?? []) {
+        out.push({
+          id: r.RegulatedEntityId,
+          name: r.RegulatedEntityName,
+          status: r.RegistrationStatusName ?? "Registered",
+          register: r.RegisterName ?? (register === "gb" ? "Great Britain" : "Northern Ireland"),
+          town: r.Town ? titleCase(r.Town) : null,
+          approved: ecDate(r.ApprovedDate),
+          url: `${EC_PUBLIC}/PP${r.RegulatedEntityId}`,
+        });
+      }
+    }
+    return out.sort((a, b) => a.name.localeCompare(b.name));
+  })();
+  partyCache = { at: Date.now(), data: run };
+  run.catch(() => {
+    partyCache = null;
+  });
+  return run;
+}
+
+/** Live index of registered parties for the Politics page. */
+export const getPartyRegister = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ parties: RegisteredParty[]; fetchedAt: string; error: string | null }> => {
+    try {
+      const parties = await registeredParties();
+      return { parties, fetchedAt: new Date().toISOString(), error: null };
+    } catch (e) {
+      console.error("registeredParties failed", e);
+      return { parties: [], fetchedAt: new Date().toISOString(), error: "Register search unreachable." };
+    }
+  },
+);
+
+/* ------------------------------ Voting intention ----------------------------- */
+
+export interface PollRelease {
+  pollster: string;
+  url: string;
+  fieldworkEnd: string | null;
+  sampleSize: number | null;
+  shares: Record<string, number>;
+  error?: string | null;
+}
+
+export interface PollingPayload {
+  polls: PollRelease[];
+  average: { party: string; share: number; polls: number }[];
+  unavailable: { pollster: string; url: string; reason: string }[];
+  windowDays: number;
+  fetchedAt: string;
+  configured: boolean;
+}
+
+const POLLSTERS: { name: string; url: string }[] = [
+  { name: "YouGov", url: "https://yougov.co.uk/topics/politics/trackers/voting-intention" },
+  { name: "Ipsos", url: "https://www.ipsos.com/en-uk/ipsos-political-pulse" },
+  { name: "More in Common", url: "https://www.moreincommon.org.uk/polling/" },
+  { name: "Opinium", url: "https://opinium.com/political-polling/" },
+  { name: "Savanta", url: "https://savanta.com/knowledge-centre/polls/" },
+  { name: "Find Out Now", url: "https://findoutnow.co.uk/voting-intention/" },
+  { name: "BMG Research", url: "https://www.bmgresearch.co.uk/polls/" },
+];
+
+export const POLL_PARTIES = [
+  "Labour",
+  "Conservative",
+  "Reform UK",
+  "Liberal Democrats",
+  "Green Party",
+  "SNP",
+  "Plaid Cymru",
+] as const;
+
+const POLL_WINDOW_DAYS = 21;
+
+/** Scrape one pollster's own published release through Firecrawl's structured extraction. */
+async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease> {
+  const key = process.env["FIRECRAWL_API_KEY"];
+  const lovable = process.env["LOVABLE_API_KEY"];
+  const gateway = !!key && key.startsWith("lovc_");
+  const endpoint = gateway
+    ? "https://connector-gateway.lovable.dev/firecrawl/v2/scrape"
+    : "https://api.firecrawl.dev/v2/scrape";
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (gateway) {
+    headers["authorization"] = `Bearer ${lovable}`;
+    headers["X-Connection-Api-Key"] = key!;
+  } else {
+    headers["authorization"] = `Bearer ${key}`;
+  }
+  const blank: PollRelease = {
+    pollster: p.name,
+    url: p.url,
+    fieldworkEnd: null,
+    sampleSize: null,
+    shares: {},
+  };
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        url: p.url,
+        onlyMainContent: true,
+        formats: [
+          {
+            type: "json",
+            prompt:
+              "Read only the most recent published Westminster voting intention poll on this page. " +
+              "Return fieldwork_end as an ISO date (YYYY-MM-DD) exactly as published, sample_size as an " +
+              "integer if published, and shares as published percentages for Labour, Conservative, " +
+              "Reform UK, Liberal Democrats, Green Party, SNP and Plaid Cymru. Omit any party whose " +
+              "share is not published on the page. Never estimate or infer a number.",
+            schema: {
+              type: "object",
+              properties: {
+                fieldwork_end: { type: "string" },
+                sample_size: { type: "number" },
+                shares: {
+                  type: "object",
+                  properties: Object.fromEntries(POLL_PARTIES.map((n) => [n, { type: "number" }])),
+                },
+              },
+            },
+          },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`Firecrawl ${p.name} [${res.status}]: ${body.slice(0, 300)}`);
+      return { ...blank, error: `Extraction failed (${res.status}).` };
+    }
+    const raw = (await res.json()) as {
+      json?: Record<string, unknown>;
+      data?: { json?: Record<string, unknown> };
+    };
+    const j = (raw.json ?? raw.data?.json ?? {}) as {
+      fieldwork_end?: string;
+      sample_size?: number;
+      shares?: Record<string, number>;
+    };
+    const shares: Record<string, number> = {};
+    for (const party of POLL_PARTIES) {
+      const v = j.shares?.[party];
+      if (typeof v === "number" && Number.isFinite(v) && v > 0 && v <= 100) shares[party] = v;
+    }
+    const end = j.fieldwork_end && /^\d{4}-\d{2}-\d{2}$/.test(j.fieldwork_end) ? j.fieldwork_end : null;
+    if (!Object.keys(shares).length) {
+      return { ...blank, fieldworkEnd: end, error: "No voting intention figures published on this page." };
+    }
+    return {
+      pollster: p.name,
+      url: p.url,
+      fieldworkEnd: end,
+      sampleSize: typeof j.sample_size === "number" ? Math.round(j.sample_size) : null,
+      shares,
+    };
+  } catch (e) {
+    console.error(`Firecrawl ${p.name} failed`, e);
+    return { ...blank, error: "Pollster page unreachable." };
+  }
+}
+
+let pollCache: { at: number; data: Promise<PollingPayload> } | null = null;
+
+async function pollingAverage(): Promise<PollingPayload> {
+  const fetchedAt = new Date().toISOString();
+  if (!process.env["FIRECRAWL_API_KEY"]) {
+    return {
+      polls: [],
+      average: [],
+      unavailable: POLLSTERS.map((p) => ({
+        pollster: p.name,
+        url: p.url,
+        reason: "No machine-readable feed connected.",
+      })),
+      windowDays: POLL_WINDOW_DAYS,
+      fetchedAt,
+      configured: false,
+    };
+  }
+  const results = await Promise.all(POLLSTERS.map((p) => scrapePoll(p)));
+  const cutoff = Date.now() - POLL_WINDOW_DAYS * 86_400_000;
+  const polls = results.filter(
+    (r) =>
+      !r.error &&
+      Object.keys(r.shares).length > 0 &&
+      (!r.fieldworkEnd || new Date(r.fieldworkEnd).getTime() >= cutoff),
+  );
+  const unavailable = results
+    .filter((r) => !polls.includes(r))
+    .map((r) => ({
+      pollster: r.pollster,
+      url: r.url,
+      reason: r.error ?? `Latest published poll is older than ${POLL_WINDOW_DAYS} days.`,
+    }));
+  const average = POLL_PARTIES.map((party) => {
+    const vals = polls.map((p) => p.shares[party]).filter((v): v is number => typeof v === "number");
+    return {
+      party,
+      share: vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : Number.NaN,
+      polls: vals.length,
+    };
+  })
+    .filter((a) => a.polls > 0)
+    .sort((a, b) => b.share - a.share);
+  return { polls, average, unavailable, windowDays: POLL_WINDOW_DAYS, fetchedAt, configured: true };
+}
+
+async function cachedPolling(): Promise<PollingPayload> {
+  if (pollCache && Date.now() - pollCache.at < 3_600_000) return pollCache.data;
+  const run = pollingAverage();
+  pollCache = { at: Date.now(), data: run };
+  run.catch(() => {
+    pollCache = null;
+  });
+  return run;
+}
+
+export const getPolling = createServerFn({ method: "GET" }).handler(() => cachedPolling());
+
+/** Register cards: party count and the unweighted average of pollsters' own latest releases. */
+async function politicsMetrics(): Promise<Metric[]> {
+  const out: Metric[] = [];
+  const now = new Date().toISOString();
+  try {
+    const parties = await registeredParties();
+    const gb = parties.filter((p) => /great britain/i.test(p.register)).length;
+    const ni = parties.length - gb;
+    out.push({
+      id: "uk-registered-parties",
+      category: "Politics & polling",
+      title: "Registered political parties",
+      source: "The Electoral Commission, register of political parties",
+      sourceUrl: "https://search.electoralcommission.org.uk/?currentPage=1&et=pp&register=gb&regStatus=registered",
+      value: parties.length ? parties.length.toLocaleString("en-GB") : null,
+      sub: parties.length ? `${gb.toLocaleString("en-GB")} Great Britain · ${ni.toLocaleString("en-GB")} Northern Ireland` : null,
+      period: "Current register",
+      asOf: parties.length ? now : null,
+      nextDue: null,
+      cadence: "Register updated continuously by the Electoral Commission",
+      change: null,
+      spark: [],
+      status: parties.length ? "ok" : "unavailable",
+      note: parties.length ? null : "Register search unreachable.",
+      breakdown: null,
+    });
+  } catch (e) {
+    console.error("politics register metric failed", e);
+  }
+
+  const polling = await cachedPolling();
+  const lead = polling.average[0];
+  out.push({
+    id: "uk-voting-intention",
+    category: "Politics & polling",
+    title: "Westminster voting intention",
+    source: polling.polls.length
+      ? `Average of ${polling.polls.length} pollsters' own latest published releases`
+      : "Published polling releases",
+    sourceUrl: "https://www.ukstats.co.uk/polling",
+    value: lead ? `${lead.party} ${lead.share.toFixed(1)}%` : null,
+    sub: polling.polls.length
+      ? `Unweighted mean of releases published in the last ${polling.windowDays} days`
+      : null,
+    period: polling.polls.length ? `Last ${polling.windowDays} days` : null,
+    asOf: polling.polls.length ? polling.fetchedAt : null,
+    nextDue: null,
+    cadence: "Pollsters publish on their own schedules, typically weekly",
+    change: null,
+    spark: [],
+    status: polling.polls.length ? "ok" : "no-feed",
+    note: polling.polls.length
+      ? null
+      : "No pollster release could be read machine-readably; see the polling page for each publisher's own release.",
+    emptyLabel: polling.polls.length ? null : "No live feed",
+    breakdown: polling.average.length
+      ? polling.average.map((a) => ({ label: a.party, value: Number(a.share.toFixed(1)) }))
+      : null,
+  });
+  return out;
+}
+
+/* ------------------------ Statistics by government era ------------------------ */
+
+export interface EraRow {
+  metric: string;
+  source: string;
+  sourceUrl: string;
+  startLabel: string | null;
+  startValue: string | null;
+  endLabel: string | null;
+  endValue: string | null;
+  change: string | null;
+  note: string | null;
+}
+
+export interface GovernmentEra {
+  id: string;
+  name: string;
+  party: string;
+  pm: string;
+  from: string;
+  to: string | null;
+  rows: EraRow[];
+}
+
+export interface ErasPayload {
+  eras: GovernmentEra[];
+  fetchedAt: string;
+}
+
+interface EraDef {
+  id: string;
+  name: string;
+  party: string;
+  pm: string;
+  from: string;
+  to: string | null;
+  parent?: string;
+}
+
+/** Administrations and prime ministerial terms, dated from the House of Commons Library record. */
+export const ERA_DEFS: EraDef[] = [
+  { id: "con-1979", name: "Conservative government", party: "Conservative", pm: "Margaret Thatcher, John Major", from: "1979-05-04", to: "1997-05-02" },
+  { id: "pm-thatcher", name: "Thatcher ministry", party: "Conservative", pm: "Margaret Thatcher", from: "1979-05-04", to: "1990-11-28", parent: "con-1979" },
+  { id: "pm-major", name: "Major ministry", party: "Conservative", pm: "John Major", from: "1990-11-28", to: "1997-05-02", parent: "con-1979" },
+  { id: "lab-1997", name: "Labour government", party: "Labour", pm: "Tony Blair, Gordon Brown", from: "1997-05-02", to: "2010-05-11" },
+  { id: "pm-blair", name: "Blair ministry", party: "Labour", pm: "Tony Blair", from: "1997-05-02", to: "2007-06-27", parent: "lab-1997" },
+  { id: "pm-brown", name: "Brown ministry", party: "Labour", pm: "Gordon Brown", from: "2007-06-27", to: "2010-05-11", parent: "lab-1997" },
+  { id: "coalition-2010", name: "Conservative–Liberal Democrat coalition", party: "Coalition", pm: "David Cameron", from: "2010-05-11", to: "2015-05-08" },
+  { id: "con-2015", name: "Conservative government", party: "Conservative", pm: "Cameron, May, Johnson, Truss, Sunak", from: "2015-05-08", to: "2024-07-05" },
+  { id: "pm-cameron2", name: "Cameron ministry (majority)", party: "Conservative", pm: "David Cameron", from: "2015-05-08", to: "2016-07-13", parent: "con-2015" },
+  { id: "pm-may", name: "May ministry", party: "Conservative", pm: "Theresa May", from: "2016-07-13", to: "2019-07-24", parent: "con-2015" },
+  { id: "pm-johnson", name: "Johnson ministry", party: "Conservative", pm: "Boris Johnson", from: "2019-07-24", to: "2022-09-06", parent: "con-2015" },
+  { id: "pm-truss", name: "Truss ministry", party: "Conservative", pm: "Liz Truss", from: "2022-09-06", to: "2022-10-25", parent: "con-2015" },
+  { id: "pm-sunak", name: "Sunak ministry", party: "Conservative", pm: "Rishi Sunak", from: "2022-10-25", to: "2024-07-05", parent: "con-2015" },
+  { id: "lab-2024", name: "Labour government", party: "Labour", pm: "Keir Starmer", from: "2024-07-05", to: null },
+];
+
+const MONTHS3 = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+const monthKey = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()} ${MONTHS3[d.getUTCMonth()]}`;
+};
+const quarterKey = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth() / 3) + 1}`;
+};
+
+/** Nearest published observation on or before the boundary date, never interpolated. */
+function pointAt(series: OnsSeries, freq: "months" | "quarters" | "years", iso: string) {
+  const target = iso ? new Date(iso).getTime() : Date.now();
+  const pts = onsPoints(series, freq).filter((p) => new Date(p.date).getTime() <= target);
+  return pts[pts.length - 1] ?? null;
+}
+
+const CSEW_YEARS = /(\d{4})\s*$/;
+
+/** Latest CSEW headline crime column at or before a date, read from the publisher's own table. */
+async function csewSeries(): Promise<{ label: string; value: number; date: number }[]> {
+  try {
+    const landing = await retrying(() =>
+      getJson<{ datasets?: { uri: string }[] }>(`https://www.ons.gov.uk${CRIME_APPENDIX}/data`),
+    );
+    const versionUri = landing.datasets?.[0]?.uri;
+    if (!versionUri) return [];
+    const version = await retrying(() =>
+      getJson<{ downloads?: { file: string }[] }>(`https://www.ons.gov.uk${versionUri}/data`),
+    );
+    const file = version.downloads?.[0]?.file;
+    if (!file) return [];
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000)),
+    ) as unknown as Record<string, Uint8Array>;
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const names = sheetsByName(files, strFromU8);
+    const path = names.get("Table A1a");
+    if (!path || !files[path]) return [];
+    const rows = parseSheet(strFromU8(files[path]!), shared);
+    const header = rows.find((r) => /^offence group/i.test(norm(r.label)));
+    const total = rows.find((r) => /^ALL CSEW HEADLINE CRIME EXCLUDING FRAUD/i.test(norm(r.label)));
+    if (!header || !total) return [];
+    const out: { label: string; value: number; date: number }[] = [];
+    for (const [col, raw] of Object.entries(header.cells)) {
+      if (col === "A") continue;
+      const label = norm(raw);
+      const end = CSEW_YEARS.exec(label);
+      const v = num(total.cells[col]);
+      if (!end || v === null) continue;
+      const isMar = /mar/i.test(label);
+      out.push({
+        label,
+        value: v,
+        date: Date.UTC(Number(end[1]), isMar ? 2 : 11, 28),
+      });
+    }
+    return out.sort((a, b) => a.date - b.date);
+  } catch (e) {
+    console.error("csewSeries failed", e);
+    return [];
+  }
+}
+
+let erasCache: { at: number; data: Promise<ErasPayload> } | null = null;
+
+async function buildEras(): Promise<ErasPayload> {
+  const psf = (c: string) => `/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/${c}/pusf`;
+  const [cpi, gdp, debt, receipts, welfare, csew] = await Promise.all([
+    onsSeries(mm23("d7g7")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    onsSeries("/economy/grossdomesticproductgdp/timeseries/ihyq/pn2").catch(
+      () => ({ description: { title: "", date: "" } }) as OnsSeries,
+    ),
+    onsSeries(psf("hf6x")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    onsSeries(psf("anbt")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    onsSeries(psf("anly")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    csewSeries(),
+  ]);
+
+  const eras: GovernmentEra[] = ERA_DEFS.map((def) => {
+    const endIso = def.to ?? new Date().toISOString().slice(0, 10);
+    const rows: EraRow[] = [];
+
+    const seriesRow = (
+      metric: string,
+      series: OnsSeries,
+      freq: "months" | "quarters" | "years",
+      uri: string,
+      fmt: (v: number) => string,
+      changeFmt: (d: number) => string,
+      keyOf: (iso: string) => string,
+      note?: string,
+    ) => {
+      const a = pointAt(series, freq, def.from);
+      const b = pointAt(series, freq, endIso);
+      const av = a ? Number(a.value) : null;
+      const bv = b ? Number(b.value) : null;
+      const stale = (p: OnsPoint | null, iso: string) =>
+        p && p.label.trim() !== keyOf(iso) ? `published period ${p.label.trim()}` : null;
+      const notes = [note, stale(a, def.from), stale(b, endIso)].filter(Boolean).join(" · ");
+      rows.push({
+        metric,
+        source: "Office for National Statistics",
+        sourceUrl: `https://www.ons.gov.uk${uri}`,
+        startLabel: a?.label.trim() ?? null,
+        startValue: av === null ? null : fmt(av),
+        endLabel: b?.label.trim() ?? null,
+        endValue: bv === null ? null : fmt(bv),
+        change: av === null || bv === null ? null : changeFmt(bv - av),
+        note: notes || null,
+      });
+    };
+
+    seriesRow(
+      "CPI inflation (annual rate)",
+      cpi,
+      "months",
+      mm23("d7g7"),
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
+      monthKey,
+      "CPI is published from January 1989 onwards",
+    );
+    seriesRow(
+      "GDP growth (quarter on quarter)",
+      gdp,
+      "quarters",
+      "/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
+      quarterKey,
+    );
+    seriesRow(
+      "Public sector net debt (% of GDP)",
+      debt,
+      "months",
+      psf("hf6x"),
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
+      monthKey,
+    );
+    seriesRow(
+      "Total public sector current receipts",
+      receipts,
+      "years",
+      psf("anbt"),
+      (v) => bn(v * 1_000_000),
+      (d) => `${d > 0 ? "+" : ""}${bn(Math.abs(d) * 1_000_000).replace("£", d < 0 ? "−£" : "£")}`,
+      (iso) => String(new Date(iso).getUTCFullYear()),
+      "Calendar year totals; the year containing the change of government is shown",
+    );
+    seriesRow(
+      "Net social benefits (welfare)",
+      welfare,
+      "years",
+      psf("anly"),
+      (v) => bn(v * 1_000_000),
+      (d) => `${d > 0 ? "+" : ""}${bn(Math.abs(d) * 1_000_000).replace("£", d < 0 ? "−£" : "£")}`,
+      (iso) => String(new Date(iso).getUTCFullYear()),
+      "Calendar year totals; the year containing the change of government is shown",
+    );
+
+    const at = (iso: string) => {
+      const t = new Date(iso).getTime();
+      const prior = csew.filter((p) => p.date <= t);
+      return prior[prior.length - 1] ?? null;
+    };
+    const ca = at(def.from);
+    const cb = at(endIso);
+    rows.push({
+      metric: "CSEW crime incidents (excluding fraud and computer misuse)",
+      source: "Crime Survey for England and Wales, Office for National Statistics",
+      sourceUrl: `https://www.ons.gov.uk${CRIME_APPENDIX}`,
+      startLabel: ca?.label ?? null,
+      startValue: ca ? `${(ca.value / 1000).toFixed(2)}m incidents` : null,
+      endLabel: cb?.label ?? null,
+      endValue: cb ? `${(cb.value / 1000).toFixed(2)}m incidents` : null,
+      change:
+        ca && cb && ca.label !== cb.label
+          ? `${cb.value - ca.value > 0 ? "+" : "−"}${(Math.abs(cb.value - ca.value) / 1000).toFixed(2)}m`
+          : null,
+      note: ca
+        ? "Survey years shown are the nearest published CSEW period on or before each date; the survey began in 1981 and was not run every year before 2001"
+        : "Not published on a comparable basis before the survey began in 1981",
+    });
+
+    return {
+      id: def.id,
+      name: def.name,
+      party: def.party,
+      pm: def.pm,
+      from: def.from,
+      to: def.to,
+      rows,
+    };
+  });
+
+  return { eras, fetchedAt: new Date().toISOString() };
+}
+
+/** Start and end values of the headline published series for each administration. */
+export const getGovernmentEras = createServerFn({ method: "GET" }).handler(async (): Promise<ErasPayload> => {
+  if (erasCache && Date.now() - erasCache.at < 3_600_000) return erasCache.data;
+  const run = buildEras();
+  erasCache = { at: Date.now(), data: run };
+  run.catch(() => {
+    erasCache = null;
+  });
+  return run;
+});
