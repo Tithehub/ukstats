@@ -9,11 +9,11 @@ import { fmtDate } from "@/lib/uk-stats";
 export const Route = createFileRoute("/tax-vs-welfare")({
   head: () => ({
     meta: [
-      { title: "UK total tax receipts vs the total welfare bill" },
+      { title: "UK tax receipts and income tax vs the total welfare bill" },
       {
         name: "description",
         content:
-          "Total UK public sector current receipts compared with the total welfare bill (net social benefits), every published year, straight from the ONS public sector finances release.",
+          "Total UK public sector current receipts, and income tax alone, compared with the total welfare bill (net social benefits), every published year, straight from the ONS public sector finances release.",
       },
       { property: "og:title", content: "UK tax receipts vs the welfare bill" },
       {
