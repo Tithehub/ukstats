@@ -134,13 +134,18 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
 
       {metric.breakdown?.length ? <Breakdown parts={metric.breakdown} /> : null}
 
-      <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-mono text-[11px]">
         <span className={`inline-flex items-center gap-1.5 ${freshText[tone]}`}>
+          {(() => {
+            const Icon = freshIcon[tone];
+            return <Icon className="size-3.5 shrink-0" aria-hidden="true" />;
+          })()}
           <span className={`size-1.5 rounded-full ${freshBg[tone]} ${tone === "fresh" ? "pulse-dot" : ""}`} />
           {freshLabel[tone]} · as of {fmtDate(metric.asOf)}
         </span>
         <span className={tone === "overdue" ? "text-overdue/80" : "text-steel/60"}>{dueLabel(metric.nextDue)}</span>
       </div>
+
       <p className="mt-1 font-mono text-[10px] text-steel/50">
         {ageLabel(metric.asOf)} · {metric.cadence}
       </p>
