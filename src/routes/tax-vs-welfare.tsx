@@ -372,6 +372,18 @@ function TaxVsWelfarePage() {
                   url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anly/pusf",
                 },
                 {
+                  label: "ONS · CG: PAYE income tax (MS6W)",
+                  url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/ms6w/pusf",
+                },
+                {
+                  label: "ONS · CG: Self assessed income tax (LISB)",
+                  url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/lisb/pusf",
+                },
+                {
+                  label: "ONS · CG: Other income tax (MF6X)",
+                  url: "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/mf6x/pusf",
+                },
+                {
                   label: "HMRC · Tax receipts and National Insurance contributions",
                   url: "https://www.gov.uk/government/statistics/hmrc-tax-and-nics-receipts-for-the-uk",
                 },
