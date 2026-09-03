@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 import { getUkStats } from "@/lib/uk-stats.functions";
+import { VITAL_IDS } from "@/components/VitalSigns";
+import { composeBriefing, londonDate, type DailyFigure } from "@/lib/daily";
+
 
 /**
  * Scheduled sweep: compare every published figure against the last snapshot and
