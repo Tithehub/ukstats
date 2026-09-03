@@ -1,11 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { getSharedPage, listOwnedPages } from "@/lib/shared-pages.functions";
-import { getOwnerToken } from "@/lib/owner-token";
-import { CryptoCheckout } from "@/components/payments/CryptoCheckout";
+import { getSharedPage } from "@/lib/shared-pages.functions";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
-import { countdown } from "@/lib/tiers";
+import { countdown } from "@/lib/pages";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/p/$slug")({
@@ -139,22 +136,7 @@ function Row({ metric }: { metric: Metric }) {
 function LivePage() {
   const { page, expired, metrics, fetchedAt } = Route.useLoaderData();
   const [url, setUrl] = useState("");
-  const [ownerToken, setOwnerToken] = useState<string | null>(null);
-  const owned = useServerFn(listOwnedPages);
   useEffect(() => setUrl(window.location.href), []);
-
-  const slug = page?.slug;
-  const pending = page?.paymentStatus === "pending";
-  useEffect(() => {
-    if (!slug || !pending) return;
-    const token = getOwnerToken();
-    void owned({ data: { ownerToken: token } })
-      .then((pages) => {
-        if (pages.some((p) => p.slug === slug)) setOwnerToken(token);
-      })
-      .catch(() => undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, pending]);
 
   if (!page) {
     return (
@@ -177,11 +159,11 @@ function LivePage() {
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-overdue">Expired</p>
           <h1 className="mt-2 text-xl font-semibold tracking-tight text-balance">“{page.title}” is no longer live</h1>
           <p className="mt-2 text-sm text-steel">
-            This page ran until {fmtDate(page.expiresAt)}. Extend it from your live pages, or build a new one.
+            This page ran until {fmtDate(page.expiresAt)}. Keep it live again from your pages, or build a new one — both are free.
           </p>
           <div className="mt-5 flex justify-center gap-2">
             <Link to="/my-pages" className="rounded-md bg-ink px-4 py-2 text-sm text-ground">
-              Extend it
+              Keep it live
             </Link>
             <Link to="/create" className="rounded-md px-4 py-2 text-sm text-steel ring-1 ring-ink/10">
               Create a new page
@@ -210,17 +192,6 @@ function LivePage() {
             <ShareBar url={url} title={page.title} />
           </div>
         </header>
-
-        {pending && ownerToken ? (
-          <div className="no-print mt-6">
-            <CryptoCheckout
-              slug={page.slug}
-              tier={page.tier}
-              ownerToken={ownerToken}
-              onConfirmed={() => window.location.reload()}
-            />
-          </div>
-        ) : null}
 
         <main className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2">
           {metrics.map((m) => (

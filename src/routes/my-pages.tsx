@@ -2,12 +2,21 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { listOwnedPages } from "@/lib/shared-pages.functions";
+import { Copy, LogIn, RefreshCw } from "lucide-react";
+import {
+  claimSharedPages,
+  listAccountPages,
+  listOwnedPages,
+  renewSharedPage,
+  type SharedPage,
+} from "@/lib/shared-pages.functions";
 import { getOwnerToken } from "@/lib/owner-token";
-import { TIERS, countdown } from "@/lib/tiers";
+import { countdown } from "@/lib/pages";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { fmtDate } from "@/lib/uk-stats";
-import { CryptoCheckout } from "@/components/payments/CryptoCheckout";
+import { useAuth } from "@/lib/useAuth";
+import { btn } from "@/lib/ui";
 
 export const Route = createFileRoute("/my-pages")({
   head: () => ({
@@ -15,10 +24,11 @@ export const Route = createFileRoute("/my-pages")({
       { title: "My live statistics pages — UK National Data Register" },
       {
         name: "description",
-        content: "Manage the live UK statistics pages you created: see how long each stays live, extend, share or copy the link.",
+        content:
+          "Manage the free live UK statistics pages you created: see how long each stays live, keep them live, share or copy the link.",
       },
       { property: "og:title", content: "My live statistics pages" },
-      { property: "og:description", content: "Manage, extend and share the live UK statistics pages you created." },
+      { property: "og:description", content: "Manage, renew and share the free live UK statistics pages you created." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/my-pages" },
       { name: "twitter:card", content: "summary" },
@@ -29,40 +39,76 @@ export const Route = createFileRoute("/my-pages")({
 });
 
 function MyPages() {
-  const list = useServerFn(listOwnedPages);
+  const listLocal = useServerFn(listOwnedPages);
+  const listAccount = useServerFn(listAccountPages);
+  const claim = useServerFn(claimSharedPages);
+  const renew = useServerFn(renewSharedPage);
+  const { signedIn, user, loading } = useAuth();
+
   const [token, setToken] = useState("");
   const [origin, setOrigin] = useState("");
-  const [pay, setPay] = useState<{ slug: string; tier: string } | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [renewing, setRenewing] = useState<string | null>(null);
 
   useEffect(() => {
     setToken(getOwnerToken());
     setOrigin(window.location.origin);
   }, []);
 
+  // Attach anything made anonymously in this browser to the account.
+  useEffect(() => {
+    if (!signedIn || !token) return;
+    void claim({ data: { ownerToken: token } }).catch(() => undefined);
+  }, [signedIn, token, claim]);
+
   const { data, refetch, isLoading } = useQuery({
-    queryKey: ["owned-pages", token],
-    queryFn: () => list({ data: { ownerToken: token } }),
-    enabled: token.length > 0,
+    queryKey: ["owned-pages", token, user?.id ?? "anon"],
+    queryFn: async () => {
+      const local = await listLocal({ data: { ownerToken: token } });
+      if (!signedIn) return local;
+      const mine = await listAccount();
+      const seen = new Set<string>();
+      return [...mine, ...local].filter((p) => (seen.has(p.slug) ? false : (seen.add(p.slug), true)));
+    },
+    enabled: token.length > 0 && !loading,
   });
 
+  async function keepLive(page: SharedPage) {
+    setRenewing(page.slug);
+    try {
+      await renew({ data: { slug: page.slug, ownerToken: token } });
+      await refetch();
+    } finally {
+      setRenewing(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-night font-sans text-night-fg">
       <SiteHeader />
 
-
       <main className="mx-auto max-w-[1100px] px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">My live pages</h1>
-        <p className="mt-2 max-w-2xl text-sm text-steel">
-          Pages created from this browser. Keep the browser data and you keep the pages — no account needed.
+        <p className="mt-2 max-w-2xl text-sm text-night-muted">
+          Every page is free and stays live for a year — tap “Keep it live” to reset the clock whenever you like.
+          {signedIn
+            ? " Signed in, so your pages follow you to any device."
+            : " Pages made in this browser show here without an account; sign in to keep them if you change device."}
         </p>
 
+        {!signedIn && !loading ? (
+          <Link to="/auth" className={btn("secondary", "md", "mt-4")}>
+            <LogIn className="size-4" aria-hidden="true" />
+            Sign in to keep your pages
+          </Link>
+        ) : null}
+
         {isLoading || !token ? (
-          <p className="mt-8 font-mono text-[12px] text-steel/60">Loading…</p>
+          <p className="mt-8 font-mono text-[12px] text-night-muted">Loading…</p>
         ) : (data?.length ?? 0) === 0 ? (
-          <div className="mt-8 rounded-xl bg-card/50 p-6 ring-1 ring-ink/10">
-            <p className="text-sm text-steel">You haven't created a live page yet.</p>
-            <Link to="/create" className="mt-4 inline-block rounded-md bg-ink px-4 py-2 text-sm text-ground">
+          <div className="mt-8 rounded-xl border border-night-line/60 bg-night-panel/40 p-6">
+            <p className="text-sm text-night-muted">You haven't created a live page yet.</p>
+            <Link to="/create" className={btn("primary", "md", "mt-4")}>
               Create your first page
             </Link>
           </div>
@@ -72,7 +118,7 @@ function MyPages() {
               const live = new Date(p.expiresAt).getTime() > Date.now();
               const url = `${origin}/p/${p.slug}`;
               return (
-                <div key={p.slug} className="rounded-xl bg-card/50 p-4 ring-1 ring-ink/10">
+                <div key={p.slug} className="rounded-xl border border-night-line/60 bg-night-panel/40 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <Link
@@ -82,9 +128,9 @@ function MyPages() {
                       >
                         {p.title}
                       </Link>
-                      <p className="mt-1 font-mono text-[11px] text-steel/70">
-                        {p.metricIds.length} figures · {p.paymentStatus === "pending" ? "payment pending" : p.paymentStatus} ·
-                        created {fmtDate(p.createdAt)} · {p.viewCount} views
+                      <p className="mt-1 font-mono text-[11px] text-night-muted">
+                        {p.metricIds.length} figures · free · created {fmtDate(p.createdAt)} · {p.viewCount} views
+                        {p.claimed ? " · saved to your account" : ""}
                       </p>
                     </div>
                     <span
@@ -96,51 +142,30 @@ function MyPages() {
                     </span>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-night-line/60 pt-3">
                     <button
-                      onClick={() => void navigator.clipboard?.writeText(url)}
-                      className="rounded-md bg-ink/5 px-2.5 py-1.5 font-mono text-[11px] text-steel hover:bg-ink/10"
+                      onClick={() => {
+                        void navigator.clipboard?.writeText(url);
+                        setCopied(p.slug);
+                        window.setTimeout(() => setCopied(null), 1600);
+                      }}
+                      className={btn("secondary", "sm")}
                     >
-                      Copy link
+                      <Copy className="size-4" aria-hidden="true" />
+                      {copied === p.slug ? "Link copied" : "Copy link"}
                     </button>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/50">Extend with crypto</span>
-                    {TIERS.filter((t) => t.id !== "preview").map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => setPay({ slug: p.slug, tier: t.id })}
-                        className={`rounded-md px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
-                          pay?.slug === p.slug && pay?.tier === t.id
-                            ? "bg-ink text-ground"
-                            : "bg-ink/5 text-steel hover:bg-ink/10"
-                        }`}
-                      >
-                        {t.price} · {t.label}
-                      </button>
-                    ))}
+                    <button onClick={() => void keepLive(p)} disabled={renewing === p.slug} className={btn("primary", "sm")}>
+                      <RefreshCw className="size-4" aria-hidden="true" />
+                      {renewing === p.slug ? "Renewing…" : "Keep it live"}
+                    </button>
                   </div>
-
-                  {pay?.slug === p.slug ? (
-                    <div className="mt-3">
-                      <CryptoCheckout
-                        slug={p.slug}
-                        tier={pay.tier}
-                        ownerToken={token}
-                        onConfirmed={() => void refetch()}
-                      />
-                      <button
-                        onClick={() => setPay(null)}
-                        className="mt-2 font-mono text-[11px] text-steel/60 hover:underline"
-                      >
-                        Cancel payment
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               );
             })}
           </div>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }

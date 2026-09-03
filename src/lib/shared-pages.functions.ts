@@ -1,17 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { tierById } from "./tiers";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { DEFAULT_PAGE_HOURS } from "./pages";
 
 export interface SharedPage {
   slug: string;
   title: string;
   metricIds: string[];
-  tier: string;
-  pricePence: number;
-  paymentStatus: string;
   expiresAt: string;
   createdAt: string;
   viewCount: number;
+  claimed: boolean;
 }
 
 async function hashToken(token: string): Promise<string> {
@@ -38,13 +37,15 @@ function row2page(r: any): SharedPage {
     slug: r.slug,
     title: r.title,
     metricIds: r.metric_ids ?? [],
-    tier: r.tier,
-    pricePence: r.price_pence,
-    paymentStatus: r.payment_status,
     expiresAt: r.expires_at,
     createdAt: r.created_at,
     viewCount: r.view_count,
+    claimed: Boolean(r.user_id),
   };
+}
+
+function expiryFromNow(hours = DEFAULT_PAGE_HOURS): string {
+  return new Date(Date.now() + hours * 3_600_000).toISOString();
 }
 
 export const createSharedPage = createServerFn({ method: "POST" })
@@ -53,21 +54,12 @@ export const createSharedPage = createServerFn({ method: "POST" })
       .object({
         title: z.string().min(1).max(120),
         metricIds: z.array(z.string().min(1).max(64)).min(1).max(40),
-        tier: z.string().min(1).max(32),
         ownerToken: z.string().min(16).max(128),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const tier = tierById(data.tier);
-    if (!tier) throw new Error("Unknown duration tier");
-
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Paid tiers start as a 60-minute preview; crypto confirmation extends
-    // the page to the full purchased duration.
-    const paid = tier.pricePence > 0;
-    const initialHours = paid ? 1 : tier.hours;
-    const expiresAt = new Date(Date.now() + initialHours * 3_600_000).toISOString();
     const ownerHash = await hashToken(data.ownerToken);
 
     const { data: row, error } = await supabaseAdmin
@@ -76,11 +68,11 @@ export const createSharedPage = createServerFn({ method: "POST" })
         slug: makeSlug(data.title),
         title: data.title,
         metric_ids: data.metricIds,
-        tier: tier.id,
-        duration_hours: tier.hours,
-        price_pence: tier.pricePence,
-        payment_status: tier.pricePence === 0 ? "free" : "pending",
-        expires_at: expiresAt,
+        tier: "free",
+        duration_hours: DEFAULT_PAGE_HOURS,
+        price_pence: 0,
+        payment_status: "free",
+        expires_at: expiryFromNow(),
         owner_hash: ownerHash,
       })
       .select()
@@ -124,5 +116,52 @@ export const listOwnedPages = createServerFn({ method: "POST" })
     return (rows ?? []).map(row2page);
   });
 
-// Extending a page now happens through a confirmed crypto payment
-// (see src/lib/payments.functions.ts) rather than a free server call.
+/** Anyone holding the browser owner token can keep their own page live. */
+export const renewSharedPage = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ slug: z.string().min(1).max(80), ownerToken: z.string().min(16).max(128) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ownerHash = await hashToken(data.ownerToken);
+    const { data: row, error } = await supabaseAdmin
+      .from("shared_pages")
+      .update({ expires_at: expiryFromNow() })
+      .eq("slug", data.slug)
+      .eq("owner_hash", ownerHash)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("That page was not created in this browser.");
+    return row2page(row);
+  });
+
+/** Pages already attached to the signed-in account, on any device. */
+export const listAccountPages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await supabaseAdmin
+      .from("shared_pages")
+      .select("*")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false });
+    return (rows ?? []).map(row2page);
+  });
+
+/** Attach pages created anonymously in this browser to the signed-in account. */
+export const claimSharedPages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ ownerToken: z.string().min(16).max(128) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ownerHash = await hashToken(data.ownerToken);
+    const { data: rows, error } = await supabaseAdmin
+      .from("shared_pages")
+      .update({ user_id: context.userId, expires_at: expiryFromNow() })
+      .eq("owner_hash", ownerHash)
+      .is("user_id", null)
+      .select();
+    if (error) throw new Error(error.message);
+    return { claimed: (rows ?? []).length };
+  });

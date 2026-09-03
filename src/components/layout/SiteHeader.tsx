@@ -10,6 +10,8 @@ import {
   type LucideIcon,
   Map as MapIcon,
   Menu,
+  LogIn,
+  LogOut,
   Plane,
   PlusCircle,
   Table2,
@@ -17,6 +19,8 @@ import {
   X,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/useAuth";
 import { btn, iconBtn } from "@/lib/ui";
 
 interface NavItem {
@@ -80,6 +84,7 @@ export function Wordmark() {
 /** Site-wide navigation. `status` renders an optional live-feed badge. */
 export function SiteHeader({ status }: { status?: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const { signedIn, user } = useAuth();
 
   // Lock the page behind the drawer and close it on Escape.
   useEffect(() => {
@@ -122,7 +127,23 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             </span>
           ) : null}
           <ThemeToggle />
-          <Link to="/create" className={btn("primary", "sm", "hidden sm:inline-flex")}>
+          {signedIn ? (
+            <button
+              type="button"
+              onClick={() => void supabase.auth.signOut()}
+              className={btn("ghost", "sm", "max-sm:hidden")}
+              title={user?.email ?? undefined}
+            >
+              <LogOut className="size-4" aria-hidden="true" />
+              Sign out
+            </button>
+          ) : (
+            <Link to="/auth" className={btn("ghost", "sm", "max-sm:hidden")}>
+              <LogIn className="size-4" aria-hidden="true" />
+              Sign in
+            </Link>
+          )}
+          <Link to="/create" className={btn("primary", "sm", "max-sm:hidden")}>
             <PlusCircle className="size-4" aria-hidden="true" />
             Create live page
           </Link>
@@ -180,6 +201,24 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               <PlusCircle className="size-4" aria-hidden="true" />
               Create live page
             </Link>
+            {signedIn ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  void supabase.auth.signOut();
+                }}
+                className={btn("secondary", "md", "mt-2 w-full sm:hidden")}
+              >
+                <LogOut className="size-4" aria-hidden="true" />
+                Sign out{user?.email ? ` (${user.email})` : ""}
+              </button>
+            ) : (
+              <Link to="/auth" onClick={() => setOpen(false)} className={btn("secondary", "md", "mt-2 w-full sm:hidden")}>
+                <LogIn className="size-4" aria-hidden="true" />
+                Sign in
+              </Link>
+            )}
             {status ? (
               <p className="mt-4 flex items-center gap-2 font-mono text-[11px] text-night-muted xl:hidden">{status}</p>
             ) : null}
