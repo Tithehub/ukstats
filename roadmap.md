@@ -22,3 +22,9 @@
 - [ ] Release calendar + "what changed today"
 - [ ] Public JSON/CSV API for the whole register
 - [ ] Full history for non-ONS feeds (Home Office, Land Registry) where machine-readable
+
+## NHS & doctors
+- [x] "NHS & doctors" category on the home page and register
+- [x] Live Scottish figures (A&E 4-hour, cancer 62-day, inpatient/day-case and outpatient waiting lists) from Public Health Scotland open data
+- [x] England/UK cards (HCHS doctors, GPs, RTT list, A&E, GMC IMG share, vacancies, cancer 62-day, ambulance Cat 2, bed occupancy) shown as "No live feed" with the official release link
+- [ ] Fill the England cards if NHS England / NHS Digital / GMC ever serve machine-readable data to automated clients

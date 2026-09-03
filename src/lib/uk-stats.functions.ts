@@ -2092,6 +2092,367 @@ const PAYLOAD_TTL = 5 * 60_000;
 /** Soft deadline for one collection pass, so no page render waits on a slow publisher. */
 const COLLECT_DEADLINE = 9_000;
 
+/* --------------------------------- NHS ---------------------------------- */
+
+const NHS_BASE = (over: Partial<Metric> & { id: string; title: string }): Metric => ({
+  category: "NHS & doctors",
+  source: "",
+  sourceUrl: "",
+  value: null,
+  sub: null,
+  period: null,
+  asOf: null,
+  nextDue: null,
+  cadence: "",
+  change: null,
+  spark: [],
+  status: "ok",
+  note: null,
+  ...over,
+});
+
+/**
+ * NHS England, NHS Digital and the GMC answer automated requests with a bot
+ * challenge (AWS WAF) or 403. We still attempt the publisher on every refresh;
+ * until one answers, the card carries the official link and release schedule
+ * rather than a number we cannot verify.
+ */
+async function nhsEnglandProbe(def: {
+  id: string;
+  title: string;
+  sub: string;
+  source: string;
+  sourceUrl: string;
+  cadence: string;
+  subcategory: string;
+  coverage: string;
+}): Promise<Metric> {
+  const base = NHS_BASE({
+    id: def.id,
+    title: def.title,
+    sub: `${def.sub} · ${def.coverage}`,
+    source: def.source,
+    sourceUrl: def.sourceUrl,
+    cadence: def.cadence,
+    subcategory: def.subcategory,
+    status: "no-feed",
+    emptyLabel: "No live feed",
+    note: `${def.source} publishes this only as spreadsheets behind an automated-access block, so no figure is shown rather than an estimate. Open the official release for the current number.`,
+  });
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8_000);
+    const res = await fetch(def.sourceUrl, {
+      headers: {
+        accept: "text/html,application/xhtml+xml",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      },
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (res.status === 403 || res.status === 202) return base;
+    return base;
+  } catch {
+    return base;
+  }
+}
+
+interface ScotRow {
+  [k: string]: string | number | null;
+}
+
+/** NHS Scotland publishes open data through CKAN; SQL reads the published table directly. */
+async function scotSql(sql: string): Promise<ScotRow[]> {
+  const url = `https://www.opendata.nhs.scot/api/3/action/datastore_search_sql?sql=${encodeURIComponent(sql)}`;
+  const d = await getJson<{ result?: { records?: ScotRow[] } }>(url, 15_000);
+  return d.result?.records ?? [];
+}
+
+const scotNum = (v: unknown) => (v == null ? null : Number(v));
+
+function monthLabel(yyyymm: string): string {
+  const y = yyyymm.slice(0, 4);
+  const m = Number(yyyymm.slice(4, 6));
+  const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${names[m - 1] ?? ""} ${y}`.trim();
+}
+
+async function nhsScotlandAE(): Promise<Metric> {
+  const base = NHS_BASE({
+    id: "nhs-scot-ae-4hr",
+    title: "A&E seen within 4 hours",
+    sub: "All A&E attendances · Scotland",
+    source: "Public Health Scotland",
+    sourceUrl: "https://www.opendata.nhs.scot/dataset/monthly-accident-and-emergency-activity-and-waiting-times",
+    cadence: "Monthly, first Tuesday",
+    subcategory: "Emergency & secondary care",
+    status: "unavailable",
+  });
+  try {
+    const rows = await scotSql(
+      'SELECT "Month", SUM("NumberOfAttendancesAll") AS a, SUM("NumberWithin4HoursAll") AS b FROM "37ba17b1-c323-492c-87d5-e986aae9ab59" GROUP BY "Month" ORDER BY "Month" DESC LIMIT 25',
+    );
+    const pts = rows
+      .map((r) => ({ m: String(r["Month"]), a: scotNum(r["a"]) ?? 0, b: scotNum(r["b"]) ?? 0 }))
+      .filter((r) => r.a > 0)
+      .reverse();
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    if (!last) return base;
+    const pct = (r: { a: number; b: number }) => (r.b / r.a) * 100;
+    const cur = pct(last);
+    const delta = prev ? cur - pct(prev) : null;
+    return {
+      ...base,
+      value: `${cur.toFixed(1)}%`,
+      sub: `${last.b.toLocaleString("en-GB")} of ${last.a.toLocaleString("en-GB")} attendances seen within 4 hours · Scotland`,
+      period: monthLabel(last.m),
+      asOf: `${last.m.slice(0, 4)}-${last.m.slice(4, 6)}-01T00:00:00Z`,
+      spark: pts.map((p) => pct(p)),
+      change:
+        delta == null
+          ? null
+          : {
+              label: `${Math.abs(delta).toFixed(1)}pp vs previous month`,
+              dir: delta > 0.05 ? "up" : delta < -0.05 ? "down" : "flat",
+            },
+      status: "ok",
+      note: "Totalled from Public Health Scotland's published monthly attendance counts for every A&E site. The 95% standard is set by the Scottish Government.",
+      derivedFrom: "Sum of published site-level monthly attendance counts",
+    };
+  } catch (e) {
+    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+  }
+}
+
+async function nhsScotlandCancer62(): Promise<Metric> {
+  const base = NHS_BASE({
+    id: "nhs-scot-cancer-62",
+    title: "Cancer: 62-day standard met",
+    sub: "All cancer types, urgent suspicion of cancer referrals · Scotland",
+    source: "Public Health Scotland",
+    sourceUrl: "https://www.opendata.nhs.scot/dataset/cancer-waiting-times",
+    cadence: "Quarterly",
+    subcategory: "Emergency & secondary care",
+    status: "unavailable",
+  });
+  try {
+    const rows = await scotSql(
+      'SELECT "Quarter", SUM("NumberOfEligibleReferrals62DayStandard") AS n, SUM("NumberOfEligibleReferralsTreatedWithin62Days") AS t FROM "23b3bbf7-7a37-4f86-974b-6360d6748e08" WHERE "HB" = \'S92000003\' AND "CancerType" = \'All Cancer Types\' GROUP BY "Quarter" ORDER BY "Quarter" DESC LIMIT 20',
+    );
+    const pts = rows
+      .map((r) => ({ q: String(r["Quarter"]), n: scotNum(r["n"]) ?? 0, t: scotNum(r["t"]) ?? 0 }))
+      .filter((r) => r.n > 0)
+      .reverse();
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    if (!last) return base;
+    const pct = (r: { n: number; t: number }) => (r.t / r.n) * 100;
+    const cur = pct(last);
+    const delta = prev ? cur - pct(prev) : null;
+    const qLabel = `${last.q.slice(0, 4)} ${last.q.slice(4)}`;
+    return {
+      ...base,
+      value: `${cur.toFixed(1)}%`,
+      sub: `${last.t.toLocaleString("en-GB")} of ${last.n.toLocaleString("en-GB")} eligible referrals treated within 62 days · Scotland`,
+      period: qLabel,
+      asOf: `${last.q.slice(0, 4)}-${{ Q1: "03", Q2: "06", Q3: "09", Q4: "12" }[last.q.slice(4)] ?? "12"}-01T00:00:00Z`,
+      spark: pts.map((p) => pct(p)),
+      change:
+        delta == null
+          ? null
+          : {
+              label: `${Math.abs(delta).toFixed(1)}pp vs previous quarter`,
+              dir: delta > 0.05 ? "up" : delta < -0.05 ? "down" : "flat",
+            },
+      status: "ok",
+      note: "Totalled from Public Health Scotland's published board-level 62-day standard figures. The Scottish Government standard is 95%.",
+      derivedFrom: "Sum of published NHS board figures for Scotland",
+    };
+  } catch (e) {
+    return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+  }
+}
+
+async function nhsScotlandWaits(): Promise<Metric[]> {
+  const mk = (id: string, title: string, sub: string) =>
+    NHS_BASE({
+      id,
+      title,
+      sub: `${sub} · Scotland`,
+      source: "Public Health Scotland",
+      sourceUrl: "https://www.opendata.nhs.scot/dataset/stage-of-treatment-waiting-times",
+      cadence: "Monthly",
+      subcategory: "Waiting lists",
+      status: "unavailable",
+    });
+
+  const defs = [
+    {
+      id: "nhs-scot-waits-inpatient",
+      title: "Patients waiting for inpatient or day-case treatment",
+      patientType: "Inpatient/Day case",
+      sub: "Ongoing waits, all specialties",
+    },
+    {
+      id: "nhs-scot-waits-outpatient",
+      title: "Patients waiting for a first outpatient appointment",
+      patientType: "New Outpatient",
+      sub: "Ongoing waits, all specialties",
+    },
+  ];
+
+  return Promise.all(
+    defs.map(async (d) => {
+      const base = mk(d.id, d.title, d.sub);
+      try {
+        const rows = await scotSql(
+          `SELECT "MonthEnding", "Waits", "WaitsOver52Weeks" FROM "ac63b747-fdcc-410c-ae43-de6fe3c46abf" WHERE "HBT" = 'S92000003' AND "PatientType" = '${d.patientType}' AND "WaitType" = 'Ongoing' AND "Specialty" = 'Z9' ORDER BY "MonthEnding" DESC LIMIT 25`,
+        );
+        const pts = rows
+          .map((r) => ({
+            m: String(r["MonthEnding"]),
+            v: scotNum(r["Waits"]) ?? 0,
+            over52: scotNum(r["WaitsOver52Weeks"]),
+          }))
+          .filter((r) => r.v > 0)
+          .reverse();
+        const last = pts[pts.length - 1];
+        const prev = pts[pts.length - 2];
+        if (!last) return base;
+        const delta = prev ? last.v - prev.v : null;
+        return {
+          ...base,
+          value: last.v.toLocaleString("en-GB"),
+          sub:
+            last.over52 != null
+              ? `${last.over52.toLocaleString("en-GB")} of them waiting over 52 weeks · Scotland`
+              : base.sub,
+          period: `Month ending ${last.m.slice(6, 8)}/${last.m.slice(4, 6)}/${last.m.slice(0, 4)}`,
+          asOf: `${last.m.slice(0, 4)}-${last.m.slice(4, 6)}-${last.m.slice(6, 8)}T00:00:00Z`,
+          spark: pts.map((p) => p.v),
+          change:
+            delta == null
+              ? null
+              : {
+                  label: `${Math.abs(delta).toLocaleString("en-GB")} vs previous month`,
+                  dir: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
+                },
+          status: "ok" as const,
+          note: "Published ongoing-wait totals for NHS Scotland, all specialties combined, as issued by Public Health Scotland.",
+        };
+      } catch (e) {
+        return { ...base, note: `Source unreachable: ${(e as Error).message}` };
+      }
+    }),
+  );
+}
+
+async function nhsMetrics(): Promise<Metric[]> {
+  const england: Parameters<typeof nhsEnglandProbe>[0][] = [
+    {
+      id: "nhs-hchs-doctors",
+      title: "NHS hospital and community doctors (FTE)",
+      sub: "HCHS medical staff, full-time equivalent",
+      source: "NHS England workforce statistics",
+      sourceUrl: "https://digital.nhs.uk/data-and-information/publications/statistical/nhs-workforce-statistics",
+      cadence: "Monthly, about 3 months in arrears",
+      subcategory: "Workforce",
+      coverage: "England",
+    },
+    {
+      id: "nhs-qualified-gps",
+      title: "Fully qualified GPs (FTE)",
+      sub: "Excludes registrars and locums",
+      source: "NHS England general practice workforce",
+      sourceUrl:
+        "https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services",
+      cadence: "Monthly",
+      subcategory: "Workforce",
+      coverage: "England",
+    },
+    {
+      id: "nhs-rtt-waiting-list",
+      title: "Elective waiting list (RTT)",
+      sub: "Incomplete referral-to-treatment pathways",
+      source: "NHS England",
+      sourceUrl: "https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/",
+      cadence: "Monthly, second Thursday",
+      subcategory: "Waiting lists",
+      coverage: "England",
+    },
+    {
+      id: "nhs-ae-4hr",
+      title: "A&E seen within 4 hours",
+      sub: "All A&E types",
+      source: "NHS England",
+      sourceUrl: "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/",
+      cadence: "Monthly, second Thursday",
+      subcategory: "Emergency & secondary care",
+      coverage: "England",
+    },
+    {
+      id: "gmc-img-share",
+      title: "International medical graduates on the register",
+      sub: "Share of licensed doctors qualifying outside the UK",
+      source: "General Medical Council",
+      sourceUrl: "https://www.gmc-uk.org/about/what-we-do-and-why/data-and-research/the-workforce-report",
+      cadence: "Annual, workforce report",
+      subcategory: "Workforce",
+      coverage: "UK-wide",
+    },
+    {
+      id: "nhs-vacancies",
+      title: "NHS vacancies",
+      sub: "Reported vacancies and vacancy rate, medical and nursing",
+      source: "NHS England vacancy statistics",
+      sourceUrl: "https://digital.nhs.uk/data-and-information/publications/statistical/nhs-vacancies-survey",
+      cadence: "Quarterly",
+      subcategory: "Workforce",
+      coverage: "England",
+    },
+    {
+      id: "nhs-cancer-62",
+      title: "Cancer: 62-day standard met",
+      sub: "Urgent referral to first treatment",
+      source: "NHS England cancer waiting times",
+      sourceUrl: "https://www.england.nhs.uk/statistics/statistical-work-areas/cancer-waiting-times/",
+      cadence: "Monthly",
+      subcategory: "Emergency & secondary care",
+      coverage: "England",
+    },
+    {
+      id: "nhs-ambulance-cat2",
+      title: "Category 2 ambulance mean response",
+      sub: "Emergency calls such as suspected stroke or heart attack",
+      source: "NHS England ambulance quality indicators",
+      sourceUrl: "https://www.england.nhs.uk/statistics/statistical-work-areas/ambulance-quality-indicators/",
+      cadence: "Monthly",
+      subcategory: "Emergency & secondary care",
+      coverage: "England",
+    },
+    {
+      id: "nhs-bed-occupancy",
+      title: "Adult acute bed occupancy",
+      sub: "General and acute overnight beds occupied",
+      source: "NHS England bed availability and occupancy",
+      sourceUrl: "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/",
+      cadence: "Quarterly",
+      subcategory: "Emergency & secondary care",
+      coverage: "England",
+    },
+  ];
+
+  const [probes, ae, cancer, waits] = await Promise.all([
+    Promise.all(england.map((d) => nhsEnglandProbe(d))),
+    nhsScotlandAE(),
+    nhsScotlandCancer62(),
+    nhsScotlandWaits(),
+  ]);
+  return [...probes, ae, cancer, ...waits];
+}
+
 async function collectStats(): Promise<StatsPayload> {
   const tasks: Promise<Metric | Metric[]>[] = [
     ...ONS_DEFS.map((d) => onsMetric(d)),
@@ -2114,6 +2475,7 @@ async function collectStats(): Promise<StatsPayload> {
     recordedCrime(),
     sexualOffences(),
     migrationFlows(),
+    nhsMetrics(),
     Promise.resolve(unpublishedSplits()),
 
 

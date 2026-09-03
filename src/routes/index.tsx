@@ -66,6 +66,11 @@ const PANELS: { category: Category; blurb: string }[] = [
     category: "Irregular immigration & cost",
     blurb: "Detected irregular arrivals and the published asylum support outturn behind the cost figures.",
   },
+  {
+    category: "NHS & doctors",
+    blurb:
+      "NHS workforce, waiting lists and emergency care. Scottish figures come from Public Health Scotland's open data; NHS England and the GMC block automated access, so those cards carry the official release instead of a number.",
+  },
   { category: "Housing", blurb: "HM Land Registry house price data as published." },
   { category: "Weather", blurb: "Observed conditions and environmental readings." },
   { category: "Defence & security", blurb: "Defence spending and security indicators from official releases." },
