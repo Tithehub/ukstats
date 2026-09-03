@@ -24,6 +24,7 @@ import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const PSlugRoute = PSlugRouteImport.update({
   path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
+  id: '/api/public/outreach-tick',
+  path: '/api/public/outreach-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/api/public/outreach-tick'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/api/public/outreach-tick'
   id:
     | '__root__'
     | '/'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/api/public/outreach-tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   EmbedMetricRoute: typeof EmbedMetricRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/outreach-tick': {
+      id: '/api/public/outreach-tick'
+      path: '/api/public/outreach-tick'
+      fullPath: '/api/public/outreach-tick'
+      preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmbedMetricRoute: EmbedMetricRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
