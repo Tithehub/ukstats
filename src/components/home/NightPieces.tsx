@@ -66,16 +66,16 @@ export function IndicatorCard({ metric }: { metric: Metric }) {
         <FreshnessPip metric={metric} />
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
         <p
-          className={`font-mono text-2xl font-semibold leading-none tracking-tight tabular-nums ${
+          className={`min-w-0 break-words font-mono text-2xl font-semibold leading-tight tracking-tight tabular-nums ${
             known ? "text-night-fg" : "text-night-muted"
           }`}
         >
           {known ? metric.value : (metric.emptyLabel ?? "Not published")}
         </p>
         {metric.change ? (
-          <span className="mb-0.5 shrink-0 font-mono text-[11px] text-electric-soft">{metric.change.label}</span>
+          <span className="mb-0.5 min-w-0 break-words font-mono text-[11px] text-electric-soft">{metric.change.label}</span>
         ) : null}
       </div>
 
@@ -113,7 +113,7 @@ export function IndicatorCard({ metric }: { metric: Metric }) {
               <Link
                 to="/history/$metricId"
                 params={{ metricId: metric.id }}
-                className="text-electric-soft hover:underline"
+                className="inline-block max-w-full break-words text-electric-soft hover:underline"
               >
                 Full published history{metric.historyFrom ? ` from ${metric.historyFrom}` : ""} →
               </Link>

@@ -163,7 +163,7 @@ function Dashboard() {
                 ) : null}
               </div>
             </div>
-            <div className="ml-auto text-right leading-tight">
+            <div className="w-full leading-tight sm:ml-auto sm:w-auto sm:text-right">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
                 Source · ONS PUSF (HF6W)
               </p>
