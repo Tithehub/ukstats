@@ -94,9 +94,16 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
     <article className="group relative overflow-hidden rounded-[14px] bg-card/60 p-4 ring-1 ring-ink/10 backdrop-blur-sm">
       <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent" />
       <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">{metric.category}</p>
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">
+            {(() => {
+              const Icon = categoryIcon(metric.category);
+              return <Icon className="size-3.5 shrink-0" aria-hidden="true" />;
+            })()}
+            {metric.category}
+          </p>
           <h3 className="mt-0.5 text-base font-semibold tracking-tight text-balance">{metric.title}</h3>
+
           {metric.derivedFrom ? (
             <span className="mt-1 inline-block rounded bg-ageing/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-ageing">
               Derived
