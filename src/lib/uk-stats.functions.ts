@@ -3913,3 +3913,332 @@ async function aidHistory(id: string): Promise<HistoryPayload | null> {
     return null;
   }
 }
+
+/* =========================== Politics & polling =========================== */
+
+const EC_SEARCH = "https://search.electoralcommission.org.uk/api/search/Registrations";
+const EC_PUBLIC = "https://search.electoralcommission.org.uk/English/Registrations";
+
+export interface RegisteredParty {
+  id: number;
+  name: string;
+  status: string;
+  register: string;
+  town: string | null;
+  approved: string | null;
+  url: string;
+}
+
+interface EcRecord {
+  RegulatedEntityId: number;
+  RegulatedEntityName: string;
+  RegistrationStatusName: string | null;
+  RegisterName: string | null;
+  Town: string | null;
+  ApprovedDate: string | null;
+}
+
+const ecDate = (v: string | null): string | null => {
+  const m = v ? /\/Date\((-?\d+)\)\//.exec(v) : null;
+  return m ? new Date(Number(m[1])).toISOString() : null;
+};
+
+const titleCase = (s: string) =>
+  s.replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+
+let partyCache: { at: number; data: Promise<RegisteredParty[]> } | null = null;
+
+/** Every party currently on the Electoral Commission's GB and NI registers. */
+async function registeredParties(): Promise<RegisteredParty[]> {
+  if (partyCache && Date.now() - partyCache.at < 6 * 3_600_000) return partyCache.data;
+  const run = (async () => {
+    const out: RegisteredParty[] = [];
+    for (const register of ["gb", "ni"] as const) {
+      const url =
+        `${EC_SEARCH}?start=0&rows=1500&query=&sort=RegulatedEntityName&order=asc` +
+        `&et=pp&register=${register}&regStatus=registered`;
+      const data = await retrying(() => getJson<{ Total: number; Result: EcRecord[] }>(url, 30_000), 3);
+      for (const r of data.Result ?? []) {
+        out.push({
+          id: r.RegulatedEntityId,
+          name: r.RegulatedEntityName,
+          status: r.RegistrationStatusName ?? "Registered",
+          register: r.RegisterName ?? (register === "gb" ? "Great Britain" : "Northern Ireland"),
+          town: r.Town ? titleCase(r.Town) : null,
+          approved: ecDate(r.ApprovedDate),
+          url: `${EC_PUBLIC}/PP${r.RegulatedEntityId}`,
+        });
+      }
+    }
+    return out.sort((a, b) => a.name.localeCompare(b.name));
+  })();
+  partyCache = { at: Date.now(), data: run };
+  run.catch(() => {
+    partyCache = null;
+  });
+  return run;
+}
+
+/** Live index of registered parties for the Politics page. */
+export const getPartyRegister = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ parties: RegisteredParty[]; fetchedAt: string; error: string | null }> => {
+    try {
+      const parties = await registeredParties();
+      return { parties, fetchedAt: new Date().toISOString(), error: null };
+    } catch (e) {
+      console.error("registeredParties failed", e);
+      return { parties: [], fetchedAt: new Date().toISOString(), error: "Register search unreachable." };
+    }
+  },
+);
+
+/* ------------------------------ Voting intention ----------------------------- */
+
+export interface PollRelease {
+  pollster: string;
+  url: string;
+  fieldworkEnd: string | null;
+  sampleSize: number | null;
+  shares: Record<string, number>;
+  error?: string | null;
+}
+
+export interface PollingPayload {
+  polls: PollRelease[];
+  average: { party: string; share: number; polls: number }[];
+  unavailable: { pollster: string; url: string; reason: string }[];
+  windowDays: number;
+  fetchedAt: string;
+  configured: boolean;
+}
+
+const POLLSTERS: { name: string; url: string }[] = [
+  { name: "YouGov", url: "https://yougov.co.uk/topics/politics/trackers/voting-intention" },
+  { name: "Ipsos", url: "https://www.ipsos.com/en-uk/ipsos-political-pulse" },
+  { name: "More in Common", url: "https://www.moreincommon.org.uk/polling/" },
+  { name: "Opinium", url: "https://opinium.com/political-polling/" },
+  { name: "Savanta", url: "https://savanta.com/knowledge-centre/polls/" },
+  { name: "Find Out Now", url: "https://findoutnow.co.uk/voting-intention/" },
+  { name: "BMG Research", url: "https://www.bmgresearch.co.uk/polls/" },
+];
+
+export const POLL_PARTIES = [
+  "Labour",
+  "Conservative",
+  "Reform UK",
+  "Liberal Democrats",
+  "Green Party",
+  "SNP",
+  "Plaid Cymru",
+] as const;
+
+const POLL_WINDOW_DAYS = 21;
+
+/** Scrape one pollster's own published release through Firecrawl's structured extraction. */
+async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease> {
+  const key = process.env["FIRECRAWL_API_KEY"];
+  const lovable = process.env["LOVABLE_API_KEY"];
+  const gateway = !!key && key.startsWith("lovc_");
+  const endpoint = gateway
+    ? "https://connector-gateway.lovable.dev/firecrawl/v2/scrape"
+    : "https://api.firecrawl.dev/v2/scrape";
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (gateway) {
+    headers["authorization"] = `Bearer ${lovable}`;
+    headers["X-Connection-Api-Key"] = key!;
+  } else {
+    headers["authorization"] = `Bearer ${key}`;
+  }
+  const blank: PollRelease = {
+    pollster: p.name,
+    url: p.url,
+    fieldworkEnd: null,
+    sampleSize: null,
+    shares: {},
+  };
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        url: p.url,
+        onlyMainContent: true,
+        formats: [
+          {
+            type: "json",
+            prompt:
+              "Read only the most recent published Westminster voting intention poll on this page. " +
+              "Return fieldwork_end as an ISO date (YYYY-MM-DD) exactly as published, sample_size as an " +
+              "integer if published, and shares as published percentages for Labour, Conservative, " +
+              "Reform UK, Liberal Democrats, Green Party, SNP and Plaid Cymru. Omit any party whose " +
+              "share is not published on the page. Never estimate or infer a number.",
+            schema: {
+              type: "object",
+              properties: {
+                fieldwork_end: { type: "string" },
+                sample_size: { type: "number" },
+                shares: {
+                  type: "object",
+                  properties: Object.fromEntries(POLL_PARTIES.map((n) => [n, { type: "number" }])),
+                },
+              },
+            },
+          },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`Firecrawl ${p.name} [${res.status}]: ${body.slice(0, 300)}`);
+      return { ...blank, error: `Extraction failed (${res.status}).` };
+    }
+    const raw = (await res.json()) as {
+      json?: Record<string, unknown>;
+      data?: { json?: Record<string, unknown> };
+    };
+    const j = (raw.json ?? raw.data?.json ?? {}) as {
+      fieldwork_end?: string;
+      sample_size?: number;
+      shares?: Record<string, number>;
+    };
+    const shares: Record<string, number> = {};
+    for (const party of POLL_PARTIES) {
+      const v = j.shares?.[party];
+      if (typeof v === "number" && Number.isFinite(v) && v > 0 && v <= 100) shares[party] = v;
+    }
+    const end = j.fieldwork_end && /^\d{4}-\d{2}-\d{2}$/.test(j.fieldwork_end) ? j.fieldwork_end : null;
+    if (!Object.keys(shares).length) {
+      return { ...blank, fieldworkEnd: end, error: "No voting intention figures published on this page." };
+    }
+    return {
+      pollster: p.name,
+      url: p.url,
+      fieldworkEnd: end,
+      sampleSize: typeof j.sample_size === "number" ? Math.round(j.sample_size) : null,
+      shares,
+    };
+  } catch (e) {
+    console.error(`Firecrawl ${p.name} failed`, e);
+    return { ...blank, error: "Pollster page unreachable." };
+  }
+}
+
+let pollCache: { at: number; data: Promise<PollingPayload> } | null = null;
+
+async function pollingAverage(): Promise<PollingPayload> {
+  const fetchedAt = new Date().toISOString();
+  if (!process.env["FIRECRAWL_API_KEY"]) {
+    return {
+      polls: [],
+      average: [],
+      unavailable: POLLSTERS.map((p) => ({
+        pollster: p.name,
+        url: p.url,
+        reason: "No machine-readable feed connected.",
+      })),
+      windowDays: POLL_WINDOW_DAYS,
+      fetchedAt,
+      configured: false,
+    };
+  }
+  const results = await Promise.all(POLLSTERS.map((p) => scrapePoll(p)));
+  const cutoff = Date.now() - POLL_WINDOW_DAYS * 86_400_000;
+  const polls = results.filter(
+    (r) =>
+      !r.error &&
+      Object.keys(r.shares).length > 0 &&
+      (!r.fieldworkEnd || new Date(r.fieldworkEnd).getTime() >= cutoff),
+  );
+  const unavailable = results
+    .filter((r) => !polls.includes(r))
+    .map((r) => ({
+      pollster: r.pollster,
+      url: r.url,
+      reason: r.error ?? `Latest published poll is older than ${POLL_WINDOW_DAYS} days.`,
+    }));
+  const average = POLL_PARTIES.map((party) => {
+    const vals = polls.map((p) => p.shares[party]).filter((v): v is number => typeof v === "number");
+    return {
+      party,
+      share: vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : Number.NaN,
+      polls: vals.length,
+    };
+  })
+    .filter((a) => a.polls > 0)
+    .sort((a, b) => b.share - a.share);
+  return { polls, average, unavailable, windowDays: POLL_WINDOW_DAYS, fetchedAt, configured: true };
+}
+
+async function cachedPolling(): Promise<PollingPayload> {
+  if (pollCache && Date.now() - pollCache.at < 3_600_000) return pollCache.data;
+  const run = pollingAverage();
+  pollCache = { at: Date.now(), data: run };
+  run.catch(() => {
+    pollCache = null;
+  });
+  return run;
+}
+
+export const getPolling = createServerFn({ method: "GET" }).handler(() => cachedPolling());
+
+/** Register cards: party count and the unweighted average of pollsters' own latest releases. */
+async function politicsMetrics(): Promise<Metric[]> {
+  const out: Metric[] = [];
+  const now = new Date().toISOString();
+  try {
+    const parties = await registeredParties();
+    const gb = parties.filter((p) => /great britain/i.test(p.register)).length;
+    const ni = parties.length - gb;
+    out.push({
+      id: "uk-registered-parties",
+      category: "Politics & polling",
+      title: "Registered political parties",
+      source: "The Electoral Commission, register of political parties",
+      sourceUrl: "https://search.electoralcommission.org.uk/?currentPage=1&et=pp&register=gb&regStatus=registered",
+      value: parties.length ? parties.length.toLocaleString("en-GB") : null,
+      sub: parties.length ? `${gb.toLocaleString("en-GB")} Great Britain · ${ni.toLocaleString("en-GB")} Northern Ireland` : null,
+      period: "Current register",
+      asOf: parties.length ? now : null,
+      nextDue: null,
+      cadence: "Register updated continuously by the Electoral Commission",
+      change: null,
+      spark: [],
+      status: parties.length ? "ok" : "unavailable",
+      note: parties.length ? null : "Register search unreachable.",
+      breakdown: null,
+    });
+  } catch (e) {
+    console.error("politics register metric failed", e);
+  }
+
+  const polling = await cachedPolling();
+  const lead = polling.average[0];
+  out.push({
+    id: "uk-voting-intention",
+    category: "Politics & polling",
+    title: "Westminster voting intention",
+    source: polling.polls.length
+      ? `Average of ${polling.polls.length} pollsters' own latest published releases`
+      : "Published polling releases",
+    sourceUrl: "https://www.ukstats.co.uk/polling",
+    value: lead ? `${lead.party} ${lead.share.toFixed(1)}%` : null,
+    sub: polling.polls.length
+      ? `Unweighted mean of releases published in the last ${polling.windowDays} days`
+      : null,
+    period: polling.polls.length ? `Last ${polling.windowDays} days` : null,
+    asOf: polling.polls.length ? polling.fetchedAt : null,
+    nextDue: null,
+    cadence: "Pollsters publish on their own schedules, typically weekly",
+    change: null,
+    spark: [],
+    status: polling.polls.length ? "ok" : "no-feed",
+    note: polling.polls.length
+      ? null
+      : "No pollster release could be read machine-readably; see the polling page for each publisher's own release.",
+    emptyLabel: polling.polls.length ? null : "No live feed",
+    breakdown: polling.average.length
+      ? polling.average.map((a) => ({ label: a.party, value: Number(a.share.toFixed(1)) }))
+      : null,
+  });
+  return out;
+}
