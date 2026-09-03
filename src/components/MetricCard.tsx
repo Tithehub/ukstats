@@ -205,11 +205,18 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand">Paste anywhere</p>
           <code className="mt-2 block break-all font-mono text-[10px] leading-relaxed text-ground/80">{snippet}</code>
           <button
-            onClick={() => void navigator.clipboard?.writeText(snippet)}
-            className="mt-2 rounded bg-ground/15 px-2 py-1 font-mono text-[10px] text-ground hover:bg-ground/25"
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(snippet);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1800);
+            }}
+            className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-md bg-ground/15 px-3 py-2 font-mono text-[11px] text-ground hover:bg-ground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
-            Copy code
+            {copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+            {copied ? "Code copied" : "Copy code"}
           </button>
+
         </div>
       ) : null}
 
