@@ -4051,24 +4051,33 @@ function firecrawlCall(pathname: string, body: unknown) {
 }
 
 /** The pollster's own most recent voting intention release, found on their own site. */
-async function latestReleaseUrl(p: { name: string; url: string; domain: string }): Promise<string> {
+async function latestReleaseUrl(p: { name: string; url: string; domain: string }): Promise<string | null> {
   try {
     const res = await firecrawlCall("/search", {
       query: `site:${p.domain} voting intention poll`,
       limit: 3,
       tbs: "qdr:m",
     });
-    if (!res.ok) return p.url;
-    const data = (await res.json()) as { data?: { web?: { url?: string }[] } };
-    return data.data?.web?.[0]?.url ?? p.url;
+    if (!res.ok) return null;
+    const data = (await res.json()) as { data?: { web?: { url?: string; title?: string }[] } };
+    const hits = data.data?.web ?? [];
+    // Only accept a UK Westminster voting intention release; a general article from the
+    // same pollster is not a published poll and must never be read as one.
+    const match = hits.find((h) => {
+      const text = `${h.url ?? ""} ${h.title ?? ""}`.toLowerCase();
+      if (/\/us\/|\bus:|united states/.test(text)) return false;
+      return /voting[- ]intention|westminster|political (poll|tracker)/.test(text);
+    });
+    return match?.url ?? null;
   } catch {
-    return p.url;
+    return null;
   }
 }
 
 /** Scrape one pollster's own published release through Firecrawl's structured extraction. */
 async function scrapePoll(p: { name: string; url: string; domain: string }): Promise<PollRelease> {
-  const target = await latestReleaseUrl(p);
+  const found = await latestReleaseUrl(p);
+  const target = found ?? p.url;
   const blank: PollRelease = {
     pollster: p.name,
     url: target,
@@ -4076,6 +4085,9 @@ async function scrapePoll(p: { name: string; url: string; domain: string }): Pro
     sampleSize: null,
     shares: {},
   };
+  if (!found) {
+    return { ...blank, error: "No voting intention release published in the last month." };
+  }
   try {
     const res = await firecrawlCall("/scrape", {
         url: target,
@@ -4088,10 +4100,14 @@ async function scrapePoll(p: { name: string; url: string; domain: string }): Pro
               "Return fieldwork_end as an ISO date (YYYY-MM-DD) exactly as published, sample_size as an " +
               "integer if published, and shares as published percentages for Labour, Conservative, " +
               "Reform UK, Liberal Democrats, Green Party, SNP and Plaid Cymru. Omit any party whose " +
-              "share is not published on the page. Never estimate or infer a number.",
+              "share is not published on the page. Never estimate or infer a number. Use only the " +
+              "headline table for all adults across Great Britain or the United Kingdom: ignore " +
+              "subgroups, regional splits, hypothetical scenarios and polls for other countries. " +
+              "Set is_uk_westminster_voting_intention to true only when the page publishes such a table.",
             schema: {
               type: "object",
               properties: {
+                is_uk_westminster_voting_intention: { type: "boolean" },
                 fieldwork_end: { type: "string" },
                 sample_size: { type: "number" },
                 shares: {
@@ -4113,10 +4129,14 @@ async function scrapePoll(p: { name: string; url: string; domain: string }): Pro
       data?: { json?: Record<string, unknown> };
     };
     const j = (raw.json ?? raw.data?.json ?? {}) as {
+      is_uk_westminster_voting_intention?: boolean;
       fieldwork_end?: string;
       sample_size?: number;
       shares?: Record<string, number>;
     };
+    if (j.is_uk_westminster_voting_intention === false) {
+      return { ...blank, error: "Page does not publish a UK Westminster voting intention table." };
+    }
     const shares: Record<string, number> = {};
     for (const party of POLL_PARTIES) {
       const v = j.shares?.[party];
