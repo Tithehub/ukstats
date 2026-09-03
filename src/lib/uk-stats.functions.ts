@@ -2476,6 +2476,7 @@ async function collectStats(): Promise<StatsPayload> {
     sexualOffences(),
     migrationFlows(),
     nhsMetrics(),
+    foreignAid(),
     Promise.resolve(unpublishedSplits()),
 
 
@@ -2941,6 +2942,7 @@ async function sexualOffences(): Promise<Metric[]> {
 export const getMetricHistory = createServerFn({ method: "GET" })
   .validator((data: { id: string }) => ({ id: String(data.id) }))
   .handler(async ({ data }): Promise<HistoryPayload | null> => {
+    if (data.id === "uk-foreign-aid" || data.id === "uk-foreign-aid-gni") return aidHistory(data.id);
     const def = ONS_DEFS.find((d) => d.id === data.id);
     if (!def) return null;
     const [series, nextDue] = await Promise.all([onsSeries(def.uri), onsNextRelease(def.releaseQuery)]);
@@ -3687,3 +3689,227 @@ export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
   },
 );
 
+
+/* ------------------------------- Foreign aid (ODA) ------------------------------- */
+
+/**
+ * UK Official Development Assistance as reported by the UK government to the
+ * OECD Development Assistance Committee (Table DAC1), in cash sterling.
+ * From 2018 the headline is published on the grant-equivalent basis; earlier
+ * years are net disbursements. Both are the publisher's own figures — nothing
+ * is spliced, deflated or estimated here.
+ */
+export interface AidPoint {
+  year: string;
+  gbpM: number | null;
+  pctGni: number | null;
+  basis: "Grant equivalent" | "Net disbursements";
+}
+
+const AID_QUERY =
+  "https://sdmx.oecd.org/public/rest/data/OECD.DCD.FSD,DSD_DAC1@DF_DAC1/GBR._Z.1010+11010+2+11002._Z.1140+1160..V?startPeriod=1960&format=csvfile";
+
+export const AID_SOURCES = [
+  {
+    label: "OECD DAC · Table DAC1, official development assistance by donor",
+    url: "https://data-explorer.oecd.org/vis?fs[0]=Topic%2C0%7CDevelopment%23DEV%23&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_DAC1%40DF_DAC1",
+  },
+  {
+    label: "FCDO · Statistics on International Development (UK's own annual release)",
+    url: "https://www.gov.uk/government/collections/statistics-on-international-development",
+  },
+  {
+    label: "FCDO · Provisional UK aid spend",
+    url: "https://www.gov.uk/government/statistics/statistics-on-international-development-provisional-uk-aid-spend-2024",
+  },
+];
+
+function parseCsv(text: string): Record<string, string>[] {
+  const lines = text.trim().split(/\r?\n/);
+  const head = (lines.shift() ?? "").split(",");
+  return lines.map((line) => {
+    const cells = line.split(",");
+    const row: Record<string, string> = {};
+    head.forEach((h, i) => (row[h] = cells[i] ?? ""));
+    return row;
+  });
+}
+
+let aidCache: { at: number; data: Promise<AidPoint[]> } | null = null;
+
+async function aidSeries(): Promise<AidPoint[]> {
+  if (aidCache && Date.now() - aidCache.at < 6 * 60 * 60_000) return aidCache.data;
+  const p = (async (): Promise<AidPoint[]> => {
+    const rows = parseCsv(await getText(AID_QUERY, 30_000));
+    const cash = new Map<string, { grant?: number; net?: number }>();
+    const gni = new Map<string, { grant?: number; net?: number }>();
+    for (const r of rows) {
+      const year = r["TIME_PERIOD"];
+      const v = Number(r["OBS_VALUE"]);
+      if (!year || !Number.isFinite(v)) continue;
+      const grant = r["FLOW_TYPE"] === "1160";
+      if (r["UNIT_MEASURE"] === "XDC") {
+        const e = cash.get(year) ?? {};
+        if (grant) e.grant = v;
+        else e.net = v;
+        cash.set(year, e);
+      } else if (r["UNIT_MEASURE"] === "PT_B5G") {
+        const e = gni.get(year) ?? {};
+        if (grant) e.grant = v;
+        else e.net = v;
+        gni.set(year, e);
+      }
+    }
+    const years = [...new Set([...cash.keys(), ...gni.keys()])].sort();
+    return years.map((year) => {
+      const c = cash.get(year) ?? {};
+      const g = gni.get(year) ?? {};
+      const useGrant = Number(year) >= 2018 && c.grant !== undefined;
+      return {
+        year,
+        gbpM: useGrant ? c.grant! : (c.net ?? null),
+        pctGni: (useGrant ? (g.grant ?? g.net) : g.net) ?? null,
+        basis: useGrant ? "Grant equivalent" : "Net disbursements",
+      };
+    });
+  })();
+  aidCache = { at: Date.now(), data: p };
+  p.catch(() => (aidCache = null));
+  return p;
+}
+
+export const getForeignAid = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ points: AidPoint[]; fetchedAt: string }> => {
+    try {
+      return { points: await aidSeries(), fetchedAt: new Date().toISOString() };
+    } catch {
+      return { points: [], fetchedAt: new Date().toISOString() };
+    }
+  },
+);
+
+const aidBn = (m: number) => `£${(m / 1000).toLocaleString("en-GB", { maximumFractionDigits: 2 })}bn`;
+
+async function foreignAid(): Promise<Metric[]> {
+  const base: Omit<Metric, "id" | "title"> = {
+    category: "Finance",
+    subcategory: "Foreign aid",
+    source: "OECD DAC Table DAC1 (UK government return) / FCDO",
+    sourceUrl: AID_SOURCES[0]!.url,
+    value: null,
+    sub: null,
+    period: null,
+    asOf: null,
+    nextDue: null,
+    cadence: "Annual; provisional in April, final in the autumn",
+    change: null,
+    spark: [],
+    status: "unavailable",
+    note: null,
+    hasHistory: true,
+  };
+  try {
+    const points = (await aidSeries()).filter((p) => p.gbpM !== null);
+    const last = points[points.length - 1];
+    const prev = points[points.length - 2];
+    if (!last) throw new Error("no observations");
+    const delta = prev?.gbpM != null ? last.gbpM! - prev.gbpM : null;
+    const spend: Metric = {
+      ...base,
+      id: "uk-foreign-aid",
+      title: "Total UK foreign aid spend",
+      value: aidBn(last.gbpM!),
+      sub: `Official development assistance, cash terms · ${last.basis.toLowerCase()} basis`,
+      period: last.year,
+      change:
+        delta === null
+          ? null
+          : {
+              label: `${delta > 0 ? "▲" : delta < 0 ? "▼" : "■"} ${aidBn(Math.abs(delta))} vs ${prev!.year}`,
+              dir: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
+            },
+      spark: points.slice(-14).map((p) => p.gbpM!),
+      historyFrom: points[0]?.year ?? null,
+      historyPoints: points.length,
+      status: "ok",
+      note: "Reported by the UK government to the OECD DAC. From 2018 the headline is the grant-equivalent measure; earlier years are net disbursements, exactly as published.",
+    };
+
+    const ratioPoints = (await aidSeries()).filter((p) => p.pctGni !== null);
+    const rLast = ratioPoints[ratioPoints.length - 1];
+    const rPrev = ratioPoints[ratioPoints.length - 2];
+    const rDelta = rLast && rPrev ? rLast.pctGni! - rPrev.pctGni! : null;
+    const ratio: Metric = {
+      ...base,
+      id: "uk-foreign-aid-gni",
+      title: "UK aid as a share of national income",
+      value: rLast ? `${rLast.pctGni!.toFixed(2)}%` : null,
+      sub: "ODA:GNI ratio, measured against the 0.7% commitment",
+      period: rLast?.year ?? null,
+      change:
+        rDelta === null
+          ? null
+          : {
+              label: `${rDelta > 0 ? "▲" : rDelta < 0 ? "▼" : "■"} ${Math.abs(rDelta).toFixed(2)} pts vs ${rPrev!.year}`,
+              dir: rDelta > 0 ? "up" : rDelta < 0 ? "down" : "flat",
+            },
+      spark: ratioPoints.slice(-14).map((p) => p.pctGni!),
+      historyFrom: ratioPoints[0]?.year ?? null,
+      historyPoints: ratioPoints.length,
+      status: rLast ? "ok" : "unavailable",
+      note: "The 0.7% of gross national income target was met from 2013 to 2020; the published ratio since then is shown as the publisher reports it.",
+    };
+    return [spend, ratio];
+  } catch (e) {
+    return [
+      {
+        ...base,
+        id: "uk-foreign-aid",
+        title: "Total UK foreign aid spend",
+        note: `No live feed. ${(e as Error).message}`,
+        hasHistory: false,
+      },
+      {
+        ...base,
+        id: "uk-foreign-aid-gni",
+        title: "UK aid as a share of national income",
+        note: `No live feed. ${(e as Error).message}`,
+        hasHistory: false,
+      },
+    ];
+  }
+}
+
+/** Full published aid series for the history page, verbatim from the DAC1 return. */
+async function aidHistory(id: string): Promise<HistoryPayload | null> {
+  try {
+    const series = await aidSeries();
+    const ratio = id === "uk-foreign-aid-gni";
+    const points = series
+      .filter((p) => (ratio ? p.pctGni !== null : p.gbpM !== null))
+      .map((p) => ({
+        label: p.year,
+        value: ratio ? p.pctGni! : p.gbpM!,
+        formatted: ratio ? `${p.pctGni!.toFixed(2)}%` : aidBn(p.gbpM!),
+        updated: null,
+      }));
+    if (!points.length) return null;
+    return {
+      id,
+      title: ratio ? "UK aid as a share of national income" : "Total UK foreign aid spend",
+      category: "Finance",
+      subcategory: "Foreign aid",
+      sub: ratio ? "ODA:GNI ratio" : "Official development assistance, cash terms",
+      source: "OECD DAC Table DAC1 (UK government return)",
+      sourceUrl: AID_SOURCES[0]!.url,
+      seriesTitle: ratio ? "UK ODA as a percentage of gross national income" : "UK official development assistance",
+      cadence: "Annual; provisional in April, final in the autumn",
+      unit: ratio ? "% of GNI" : "£m",
+      nextDue: null,
+      points,
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}

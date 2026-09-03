@@ -7,6 +7,7 @@ const NAV = [
   { to: "/register", label: "Data" },
   { to: "/maps", label: "Maps" },
   { to: "/tax-vs-welfare", label: "Tax vs welfare" },
+  { to: "/foreign-aid", label: "Foreign aid" },
   { to: "/widget", label: "Widgets" },
   { to: "/create", label: "Reports" },
   { to: "/my-pages", label: "My pages" },
