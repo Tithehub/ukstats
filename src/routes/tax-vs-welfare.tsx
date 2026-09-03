@@ -348,10 +348,10 @@ function TaxVsWelfarePage() {
                           </span>
                         ) : null}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{p.receipts !== null ? bn(p.receipts) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{taxOf(p) !== null ? bn(taxOf(p)!) : "—"}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{p.welfare !== null ? bn(p.welfare) : "—"}</td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {p.receipts && p.welfare ? `${((p.welfare / p.receipts) * 100).toFixed(1)}%` : "—"}
+                        {taxOf(p) && p.welfare ? `${((p.welfare / taxOf(p)!) * 100).toFixed(1)}%` : "—"}
                       </td>
                     </tr>
                   ))}
