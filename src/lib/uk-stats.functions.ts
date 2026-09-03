@@ -4035,6 +4035,37 @@ export const POLL_PARTIES = [
 
 const POLL_WINDOW_DAYS = 21;
 
+function firecrawlCall(pathname: string, body: unknown) {
+  const key = process.env["FIRECRAWL_API_KEY"];
+  const lovable = process.env["LOVABLE_API_KEY"];
+  const gateway = !!key && key.startsWith("lovc_");
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (gateway) {
+    headers["authorization"] = `Bearer ${lovable}`;
+    headers["X-Connection-Api-Key"] = key!;
+  } else {
+    headers["authorization"] = `Bearer ${key}`;
+  }
+  const base = gateway ? "https://connector-gateway.lovable.dev/firecrawl/v2" : "https://api.firecrawl.dev/v2";
+  return fetch(`${base}${pathname}`, { method: "POST", headers, body: JSON.stringify(body) });
+}
+
+/** The pollster's own most recent voting intention release, found on their own site. */
+async function latestReleaseUrl(p: { name: string; url: string; domain: string }): Promise<string> {
+  try {
+    const res = await firecrawlCall("/search", {
+      query: `site:${p.domain} voting intention poll`,
+      limit: 3,
+      tbs: "qdr:m",
+    });
+    if (!res.ok) return p.url;
+    const data = (await res.json()) as { data?: { web?: { url?: string }[] } };
+    return data.data?.web?.[0]?.url ?? p.url;
+  } catch {
+    return p.url;
+  }
+}
+
 /** Scrape one pollster's own published release through Firecrawl's structured extraction. */
 async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease> {
   const key = process.env["FIRECRAWL_API_KEY"];
