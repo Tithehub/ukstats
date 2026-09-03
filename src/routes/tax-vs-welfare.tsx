@@ -60,7 +60,7 @@ function TaxVsWelfarePage() {
     const padL = 64;
     const padB = 30;
     const padT = 14;
-    const values = usable.flatMap((p) => [p.receipts, p.welfare]).filter((v): v is number => v !== null);
+    const values = usable.flatMap((p) => [taxOf(p), p.welfare]).filter((v): v is number => v !== null);
     if (values.length < 2) return null;
     const max = Math.max(...values);
     const x = (i: number) => padL + (i * (w - padL - 8)) / Math.max(1, usable.length - 1);
