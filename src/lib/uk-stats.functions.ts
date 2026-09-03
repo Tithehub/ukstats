@@ -4013,14 +4013,14 @@ export interface PollingPayload {
   configured: boolean;
 }
 
-const POLLSTERS: { name: string; url: string }[] = [
-  { name: "YouGov", url: "https://yougov.co.uk/topics/politics/trackers/voting-intention" },
-  { name: "Ipsos", url: "https://www.ipsos.com/en-uk/ipsos-political-pulse" },
-  { name: "More in Common", url: "https://www.moreincommon.org.uk/polling/" },
-  { name: "Opinium", url: "https://opinium.com/political-polling/" },
-  { name: "Savanta", url: "https://savanta.com/knowledge-centre/polls/" },
-  { name: "Find Out Now", url: "https://findoutnow.co.uk/voting-intention/" },
-  { name: "BMG Research", url: "https://www.bmgresearch.co.uk/polls/" },
+const POLLSTERS: { name: string; url: string; domain: string }[] = [
+  { name: "YouGov", url: "https://yougov.co.uk/politics", domain: "yougov.co.uk" },
+  { name: "Ipsos", url: "https://www.ipsos.com/en-uk", domain: "ipsos.com" },
+  { name: "More in Common", url: "https://www.moreincommon.org.uk/research/", domain: "moreincommon.org.uk" },
+  { name: "Opinium", url: "https://opinium.com/political-polling/", domain: "opinium.com" },
+  { name: "Savanta", url: "https://savanta.com/knowledge-centre/", domain: "savanta.com" },
+  { name: "Find Out Now", url: "https://findoutnow.co.uk/", domain: "findoutnow.co.uk" },
+  { name: "BMG Research", url: "https://www.bmgresearch.co.uk/", domain: "bmgresearch.co.uk" },
 ];
 
 export const POLL_PARTIES = [
@@ -4067,33 +4067,18 @@ async function latestReleaseUrl(p: { name: string; url: string; domain: string }
 }
 
 /** Scrape one pollster's own published release through Firecrawl's structured extraction. */
-async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease> {
-  const key = process.env["FIRECRAWL_API_KEY"];
-  const lovable = process.env["LOVABLE_API_KEY"];
-  const gateway = !!key && key.startsWith("lovc_");
-  const endpoint = gateway
-    ? "https://connector-gateway.lovable.dev/firecrawl/v2/scrape"
-    : "https://api.firecrawl.dev/v2/scrape";
-  const headers: Record<string, string> = { "content-type": "application/json" };
-  if (gateway) {
-    headers["authorization"] = `Bearer ${lovable}`;
-    headers["X-Connection-Api-Key"] = key!;
-  } else {
-    headers["authorization"] = `Bearer ${key}`;
-  }
+async function scrapePoll(p: { name: string; url: string; domain: string }): Promise<PollRelease> {
+  const target = await latestReleaseUrl(p);
   const blank: PollRelease = {
     pollster: p.name,
-    url: p.url,
+    url: target,
     fieldworkEnd: null,
     sampleSize: null,
     shares: {},
   };
   try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        url: p.url,
+    const res = await firecrawlCall("/scrape", {
+        url: target,
         onlyMainContent: true,
         formats: [
           {
@@ -4117,8 +4102,7 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
             },
           },
         ],
-      }),
-    });
+      });
     if (!res.ok) {
       const body = await res.text();
       console.error(`Firecrawl ${p.name} [${res.status}]: ${body.slice(0, 300)}`);
@@ -4153,7 +4137,7 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
     }
     return {
       pollster: p.name,
-      url: p.url,
+      url: target,
       fieldworkEnd: end,
       sampleSize: typeof j.sample_size === "number" ? Math.round(j.sample_size) : null,
       shares,
