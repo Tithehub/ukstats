@@ -177,6 +177,27 @@ function TaxVsWelfarePage() {
                 })}
                 <path d={chart.receipts} fill="none" stroke="var(--color-electric)" strokeWidth={2} />
                 <path d={chart.welfare} fill="none" stroke="var(--color-overdue)" strokeWidth={2} />
+                {chart.receiptsPartial ? (
+                  <path
+                    d={chart.receiptsPartial}
+                    fill="none"
+                    stroke="var(--color-electric)"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    strokeOpacity={0.75}
+                  />
+                ) : null}
+                {chart.welfarePartial ? (
+                  <path
+                    d={chart.welfarePartial}
+                    fill="none"
+                    stroke="var(--color-overdue)"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    strokeOpacity={0.75}
+                  />
+                ) : null}
+
                 {usable.map((p, i) => (
                   <rect
                     key={p.year}
