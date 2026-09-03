@@ -1,6 +1,21 @@
-# Outreach agent: turn new official figures into shareable posts
+# Site clean-up, icons, and an outreach agent
 
-A note first: an agent that blasts a link "anywhere it can be posted" is spam. X, Reddit, LinkedIn and Facebook all ban it, and the fastest result is a domain-level block plus SEO damage — the opposite of visibility. So this builds the version that actually works: an agent that watches your live feeds, writes genuinely interesting posts about each new UK figure, and publishes them to accounts you own, with everything else queued for one-click manual posting.
+Two parts: first a pass over the whole site so every control works on every device and icons carry more of the meaning, then the outreach agent.
+
+A note on the agent: one that blasts a link "anywhere it can be posted" is spam. X, Reddit, LinkedIn and Facebook all ban it, and the fastest result is a domain-level block plus SEO damage — the opposite of visibility. So this builds the version that actually works: an agent that watches your live feeds, writes genuinely interesting posts about each new UK figure, and publishes them to accounts you own, with everything else queued for one-click manual posting.
+
+## 0. Site clean-up and icons
+
+A full pass across `/`, `/register`, `/maps`, `/tax-vs-welfare`, `/foreign-aid`, `/polling`, `/governments`, `/history/*`, `/create`, `/my-pages`, `/p/*`, `/widget`, `/embed/*` and `/support`:
+
+- **Every control audited on real devices** — 390px phone, tablet and desktop. Fix anything that is unreachable, clipped, overlapping, off-canvas, or too small to hit: map layer toggles, the tax/welfare and foreign-aid basis toggles, chart range buttons, category dropdowns, share rows, the party search, the widget builder, tier pickers and the donation buttons.
+- **Minimum 44px touch targets** on every button, toggle and link-button, with visible focus rings and correct `aria-label`/`aria-pressed` so the site is keyboard- and screen-reader-usable.
+- **Consistent button system** — one set of primary / secondary / ghost / toggle styles used everywhere, replacing the ad-hoc bordered spans currently repeated across pages. Loading and disabled states included so nothing looks dead while data loads.
+- **Icons to replace copy** — lucide icons throughout: freshness dots become clock / check / alert icons with text labels, share targets get their platform glyphs, categories get a distinct icon each (crime, money, housing, immigration, health, defence, weather, politics), and repeated word-buttons (Copy link, Download CSV, Official source, Expand chart, Print) become icon + short label. Every icon keeps an accessible label — icons add clarity, they never replace meaning on their own.
+- **Navigation simplified** — the header nav has outgrown a single row; it becomes a compact icon-led menu with a proper mobile drawer, grouped by theme.
+- **Density reduced** — long paragraphs on data pages trimmed to a line, with the detail moved into collapsible "About this figure" panels so the numbers lead.
+- Verified with browser passes at three widths, clicking every interactive element and checking for console errors and horizontal overflow.
+
 
 ## 1. Post engine (`/outreach`)
 
