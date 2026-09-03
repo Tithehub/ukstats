@@ -58,7 +58,68 @@ export const Route = createFileRoute("/api/public/outreach-tick")({
         if (snapshots.length) await supabaseAdmin.from("metric_snapshots").upsert(snapshots, { onConflict: "metric_id" });
         if (changes.length) await supabaseAdmin.from("metric_changes").insert(changes);
 
-        return Response.json({ tracked: snapshots.length, changed: changes.length });
+        // Write the day's statement. Re-running the sweep on the same day
+        // refreshes the row rather than adding a second one, and today's
+        // earlier changes are folded back in from the change log.
+        const today = londonDate();
+        const { data: todaysChanges } = await supabaseAdmin
+          .from("metric_changes")
+          .select("*")
+          .gte("detected_at", `${today}T00:00:00Z`)
+          .order("detected_at", { ascending: true });
+
+        const changedFigures: DailyFigure[] = [];
+        const seen = new Set<string>();
+        for (const c of (todaysChanges ?? []).slice().reverse()) {
+          if (!c.value || seen.has(c.metric_id)) continue;
+          seen.add(c.metric_id);
+          changedFigures.push({
+            metricId: c.metric_id,
+            title: c.title,
+            category: c.category,
+            value: c.value,
+            previousValue: c.previous_value,
+            period: c.period,
+            asOf: c.as_of,
+            source: c.source,
+            sourceUrl: c.source_url,
+            role: "changed",
+            hasHistory: byId.get(c.metric_id)?.hasHistory ?? false,
+          });
+        }
+        changedFigures.sort((a, b) => a.title.localeCompare(b.title));
+
+        const vitalFigures: DailyFigure[] = VITAL_IDS.map((id) => byId.get(id))
+          .filter((m): m is NonNullable<typeof m> => Boolean(m?.value))
+          .map((m) => ({
+            metricId: m.id,
+            title: m.title,
+            category: m.category,
+            value: m.value!,
+            previousValue: null,
+            period: m.period,
+            asOf: m.asOf,
+            source: m.source,
+            sourceUrl: m.sourceUrl,
+            role: "vital" as const,
+            hasHistory: m.hasHistory ?? false,
+          }));
+
+        const briefing = composeBriefing(today, [...changedFigures, ...vitalFigures]);
+        await supabaseAdmin.from("daily_briefings").upsert(
+          {
+            briefing_date: briefing.date,
+            headline: briefing.headline,
+            body: briefing.body,
+            figures: briefing.figures as unknown as never,
+            change_count: briefing.changeCount,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "briefing_date" },
+        );
+
+        return Response.json({ tracked: snapshots.length, changed: changes.length, briefing: briefing.date });
+
       },
     },
   },
