@@ -89,14 +89,14 @@ function MapsPage() {
           </p>
         ) : (
           <>
-            <div className="mt-6 flex flex-wrap items-center gap-2">
+            <div className="-mx-4 mt-6 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
               {layers.map((l) => (
                 <button
                   key={l.id}
                   type="button"
                   onClick={() => setLayerId(l.id)}
                   aria-pressed={l.id === layer?.id}
-                  className={`rounded-md border px-3 py-2 font-mono text-[12px] transition-colors ${
+                  className={`shrink-0 rounded-md border px-3 py-2 font-mono text-[12px] transition-colors ${
                     l.id === layer?.id
                       ? "border-electric bg-electric/10 text-night-fg"
                       : "border-night-line/70 text-night-muted hover:text-electric-soft"
@@ -116,7 +116,7 @@ function MapsPage() {
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value)}
                 placeholder="Postcode, e.g. SW1A 1AA"
-                className="w-56 rounded-md border border-night-line/70 bg-night-panel px-3 py-2 font-mono text-[13px] text-night-fg placeholder:text-night-muted focus-visible:outline-2 focus-visible:outline-electric"
+                className="w-full rounded-md border sm:w-56 border-night-line/70 bg-night-panel px-3 py-2 font-mono text-[13px] text-night-fg placeholder:text-night-muted focus-visible:outline-2 focus-visible:outline-electric"
               />
               <button
                 type="submit"
