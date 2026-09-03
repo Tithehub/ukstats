@@ -3879,3 +3879,37 @@ async function foreignAid(): Promise<Metric[]> {
     ];
   }
 }
+
+/** Full published aid series for the history page, verbatim from the DAC1 return. */
+async function aidHistory(id: string): Promise<HistoryPayload | null> {
+  try {
+    const series = await aidSeries();
+    const ratio = id === "uk-foreign-aid-gni";
+    const points = series
+      .filter((p) => (ratio ? p.pctGni !== null : p.gbpM !== null))
+      .map((p) => ({
+        label: p.year,
+        value: ratio ? p.pctGni! : p.gbpM!,
+        formatted: ratio ? `${p.pctGni!.toFixed(2)}%` : aidBn(p.gbpM!),
+        updated: null,
+      }));
+    if (!points.length) return null;
+    return {
+      id,
+      title: ratio ? "UK aid as a share of national income" : "Total UK foreign aid spend",
+      category: "Finance",
+      subcategory: "Foreign aid",
+      sub: ratio ? "ODA:GNI ratio" : "Official development assistance, cash terms",
+      source: "OECD DAC Table DAC1 (UK government return)",
+      sourceUrl: AID_SOURCES[0]!.url,
+      seriesTitle: ratio ? "UK ODA as a percentage of gross national income" : "UK official development assistance",
+      cadence: "Annual; provisional in April, final in the autumn",
+      unit: ratio ? "% of GNI" : "£m",
+      nextDue: null,
+      points,
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
