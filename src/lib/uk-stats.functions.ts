@@ -2477,6 +2477,7 @@ async function collectStats(): Promise<StatsPayload> {
     migrationFlows(),
     nhsMetrics(),
     foreignAid(),
+    politicsMetrics(),
     Promise.resolve(unpublishedSplits()),
 
 
@@ -4242,3 +4243,276 @@ async function politicsMetrics(): Promise<Metric[]> {
   });
   return out;
 }
+
+/* ------------------------ Statistics by government era ------------------------ */
+
+export interface EraRow {
+  metric: string;
+  source: string;
+  sourceUrl: string;
+  startLabel: string | null;
+  startValue: string | null;
+  endLabel: string | null;
+  endValue: string | null;
+  change: string | null;
+  note: string | null;
+}
+
+export interface GovernmentEra {
+  id: string;
+  name: string;
+  party: string;
+  pm: string;
+  from: string;
+  to: string | null;
+  rows: EraRow[];
+}
+
+export interface ErasPayload {
+  eras: GovernmentEra[];
+  fetchedAt: string;
+}
+
+interface EraDef {
+  id: string;
+  name: string;
+  party: string;
+  pm: string;
+  from: string;
+  to: string | null;
+  parent?: string;
+}
+
+/** Administrations and prime ministerial terms, dated from the House of Commons Library record. */
+export const ERA_DEFS: EraDef[] = [
+  { id: "con-1979", name: "Conservative government", party: "Conservative", pm: "Margaret Thatcher, John Major", from: "1979-05-04", to: "1997-05-02" },
+  { id: "pm-thatcher", name: "Thatcher ministry", party: "Conservative", pm: "Margaret Thatcher", from: "1979-05-04", to: "1990-11-28", parent: "con-1979" },
+  { id: "pm-major", name: "Major ministry", party: "Conservative", pm: "John Major", from: "1990-11-28", to: "1997-05-02", parent: "con-1979" },
+  { id: "lab-1997", name: "Labour government", party: "Labour", pm: "Tony Blair, Gordon Brown", from: "1997-05-02", to: "2010-05-11" },
+  { id: "pm-blair", name: "Blair ministry", party: "Labour", pm: "Tony Blair", from: "1997-05-02", to: "2007-06-27", parent: "lab-1997" },
+  { id: "pm-brown", name: "Brown ministry", party: "Labour", pm: "Gordon Brown", from: "2007-06-27", to: "2010-05-11", parent: "lab-1997" },
+  { id: "coalition-2010", name: "Conservative–Liberal Democrat coalition", party: "Coalition", pm: "David Cameron", from: "2010-05-11", to: "2015-05-08" },
+  { id: "con-2015", name: "Conservative government", party: "Conservative", pm: "Cameron, May, Johnson, Truss, Sunak", from: "2015-05-08", to: "2024-07-05" },
+  { id: "pm-cameron2", name: "Cameron ministry (majority)", party: "Conservative", pm: "David Cameron", from: "2015-05-08", to: "2016-07-13", parent: "con-2015" },
+  { id: "pm-may", name: "May ministry", party: "Conservative", pm: "Theresa May", from: "2016-07-13", to: "2019-07-24", parent: "con-2015" },
+  { id: "pm-johnson", name: "Johnson ministry", party: "Conservative", pm: "Boris Johnson", from: "2019-07-24", to: "2022-09-06", parent: "con-2015" },
+  { id: "pm-truss", name: "Truss ministry", party: "Conservative", pm: "Liz Truss", from: "2022-09-06", to: "2022-10-25", parent: "con-2015" },
+  { id: "pm-sunak", name: "Sunak ministry", party: "Conservative", pm: "Rishi Sunak", from: "2022-10-25", to: "2024-07-05", parent: "con-2015" },
+  { id: "lab-2024", name: "Labour government", party: "Labour", pm: "Keir Starmer", from: "2024-07-05", to: null },
+];
+
+const MONTHS3 = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+const monthKey = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()} ${MONTHS3[d.getUTCMonth()]}`;
+};
+const quarterKey = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth() / 3) + 1}`;
+};
+
+/** Nearest published observation on or before the boundary date, never interpolated. */
+function pointAt(series: OnsSeries, freq: "months" | "quarters" | "years", iso: string) {
+  const target = iso ? new Date(iso).getTime() : Date.now();
+  const pts = onsPoints(series, freq).filter((p) => new Date(p.date).getTime() <= target);
+  return pts[pts.length - 1] ?? null;
+}
+
+const CSEW_YEARS = /(\d{4})\s*$/;
+
+/** Latest CSEW headline crime column at or before a date, read from the publisher's own table. */
+async function csewSeries(): Promise<{ label: string; value: number; date: number }[]> {
+  try {
+    const landing = await retrying(() =>
+      getJson<{ datasets?: { uri: string }[] }>(`https://www.ons.gov.uk${CRIME_APPENDIX}/data`),
+    );
+    const versionUri = landing.datasets?.[0]?.uri;
+    if (!versionUri) return [];
+    const version = await retrying(() =>
+      getJson<{ downloads?: { file: string }[] }>(`https://www.ons.gov.uk${versionUri}/data`),
+    );
+    const file = version.downloads?.[0]?.file;
+    if (!file) return [];
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(
+      await retrying(() => getBytes(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`, 60_000)),
+    ) as unknown as Record<string, Uint8Array>;
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const names = sheetsByName(files, strFromU8);
+    const path = names.get("Table A1a");
+    if (!path || !files[path]) return [];
+    const rows = parseSheet(strFromU8(files[path]!), shared);
+    const header = rows.find((r) => /^offence group/i.test(norm(r.label)));
+    const total = rows.find((r) => /^ALL CSEW HEADLINE CRIME EXCLUDING FRAUD/i.test(norm(r.label)));
+    if (!header || !total) return [];
+    const out: { label: string; value: number; date: number }[] = [];
+    for (const [col, raw] of Object.entries(header.cells)) {
+      if (col === "A") continue;
+      const label = norm(raw);
+      const end = CSEW_YEARS.exec(label);
+      const v = num(total.cells[col]);
+      if (!end || v === null) continue;
+      const isMar = /mar/i.test(label);
+      out.push({
+        label,
+        value: v,
+        date: Date.UTC(Number(end[1]), isMar ? 2 : 11, 28),
+      });
+    }
+    return out.sort((a, b) => a.date - b.date);
+  } catch (e) {
+    console.error("csewSeries failed", e);
+    return [];
+  }
+}
+
+let erasCache: { at: number; data: Promise<ErasPayload> } | null = null;
+
+async function buildEras(): Promise<ErasPayload> {
+  const psf = (c: string) => `/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/${c}/pusf`;
+  const [cpi, gdp, debt, receipts, welfare, csew] = await Promise.all([
+    onsSeries(mm23("d7g7")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    onsSeries("/economy/grossdomesticproductgdp/timeseries/ihyq/pn2").catch(
+      () => ({ description: { title: "", date: "" } }) as OnsSeries,
+    ),
+    onsSeries(psf("hf6x")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    onsSeries(psf("anbt")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    onsSeries(psf("anly")).catch(() => ({ description: { title: "", date: "" } }) as OnsSeries),
+    csewSeries(),
+  ]);
+
+  const eras: GovernmentEra[] = ERA_DEFS.map((def) => {
+    const endIso = def.to ?? new Date().toISOString().slice(0, 10);
+    const rows: EraRow[] = [];
+
+    const seriesRow = (
+      metric: string,
+      series: OnsSeries,
+      freq: "months" | "quarters" | "years",
+      uri: string,
+      fmt: (v: number) => string,
+      changeFmt: (d: number) => string,
+      keyOf: (iso: string) => string,
+      note?: string,
+    ) => {
+      const a = pointAt(series, freq, def.from);
+      const b = pointAt(series, freq, endIso);
+      const av = a ? Number(a.value) : null;
+      const bv = b ? Number(b.value) : null;
+      const stale = (p: OnsPoint | null, iso: string) =>
+        p && p.label.trim() !== keyOf(iso) ? `published period ${p.label.trim()}` : null;
+      const notes = [note, stale(a, def.from), stale(b, endIso)].filter(Boolean).join(" · ");
+      rows.push({
+        metric,
+        source: "Office for National Statistics",
+        sourceUrl: `https://www.ons.gov.uk${uri}`,
+        startLabel: a?.label.trim() ?? null,
+        startValue: av === null ? null : fmt(av),
+        endLabel: b?.label.trim() ?? null,
+        endValue: bv === null ? null : fmt(bv),
+        change: av === null || bv === null ? null : changeFmt(bv - av),
+        note: notes || null,
+      });
+    };
+
+    seriesRow(
+      "CPI inflation (annual rate)",
+      cpi,
+      "months",
+      mm23("d7g7"),
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
+      monthKey,
+      "CPI is published from January 1989 onwards",
+    );
+    seriesRow(
+      "GDP growth (quarter on quarter)",
+      gdp,
+      "quarters",
+      "/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
+      quarterKey,
+    );
+    seriesRow(
+      "Public sector net debt (% of GDP)",
+      debt,
+      "months",
+      psf("hf6x"),
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d > 0 ? "+" : ""}${d.toFixed(1)} pp`,
+      monthKey,
+    );
+    seriesRow(
+      "Total public sector current receipts",
+      receipts,
+      "years",
+      psf("anbt"),
+      (v) => bn(v * 1_000_000),
+      (d) => `${d > 0 ? "+" : ""}${bn(Math.abs(d) * 1_000_000).replace("£", d < 0 ? "−£" : "£")}`,
+      (iso) => String(new Date(iso).getUTCFullYear()),
+      "Calendar year totals; the year containing the change of government is shown",
+    );
+    seriesRow(
+      "Net social benefits (welfare)",
+      welfare,
+      "years",
+      psf("anly"),
+      (v) => bn(v * 1_000_000),
+      (d) => `${d > 0 ? "+" : ""}${bn(Math.abs(d) * 1_000_000).replace("£", d < 0 ? "−£" : "£")}`,
+      (iso) => String(new Date(iso).getUTCFullYear()),
+      "Calendar year totals; the year containing the change of government is shown",
+    );
+
+    const at = (iso: string) => {
+      const t = new Date(iso).getTime();
+      const prior = csew.filter((p) => p.date <= t);
+      return prior[prior.length - 1] ?? null;
+    };
+    const ca = at(def.from);
+    const cb = at(endIso);
+    rows.push({
+      metric: "CSEW crime incidents (excluding fraud and computer misuse)",
+      source: "Crime Survey for England and Wales, Office for National Statistics",
+      sourceUrl: `https://www.ons.gov.uk${CRIME_APPENDIX}`,
+      startLabel: ca?.label ?? null,
+      startValue: ca ? `${(ca.value / 1000).toFixed(2)}m incidents` : null,
+      endLabel: cb?.label ?? null,
+      endValue: cb ? `${(cb.value / 1000).toFixed(2)}m incidents` : null,
+      change:
+        ca && cb && ca.label !== cb.label
+          ? `${cb.value - ca.value > 0 ? "+" : "−"}${(Math.abs(cb.value - ca.value) / 1000).toFixed(2)}m`
+          : null,
+      note: ca
+        ? "Survey years shown are the nearest published CSEW period on or before each date; the survey began in 1981 and was not run every year before 2001"
+        : "Not published on a comparable basis before the survey began in 1981",
+    });
+
+    return {
+      id: def.id,
+      name: def.name,
+      party: def.party,
+      pm: def.pm,
+      from: def.from,
+      to: def.to,
+      rows,
+    };
+  });
+
+  return { eras, fetchedAt: new Date().toISOString() };
+}
+
+/** Start and end values of the headline published series for each administration. */
+export const getGovernmentEras = createServerFn({ method: "GET" }).handler(async (): Promise<ErasPayload> => {
+  if (erasCache && Date.now() - erasCache.at < 3_600_000) return erasCache.data;
+  const run = buildEras();
+  erasCache = { at: Date.now(), data: run };
+  run.catch(() => {
+    erasCache = null;
+  });
+  return run;
+});
