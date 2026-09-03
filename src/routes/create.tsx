@@ -148,69 +148,35 @@ function CreatePage() {
           </div>
         </section>
 
-        <section className="mt-10">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-steel/60">How long should it stay live?</p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-            {TIERS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTier(t.id)}
-                className={`rounded-xl p-3 text-left ring-1 transition-colors ${
-                  tier === t.id ? "bg-steel text-ground ring-steel" : "bg-card/50 ring-ink/10 hover:bg-card"
-                }`}
-              >
-                <span className="font-mono text-lg font-semibold tracking-tight">{t.price}</span>
-                <span className="mt-0.5 block text-[13px] font-medium">{t.label}</span>
-                <span className={`mt-0.5 block font-mono text-[10px] ${tier === t.id ? "text-ground/60" : "text-steel/60"}`}>
-                  {t.blurb}
-                </span>
-              </button>
-            ))}
-          </div>
-          <p className="mt-3 font-mono text-[11px] text-steel/60">
-            Paid durations are settled in crypto — Ethereum, Bitcoin, Solana or Tron. The page opens as a 60-minute
-            preview and unlocks the full duration as soon as your payment confirms on chain.
+        <section className="mt-10 rounded-xl border border-night-line/60 bg-night-panel/40 p-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-electric">Free, for as long as you need</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-night-muted text-pretty">
+            There is no charge and no payment step. Your page stays live for a year and you can keep it live with one
+            tap from <span className="text-night-fg">My pages</span> — sign in and it follows you to any device. If the
+            site is useful, a voluntary crypto donation on the{" "}
+            <Link to="/support" className="text-electric-soft underline underline-offset-2">
+              support page
+            </Link>{" "}
+            keeps it running.
           </p>
         </section>
 
         {error ? <p className="mt-6 font-mono text-[12px] text-overdue">{error}</p> : null}
 
-        {checkout ? (
-          <div className="mt-6 border-t border-ink/10 pt-6">
-            <CryptoCheckout
-              slug={checkout.slug}
-              tier={checkout.tier}
-              ownerToken={checkout.ownerToken}
-              onConfirmed={() => undefined}
-            />
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Link
-                to="/p/$slug"
-                params={{ slug: checkout.slug }}
-                className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-ground hover:bg-steel"
-              >
-                Open my live page
-              </Link>
-              <Link to="/my-pages" className="text-sm text-steel hover:underline">
-                My pages
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
-            <button
-              onClick={() => void submit()}
-              disabled={busy}
-              className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-ground transition-colors hover:bg-steel disabled:opacity-50"
-            >
-              {busy ? "Creating…" : "Create my live page"}
-            </button>
-            <Link to="/" className="text-sm text-steel hover:underline">
-              Back to the register
-            </Link>
-          </div>
-        )}
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-night-line/60 pt-6">
+          <button onClick={() => void submit()} disabled={busy} className={btn("primary", "md")}>
+            {busy ? "Creating…" : "Create my live page"}
+          </button>
+          <Link to="/my-pages" className={btn("secondary", "md")}>
+            My pages
+          </Link>
+          <Link to="/" className="text-sm text-night-muted hover:underline">
+            Back to the register
+          </Link>
+        </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }
+
