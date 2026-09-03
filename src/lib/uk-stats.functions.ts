@@ -2476,6 +2476,7 @@ async function collectStats(): Promise<StatsPayload> {
     sexualOffences(),
     migrationFlows(),
     nhsMetrics(),
+    foreignAid(),
     Promise.resolve(unpublishedSplits()),
 
 
