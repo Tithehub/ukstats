@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 const BASE_URL = "https://ukstats.co.uk";
 
@@ -14,6 +16,7 @@ interface SitemapEntry {
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "hourly", priority: "1.0" },
   { path: "/register", changefreq: "hourly", priority: "0.9" },
+  { path: "/daily", changefreq: "daily", priority: "0.9" },
   { path: "/maps", changefreq: "daily", priority: "0.8" },
   { path: "/tax-vs-welfare", changefreq: "weekly", priority: "0.8" },
   { path: "/foreign-aid", changefreq: "weekly", priority: "0.8" },
@@ -27,8 +30,35 @@ const entries: SitemapEntry[] = [
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: () => {
-        const urls = entries.map((e) =>
+      GET: async () => {
+        // Every recorded daily statement is a permanent, indexable page.
+        const dayEntries: SitemapEntry[] = [];
+        try {
+          const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+          const supabase = createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+            auth: { persistSession: false },
+            global: {
+              fetch: (input, init) => {
+                const h = new Headers(init?.headers);
+                if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+                h.set("apikey", key);
+                return fetch(input, { ...init, headers: h });
+              },
+            },
+          });
+          const { data } = await supabase
+            .from("daily_briefings")
+            .select("briefing_date")
+            .order("briefing_date", { ascending: false })
+            .limit(1000);
+          for (const d of data ?? []) {
+            dayEntries.push({ path: `/daily/${d.briefing_date}`, changefreq: "never", priority: "0.5" });
+          }
+        } catch {
+          // A sitemap must still render if the archive is briefly unavailable.
+        }
+
+        const urls = [...entries, ...dayEntries].map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,

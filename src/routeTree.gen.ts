@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as DailyRouteImport } from './routes/daily'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
 import { Route as GovernmentsRouteImport } from './routes/governments'
@@ -26,6 +27,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
+import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
@@ -49,6 +51,11 @@ const ConnectionsRoute = ConnectionsRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DailyRoute = DailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
@@ -116,6 +123,11 @@ const WidgetRoute = WidgetRouteImport.update({
   path: '/widget',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailyDateRoute = DailyDateRouteImport.update({
+  id: '/$date',
+  path: '/$date',
+  getParentRoute: () => DailyRoute,
+} as any)
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
   id: '/embed/$metric',
   path: '/embed/$metric',
@@ -142,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
+  '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
   '/governments': typeof GovernmentsRoute
@@ -155,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
@@ -165,6 +179,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
+  '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
   '/governments': typeof GovernmentsRoute
@@ -178,6 +193,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
@@ -189,6 +205,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
+  '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
   '/governments': typeof GovernmentsRoute
@@ -202,6 +219,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
@@ -214,6 +232,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/connections'
     | '/create'
+    | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
     | '/governments'
@@ -227,6 +246,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/daily/$date'
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
@@ -237,6 +257,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/connections'
     | '/create'
+    | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
     | '/governments'
@@ -250,6 +271,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/daily/$date'
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
@@ -260,6 +282,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/connections'
     | '/create'
+    | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
     | '/governments'
@@ -273,6 +296,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/daily/$date'
     | '/embed/$metric'
     | '/history/$metricId'
     | '/p/$slug'
@@ -284,6 +308,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConnectionsRoute: typeof ConnectionsRoute
   CreateRoute: typeof CreateRoute
+  DailyRoute: typeof DailyRouteWithChildren
   FeedDotxmlRoute: typeof FeedDotxmlRoute
   ForeignAidRoute: typeof ForeignAidRoute
   GovernmentsRoute: typeof GovernmentsRoute
@@ -331,6 +356,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daily': {
+      id: '/daily'
+      path: '/daily'
+      fullPath: '/daily'
+      preLoaderRoute: typeof DailyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed.xml': {
@@ -424,6 +456,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WidgetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily/$date': {
+      id: '/daily/$date'
+      path: '/$date'
+      fullPath: '/daily/$date'
+      preLoaderRoute: typeof DailyDateRouteImport
+      parentRoute: typeof DailyRoute
+    }
     '/embed/$metric': {
       id: '/embed/$metric'
       path: '/embed/$metric'
@@ -455,11 +494,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DailyRouteChildren {
+  DailyDateRoute: typeof DailyDateRoute
+}
+
+const DailyRouteChildren: DailyRouteChildren = {
+  DailyDateRoute: DailyDateRoute,
+}
+
+const DailyRouteWithChildren = DailyRoute._addFileChildren(DailyRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   ConnectionsRoute: ConnectionsRoute,
   CreateRoute: CreateRoute,
+  DailyRoute: DailyRouteWithChildren,
   FeedDotxmlRoute: FeedDotxmlRoute,
   ForeignAidRoute: ForeignAidRoute,
   GovernmentsRoute: GovernmentsRoute,
