@@ -136,6 +136,7 @@ function Row({ metric }: { metric: Metric }) {
 function LivePage() {
   const { page, expired, metrics, fetchedAt } = Route.useLoaderData();
   const [url, setUrl] = useState("");
+  useEffect(() => setUrl(window.location.href), []);
 
   if (!page) {
     return (
@@ -158,11 +159,11 @@ function LivePage() {
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-overdue">Expired</p>
           <h1 className="mt-2 text-xl font-semibold tracking-tight text-balance">“{page.title}” is no longer live</h1>
           <p className="mt-2 text-sm text-steel">
-            This page ran until {fmtDate(page.expiresAt)}. Extend it from your live pages, or build a new one.
+            This page ran until {fmtDate(page.expiresAt)}. Keep it live again from your pages, or build a new one — both are free.
           </p>
           <div className="mt-5 flex justify-center gap-2">
             <Link to="/my-pages" className="rounded-md bg-ink px-4 py-2 text-sm text-ground">
-              Extend it
+              Keep it live
             </Link>
             <Link to="/create" className="rounded-md px-4 py-2 text-sm text-steel ring-1 ring-ink/10">
               Create a new page
