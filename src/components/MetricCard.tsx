@@ -1,6 +1,19 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  Check,
+  CircleHelp,
+  Clock,
+  Code2,
+  Copy,
+  ExternalLink,
+  FileSearch,
+  LineChart,
+  type LucideIcon,
+} from "lucide-react";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
+import { btn, categoryIcon } from "@/lib/ui";
 
 const freshText: Record<Freshness, string> = {
   fresh: "text-fresh",
@@ -20,6 +33,13 @@ const freshLabel: Record<Freshness, string> = {
   overdue: "Overdue",
   unknown: "No feed",
 };
+const freshIcon: Record<Freshness, LucideIcon> = {
+  fresh: Check,
+  ageing: Clock,
+  overdue: AlertTriangle,
+  unknown: CircleHelp,
+};
+
 
 function Spark({ values, tone }: { values: number[]; tone: Freshness }) {
   if (values.length < 2) return null;
