@@ -127,8 +127,16 @@ function TaxVsWelfarePage() {
         ) : (
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Stat label="Total receipts" value={active?.receipts !== null && active ? bn(active.receipts!) : "—"} note={active?.year ?? ""} />
-              <Stat label="Total welfare bill" value={active?.welfare !== null && active ? bn(active.welfare!) : "—"} note={active?.year ?? ""} />
+              <Stat
+                label="Total receipts"
+                value={active?.receipts !== null && active ? bn(active.receipts!) : "—"}
+                note={active ? yearLabel(active) : ""}
+              />
+              <Stat
+                label="Total welfare bill"
+                value={active?.welfare !== null && active ? bn(active.welfare!) : "—"}
+                note={active ? yearLabel(active) : ""}
+              />
               <Stat
                 label="Welfare as a share of receipts"
                 value={
@@ -139,6 +147,7 @@ function TaxVsWelfarePage() {
                 note="Arithmetic on the two published totals"
               />
             </div>
+
 
             <figure className="mt-6 rounded-lg border border-night-line/70 bg-night-panel p-4">
               <svg
