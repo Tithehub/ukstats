@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForeignAidRoute = ForeignAidRouteImport.update({
+  id: '/foreign-aid',
+  path: '/foreign-aid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsRoute = MapsRouteImport.update({
@@ -86,6 +92,7 @@ const PSlugRoute = PSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/foreign-aid': typeof ForeignAidRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/foreign-aid': typeof ForeignAidRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/foreign-aid': typeof ForeignAidRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/register': typeof RegisterRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/create'
+    | '/foreign-aid'
     | '/maps'
     | '/my-pages'
     | '/register'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/create'
+    | '/foreign-aid'
     | '/maps'
     | '/my-pages'
     | '/register'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/create'
+    | '/foreign-aid'
     | '/maps'
     | '/my-pages'
     | '/register'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  ForeignAidRoute: typeof ForeignAidRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
   RegisterRoute: typeof RegisterRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreign-aid': {
+      id: '/foreign-aid'
+      path: '/foreign-aid'
+      fullPath: '/foreign-aid'
+      preLoaderRoute: typeof ForeignAidRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps': {
@@ -278,6 +298,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  ForeignAidRoute: ForeignAidRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
   RegisterRoute: RegisterRoute,
