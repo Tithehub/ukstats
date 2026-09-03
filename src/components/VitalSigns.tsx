@@ -29,15 +29,15 @@ export function VitalSigns({ metrics }: { metrics: Metric[] }) {
           Pinned figures, each straight from its issuing body
         </p>
       </div>
-      <ul className="grid grid-cols-2 divide-night-line/50 md:grid-cols-4 xl:grid-cols-8">
+      <ul className="grid grid-cols-1 divide-night-line/50 min-[420px]:grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
         {fallback.map((m) => {
           const body = (
             <>
-              <p className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-night-muted">{m.title}</p>
-              <p className="mt-1 font-mono text-lg font-semibold tabular-nums text-night-fg">
+              <p className="font-mono text-[10px] uppercase leading-snug tracking-[0.14em] text-night-muted">{m.title}</p>
+              <p className="mt-1 break-words font-mono text-lg font-semibold tabular-nums text-night-fg">
                 {m.value ?? m.emptyLabel ?? "Not published"}
               </p>
-              <p className="mt-0.5 truncate font-mono text-[10px] text-night-muted">
+              <p className="mt-0.5 font-mono text-[10px] text-night-muted">
                 {ageLabel(m.asOf)} · {dueLabel(m.nextDue)}
               </p>
             </>

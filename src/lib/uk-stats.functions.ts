@@ -2086,7 +2086,11 @@ async function smallBoatDemographics(): Promise<Metric[]> {
 
 /** Cached payload: the feeds behind it publish daily at best, and ONS rate-limits bursts. */
 let payloadCache: { at: number; data: Promise<StatsPayload> } | null = null;
+/** Last fully collected payload, served instantly while a refresh runs. */
+let lastGood: StatsPayload | null = null;
 const PAYLOAD_TTL = 5 * 60_000;
+/** Soft deadline for one collection pass, so no page render waits on a slow publisher. */
+const COLLECT_DEADLINE = 9_000;
 
 async function collectStats(): Promise<StatsPayload> {
   const tasks: Promise<Metric | Metric[]>[] = [
@@ -2115,7 +2119,22 @@ async function collectStats(): Promise<StatsPayload> {
 
   ];
 
-  const settled = await Promise.allSettled(tasks);
+  // Never make a visitor wait on the slowest publisher: collect whatever has
+  // arrived within the deadline; the rest lands in the background refresh.
+  const done: PromiseSettledResult<Metric | Metric[]>[] = [];
+  await Promise.race([
+    Promise.all(
+      tasks.map(async (t, i) => {
+        try {
+          done[i] = { status: "fulfilled", value: await t };
+        } catch (reason) {
+          done[i] = { status: "rejected", reason };
+        }
+      }),
+    ),
+    wait(COLLECT_DEADLINE),
+  ]);
+  const settled = done.filter(Boolean);
   const metrics: Metric[] = [];
   for (const r of settled) {
     if (r.status === "fulfilled") {
@@ -2135,14 +2154,30 @@ async function collectStats(): Promise<StatsPayload> {
 }
 
 export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Promise<StatsPayload> => {
-  if (payloadCache && Date.now() - payloadCache.at < PAYLOAD_TTL) return payloadCache.data;
-  const data = collectStats();
-  payloadCache = { at: Date.now(), data };
-  data.catch(() => {
-    payloadCache = null;
-  });
-  return data;
+  const fresh = payloadCache && Date.now() - payloadCache.at < PAYLOAD_TTL;
+  if (payloadCache && fresh) return payloadCache.data;
+
+  const start = () => {
+    const data = collectStats();
+    payloadCache = { at: Date.now(), data };
+    data
+      .then((d) => {
+        // Keep the last good payload for instant stale-while-revalidate serving.
+        if (d.metrics.length) lastGood = d;
+      })
+      .catch(() => {
+        payloadCache = null;
+      });
+    return data;
+  };
+
+  // Stale cache or none: kick off a refresh, but serve the last good payload
+  // immediately rather than holding the page open on the publishers.
+  const pending = start();
+  if (lastGood) return lastGood;
+  return pending;
 });
+
 
 /* ------------------ ONS / Home Office recorded crime (E&W) ------------------ */
 
