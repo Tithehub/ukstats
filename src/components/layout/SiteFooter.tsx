@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bot, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
+import { Bot, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
 
 const COLUMNS = [
   {
@@ -8,6 +8,7 @@ const COLUMNS = [
       { to: "/register", label: "Full register", icon: Table2 },
       { to: "/maps", label: "Heat maps", icon: Building2 },
       { to: "/widget", label: "Widget builder", icon: LayoutGrid },
+      { to: "/daily", label: "Daily statement", icon: CalendarDays },
     ],
   },
   {

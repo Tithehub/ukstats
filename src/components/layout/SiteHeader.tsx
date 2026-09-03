@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Banknote,
   Bot,
+  CalendarDays,
   FileText,
   Home,
   LayoutGrid,
@@ -38,6 +39,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/", label: "Home", icon: Home },
       { to: "/register", label: "Full register", icon: Table2 },
       { to: "/maps", label: "Maps", icon: MapIcon },
+      { to: "/daily", label: "Daily statement", icon: CalendarDays },
     ],
   },
   {
@@ -65,7 +67,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
 /** The few links that stay on the desktop bar; everything else lives in the menu. */
 const PRIMARY: NavItem[] = [
   { to: "/register", label: "Data", icon: Table2 },
-  { to: "/maps", label: "Maps", icon: MapIcon },
+  { to: "/daily", label: "Daily", icon: CalendarDays },
   { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
   { to: "/polling", label: "Polling", icon: Vote },
 ];
