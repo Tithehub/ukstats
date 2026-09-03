@@ -169,8 +169,29 @@ function MapsPage() {
                     </a>
                     {layer.asOf ? ` · published ${fmtDate(layer.asOf)}` : ""}
                   </p>
+                  <p className="sm:col-span-2 text-night-fg">Coverage: {layer.coverage}</p>
                   <p className="sm:col-span-2">
-                    Areas without a published figure stay unshaded. Street-level pins come from the{" "}
+                    Areas with no published figure from this source stay unshaded and are labelled “Not published by
+                    this source”. Scotland records crime under the Scottish Crime Recording Standard and is published
+                    separately by the{" "}
+                    <a
+                      href="https://www.gov.scot/collections/recorded-crime-in-scotland/"
+                      className="text-electric-soft underline"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      Scottish Government
+                    </a>
+                    ; Northern Ireland is published by the{" "}
+                    <a
+                      href="https://www.psni.police.uk/about-us/our-publications-and-reports/official-statistics/police-recorded-crime-statistics"
+                      className="text-electric-soft underline"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      PSNI
+                    </a>
+                    . Street-level pins come from the{" "}
                     <a
                       href="https://data.police.uk/docs/method/crime-street/"
                       className="text-electric-soft underline"
@@ -178,10 +199,11 @@ function MapsPage() {
                       target="_blank"
                     >
                       Police.uk street-level crime API
-                    </a>{" "}
-                    and are approximated to anonymous map points by the Home Office.
+                    </a>
+                    , which covers England, Wales and Northern Ireland only — it carries no Police Scotland data.
                   </p>
                 </div>
+
 
                 <h2 className="mt-10 text-lg font-semibold">{layer.title} by area</h2>
                 <div className="mt-3 overflow-x-auto rounded-lg border border-night-line/70">
