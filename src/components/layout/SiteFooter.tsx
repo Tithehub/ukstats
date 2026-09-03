@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bot, Building2, FileText, LayoutGrid, LifeBuoy, PlusCircle, Rss, Table2 } from "lucide-react";
+import { Bot, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, PlusCircle, Rss, Table2 } from "lucide-react";
 
 const COLUMNS = [
   {
@@ -17,6 +17,7 @@ const COLUMNS = [
       { to: "/my-pages", label: "My pages", icon: FileText },
       { to: "/outreach", label: "Outreach queue", icon: Bot },
       { to: "/support", label: "Support UKStats", icon: LifeBuoy },
+      { to: "/auth", label: "Sign in", icon: LogIn },
     ],
   },
 ] as const;
