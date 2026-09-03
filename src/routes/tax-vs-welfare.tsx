@@ -91,25 +91,28 @@ function TaxVsWelfarePage() {
       x,
       y,
       partialIdx,
-      receipts: path((i) => usable[i]!.receipts, 0, solidEnd),
+      receipts: path((i) => taxOf(usable[i]!), 0, solidEnd),
       welfare: path((i) => usable[i]!.welfare, 0, solidEnd),
-      receiptsPartial: partialIdx > 0 ? path((i) => usable[i]!.receipts, solidEnd, partialIdx) : "",
+      receiptsPartial: partialIdx > 0 ? path((i) => taxOf(usable[i]!), solidEnd, partialIdx) : "",
       welfarePartial: partialIdx > 0 ? path((i) => usable[i]!.welfare, solidEnd, partialIdx) : "",
     };
-  }, [usable]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usable, mode]);
 
   function csv() {
+    const header =
+      mode === "receipts" ? "Total current receipts (£m)" : "Income tax: PAYE + self assessed + other (£m)";
     const rows = [
-      "Year,Total current receipts (£m),Net social benefits (£m),Coverage",
+      `Year,${header},Net social benefits (£m),Coverage`,
       ...usable.map(
         (p) =>
-          `${p.year},${p.receipts ?? ""},${p.welfare ?? ""},${p.partial ? `${p.monthsCovered} part year` : "Full year"}`,
+          `${p.year},${taxOf(p) ?? ""},${p.welfare ?? ""},${p.partial ? `${p.monthsCovered} part year` : "Full year"}`,
       ),
     ].join("\n");
     const url = URL.createObjectURL(new Blob([rows], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "uk-tax-vs-welfare.csv";
+    a.download = mode === "receipts" ? "uk-tax-vs-welfare.csv" : "uk-income-tax-vs-welfare.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
