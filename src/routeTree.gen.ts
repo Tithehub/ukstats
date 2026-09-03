@@ -14,6 +14,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as PollingRouteImport } from './routes/polling'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
@@ -46,6 +47,11 @@ const MapsRoute = MapsRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PollingRoute = PollingRouteImport.update({
+  id: '/polling',
+  path: '/polling',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/foreign-aid': typeof ForeignAidRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/foreign-aid': typeof ForeignAidRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/foreign-aid': typeof ForeignAidRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/foreign-aid'
     | '/maps'
     | '/my-pages'
+    | '/polling'
     | '/register'
     | '/sitemap.xml'
     | '/support'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/foreign-aid'
     | '/maps'
     | '/my-pages'
+    | '/polling'
     | '/register'
     | '/sitemap.xml'
     | '/support'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/foreign-aid'
     | '/maps'
     | '/my-pages'
+    | '/polling'
     | '/register'
     | '/sitemap.xml'
     | '/support'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ForeignAidRoute: typeof ForeignAidRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
+  PollingRoute: typeof PollingRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/polling': {
+      id: '/polling'
+      path: '/polling'
+      fullPath: '/polling'
+      preLoaderRoute: typeof PollingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForeignAidRoute: ForeignAidRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
+  PollingRoute: PollingRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
