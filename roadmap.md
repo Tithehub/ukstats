@@ -43,3 +43,4 @@
 - [x] profiles + user_roles + has_role(); anonymous pages claimed onto the account on sign-in
 - [x] Donations stay voluntary on /support (ETH, BTC, Solana, Tron)
 - [ ] Announcement to the xpre.ai audience: send from a compliant marketing tool, not this app
+- [x] Anyone can use the outreach bot: /connections attaches their own Bluesky, Mastodon, Telegram, Discord or Slack account and the queue posts in one tap (credentials stay server-side)

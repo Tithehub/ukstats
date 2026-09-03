@@ -2,13 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Check, Copy, ExternalLink, Rss, Send, ShieldAlert } from "lucide-react";
+import { Bot, Check, Copy, ExternalLink, Link2, Rss, Send, ShieldAlert, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { getOutreachQueue } from "@/lib/outreach.functions";
 import { PLATFORMS, type Draft, type PlatformKey } from "@/lib/outreach";
 import { btn, btnToggle, categoryIcon } from "@/lib/ui";
+import { Link } from "@tanstack/react-router";
+import { listSocialAccounts, postToSocialAccounts, type SocialAccount } from "@/lib/social.functions";
+import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/outreach")({
   head: () => ({
@@ -34,9 +37,13 @@ export const Route = createFileRoute("/outreach")({
   component: OutreachPage,
 });
 
-function DraftCard({ draft }: { draft: Draft }) {
+function DraftCard({ draft, accounts, signedIn }: { draft: Draft; accounts: SocialAccount[]; signedIn: boolean }) {
   const [platform, setPlatform] = useState<PlatformKey>("x");
   const [copied, setCopied] = useState(false);
+  const post = useServerFn(postToSocialAccounts);
+  const [targets, setTargets] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState<{ label: string; ok: boolean; url: string | null; error: string | null }[] | null>(null);
   const p = PLATFORMS.find((x) => x.key === platform)!;
   const body = draft.bodies[platform];
   const over = p.limit ? body.length - p.limit : 0;
@@ -108,6 +115,82 @@ function DraftCard({ draft }: { draft: Draft }) {
           Open {p.label} composer
         </a>
       </div>
+
+      <div className="mt-4 border-t border-night-line/50 pt-3">
+        {!signedIn ? (
+          <p className="text-[12px] text-night-muted">
+            <Link to="/auth" className="text-electric-soft underline underline-offset-2">
+              Sign in
+            </Link>{" "}
+            and{" "}
+            <Link to="/connections" className="text-electric-soft underline underline-offset-2">
+              attach your socials
+            </Link>{" "}
+            to post this straight from here.
+          </p>
+        ) : accounts.length === 0 ? (
+          <Link to="/connections" className={btn("secondary", "sm")}>
+            <Link2 className="size-4" aria-hidden="true" />
+            Attach an account to post directly
+          </Link>
+        ) : (
+          <>
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-night-muted">Post directly to</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {accounts.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() =>
+                    setTargets((t) => (t.includes(a.id) ? t.filter((x) => x !== a.id) : [...t, a.id]))
+                  }
+                  aria-pressed={targets.includes(a.id)}
+                  className={btnToggle(targets.includes(a.id), "sm")}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={sending || targets.length === 0}
+              onClick={async () => {
+                setSending(true);
+                setSent(null);
+                try {
+                  const res = await post({ data: { accountIds: targets, text: body, link: draft.url } });
+                  setSent(res.results.map((r) => ({ label: r.label, ok: r.ok, url: r.url, error: r.error })));
+                } catch (e) {
+                  setSent([{ label: "Posting", ok: false, url: null, error: e instanceof Error ? e.message : "Failed." }]);
+                } finally {
+                  setSending(false);
+                }
+              }}
+              className={btn("primary", "sm", "mt-2.5")}
+            >
+              <Zap className="size-4" aria-hidden="true" />
+              {sending ? "Posting…" : `Post now${targets.length ? ` (${targets.length})` : ""}`}
+            </button>
+            {sent ? (
+              <ul className="mt-2 space-y-1">
+                {sent.map((r, i) => (
+                  <li key={i} className={`font-mono text-[11px] ${r.ok ? "text-fresh" : "text-overdue"}`}>
+                    {r.label}: {r.ok ? "posted" : r.error}
+                    {r.url ? (
+                      <>
+                        {" · "}
+                        <a href={r.url} target="_blank" rel="noreferrer" className="underline">
+                          view
+                        </a>
+                      </>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        )}
+      </div>
     </article>
   );
 }
@@ -120,6 +203,13 @@ function OutreachPage() {
     staleTime: 5 * 60 * 1000,
   });
   const [kind, setKind] = useState<"all" | "release" | "digest">("all");
+  const { signedIn } = useAuth();
+  const loadAccounts = useServerFn(listSocialAccounts);
+  const { data: accounts } = useQuery({
+    queryKey: ["social-accounts"],
+    queryFn: () => loadAccounts(),
+    enabled: signedIn,
+  });
 
   const drafts = useMemo(
     () => (data?.drafts ?? []).filter((d) => kind === "all" || d.kind === kind),
@@ -137,7 +227,11 @@ function OutreachPage() {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Share newly published figures</h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-night-muted text-pretty">
           Every draft below is built from a figure an official body actually published, with its reference period and a
-          link back to the issuing release. Pick a platform, copy the post or open the composer prefilled.
+          link back to the issuing release. Pick a platform, copy the post, open the composer prefilled — or{" "}
+          <Link to="/connections" className="text-electric-soft underline underline-offset-2">
+            attach your own socials
+          </Link>{" "}
+          and post in one tap.
         </p>
 
         <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-ageing/40 bg-ageing/5 px-3 py-2.5 text-[13px] leading-relaxed text-night-muted">
@@ -174,7 +268,7 @@ function OutreachPage() {
             ) : null}
             <div className="mt-6 grid gap-4">
               {drafts.map((d) => (
-                <DraftCard key={d.id} draft={d} />
+                <DraftCard key={d.id} draft={d} accounts={accounts ?? []} signedIn={signedIn} />
               ))}
             </div>
 
