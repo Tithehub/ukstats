@@ -155,30 +155,38 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center gap-2 border-t border-ink/10 pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-3">
         <button
+          type="button"
           onClick={() => setPanel(panel === "embed" ? "none" : "embed")}
-          className="inline-flex items-center rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel"
+          aria-expanded={panel === "embed"}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md bg-ink px-3 py-2 text-[12px] font-medium text-ground transition-colors hover:bg-steel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
+          <Code2 className="size-4" aria-hidden="true" />
           Embed
         </button>
         <button
+          type="button"
           onClick={() => setPanel(panel === "provenance" ? "none" : "provenance")}
-          className="inline-flex items-center rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5"
+          aria-expanded={panel === "provenance"}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
+          <FileSearch className="size-4" aria-hidden="true" />
           Provenance
         </button>
         {metric.hasHistory ? (
           <Link
             to="/history/$metricId"
             params={{ metricId: metric.id }}
-            className="inline-flex items-center rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
-            Full history →
+            <LineChart className="size-4" aria-hidden="true" />
+            Full history
           </Link>
         ) : null}
         <code className="ml-auto hidden font-mono text-[10px] text-steel/50 lg:block">{metric.id}</code>
       </div>
+
 
       {panel === "embed" ? (
         <div className="mt-3 rounded-md bg-ink p-3">
