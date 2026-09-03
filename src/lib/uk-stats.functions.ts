@@ -2276,7 +2276,7 @@ async function nhsScotlandCancer62(): Promise<Metric> {
 }
 
 async function nhsScotlandWaits(): Promise<Metric[]> {
-  const mk = (id: string, title: string, patientType: string, sub: string) =>
+  const mk = (id: string, title: string, sub: string) =>
     NHS_BASE({
       id,
       title,
