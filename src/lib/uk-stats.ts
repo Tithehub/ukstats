@@ -12,6 +12,7 @@ export type Category =
   | "Weather"
   | "Defence & security"
   | "National alerts"
+  | "NHS & doctors"
   | "Irregular immigration & cost";
 
 /** Colour vocabulary used by the issuing bodies' own published scales. */
