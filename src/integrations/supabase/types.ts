@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_briefings: {
+        Row: {
+          body: string
+          briefing_date: string
+          change_count: number
+          created_at: string
+          figures: Json
+          headline: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          briefing_date: string
+          change_count?: number
+          created_at?: string
+          figures?: Json
+          headline: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          briefing_date?: string
+          change_count?: number
+          created_at?: string
+          figures?: Json
+          headline?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metric_changes: {
         Row: {
           as_of: string | null
