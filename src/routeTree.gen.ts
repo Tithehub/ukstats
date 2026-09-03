@@ -20,6 +20,7 @@ import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
@@ -84,6 +85,11 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/polling'
     | '/register'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/support'
     | '/tax-vs-welfare'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/polling'
     | '/register'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/support'
     | '/tax-vs-welfare'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/polling'
     | '/register'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/support'
     | '/tax-vs-welfare'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   OutreachRoute: typeof OutreachRoute
   PollingRoute: typeof PollingRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -427,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   OutreachRoute: OutreachRoute,
   PollingRoute: PollingRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TaxVsWelfareRoute: TaxVsWelfareRoute,

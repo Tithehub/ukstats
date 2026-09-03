@@ -6,8 +6,8 @@ import { getUkStats } from "@/lib/uk-stats.functions";
 import { createSharedPage } from "@/lib/shared-pages.functions";
 import { getOwnerToken } from "@/lib/owner-token";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { CryptoCheckout } from "@/components/payments/CryptoCheckout";
-import { TIERS } from "@/lib/tiers";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+
 import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
 
 const statsQuery = queryOptions<StatsPayload>({
