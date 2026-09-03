@@ -4367,10 +4367,27 @@ const quarterKey = (iso: string) => {
   return `${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth() / 3) + 1}`;
 };
 
+/** ONS publishes dates as "1979", "1997 MAY" or "1955 Q2"; parse to the period start. */
+function onsDateMs(date: string): number {
+  const raw = (date ?? "").trim().toUpperCase();
+  const year = Number(raw.slice(0, 4));
+  if (!Number.isFinite(year)) return NaN;
+  const rest = raw.slice(4).trim();
+  if (!rest) return Date.UTC(year, 0, 1);
+  const q = /^Q([1-4])$/.exec(rest);
+  if (q) return Date.UTC(year, (Number(q[1]) - 1) * 3, 1);
+  const m = MONTHS3.indexOf(rest.slice(0, 3));
+  if (m >= 0) return Date.UTC(year, m, 1);
+  return Date.UTC(year, 0, 1);
+}
+
 /** Nearest published observation on or before the boundary date, never interpolated. */
 function pointAt(series: OnsSeries, freq: "months" | "quarters" | "years", iso: string) {
   const target = iso ? new Date(iso).getTime() : Date.now();
-  const pts = onsPoints(series, freq).filter((p) => new Date(p.date).getTime() <= target);
+  const pts = onsPoints(series, freq).filter((p) => {
+    const t = onsDateMs(p.date);
+    return Number.isFinite(t) && t <= target;
+  });
   return pts[pts.length - 1] ?? null;
 }
 
