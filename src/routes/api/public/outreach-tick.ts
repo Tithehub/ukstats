@@ -19,6 +19,8 @@ export const Route = createFileRoute("/api/public/outreach-tick")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const stats = await getUkStats();
         const live = stats.metrics.filter((m) => m.status === "ok" && m.value);
+        const byId = new Map(stats.metrics.map((m) => [m.id, m]));
+
 
         const { data: prior } = await supabaseAdmin.from("metric_snapshots").select("metric_id, value, period");
         const before = new Map((prior ?? []).map((r) => [r.metric_id, r]));
