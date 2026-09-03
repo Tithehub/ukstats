@@ -4108,6 +4108,15 @@ async function scrapePoll(p: { name: string; url: string }): Promise<PollRelease
       if (typeof v === "number" && Number.isFinite(v) && v > 0 && v <= 100) shares[party] = v;
     }
     const end = j.fieldwork_end && /^\d{4}-\d{2}-\d{2}$/.test(j.fieldwork_end) ? j.fieldwork_end : null;
+    // A published national voting intention table sums to roughly 100 once "others" are
+    // counted; anything far outside that is a misread page, not a poll.
+    const total = Object.values(shares).reduce((a, b) => a + b, 0);
+    if (total < 80 || total > 110) {
+      return { ...blank, fieldworkEnd: end, error: "Published figures could not be read reliably from this page." };
+    }
+    if (!end) {
+      return { ...blank, error: "No fieldwork date published alongside the figures." };
+    }
     if (!Object.keys(shares).length) {
       return { ...blank, fieldworkEnd: end, error: "No voting intention figures published on this page." };
     }
@@ -4142,13 +4151,24 @@ async function pollingAverage(): Promise<PollingPayload> {
       configured: false,
     };
   }
-  const results = await Promise.all(POLLSTERS.map((p) => scrapePoll(p)));
+  // Sequential: the extraction API limits concurrency, and a 429 loses the release entirely.
+  const results: PollRelease[] = [];
+  for (const p of POLLSTERS) {
+    let r = await scrapePoll(p);
+    if (r.error && /\(429\)/.test(r.error)) {
+      await wait(6_000);
+      r = await scrapePoll(p);
+    }
+    results.push(r);
+    await wait(1_200);
+  }
   const cutoff = Date.now() - POLL_WINDOW_DAYS * 86_400_000;
   const polls = results.filter(
     (r) =>
       !r.error &&
       Object.keys(r.shares).length > 0 &&
-      (!r.fieldworkEnd || new Date(r.fieldworkEnd).getTime() >= cutoff),
+      !!r.fieldworkEnd &&
+      new Date(r.fieldworkEnd).getTime() >= cutoff,
   );
   const unavailable = results
     .filter((r) => !polls.includes(r))
