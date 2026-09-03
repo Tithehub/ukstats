@@ -2086,7 +2086,11 @@ async function smallBoatDemographics(): Promise<Metric[]> {
 
 /** Cached payload: the feeds behind it publish daily at best, and ONS rate-limits bursts. */
 let payloadCache: { at: number; data: Promise<StatsPayload> } | null = null;
+/** Last fully collected payload, served instantly while a refresh runs. */
+let lastGood: StatsPayload | null = null;
 const PAYLOAD_TTL = 5 * 60_000;
+/** Soft deadline for one collection pass, so no page render waits on a slow publisher. */
+const COLLECT_DEADLINE = 9_000;
 
 async function collectStats(): Promise<StatsPayload> {
   const tasks: Promise<Metric | Metric[]>[] = [
