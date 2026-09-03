@@ -3181,7 +3181,44 @@ export interface TaxWelfarePoint {
   year: string;
   receipts: number | null;
   welfare: number | null;
+  partial?: boolean;
+  monthsCovered?: string;
 }
+
+const MONTH_ORDER = [
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MAY",
+  "JUN",
+  "JUL",
+  "AUG",
+  "SEP",
+  "OCT",
+  "NOV",
+  "DEC",
+];
+
+/** Sum the publisher's own monthly cash figures for years with no published annual total. */
+function partYearTotals(series: OnsSeries) {
+  const byYear = new Map<string, { total: number; months: string[] }>();
+  for (const p of series.months ?? []) {
+    if (p.value === "") continue;
+    const [year, month] = String(p.label).trim().toUpperCase().split(/\s+/);
+    if (!year || !month) continue;
+    const row = byYear.get(year) ?? { total: 0, months: [] };
+    row.total += Number(p.value);
+    if (!row.months.includes(month)) row.months.push(month);
+    byYear.set(year, row);
+  }
+  for (const row of byYear.values()) {
+    row.months.sort((a, b) => MONTH_ORDER.indexOf(a) - MONTH_ORDER.indexOf(b));
+  }
+  return byYear;
+}
+
+const titleMonth = (m: string) => m.charAt(0) + m.slice(1).toLowerCase();
 
 /** Published annual public sector receipts against the published welfare bill. */
 export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
@@ -3189,6 +3226,7 @@ export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
     points: TaxWelfarePoint[];
     asOf: string | null;
     nextDue: string | null;
+    lastCompleteYear: string | null;
   }> => {
     const receiptsUri = "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anbt/pusf";
     const welfareUri = "/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/anly/pusf";
@@ -3208,9 +3246,34 @@ export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
       row.welfare = Number(p.value);
       map.set(p.label, row);
     }
+    const lastCompleteYear = [...map.keys()].sort().slice(-1)[0] ?? null;
+
+    // Years the ONS has not yet totalled annually: build a part-year row from published months.
+    const rMonths = partYearTotals(receipts);
+    const wMonths = partYearTotals(welfare);
+    for (const year of new Set([...rMonths.keys(), ...wMonths.keys()])) {
+      if (map.has(year)) continue;
+      const r = rMonths.get(year);
+      const w = wMonths.get(year);
+      const months = (r?.months.length ?? 0) >= (w?.months.length ?? 0) ? (r?.months ?? []) : (w?.months ?? []);
+      if (!months.length) continue;
+      const span =
+        months.length === 1
+          ? titleMonth(months[0]!)
+          : `${titleMonth(months[0]!)}–${titleMonth(months[months.length - 1]!)}`;
+      map.set(year, {
+        year,
+        receipts: r ? r.total : null,
+        welfare: w ? w.total : null,
+        partial: true,
+        monthsCovered: span,
+      });
+    }
+
     const points = [...map.values()].sort((a, b) => a.year.localeCompare(b.year));
     const asOf =
       (receipts.years ?? []).slice(-1)[0]?.updateDate ?? (welfare.years ?? []).slice(-1)[0]?.updateDate ?? null;
-    return { points, asOf, nextDue };
+    return { points, asOf, nextDue, lastCompleteYear };
   },
 );
+

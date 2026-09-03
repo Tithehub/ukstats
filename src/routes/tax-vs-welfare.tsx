@@ -33,7 +33,7 @@ export const Route = createFileRoute("/tax-vs-welfare")({
 const bn = (m: number) => `£${(m / 1000).toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`;
 
 function TaxVsWelfarePage() {
-  const { points, asOf, nextDue } = Route.useLoaderData();
+  const { points, asOf, nextDue, lastCompleteYear } = Route.useLoaderData();
   const [hover, setHover] = useState<number | null>(null);
 
   const usable = useMemo(
@@ -41,6 +41,10 @@ function TaxVsWelfarePage() {
     [points],
   );
   const latest = usable[usable.length - 1];
+  const partYear = useMemo(() => usable.find((p) => p.partial), [usable]);
+  const yearLabel = (p: (typeof usable)[number]) =>
+    p.partial ? `${p.year} (${p.monthsCovered}, part year)` : p.year;
+
 
   const chart = useMemo(() => {
     const w = 900;
@@ -53,20 +57,22 @@ function TaxVsWelfarePage() {
     const max = Math.max(...values);
     const x = (i: number) => padL + (i * (w - padL - 8)) / Math.max(1, usable.length - 1);
     const y = (v: number) => padT + (1 - v / max) * (h - padT - padB);
-    const path = (pick: (i: number) => number | null) => {
+    const path = (pick: (i: number) => number | null, from = 0, to = usable.length - 1) => {
       let d = "";
       let open = false;
-      usable.forEach((_, i) => {
+      for (let i = from; i <= to; i++) {
         const v = pick(i);
         if (v === null) {
           open = false;
-          return;
+          continue;
         }
         d += `${open ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)} `;
         open = true;
-      });
+      }
       return d.trim();
     };
+    const partialIdx = usable.findIndex((p) => p.partial);
+    const solidEnd = partialIdx > 0 ? partialIdx - 1 : usable.length - 1;
     return {
       w,
       h,
@@ -76,15 +82,21 @@ function TaxVsWelfarePage() {
       max,
       x,
       y,
-      receipts: path((i) => usable[i]!.receipts),
-      welfare: path((i) => usable[i]!.welfare),
+      partialIdx,
+      receipts: path((i) => usable[i]!.receipts, 0, solidEnd),
+      welfare: path((i) => usable[i]!.welfare, 0, solidEnd),
+      receiptsPartial: partialIdx > 0 ? path((i) => usable[i]!.receipts, solidEnd, partialIdx) : "",
+      welfarePartial: partialIdx > 0 ? path((i) => usable[i]!.welfare, solidEnd, partialIdx) : "",
     };
   }, [usable]);
 
   function csv() {
     const rows = [
-      "Year,Total current receipts (£m),Net social benefits (£m)",
-      ...usable.map((p) => `${p.year},${p.receipts ?? ""},${p.welfare ?? ""}`),
+      "Year,Total current receipts (£m),Net social benefits (£m),Coverage",
+      ...usable.map(
+        (p) =>
+          `${p.year},${p.receipts ?? ""},${p.welfare ?? ""},${p.partial ? `${p.monthsCovered} part year` : "Full year"}`,
+      ),
     ].join("\n");
     const url = URL.createObjectURL(new Blob([rows], { type: "text/csv" }));
     const a = document.createElement("a");
@@ -93,6 +105,7 @@ function TaxVsWelfarePage() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
 
   const active = hover !== null ? usable[hover] : latest;
 
@@ -114,8 +127,16 @@ function TaxVsWelfarePage() {
         ) : (
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Stat label="Total receipts" value={active?.receipts !== null && active ? bn(active.receipts!) : "—"} note={active?.year ?? ""} />
-              <Stat label="Total welfare bill" value={active?.welfare !== null && active ? bn(active.welfare!) : "—"} note={active?.year ?? ""} />
+              <Stat
+                label="Total receipts"
+                value={active?.receipts !== null && active ? bn(active.receipts!) : "—"}
+                note={active ? yearLabel(active) : ""}
+              />
+              <Stat
+                label="Total welfare bill"
+                value={active?.welfare !== null && active ? bn(active.welfare!) : "—"}
+                note={active ? yearLabel(active) : ""}
+              />
               <Stat
                 label="Welfare as a share of receipts"
                 value={
@@ -126,6 +147,7 @@ function TaxVsWelfarePage() {
                 note="Arithmetic on the two published totals"
               />
             </div>
+
 
             <figure className="mt-6 rounded-lg border border-night-line/70 bg-night-panel p-4">
               <svg
@@ -155,6 +177,27 @@ function TaxVsWelfarePage() {
                 })}
                 <path d={chart.receipts} fill="none" stroke="var(--color-electric)" strokeWidth={2} />
                 <path d={chart.welfare} fill="none" stroke="var(--color-overdue)" strokeWidth={2} />
+                {chart.receiptsPartial ? (
+                  <path
+                    d={chart.receiptsPartial}
+                    fill="none"
+                    stroke="var(--color-electric)"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    strokeOpacity={0.75}
+                  />
+                ) : null}
+                {chart.welfarePartial ? (
+                  <path
+                    d={chart.welfarePartial}
+                    fill="none"
+                    stroke="var(--color-overdue)"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    strokeOpacity={0.75}
+                  />
+                ) : null}
+
                 {usable.map((p, i) => (
                   <rect
                     key={p.year}
@@ -198,6 +241,19 @@ function TaxVsWelfarePage() {
                 <span className="flex items-center gap-2">
                   <span className="inline-block h-0.5 w-5 bg-overdue" /> Net social benefits (welfare)
                 </span>
+                {partYear ? (
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-0.5 w-5 bg-current opacity-70"
+                      style={{
+                        backgroundImage:
+                          "repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px)",
+                        backgroundColor: "transparent",
+                      }}
+                    />{" "}
+                    Dashed = {partYear.year} part year ({partYear.monthsCovered} only)
+                  </span>
+                ) : null}
               </figcaption>
             </figure>
 
@@ -210,10 +266,49 @@ function TaxVsWelfarePage() {
                 Download CSV
               </button>
               <span>
-                {usable.length} published years · last revised {fmtDate(asOf)} · next release{" "}
-                {nextDue ? fmtDate(nextDue) : "not announced"}
+                {usable.length} published years · last complete year {lastCompleteYear ?? "—"}
+                {partYear ? ` · ${partYear.year} covers ${partYear.monthsCovered} only` : ""} · last revised{" "}
+                {fmtDate(asOf)} · next release {nextDue ? fmtDate(nextDue) : "not announced"}
               </span>
             </div>
+
+            <h2 className="mt-10 text-lg font-semibold">Year by year</h2>
+            <p className="mt-2 max-w-2xl text-sm text-night-muted">
+              Every year the ONS publishes, in cash terms. Part-year rows are the publisher&rsquo;s own monthly figures
+              added together — nothing is annualised or projected.
+            </p>
+            <div className="mt-3 overflow-x-auto rounded-lg border border-night-line/70 bg-night-panel">
+              <table className="w-full min-w-[520px] border-collapse font-mono text-[12px]">
+                <thead>
+                  <tr className="border-b border-night-line/70 text-night-muted">
+                    <th className="px-3 py-2 text-left font-normal">Year</th>
+                    <th className="px-3 py-2 text-right font-normal">Total receipts</th>
+                    <th className="px-3 py-2 text-right font-normal">Welfare bill</th>
+                    <th className="px-3 py-2 text-right font-normal">Welfare / receipts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...usable].reverse().map((p) => (
+                    <tr key={p.year} className="border-b border-night-line/40 last:border-0">
+                      <td className="px-3 py-2 text-left tabular-nums">
+                        {p.year}
+                        {p.partial ? (
+                          <span className="ml-2 rounded border border-night-line/70 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-night-muted">
+                            {p.monthsCovered} part year
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-2 text-right tabular-nums">{p.receipts !== null ? bn(p.receipts) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{p.welfare !== null ? bn(p.welfare) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">
+                        {p.receipts && p.welfare ? `${((p.welfare / p.receipts) * 100).toFixed(1)}%` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
 
             <h2 className="mt-10 text-lg font-semibold">Official sources</h2>
             <ul className="mt-3 grid gap-2 font-mono text-[12px] text-night-muted">
