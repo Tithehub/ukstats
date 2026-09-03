@@ -33,7 +33,7 @@ export const Route = createFileRoute("/tax-vs-welfare")({
 const bn = (m: number) => `£${(m / 1000).toLocaleString("en-GB", { maximumFractionDigits: 1 })}bn`;
 
 function TaxVsWelfarePage() {
-  const { points, asOf, nextDue } = Route.useLoaderData();
+  const { points, asOf, nextDue, lastCompleteYear } = Route.useLoaderData();
   const [hover, setHover] = useState<number | null>(null);
 
   const usable = useMemo(
@@ -41,6 +41,10 @@ function TaxVsWelfarePage() {
     [points],
   );
   const latest = usable[usable.length - 1];
+  const partYear = useMemo(() => usable.find((p) => p.partial), [usable]);
+  const yearLabel = (p: (typeof usable)[number]) =>
+    p.partial ? `${p.year} (${p.monthsCovered}, part year)` : p.year;
+
 
   const chart = useMemo(() => {
     const w = 900;
