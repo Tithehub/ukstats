@@ -237,12 +237,14 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
             href={metric.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-block underline decoration-brand underline-offset-2"
+            className="mt-2 inline-flex min-h-11 items-center gap-1.5 underline decoration-brand underline-offset-2"
           >
-            Open the source →
+            <ExternalLink className="size-4" aria-hidden="true" />
+            Open the source
           </a>
         </div>
       ) : null}
     </article>
   );
 }
+
