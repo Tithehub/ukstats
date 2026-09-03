@@ -2286,17 +2286,6 @@ async function nhsScotlandWaits(): Promise<Metric[]> {
       cadence: "Monthly",
       subcategory: "Waiting lists",
       status: "unavailable",
-      note: null,
-      derivedFrom: null,
-      breakdown: null,
-      period: null,
-      asOf: null,
-      // carried through by the query below
-      change: null,
-      value: null,
-      spark: [],
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ...({ patientType } as Record<string, never>),
     });
 
   const defs = [
