@@ -283,7 +283,8 @@ function TaxVsWelfarePage() {
               </svg>
               <figcaption className="mt-2 flex flex-wrap gap-4 font-mono text-[11px] text-night-muted">
                 <span className="flex items-center gap-2">
-                  <span className="inline-block h-0.5 w-5 bg-electric" /> Total current receipts
+                  <span className="inline-block h-0.5 w-5 bg-electric" />{" "}
+                  {mode === "receipts" ? "Total current receipts" : "Income tax (PAYE + self assessed + other)"}
                 </span>
                 <span className="flex items-center gap-2">
                   <span className="inline-block h-0.5 w-5 bg-overdue" /> Net social benefits (welfare)
