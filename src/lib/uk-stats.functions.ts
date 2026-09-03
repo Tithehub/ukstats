@@ -3707,7 +3707,7 @@ export interface AidPoint {
 }
 
 const AID_QUERY =
-  "https://sdmx.oecd.org/public/rest/data/OECD.DCD.FSD,DSD_DAC1@DF_DAC1/GBR._Z.1010+11010+3+11002._Z.1140+1160..V?startPeriod=1960&format=csvfile";
+  "https://sdmx.oecd.org/public/rest/data/OECD.DCD.FSD,DSD_DAC1@DF_DAC1/GBR._Z.1010+11010+2+11002._Z.1140+1160..V?startPeriod=1960&format=csvfile";
 
 export const AID_SOURCES = [
   {
@@ -3764,7 +3764,7 @@ async function aidSeries(): Promise<AidPoint[]> {
     return years.map((year) => {
       const c = cash.get(year) ?? {};
       const g = gni.get(year) ?? {};
-      const useGrant = c.grant !== undefined;
+      const useGrant = Number(year) >= 2018 && c.grant !== undefined;
       return {
         year,
         gbpM: useGrant ? c.grant! : (c.net ?? null),
