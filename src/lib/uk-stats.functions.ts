@@ -2948,28 +2948,34 @@ const HPI_REGIONS: { code: string; slug: string; name: string }[] = [
 
 async function housePriceMapLayer(): Promise<MapLayer | null> {
   const results = await Promise.all(
-    HPI_REGIONS.map(async (r) => {
-      try {
-        const data = await getJson<{
-          result: { items: { averagePrice: number; refMonth: string }[] };
-        }>(
-          `https://landregistry.data.gov.uk/data/ukhpi/region/${r.slug}/month?_sort=-refMonth&_pageSize=1&_view=all`,
-        );
-        const item = data.result.items?.[0];
-        if (!item || typeof item.averagePrice !== "number") return null;
-        return {
-          area: {
-            code: r.code,
-            name: r.name,
-            value: item.averagePrice,
-            formatted: `£${item.averagePrice.toLocaleString("en-GB")}`,
-          } satisfies MapArea,
-          refMonth: item.refMonth,
-        };
-      } catch {
-        return null;
+    HPI_REGIONS.map(async (r, i) => {
+      // Stagger and retry: the Land Registry endpoint drops occasional parallel requests.
+      await wait(i * 200);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const data = await getJson<{
+            result: { items: { averagePrice: number; refMonth: string }[] };
+          }>(
+            `https://landregistry.data.gov.uk/data/ukhpi/region/${r.slug}/month?_sort=-refMonth&_pageSize=1&_view=all`,
+          );
+          const item = data.result.items?.[0];
+          if (!item || typeof item.averagePrice !== "number") return null;
+          return {
+            area: {
+              code: r.code,
+              name: r.name,
+              value: item.averagePrice,
+              formatted: `£${item.averagePrice.toLocaleString("en-GB")}`,
+            } satisfies MapArea,
+            refMonth: item.refMonth,
+          };
+        } catch {
+          await wait(700 * (attempt + 1));
+        }
       }
+      return null;
     }),
+
   );
   const ok = results.filter((r): r is NonNullable<typeof r> => r !== null);
   if (!ok.length) return null;
