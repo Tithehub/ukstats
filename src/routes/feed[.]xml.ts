@@ -26,6 +26,25 @@ export const Route = createFileRoute("/feed.xml")({
           },
         });
 
+        const { data: briefings } = await supabase
+          .from("daily_briefings")
+          .select("briefing_date, headline, body, created_at")
+          .order("briefing_date", { ascending: false })
+          .limit(30);
+
+        const briefingItems = (briefings ?? []).map((b) =>
+          [
+            "    <item>",
+            `      <title>${esc(b.headline)}</title>`,
+            `      <link>${esc(`${BASE_URL}/daily/${b.briefing_date}`)}</link>`,
+            `      <guid isPermaLink="false">daily-${esc(b.briefing_date)}</guid>`,
+            "      <category>Daily statement</category>",
+            `      <pubDate>${new Date(b.created_at).toUTCString()}</pubDate>`,
+            `      <description>${esc(b.body)}</description>`,
+            "    </item>",
+          ].join("\n"),
+        );
+
         const { data } = await supabase
           .from("metric_changes")
           .select("*")
@@ -59,6 +78,7 @@ export const Route = createFileRoute("/feed.xml")({
           "    <description>Every official UK statistic that changed, with its reference period and a link to the issuing body's own release. Nothing estimated.</description>",
           "    <language>en-GB</language>",
           `    <atom:link href="${BASE_URL}/feed.xml" rel="self" type="application/rss+xml" />`,
+          ...briefingItems,
           ...items,
           "  </channel>",
           "</rss>",
