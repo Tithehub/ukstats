@@ -2942,6 +2942,7 @@ async function sexualOffences(): Promise<Metric[]> {
 export const getMetricHistory = createServerFn({ method: "GET" })
   .validator((data: { id: string }) => ({ id: String(data.id) }))
   .handler(async ({ data }): Promise<HistoryPayload | null> => {
+    if (data.id === "uk-foreign-aid" || data.id === "uk-foreign-aid-gni") return aidHistory(data.id);
     const def = ONS_DEFS.find((d) => d.id === data.id);
     if (!def) return null;
     const [series, nextDue] = await Promise.all([onsSeries(def.uri), onsNextRelease(def.releaseQuery)]);
