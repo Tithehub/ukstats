@@ -26,6 +26,7 @@ import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as PressRouteImport } from './routes/press'
+import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -35,8 +36,11 @@ import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
+import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as RegionsIndexRouteImport } from './routes/regions.index'
+import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
 
@@ -125,6 +129,11 @@ const PressRoute = PressRouteImport.update({
   path: '/press',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegionsRoute = RegionsRouteImport.update({
+  id: '/regions',
+  path: '/regions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -170,6 +179,11 @@ const EmbedMetricRoute = EmbedMetricRouteImport.update({
   path: '/embed/$metric',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExplainedMetricIdRoute = ExplainedMetricIdRouteImport.update({
+  id: '/explained/$metricId',
+  path: '/explained/$metricId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryMetricIdRoute = HistoryMetricIdRouteImport.update({
   id: '/history/$metricId',
   path: '/history/$metricId',
@@ -179,6 +193,16 @@ const PSlugRoute = PSlugRouteImport.update({
   id: '/p/$slug',
   path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const RegionsIndexRoute = RegionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RegionsRoute,
+} as any)
+const RegionsSlugRoute = RegionsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => RegionsRoute,
 } as any)
 const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   id: '/api/public/outreach-tick',
@@ -209,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/press': typeof PressRoute
+  '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -218,8 +243,11 @@ export interface FileRoutesByFullPath {
   '/widget': typeof WidgetRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/regions/$slug': typeof RegionsSlugRoute
+  '/regions/': typeof RegionsIndexRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -250,8 +278,11 @@ export interface FileRoutesByTo {
   '/widget': typeof WidgetRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/regions/$slug': typeof RegionsSlugRoute
+  '/regions': typeof RegionsIndexRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -274,6 +305,7 @@ export interface FileRoutesById {
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/press': typeof PressRoute
+  '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -283,8 +315,11 @@ export interface FileRoutesById {
   '/widget': typeof WidgetRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/regions/$slug': typeof RegionsSlugRoute
+  '/regions/': typeof RegionsIndexRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -308,6 +343,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/polling'
     | '/press'
+    | '/regions'
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
@@ -317,8 +353,11 @@ export interface FileRouteTypes {
     | '/widget'
     | '/daily/$date'
     | '/embed/$metric'
+    | '/explained/$metricId'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/regions/$slug'
+    | '/regions/'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesByTo: FileRoutesByTo
@@ -349,8 +388,11 @@ export interface FileRouteTypes {
     | '/widget'
     | '/daily/$date'
     | '/embed/$metric'
+    | '/explained/$metricId'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/regions/$slug'
+    | '/regions'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   id:
@@ -372,6 +414,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/polling'
     | '/press'
+    | '/regions'
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
@@ -381,8 +424,11 @@ export interface FileRouteTypes {
     | '/widget'
     | '/daily/$date'
     | '/embed/$metric'
+    | '/explained/$metricId'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/regions/$slug'
+    | '/regions/'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesById: FileRoutesById
@@ -405,6 +451,7 @@ export interface RootRouteChildren {
   OutreachRoute: typeof OutreachRoute
   PollingRoute: typeof PollingRoute
   PressRoute: typeof PressRoute
+  RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -413,6 +460,7 @@ export interface RootRouteChildren {
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
+  ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
@@ -540,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PressRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/regions': {
+      id: '/regions'
+      path: '/regions'
+      fullPath: '/regions'
+      preLoaderRoute: typeof RegionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -603,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbedMetricRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explained/$metricId': {
+      id: '/explained/$metricId'
+      path: '/explained/$metricId'
+      fullPath: '/explained/$metricId'
+      preLoaderRoute: typeof ExplainedMetricIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history/$metricId': {
       id: '/history/$metricId'
       path: '/history/$metricId'
@@ -616,6 +678,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/p/$slug'
       preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/regions/': {
+      id: '/regions/'
+      path: '/'
+      fullPath: '/regions/'
+      preLoaderRoute: typeof RegionsIndexRouteImport
+      parentRoute: typeof RegionsRoute
+    }
+    '/regions/$slug': {
+      id: '/regions/$slug'
+      path: '/$slug'
+      fullPath: '/regions/$slug'
+      preLoaderRoute: typeof RegionsSlugRouteImport
+      parentRoute: typeof RegionsRoute
     }
     '/api/public/outreach-tick': {
       id: '/api/public/outreach-tick'
@@ -644,6 +720,19 @@ const DailyRouteChildren: DailyRouteChildren = {
 
 const DailyRouteWithChildren = DailyRoute._addFileChildren(DailyRouteChildren)
 
+interface RegionsRouteChildren {
+  RegionsSlugRoute: typeof RegionsSlugRoute
+  RegionsIndexRoute: typeof RegionsIndexRoute
+}
+
+const RegionsRouteChildren: RegionsRouteChildren = {
+  RegionsSlugRoute: RegionsSlugRoute,
+  RegionsIndexRoute: RegionsIndexRoute,
+}
+
+const RegionsRouteWithChildren =
+  RegionsRoute._addFileChildren(RegionsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiDocsRoute: ApiDocsRoute,
@@ -662,6 +751,7 @@ const rootRouteChildren: RootRouteChildren = {
   OutreachRoute: OutreachRoute,
   PollingRoute: PollingRoute,
   PressRoute: PressRoute,
+  RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -670,6 +760,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
+  ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,

@@ -7,6 +7,7 @@ const COLUMNS = [
     links: [
       { to: "/register", label: "Full register", icon: Table2 },
       { to: "/maps", label: "Heat maps", icon: Building2 },
+      { to: "/regions", label: "Regional dashboards", icon: Building2 },
       { to: "/widget", label: "Widget builder", icon: LayoutGrid },
       { to: "/daily", label: "Daily statement", icon: CalendarDays },
     ],
