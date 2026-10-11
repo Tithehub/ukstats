@@ -60,14 +60,29 @@ export const Route = createFileRoute("/api/public/outreach-tick")({
         if (snapshots.length) await supabaseAdmin.from("metric_snapshots").upsert(snapshots, { onConflict: "metric_id" });
         if (changes.length) await supabaseAdmin.from("metric_changes").insert(changes);
 
+        // Feed health log: one row per metric per sweep, so the /status page
+        // can show current state and recent reliability for every source.
+        const checks = stats.metrics.map((m) => ({
+          metric_id: m.id,
+          title: m.title,
+          category: m.category,
+          source: m.source,
+          source_url: m.sourceUrl,
+          status: m.status,
+          note: m.note,
+        }));
+        if (checks.length) await supabaseAdmin.from("feed_checks").insert(checks);
+
         // Write the day's statement. Re-running the sweep on the same day
         // refreshes the row rather than adding a second one, and today's
         // earlier changes are folded back in from the change log.
         const today = londonDate();
+        const day = londonDayBounds(today);
         const { data: todaysChanges } = await supabaseAdmin
           .from("metric_changes")
           .select("*")
-          .gte("detected_at", `${today}T00:00:00Z`)
+          .gte("detected_at", day.start)
+          .lt("detected_at", day.end)
           .order("detected_at", { ascending: true });
 
         const changedFigures: DailyFigure[] = [];
