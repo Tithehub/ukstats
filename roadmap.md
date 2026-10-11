@@ -41,7 +41,7 @@
 - [x] Daily "UK by the numbers" digest draft from the vital signs
 - [x] Change tracking: metric_snapshots + public metric_changes, swept by POST /api/public/outreach-tick (cron secret)
 - [x] /feed.xml RSS of newly published figures, linked from every page head
-- [ ] Phase B: authorised auto-posting via official APIs for accounts the user owns
+- [x] Phase B: authorised auto-posting via official APIs for accounts the user owns — Bluesky connected and first figure-of-the-day post sent 20:53 UTC; admin gate fixed by granting has_role execute to signed-in users; Mastodon still not connected
 
 ## Free site + accounts
 - [x] All paid tiers, crypto checkout and payment_orders removed — every feature, live page and widget is free
