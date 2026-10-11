@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_findings: {
+        Row: {
+          agent: string
+          created_at: string
+          detail: string | null
+          id: string
+          metric_id: string | null
+          run_id: string | null
+          severity: string
+          status: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          agent: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          metric_id?: string | null
+          run_id?: string | null
+          severity?: string
+          status?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          agent?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          metric_id?: string | null
+          run_id?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      agent_runs: {
+        Row: {
+          briefing: string | null
+          finished_at: string | null
+          id: string
+          lease_until: string
+          pause_reason: string | null
+          started_at: string
+          status: string
+          summary: Json
+        }
+        Insert: {
+          briefing?: string | null
+          finished_at?: string | null
+          id?: string
+          lease_until?: string
+          pause_reason?: string | null
+          started_at?: string
+          status?: string
+          summary?: Json
+        }
+        Update: {
+          briefing?: string | null
+          finished_at?: string | null
+          id?: string
+          lease_until?: string
+          pause_reason?: string | null
+          started_at?: string
+          status?: string
+          summary?: Json
+        }
+        Relationships: []
+      }
       daily_briefings: {
         Row: {
           body: string
@@ -44,6 +116,39 @@ export type Database = {
           headline?: string
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      explainer_drafts: {
+        Row: {
+          created_at: string
+          id: string
+          metric_id: string
+          reviewed_at: string | null
+          sections: Json
+          status: string
+          summary: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_id: string
+          reviewed_at?: string | null
+          sections: Json
+          status?: string
+          summary: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_id?: string
+          reviewed_at?: string | null
+          sections?: Json
+          status?: string
+          summary?: string
+          title?: string
         }
         Relationships: []
       }
@@ -152,6 +257,42 @@ export type Database = {
           source_url?: string
           title?: string
           value?: string | null
+        }
+        Relationships: []
+      }
+      metric_revisions: {
+        Row: {
+          detected_at: string
+          id: string
+          metric_id: string
+          new_value: string
+          old_value: string
+          period: string
+          source: string | null
+          source_url: string | null
+          title: string
+        }
+        Insert: {
+          detected_at?: string
+          id?: string
+          metric_id: string
+          new_value: string
+          old_value: string
+          period: string
+          source?: string | null
+          source_url?: string | null
+          title: string
+        }
+        Update: {
+          detected_at?: string
+          id?: string
+          metric_id?: string
+          new_value?: string
+          old_value?: string
+          period?: string
+          source?: string | null
+          source_url?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -334,6 +475,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_approved_explainer: {
+        Args: { _metric_id: string }
+        Returns: {
+          sections: Json
+          summary: string
+          title: string
+        }[]
+      }
       get_daily_briefing: {
         Args: { day: string }
         Returns: {
@@ -395,6 +544,26 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "feed_checks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_metric_revisions: {
+        Args: { _metric_id: string; max_rows?: number }
+        Returns: {
+          detected_at: string
+          id: string
+          metric_id: string
+          new_value: string
+          old_value: string
+          period: string
+          source: string | null
+          source_url: string | null
+          title: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "metric_revisions"
           isOneToOne: false
           isSetofReturn: true
         }
