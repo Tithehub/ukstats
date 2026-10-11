@@ -26,11 +26,7 @@ export const Route = createFileRoute("/feed.xml")({
           },
         });
 
-        const { data: briefings } = await supabase
-          .from("daily_briefings")
-          .select("briefing_date, headline, body, created_at")
-          .order("briefing_date", { ascending: false })
-          .limit(30);
+        const { data: briefings } = await supabase.rpc("list_daily_briefings", { max_rows: 30 });
 
         const briefingItems = (briefings ?? []).map((b) =>
           [
@@ -45,11 +41,7 @@ export const Route = createFileRoute("/feed.xml")({
           ].join("\n"),
         );
 
-        const { data } = await supabase
-          .from("metric_changes")
-          .select("*")
-          .order("detected_at", { ascending: false })
-          .limit(50);
+        const { data } = await supabase.rpc("list_recent_changes", { max_rows: 50 });
 
         const items = (data ?? []).map((c) => {
           const link = `${BASE_URL}/history/${c.metric_id}`;
