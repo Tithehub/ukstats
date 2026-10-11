@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
+  Activity,
   Banknote,
   Bot,
   CalendarDays,
+  GitCompareArrows,
   FileText,
   Home,
   LayoutGrid,
