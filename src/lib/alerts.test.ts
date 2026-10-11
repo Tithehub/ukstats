@@ -31,8 +31,8 @@ describe("parseCapFeed", () => {
     const alerts = parseCapFeed(FEED);
     expect(alerts).toHaveLength(3);
     expect(alerts[0]).toMatchObject({ colour: "yellow", event: "Ground frost", severity: "Moderate", expires: "2026-10-12T06:00:00+00:00" });
-    expect(alerts[0].area).toBe("Bienne - Neuchâtel");
-    expect(alerts[1].colour).toBe("orange");
+    expect(alerts[0]?.area).toBe("Bienne - Neuchâtel");
+    expect(alerts[1]?.colour).toBe("orange");
   });
 
   it("keeps the highest colour present", () => {
