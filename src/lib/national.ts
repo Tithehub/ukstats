@@ -16,7 +16,7 @@ export function yoyFromIndex(pts: Pt[]): Pt[] {
 }
 
 export function parseBls(js: unknown): Pt[] {
-  const d = (js as { Results?: { series?: { data?: { year: string; period: string; value: string }[] }[] } }).Results?.series?.[0]?.data ?? [];
+  const d = (js as { Results?: { series?: { data?: { year: string; period: string; value: string }[] }[] } })?.Results?.series?.[0]?.data ?? [];
   return d
     .filter((r) => /^M(0[1-9]|1[0-2])$/.test(r.period) && Number.isFinite(Number(r.value)) && r.value !== "-" && r.value.trim() !== "")
     .map((r) => ({ time: `${r.year}-${r.period.slice(1)}`, value: Number(r.value) }))
@@ -24,7 +24,7 @@ export function parseBls(js: unknown): Pt[] {
 }
 
 export function parseStatCan(js: unknown, vectorId: number): Pt[] {
-  const row = (js as { object?: { vectorId: number; vectorDataPoint: { refPer: string; value: number | null }[] } }[]).find((r) => r.object?.vectorId === vectorId);
+  const row = (js as { object?: { vectorId: number; vectorDataPoint: { refPer: string; value: number | null }[] } }[])?.find((r) => r.object?.vectorId === vectorId);
   return (row?.object?.vectorDataPoint ?? [])
     .filter((p) => typeof p.value === "number" && Number.isFinite(p.value))
     .map((p) => ({ time: p.refPer.slice(0, 7), value: p.value as number }));
