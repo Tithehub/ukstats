@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { HistoryPayload, Metric, StatsPayload } from "./uk-stats";
+import type { HistoryPayload, HistoryPoint, Metric, StatsPayload } from "./uk-stats";
 
 const UA = { "user-agent": "uk-national-data-register/1.0 (+aggregator)" };
 
