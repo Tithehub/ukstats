@@ -56,6 +56,54 @@ export function countryByCode(code: string): Country | undefined {
   return COUNTRIES.find((x) => x.code === code.toLowerCase());
 }
 
+/** Capital used for the weather cards; alertSlug is the official warning feed, null where none is integrated. */
+export interface CountryPlace {
+  city: string;
+  lat: number;
+  lon: number;
+  tz: string;
+  alertSlug: string | null;
+  /** Official warning page for the national weather service, shown when no feed is integrated. */
+  alertUrl: string;
+  alertSource: string;
+}
+
+export const PLACES: Record<string, CountryPlace> = {
+  at: { city: "Vienna", lat: 48.21, lon: 16.37, tz: "Europe/Vienna", alertSlug: "austria", alertUrl: "https://www.zamg.ac.at", alertSource: "GeoSphere Austria (ZAMG)" },
+  be: { city: "Brussels", lat: 50.85, lon: 4.35, tz: "Europe/Brussels", alertSlug: "belgium", alertUrl: "https://www.meteobelgium.be", alertSource: "Royal Meteorological Institute of Belgium" },
+  bg: { city: "Sofia", lat: 42.7, lon: 23.32, tz: "Europe/Sofia", alertSlug: "bulgaria", alertUrl: "https://www.meteo.bg", alertSource: "National Institute of Meteorology and Hydrology" },
+  hr: { city: "Zagreb", lat: 45.81, lon: 15.98, tz: "Europe/Zagreb", alertSlug: "croatia", alertUrl: "https://meteo.hr", alertSource: "Croatian Meteorological and Hydrological Service" },
+  cy: { city: "Nicosia", lat: 35.17, lon: 33.36, tz: "Asia/Nicosia", alertSlug: "cyprus", alertUrl: "https://www.mgs.gov.cy", alertSource: "Cyprus Meteorological Service" },
+  cz: { city: "Prague", lat: 50.09, lon: 14.42, tz: "Europe/Prague", alertSlug: "czechia", alertUrl: "https://www.chmi.cz", alertSource: "Czech Hydrometeorological Institute" },
+  dk: { city: "Copenhagen", lat: 55.68, lon: 12.57, tz: "Europe/Copenhagen", alertSlug: "denmark", alertUrl: "https://www.dmi.dk", alertSource: "Danish Meteorological Institute" },
+  ee: { city: "Tallinn", lat: 59.44, lon: 24.75, tz: "Europe/Tallinn", alertSlug: "estonia", alertUrl: "https://www.ilmateadus.ee", alertSource: "Estonian Environment Agency" },
+  fi: { city: "Helsinki", lat: 60.17, lon: 24.94, tz: "Europe/Helsinki", alertSlug: "finland", alertUrl: "https://en.ilmatieteenlaitos.fi", alertSource: "Finnish Meteorological Institute" },
+  fr: { city: "Paris", lat: 48.86, lon: 2.35, tz: "Europe/Paris", alertSlug: "france", alertUrl: "https://vigilance.meteofrance.fr", alertSource: "Météo-France" },
+  de: { city: "Berlin", lat: 52.52, lon: 13.4, tz: "Europe/Berlin", alertSlug: "germany", alertUrl: "https://www.dwd.de", alertSource: "Deutscher Wetterdienst" },
+  gr: { city: "Athens", lat: 37.98, lon: 23.73, tz: "Europe/Athens", alertSlug: "greece", alertUrl: "https://www.emy.gr", alertSource: "Hellenic National Meteorological Service" },
+  hu: { city: "Budapest", lat: 47.5, lon: 19.04, tz: "Europe/Budapest", alertSlug: "hungary", alertUrl: "https://meteo.hu", alertSource: "Hungarian Meteorological Service" },
+  ie: { city: "Dublin", lat: 53.35, lon: -6.26, tz: "Europe/Dublin", alertSlug: "ireland", alertUrl: "https://www.met.ie", alertSource: "Met Éireann" },
+  it: { city: "Rome", lat: 41.9, lon: 12.5, tz: "Europe/Rome", alertSlug: "italy", alertUrl: "https://www.meteoam.it", alertSource: "Italian Meteorological Service" },
+  lv: { city: "Riga", lat: 56.95, lon: 24.11, tz: "Europe/Riga", alertSlug: "latvia", alertUrl: "https://www.meteo.lv", alertSource: "Latvia Environment, Geology and Meteorology Centre" },
+  lt: { city: "Vilnius", lat: 54.69, lon: 25.28, tz: "Europe/Vilnius", alertSlug: "lithuania", alertUrl: "https://www.meteo.lt", alertSource: "Lithuanian Hydrometeorological Service" },
+  lu: { city: "Luxembourg", lat: 49.61, lon: 6.13, tz: "Europe/Luxembourg", alertSlug: "luxembourg", alertUrl: "https://www.meteolux.lu", alertSource: "Meteolux" },
+  mt: { city: "Valletta", lat: 35.9, lon: 14.51, tz: "Europe/Malta", alertSlug: "malta", alertUrl: "https://www.meteo.gov.mt", alertSource: "Malta International Airport Meteorological Office" },
+  nl: { city: "Amsterdam", lat: 52.37, lon: 4.9, tz: "Europe/Amsterdam", alertSlug: "netherlands", alertUrl: "https://www.knmi.nl", alertSource: "KNMI" },
+  pl: { city: "Warsaw", lat: 52.23, lon: 21.01, tz: "Europe/Warsaw", alertSlug: "poland", alertUrl: "https://meteo.imgw.pl", alertSource: "Institute of Meteorology and Water Management" },
+  pt: { city: "Lisbon", lat: 38.72, lon: -9.14, tz: "Europe/Lisbon", alertSlug: "portugal", alertUrl: "https://www.ipma.pt", alertSource: "IPMA" },
+  ro: { city: "Bucharest", lat: 44.43, lon: 26.1, tz: "Europe/Bucharest", alertSlug: "romania", alertUrl: "https://www.meteo.ro", alertSource: "National Administration of Meteorology" },
+  sk: { city: "Bratislava", lat: 48.15, lon: 17.11, tz: "Europe/Bratislava", alertSlug: "slovakia", alertUrl: "https://www.shmu.sk", alertSource: "Slovak Hydrometeorological Institute" },
+  si: { city: "Ljubljana", lat: 46.05, lon: 14.51, tz: "Europe/Ljubljana", alertSlug: "slovenia", alertUrl: "https://meteo.arso.gov.si", alertSource: "Slovenian Environment Agency (ARSO)" },
+  es: { city: "Madrid", lat: 40.42, lon: -3.7, tz: "Europe/Madrid", alertSlug: "spain", alertUrl: "https://www.aemet.es", alertSource: "AEMET" },
+  se: { city: "Stockholm", lat: 59.33, lon: 18.07, tz: "Europe/Stockholm", alertSlug: "sweden", alertUrl: "https://www.smhi.se", alertSource: "Swedish Meteorological and Hydrological Institute" },
+  no: { city: "Oslo", lat: 59.91, lon: 10.75, tz: "Europe/Oslo", alertSlug: "norway", alertUrl: "https://www.met.no", alertSource: "Norwegian Meteorological Institute" },
+  is: { city: "Reykjavik", lat: 64.15, lon: -21.94, tz: "Atlantic/Reykjavik", alertSlug: "iceland", alertUrl: "https://vedur.is", alertSource: "Icelandic Meteorological Office" },
+  ch: { city: "Bern", lat: 46.95, lon: 7.44, tz: "Europe/Zurich", alertSlug: "switzerland", alertUrl: "https://www.meteoswiss.admin.ch", alertSource: "MeteoSwiss" },
+  us: { city: "Washington, D.C.", lat: 38.9, lon: -77.04, tz: "America/New_York", alertSlug: null, alertUrl: "https://alerts.weather.gov", alertSource: "US National Weather Service" },
+  ca: { city: "Ottawa", lat: 45.42, lon: -75.7, tz: "America/Toronto", alertSlug: null, alertUrl: "https://weather.gc.ca", alertSource: "Environment and Climate Change Canada" },
+  au: { city: "Canberra", lat: -35.28, lon: 149.13, tz: "Australia/Sydney", alertSlug: null, alertUrl: "https://www.bom.gov.au", alertSource: "Bureau of Meteorology" },
+};
+
 export interface CountryMetric {
   id: string;
   title: string;
