@@ -12,3 +12,4 @@
 - Overnight agent team lives in src/lib/agents/ (server-only), triggered by /api/public/agents-tick via pg_cron; agents write only findings/drafts/revisions, never figures — keeps the no-fabrication rule enforceable.
 - Non-UK countries live under /$country (registry in src/lib/countries.ts, Eurostat parser in src/lib/eurostat.ts); UK register at "/" is untouched — keeps the proven UK pipeline isolated from new sources.
 - National (non-Eurostat) sources live in src/lib/national.server.ts with pure parsers in src/lib/national.ts — keeps network code server-only and parsers testable.
+- Publication dates are rendered by fmtDate in src/lib/uk-stats.ts, which pins Europe/London; never format a date with the visitor's own clock zone — server and browser must print the same day or React discards the server-rendered page.
