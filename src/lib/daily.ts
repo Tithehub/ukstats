@@ -35,6 +35,19 @@ export function londonDate(at: Date = new Date()): string {
   }).format(at);
 }
 
+/**
+ * UTC instants bounding one London calendar day ("YYYY-MM-DD"), so queries for
+ * "today's" rows match the UK day even when BST shifts midnight to 23:00 UTC.
+ */
+export function londonDayBounds(date: string): { start: string; end: string } {
+  const guess = new Date(`${date}T00:00:00Z`);
+  const londonAtGuess = new Date(guess.toLocaleString("en-US", { timeZone: "Europe/London" }));
+  const offsetMs = londonAtGuess.getTime() - guess.getTime();
+  const start = new Date(guess.getTime() - offsetMs);
+  const end = new Date(start.getTime() + 24 * 3600_000);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
 /** "3 September 2026" from an ISO date, without shifting the day. */
 export function longDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
