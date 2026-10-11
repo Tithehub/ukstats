@@ -59,7 +59,7 @@ export function parseByGeo(js: JsonStat): Record<string, GeoSeries> {
   for (const [geo, g] of Object.entries(geos)) {
     const points: GeoSeries["points"] = [];
     for (const [time, t] of times) {
-      const v = (js.value as Record<string, number>)[String(g * strides[gi] + t * strides[ti])];
+      const v = (js.value as Record<string, number>)[String(g * (strides[gi] ?? 0) + t * (strides[ti] ?? 0))];
       if (typeof v === "number" && Number.isFinite(v)) points.push({ time, value: v });
     }
     out[geo] = { points };
