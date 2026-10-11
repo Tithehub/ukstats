@@ -1,9 +1,21 @@
 // Server-only fetchers for Wave 2 national publishers. Any failure → no figure, never a guess.
-import { countryByCode, type CountryMetric } from "@/lib/countries";
+import { mainEvent, parseCapFeed, worstColour } from "@/lib/alerts";
+import { countryByCode, PLACES, type CountryMetric } from "@/lib/countries";
 import { noFeed, parseBls, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
 
 const TTL = 30 * 60_000;
+const WEATHER_TTL = 15 * 60_000;
+const ALERTS_TTL = 10 * 60_000;
 const cache = new Map<string, { at: number; p: Promise<CountryMetric> }>();
+
+function cached<T>(store: Map<string, { at: number; p: Promise<T> }>, key: string, ttl: number, make: () => Promise<T>): Promise<T> {
+  const hit = store.get(key);
+  if (hit && Date.now() - hit.at < ttl) return hit.p;
+  const p = make();
+  p.catch(() => store.delete(key));
+  store.set(key, { at: Date.now(), p });
+  return p;
+}
 
 async function get(url: string, init: RequestInit = {}): Promise<Response> {
   const ctrl = new AbortController();
@@ -15,6 +27,10 @@ async function get(url: string, init: RequestInit = {}): Promise<Response> {
   } finally {
     clearTimeout(t);
   }
+}
+
+async function getJson<T>(url: string): Promise<T> {
+  return (await (await get(url)).json()) as T;
 }
 
 type Def = { id: string; title: string; cadence: string; source: string; sourceUrl: string; next: string; fmt: (v: number) => string; load: () => Promise<{ pts: Pt[]; asOf?: string | null }> };
@@ -69,7 +85,7 @@ const DEFS: Record<string, Def[]> = {
     { id: "au-unemployment", title: "Unemployment rate (seasonally adjusted)", cadence: "Monthly", source: "Australian Bureau of Statistics — Labour Force", sourceUrl: "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
       load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,LF,1.0.0/M13.3.1599.20.AUS.M?startPeriod=2024-01", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
   ],
-  
+
 };
 
 const NO_FEED: Record<string, CountryMetric[]> = {
@@ -116,7 +132,116 @@ function run(code: string, d: Def): Promise<CountryMetric> {
   return p;
 }
 
+/* --------------------------------- Weather --------------------------------- */
+
+const WEATHER_SOURCE = "Open-Meteo weather model (not an official statistic)";
+const WEATHER_URL = "https://open-meteo.com/";
+const wcache = new Map<string, { at: number; p: Promise<CountryMetric[]> }>();
+
+function weatherMetrics(code: string): Promise<CountryMetric[]> {
+  return cached(wcache, code, WEATHER_TTL, async () => {
+    const place = PLACES[code];
+    const mk = (id: string, title: string, sub: string, cadence: string): CountryMetric => ({
+      id, title, category: "Weather", value: null, period: null, asOf: null, cadence,
+      source: WEATHER_SOURCE, sourceUrl: WEATHER_URL, spark: [], history: [], raw: null,
+      note: place ? sub : "No capital is registered for this country.", status: "unavailable",
+      next: "Model refreshes hourly", calendarUrl: WEATHER_URL,
+    });
+    const today = mk(`${code}-temp-today`, `${place?.city ?? "Local"} temperature, today`, "Daily mean from the weather model", "Hourly model refresh");
+    const hist = mk(`${code}-temp-30d`, `${place?.city ?? "Local"} temperature, 30-day mean`, "Archive reanalysis, daily means", "Daily, two days in arrears");
+    if (!place) return [today, hist];
+    const start = new Date(Date.now() - 32 * 86_400_000).toISOString().slice(0, 10);
+    const end = new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10);
+    try {
+      const [fc, ar] = await Promise.all([
+        getJson<{ daily: { time: string[]; temperature_2m_mean: number[]; temperature_2m_max: number[]; temperature_2m_min: number[] } }>(`https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min&timezone=${encodeURIComponent(place.tz)}&forecast_days=7`),
+        getJson<{ daily: { time: string[]; temperature_2m_mean: (number | null)[] } }>(`https://archive-api.open-meteo.com/v1/archive?latitude=${place.lat}&longitude=${place.lon}&start_date=${start}&end_date=${end}&daily=temperature_2m_mean&timezone=${encodeURIComponent(place.tz)}`),
+      ]);
+      const mean = fc.daily.temperature_2m_mean?.[0];
+      const hi = fc.daily.temperature_2m_max?.[0];
+      const lo = fc.daily.temperature_2m_min?.[0];
+      const arch = (ar.daily.temperature_2m_mean ?? []).filter((n): n is number => typeof n === "number");
+      const avg = arch.length ? arch.reduce((a, b) => a + b, 0) / arch.length : null;
+      return [
+        {
+          ...today,
+          value: mean === undefined ? null : `${mean.toFixed(1)}°C`,
+          raw: mean ?? null,
+          period: fc.daily.time?.[0] ?? null,
+          asOf: new Date().toISOString(),
+          spark: fc.daily.temperature_2m_mean ?? [],
+          status: mean === undefined ? "unavailable" : "ok",
+          note: hi === undefined || lo === undefined ? null : `Model high ${hi.toFixed(1)}°C, low ${lo.toFixed(1)}°C. A weather model, not an official statistic.`,
+        },
+        {
+          ...hist,
+          value: avg === null ? null : `${avg.toFixed(1)}°C`,
+          raw: avg,
+          period: arch.length ? `${ar.daily.time[0]} – ${ar.daily.time[ar.daily.time.length - 1]}` : null,
+          asOf: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+          spark: arch,
+          history: arch.map((v, i) => ({ time: ar.daily.time[i] ?? "", value: v, formatted: `${v.toFixed(1)}°C` })),
+          status: avg === null ? "unavailable" : "ok",
+          note: avg === null ? null : "Mean of the last 30 published daily means. A weather model, not an official statistic.",
+        },
+      ];
+    } catch (e) {
+      const note = `Weather model unreachable just now (${e instanceof Error ? e.message : "no response"}) — no figure shown rather than a guess.`;
+      return [{ ...today, note }, { ...hist, note }];
+    }
+  });
+}
+
+/* ------------------------- Official weather warnings ------------------------ */
+
+const ALERTS_SOURCE = "Meteoalarm — national weather-service warnings (EUMETNET)";
+const ALERTS_URL = "https://meteoalarm.org";
+const acache = new Map<string, { at: number; p: Promise<CountryMetric> }>();
+
+function alertsMetric(code: string): Promise<CountryMetric> {
+  return cached(acache, code, ALERTS_TTL, async () => {
+    const place = PLACES[code];
+    const source = place?.alertSlug ? ALERTS_SOURCE : (place?.alertSource ?? "National weather service");
+    const sourceUrl = place?.alertSlug ? ALERTS_URL : (place?.alertUrl ?? ALERTS_URL);
+    const base: CountryMetric = {
+      id: `${code}-alerts`, title: "Official weather warnings in force", category: "National alerts",
+      value: null, period: null, asOf: null, cadence: "Issued as warnings are made", source, sourceUrl,
+      spark: [], history: [], raw: null, note: null, status: "unavailable",
+      next: "Feed updates whenever a warning is issued", calendarUrl: sourceUrl,
+    };
+    if (!place?.alertSlug) {
+      return {
+        ...base, status: "no-feed",
+        note: "No machine-readable warning feed is integrated for this country yet. See the national weather service for current warnings.",
+      };
+    }
+    try {
+      const xml = await (await get(`https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-${place.alertSlug}`)).text();
+      const alerts = parseCapFeed(xml);
+      const worst = worstColour(alerts);
+      const main = mainEvent(alerts);
+      return {
+        ...base,
+        value: alerts.length ? `${alerts.length} in force` : "None in force",
+        raw: alerts.length,
+        asOf: new Date().toISOString(),
+        status: "ok",
+        note: alerts.length
+          ? [worst ? `Highest level: ${worst}.` : null, main ? `Most common: ${main.event} (${main.areas} area${main.areas > 1 ? "s" : ""}).` : null].filter(Boolean).join(" ")
+          : "No official weather warning is in force for this country right now.",
+      };
+    } catch (e) {
+      return { ...base, note: `Warning feed unreachable just now (${e instanceof Error ? e.message : "no response"}) — no figure shown rather than a guess.` };
+    }
+  });
+}
+
 export async function nationalMetrics(code: string): Promise<CountryMetric[]> {
-  const live = await Promise.all([...(DEFS[code] ?? []), ...(countryByCode(code)?.euro ? [ecbRate] : [])].map((d) => run(code, d)));
-  return [...live, ...(NO_FEED[code] ?? [])];
+  const country = countryByCode(code);
+  const [live, weather, alerts] = await Promise.all([
+    Promise.all([...(DEFS[code] ?? []), ...(country?.euro ? [ecbRate] : [])].map((d) => run(code, d))),
+    weatherMetrics(code),
+    alertsMetric(code),
+  ]);
+  return [...live, ...weather, alerts, ...(NO_FEED[code] ?? [])];
 }

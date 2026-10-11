@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type AlertTone, type Freshness, type Metric } from "@/lib/uk-stats";
+import { ClockText } from "@/components/ClockText";
 
 const freshDot: Record<Freshness, string> = {
   fresh: "bg-fresh",
@@ -96,7 +97,7 @@ export function IndicatorCard({ metric }: { metric: Metric }) {
         </div>
         <div className="truncate text-right">
           <dt className="sr-only">Age</dt>
-          <dd>{ageLabel(metric.asOf)}</dd>
+          <dd><ClockText>{ageLabel(metric.asOf)}</ClockText></dd>
         </div>
         <div className="truncate">
           <dt className="sr-only">Published</dt>
@@ -104,7 +105,7 @@ export function IndicatorCard({ metric }: { metric: Metric }) {
         </div>
         <div className="truncate text-right">
           <dt className="sr-only">Next release</dt>
-          <dd>{dueLabel(metric.nextDue)}</dd>
+          <dd><ClockText>{dueLabel(metric.nextDue)}</ClockText></dd>
         </div>
         {metric.hasHistory ? (
           <div className="col-span-2 pt-1">

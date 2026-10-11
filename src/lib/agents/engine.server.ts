@@ -6,16 +6,21 @@ import { getUkStats } from "@/lib/uk-stats.functions";
 import { explainerById } from "@/lib/explained";
 import type { Metric } from "@/lib/uk-stats";
 import { aiJson, AiBlockedError } from "./ai.server";
-import { figureOfDay, releaseDay } from "./marketing";
+import { countryFigureOfDay, figureOfDay, releaseDay } from "./marketing";
 import { feedWatchdog, dataAuditor, type Finding } from "./findings";
 import { countryWatchdog } from "./countries.server";
+import { COUNTRIES } from "@/lib/countries";
+import { loadCountryStats } from "@/lib/countries.server";
 
 /** Marketing agent: drafts posts for owner approval; skips anything already drafted today. */
 async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise<Finding[]> {
   const since = new Date(Date.now() - 20 * 3600_000).toISOString();
   const { data: recent } = await db.from("agent_posts").select("metric_id, platform, kind").gte("created_at", since);
   const seen = new Set((recent ?? []).map((r: { metric_id: string; platform: string; kind: string }) => `${r.kind}|${r.metric_id}|${r.platform}`));
-  const rows = [...figureOfDay(metrics), ...releaseDay(metrics)]
+  const day = Math.floor(Date.now() / 86_400_000);
+  const country = COUNTRIES[day % COUNTRIES.length]!;
+  const payload = await loadCountryStats(country.code);
+  const rows = [...figureOfDay(metrics), ...releaseDay(metrics), ...(payload ? countryFigureOfDay(payload) : [])]
     .filter((p) => !seen.has(`${p.kind}|${p.metric_id}|${p.platform}`))
     .map((p) => ({ ...p, run_id: runId }));
   if (!rows.length) return [];
@@ -177,7 +182,7 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
   try {
     const stats = await getUkStats();
     const metrics = stats.metrics;
-    const countryChecks = await countryWatchdog();
+    const countryChecks = await countryWatchdog(db);
     findings.push(...feedWatchdog(metrics), ...dataAuditor(metrics));
     findings.push(...countryChecks.findings);
     findings.push(...(await revisionDetective(db, metrics)));

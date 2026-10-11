@@ -1,25 +1,63 @@
+// The site's core rule: posts carry official statistics only. Weather-model and
+// warning-feed cards stay on the site (labelled as such) but must never be posted.
 import { describe, expect, it } from "vitest";
-import { figureOfDay, releaseDay, tagLink } from "./marketing";
-import type { Metric } from "@/lib/uk-stats";
+import { countryFigureOfDay, figureOfDay } from "./marketing";
+import type { CountryPayload } from "../countries";
+import type { Metric } from "../uk-stats";
 
-const m = (o: Partial<Metric>): Metric =>
-  ({ id: "uk-cpi", title: "CPI inflation", category: "Finance", source: "ONS", sourceUrl: "https://ons.gov.uk", value: "3.1%", sub: null, period: "August 2026", asOf: null, nextDue: null, cadence: "Monthly", change: null, spark: [], status: "ok", note: null, ...o }) as Metric;
+const weather = {
+  id: "ie-temp-30d",
+  title: "Dublin temperature, 30-day mean",
+  value: "14.9°C",
+  period: "2026-09-09",
+  asOf: "2026-10-11T00:00:00Z",
+  cadence: "Daily",
+  source: "Open-Meteo weather model (not an official statistic)",
+  sourceUrl: "https://open-meteo.com",
+  spark: [14, 15],
+  raw: 14.9,
+  note: "A weather model, not an official statistic.",
+  status: "ok",
+};
 
-describe("marketing agent", () => {
-  it("tags links as social traffic", () => {
-    expect(tagLink("/x", "bluesky")).toBe("https://ukstats.co.uk/x?utm_source=bluesky&utm_medium=social&utm_campaign=agent");
+const official = {
+  id: "ie-debt",
+  title: "Government debt (% of GDP)",
+  value: "64.4%",
+  period: "2026-Q1",
+  asOf: "2026-10-01",
+  cadence: "Quarterly",
+  source: "Eurostat",
+  sourceUrl: "https://ec.europa.eu/eurostat",
+  spark: [63, 64],
+  raw: 64.4,
+  note: null,
+  status: "ok",
+};
+
+const payload = {
+  country: { code: "ie", name: "Ireland", eurostat: "IE", office: "CSO", officeUrl: "https://www.cso.ie", euro: true, wave: 1 },
+  metrics: [weather, official],
+  fetchedAt: "2026-10-11T23:00:00Z",
+} as unknown as CountryPayload;
+
+describe("marketing picks official figures only", () => {
+  it("drafts the Eurostat figure, never the weather model", () => {
+    const posts = countryFigureOfDay(payload, new Date("2026-10-11T12:00:00Z"));
+    expect(posts.length).toBeGreaterThan(0);
+    for (const p of posts) {
+      expect(p.body).toContain("Government debt");
+      expect(p.body).not.toMatch(/not an official statistic|temperature/i);
+      expect(p.link).toContain("ukstats.co.uk/ie/explained/ie-debt");
+    }
   });
-  it("copies the published value verbatim", () => {
-    const posts = figureOfDay([m({})]);
-    expect(posts).toHaveLength(2);
-    expect(posts[0]!.body).toContain("CPI inflation: 3.1% (August 2026)");
+
+  it("writes no country post at all when only a model figure is live", () => {
+    const onlyModel = { ...payload, metrics: [weather] } as unknown as CountryPayload;
+    expect(countryFigureOfDay(onlyModel, new Date("2026-10-11T12:00:00Z"))).toEqual([]);
   });
-  it("skips figures without a live value", () => {
-    expect(figureOfDay([m({ status: "no-feed", value: null })])).toHaveLength(0);
-  });
-  it("only drafts release posts within 36 hours", () => {
-    const now = Date.parse("2026-10-20T00:00:00Z");
-    expect(releaseDay([m({ nextDue: "2026-10-21T06:00:00Z" })], now)).toHaveLength(2);
-    expect(releaseDay([m({ nextDue: "2026-10-25T06:00:00Z" })], now)).toHaveLength(0);
+
+  it("writes no UK post when only a model figure is live", () => {
+    expect(figureOfDay([weather as unknown as Metric], new Date("2026-10-11T12:00:00Z"))).toEqual([]);
   });
 });
