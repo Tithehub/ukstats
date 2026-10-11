@@ -7,6 +7,7 @@ import { explainerById } from "@/lib/explained";
 import type { Metric } from "@/lib/uk-stats";
 import { aiJson, AiBlockedError } from "./ai.server";
 import { figureOfDay, releaseDay } from "./marketing";
+import { feedWatchdog, dataAuditor, type Finding } from "./findings";
 
 /** Marketing agent: drafts posts for owner approval; skips anything already drafted today. */
 async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise<Finding[]> {
@@ -16,18 +17,13 @@ async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise
   const rows = [...figureOfDay(metrics), ...releaseDay(metrics)]
     .filter((p) => !seen.has(`${p.kind}|${p.metric_id}|${p.platform}`))
     .map((p) => ({ ...p, run_id: runId }));
-  if (rows.length) await db.from("agent_posts").insert(rows);
-  return rows.length ? [{ agent: "Marketing", severity: "info", title: `${rows.length} social post draft(s) awaiting your approval` }] : [];
+  if (!rows.length) return [];
+  const { error } = await db.from("agent_posts").insert(rows);
+  if (error)
+    return [{ agent: "Marketing", severity: "critical", title: "Social post drafts could not be saved", detail: `${error.message} (${rows.length} draft(s) lost)` }];
+  return [{ agent: "Marketing", severity: "info", title: `${rows.length} social post draft(s) awaiting your approval` }];
 }
 
-type Finding = {
-  agent: string;
-  severity: "critical" | "warning" | "info";
-  metric_id?: string | null;
-  title: string;
-  detail?: string | null;
-  url?: string | null;
-};
 
 const SITE = "https://ukstats.co.uk";
 const PAGES = ["/", "/register", "/daily", "/status", "/compare", "/calendar", "/regions", "/maps", "/press", "/polling", "/tax-vs-welfare", "/foreign-aid", "/api-docs", "/coverage"];
@@ -35,44 +31,6 @@ const MAX_DRAFTS = 2;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
 
-export function feedWatchdog(metrics: Metric[], now = Date.now()): Finding[] {
-  const out: Finding[] = [];
-  for (const m of metrics) {
-    if (m.status === "unavailable")
-      out.push({ agent: "Feed Watchdog", severity: "critical", metric_id: m.id, title: `${m.title}: source unreachable tonight`, detail: m.note, url: m.sourceUrl });
-    if (m.status === "ok" && m.nextDue) {
-      const due = Date.parse(m.nextDue);
-      const asOf = m.asOf ? Date.parse(m.asOf) : 0;
-      if (!Number.isNaN(due) && now - due > 2 * 86400_000 && asOf < due)
-        out.push({ agent: "Feed Watchdog", severity: "warning", metric_id: m.id, title: `${m.title}: release overdue`, detail: `Expected ${m.nextDue.slice(0, 10)}, latest still dated ${m.asOf?.slice(0, 10) ?? "unknown"}.`, url: m.sourceUrl });
-    }
-  }
-  return out;
-}
-
-export function dataAuditor(metrics: Metric[], now = Date.now()): Finding[] {
-  const out: Finding[] = [];
-  const seen = new Set<string>();
-  for (const m of metrics) {
-    if (seen.has(m.id)) out.push({ agent: "Data Auditor", severity: "warning", metric_id: m.id, title: `Duplicate figure id ${m.id}` });
-    seen.add(m.id);
-    if (!/^https:\/\//.test(m.sourceUrl ?? ""))
-      out.push({ agent: "Data Auditor", severity: "critical", metric_id: m.id, title: `${m.title}: missing or insecure source link` });
-    if (m.status === "ok" && !m.value)
-      out.push({ agent: "Data Auditor", severity: "warning", metric_id: m.id, title: `${m.title}: marked live but has no value` });
-    if (m.status === "ok" && !m.period)
-      out.push({ agent: "Data Auditor", severity: "info", metric_id: m.id, title: `${m.title}: no reference period shown` });
-    if (m.asOf && Date.parse(m.asOf) > now + 86400_000)
-      out.push({ agent: "Data Auditor", severity: "warning", metric_id: m.id, title: `${m.title}: publication date is in the future`, detail: m.asOf });
-    const s = m.spark.filter((v) => Number.isFinite(v));
-    if (s.length >= 3) {
-      const last = s[s.length - 1] ?? 0, prev = s[s.length - 2] ?? 0;
-      if (prev !== 0 && Math.abs(last / prev) > 10)
-        out.push({ agent: "Data Auditor", severity: "warning", metric_id: m.id, title: `${m.title}: tenfold jump in latest point — check units`, detail: `${prev} → ${last}` });
-    }
-  }
-  return out;
-}
 
 async function revisionDetective(db: Db, metrics: Metric[]): Promise<Finding[]> {
   const { data: prior } = await db.from("metric_snapshots").select("metric_id, value, period");
@@ -92,9 +50,12 @@ async function revisionDetective(db: Db, metrics: Metric[]): Promise<Finding[]> 
 async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
   const out: Finding[] = [];
   const titles = new Map<string, string>();
+  const TIMEOUT = 45_000;
+  const failed: string[] = [];
+  let lastError = "";
   for (const path of PAGES) {
     try {
-      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(20_000) });
+      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(TIMEOUT) });
       if (!res.ok) {
         out.push({ agent: "SEO & Accessibility", severity: "critical", title: `${path} returned ${res.status}`, url: SITE + path });
         continue;
@@ -112,15 +73,35 @@ async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
       if (noAlt) out.push({ agent: "SEO & Accessibility", severity: "info", title: `${path}: ${noAlt} image(s) without alt text`, url: SITE + path });
       if (!/<html[^>]+lang=/i.test(html)) out.push({ agent: "SEO & Accessibility", severity: "warning", title: `${path} missing page language`, url: SITE + path });
     } catch (e) {
-      out.push({ agent: "SEO & Accessibility", severity: "critical", title: `${path} could not be fetched`, detail: String(e).slice(0, 200), url: SITE + path });
+      failed.push(path);
+      lastError = String(e).slice(0, 120);
     }
   }
+  if (failed.length)
+    out.push({
+      agent: "SEO & Accessibility",
+      severity: failed.length === PAGES.length ? "critical" : "warning",
+      title: failed.length === PAGES.length ? "The site could not be fetched for the nightly check" : `${failed.length} page(s) could not be fetched: ${failed.join(", ")}`,
+      detail: lastError,
+      url: SITE,
+    });
   try {
-    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(20_000) })).text();
-    const missing = metrics.filter((m) => !sm.includes(`/explained/${m.id}<`)).length;
-    if (missing) out.push({ agent: "SEO & Accessibility", severity: "info", title: `${missing} explainer pages not listed in the sitemap`, url: `${SITE}/sitemap.xml` });
-  } catch {
-    /* sitemap check skipped */
+    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(TIMEOUT) })).text();
+    if (!sm.includes("<urlset")) {
+      out.push({ agent: "SEO & Accessibility", severity: "warning", title: "sitemap.xml did not return a sitemap", detail: sm.slice(0, 120), url: `${SITE}/sitemap.xml` });
+    } else {
+      const missing = metrics.filter((m) => !sm.includes(`/explained/${m.id}<`));
+      if (missing.length)
+        out.push({
+          agent: "SEO & Accessibility",
+          severity: "info",
+          title: `${missing.length} explainer pages not listed in the sitemap`,
+          detail: missing.slice(0, 8).map((m) => m.id).join(", "),
+          url: `${SITE}/sitemap.xml`,
+        });
+    }
+  } catch (e) {
+    out.push({ agent: "SEO & Accessibility", severity: "warning", title: "sitemap.xml could not be fetched", detail: String(e).slice(0, 120), url: `${SITE}/sitemap.xml` });
   }
   return out;
 }
