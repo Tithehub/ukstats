@@ -49,7 +49,12 @@ export const getCountryStats = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<CountryPayload | null> => {
     const country = countryByCode(data.code);
     if (!country) return null;
-    const metrics = country.eurostat ? await Promise.all(ES_DEFS.map((d) => metricFor(d.id, country.eurostat!))) : [];
+    const { nationalMetrics } = await import("@/lib/national.server");
+    const [es, nat] = await Promise.all([
+      country.eurostat ? Promise.all(ES_DEFS.map((d) => metricFor(d.id, country.eurostat!))) : Promise.resolve([]),
+      nationalMetrics(country.code),
+    ]);
+    const metrics = [...nat.filter((m) => m.value), ...es, ...nat.filter((m) => !m.value)];
     return { country, metrics, fetchedAt: new Date().toISOString() };
   });
 
