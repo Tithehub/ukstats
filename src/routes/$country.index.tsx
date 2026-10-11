@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { CountryCard } from '@/components/CountryCard';
 import { CountryShell } from '@/components/CountryShell';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ export const Route = createFileRoute('/$country/')({
 });
 function CountryPage() {
   const { country } = Route.useParams(); const { q = "" } = Route.useSearch(); const navigate = Route.useNavigate();
-  const { data } = useSuspenseQuery(countryQuery(country)); if (!data) return null;
+  const data = Route.useLoaderData(); if (!data) return null;
   const published = data.metrics.filter(m => m.value !== null).length;
   const shown = data.metrics.filter(m => `${m.title} ${m.source} ${metricCategory(m)}`.toLowerCase().includes(q.toLowerCase()));
   return <CountryShell country={data.country}>

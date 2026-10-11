@@ -1,5 +1,4 @@
 import { createFileRoute, notFound, Link } from '@tanstack/react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { countryQuery } from '@/lib/country-queries';
 import { countryHead } from '@/lib/country-detail';
 import { CountryCard } from '@/components/CountryCard';
@@ -10,4 +9,4 @@ export const Route = createFileRoute('/$country/embed/$metricId')({
   errorComponent: () => <p className="p-4">Feed temporarily unavailable.</p>,
   notFoundComponent: () => <p className="p-4">Figure not found.</p>,
 });
-function Widget() { const { country, metricId } = Route.useParams(); const { data } = useSuspenseQuery(countryQuery(country)); const m = data?.metrics.find(m => m.id === metricId); if (!data || !m) return null; return <main className="min-h-screen bg-night p-3 text-night-fg"><p className="mb-2 font-mono text-xs">{data.country.name} · UKStats</p><CountryCard m={m} embedded /><Link to="/$country/explained/$metricId" params={{ country, metricId }} target="_blank" className="mt-3 block text-xs text-electric-soft">Official figure and methodology ↗</Link></main>; }
+function Widget() { const { country, metricId } = Route.useParams(); const data = Route.useLoaderData(); const m = data?.metrics.find(m => m.id === metricId); if (!data || !m) return null; return <main className="min-h-screen bg-night p-3 text-night-fg"><p className="mb-2 font-mono text-xs">{data.country.name} · UKStats</p><CountryCard m={m} embedded /><Link to="/$country/explained/$metricId" params={{ country, metricId }} target="_blank" className="mt-3 block text-xs text-electric-soft">Official figure and methodology ↗</Link></main>; }
