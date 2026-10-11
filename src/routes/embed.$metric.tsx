@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
+import { ClockText } from "@/components/ClockText";
 import { ThreatTile, isStatusMetric } from "@/components/ThreatBoard";
 
 interface EmbedSearch {
@@ -106,9 +107,9 @@ function Row({ metric, compact, provenance }: { metric: Metric; compact: boolean
           <div className="mt-3 flex items-center justify-between border-t border-ink/10 pt-2 font-mono text-[10px]">
             <span className={`inline-flex items-center gap-1.5 ${freshText[tone]}`}>
               <span className={`size-1.5 rounded-full ${freshBg[tone]}`} />
-              as of {fmtDate(metric.asOf)} · {ageLabel(metric.asOf)}
+              as of {fmtDate(metric.asOf)} · <ClockText>{ageLabel(metric.asOf)}</ClockText>
             </span>
-            <span className="text-steel/60">{dueLabel(metric.nextDue)}</span>
+            <span className="text-steel/60"><ClockText>{dueLabel(metric.nextDue)}</ClockText></span>
           </div>
           <a
             href={metric.sourceUrl}

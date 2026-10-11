@@ -1,4 +1,5 @@
 import { ageLabel, fmtDate, type AlertTone, type Metric } from "@/lib/uk-stats";
+import { ClockText } from "@/components/ClockText";
 
 const toneBg: Record<AlertTone, string> = {
   neutral: "bg-steel/25",
@@ -69,7 +70,7 @@ export function ThreatTile({ metric, compact = false }: { metric: Metric; compac
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-ink/10 pt-2 font-mono text-[9px] text-steel/60">
           <span>{scale.authority}</span>
-          <span>{metric.asOf ? `set ${fmtDate(metric.asOf)} · ${ageLabel(metric.asOf)}` : "no date published"}</span>
+          <span>{metric.asOf ? <>set {fmtDate(metric.asOf)} · <ClockText>{ageLabel(metric.asOf)}</ClockText></> : "no date published"}</span>
           <a
             href={metric.sourceUrl}
             target="_blank"

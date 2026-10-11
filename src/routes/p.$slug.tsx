@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { getSharedPage } from "@/lib/shared-pages.functions";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
+import { ClockText } from "@/components/ClockText";
 import { countdown } from "@/lib/pages";
 import { useEffect, useState } from "react";
 
@@ -117,9 +118,9 @@ function Row({ metric }: { metric: Metric }) {
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 border-t border-ink/10 pt-2 font-mono text-[10px]">
         <span className={`inline-flex items-center gap-1.5 ${freshText[tone]}`}>
           <span className={`size-1.5 rounded-full ${freshBg[tone]}`} />
-          as of {fmtDate(metric.asOf)} · {ageLabel(metric.asOf)}
+          as of {fmtDate(metric.asOf)} · <ClockText>{ageLabel(metric.asOf)}</ClockText>
         </span>
-        <span className="text-steel/60">{dueLabel(metric.nextDue)}</span>
+        <span className="text-steel/60"><ClockText>{dueLabel(metric.nextDue)}</ClockText></span>
       </div>
       <a
         href={metric.sourceUrl}
