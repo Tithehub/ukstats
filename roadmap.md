@@ -13,7 +13,7 @@
 - [x] Heat maps at /maps: police force area crime + regional house prices, postcode street-level Police.uk pins
 - [x] /tax-vs-welfare: total current receipts vs net social benefits, full published history + CSV
 - [x] Defence & security / Crime personnel: HM Forces FTE and police workforce (ONS public sector employment)
-- [ ] Army/Navy/RAF service split and UK-born/foreign-born population: no current machine-readable official feed (shown as "No live feed")
+- [x] Army/Navy/RAF split (MOD quarterly tables, history since 2012) and UK-born/non-UK-born (Census 2021 TS004, England & Wales)
 - [ ] Add the real MetaMask/crypto addresses to src/lib/donate.ts once provided
 - [ ] Google Search Console setup (needs user to connect the account)
 
