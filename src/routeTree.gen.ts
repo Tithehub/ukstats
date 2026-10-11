@@ -40,6 +40,9 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
+import { Route as CountryCalendarRouteImport } from './routes/$country.calendar'
+import { Route as CountrySourcesRouteImport } from './routes/$country.sources'
+import { Route as CountryStatusRouteImport } from './routes/$country.status'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
@@ -47,6 +50,9 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as CountryEmbedMetricIdRouteImport } from './routes/$country.embed.$metricId'
+import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.explained.$metricId'
+import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
@@ -206,6 +212,21 @@ const CountryIndexRoute = CountryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CountryRoute,
 } as any)
+const CountryCalendarRoute = CountryCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => CountryRoute,
+} as any)
+const CountrySourcesRoute = CountrySourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => CountryRoute,
+} as any)
+const CountryStatusRoute = CountryStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => CountryRoute,
+} as any)
 const DailyDateRoute = DailyDateRouteImport.update({
   id: '/$date',
   path: '/$date',
@@ -240,6 +261,22 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
+} as any)
+const CountryEmbedMetricIdRoute = CountryEmbedMetricIdRouteImport.update({
+  id: '/embed/$metricId',
+  path: '/embed/$metricId',
+  getParentRoute: () => CountryRoute,
+} as any)
+const CountryExplainedMetricIdRoute =
+  CountryExplainedMetricIdRouteImport.update({
+    id: '/explained/$metricId',
+    path: '/explained/$metricId',
+    getParentRoute: () => CountryRoute,
+  } as any)
+const CountryHistoryMetricIdRoute = CountryHistoryMetricIdRouteImport.update({
+  id: '/history/$metricId',
+  path: '/history/$metricId',
+  getParentRoute: () => CountryRoute,
 } as any)
 const ApiPublicAgentsTickRoute = ApiPublicAgentsTickRouteImport.update({
   id: '/public/agents-tick',
@@ -288,6 +325,9 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/$country/calendar': typeof CountryCalendarRoute
+  '/$country/sources': typeof CountrySourcesRoute
+  '/$country/status': typeof CountryStatusRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -296,6 +336,9 @@ export interface FileRoutesByFullPath {
   '/regions/$slug': typeof RegionsSlugRoute
   '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
+  '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
+  '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
+  '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -329,6 +372,9 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/$country/calendar': typeof CountryCalendarRoute
+  '/$country/sources': typeof CountrySourcesRoute
+  '/$country/status': typeof CountryStatusRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -337,6 +383,9 @@ export interface FileRoutesByTo {
   '/regions/$slug': typeof RegionsSlugRoute
   '/$country': typeof CountryIndexRoute
   '/regions': typeof RegionsIndexRoute
+  '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
+  '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
+  '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -373,6 +422,9 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/$country/calendar': typeof CountryCalendarRoute
+  '/$country/sources': typeof CountrySourcesRoute
+  '/$country/status': typeof CountryStatusRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -381,6 +433,9 @@ export interface FileRoutesById {
   '/regions/$slug': typeof RegionsSlugRoute
   '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
+  '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
+  '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
+  '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -418,6 +473,9 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/$country/calendar'
+    | '/$country/sources'
+    | '/$country/status'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -426,6 +484,9 @@ export interface FileRouteTypes {
     | '/regions/$slug'
     | '/$country/'
     | '/regions/'
+    | '/$country/embed/$metricId'
+    | '/$country/explained/$metricId'
+    | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
@@ -459,6 +520,9 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/$country/calendar'
+    | '/$country/sources'
+    | '/$country/status'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -467,6 +531,9 @@ export interface FileRouteTypes {
     | '/regions/$slug'
     | '/$country'
     | '/regions'
+    | '/$country/embed/$metricId'
+    | '/$country/explained/$metricId'
+    | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
@@ -502,6 +569,9 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/$country/calendar'
+    | '/$country/sources'
+    | '/$country/status'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -510,6 +580,9 @@ export interface FileRouteTypes {
     | '/regions/$slug'
     | '/$country/'
     | '/regions/'
+    | '/$country/embed/$metricId'
+    | '/$country/explained/$metricId'
+    | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
@@ -771,6 +844,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryIndexRouteImport
       parentRoute: typeof CountryRoute
     }
+    '/$country/calendar': {
+      id: '/$country/calendar'
+      path: '/calendar'
+      fullPath: '/$country/calendar'
+      preLoaderRoute: typeof CountryCalendarRouteImport
+      parentRoute: typeof CountryRoute
+    }
+    '/$country/sources': {
+      id: '/$country/sources'
+      path: '/sources'
+      fullPath: '/$country/sources'
+      preLoaderRoute: typeof CountrySourcesRouteImport
+      parentRoute: typeof CountryRoute
+    }
+    '/$country/status': {
+      id: '/$country/status'
+      path: '/status'
+      fullPath: '/$country/status'
+      preLoaderRoute: typeof CountryStatusRouteImport
+      parentRoute: typeof CountryRoute
+    }
     '/daily/$date': {
       id: '/daily/$date'
       path: '/$date'
@@ -820,6 +914,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/$country/embed/$metricId': {
+      id: '/$country/embed/$metricId'
+      path: '/embed/$metricId'
+      fullPath: '/$country/embed/$metricId'
+      preLoaderRoute: typeof CountryEmbedMetricIdRouteImport
+      parentRoute: typeof CountryRoute
+    }
+    '/$country/explained/$metricId': {
+      id: '/$country/explained/$metricId'
+      path: '/explained/$metricId'
+      fullPath: '/$country/explained/$metricId'
+      preLoaderRoute: typeof CountryExplainedMetricIdRouteImport
+      parentRoute: typeof CountryRoute
+    }
+    '/$country/history/$metricId': {
+      id: '/$country/history/$metricId'
+      path: '/history/$metricId'
+      fullPath: '/$country/history/$metricId'
+      preLoaderRoute: typeof CountryHistoryMetricIdRouteImport
+      parentRoute: typeof CountryRoute
+    }
     '/api/public/agents-tick': {
       id: '/api/public/agents-tick'
       path: '/public/agents-tick'
@@ -845,11 +960,23 @@ declare module '@tanstack/react-router' {
 }
 
 interface CountryRouteChildren {
+  CountryCalendarRoute: typeof CountryCalendarRoute
+  CountrySourcesRoute: typeof CountrySourcesRoute
+  CountryStatusRoute: typeof CountryStatusRoute
   CountryIndexRoute: typeof CountryIndexRoute
+  CountryEmbedMetricIdRoute: typeof CountryEmbedMetricIdRoute
+  CountryExplainedMetricIdRoute: typeof CountryExplainedMetricIdRoute
+  CountryHistoryMetricIdRoute: typeof CountryHistoryMetricIdRoute
 }
 
 const CountryRouteChildren: CountryRouteChildren = {
+  CountryCalendarRoute: CountryCalendarRoute,
+  CountrySourcesRoute: CountrySourcesRoute,
+  CountryStatusRoute: CountryStatusRoute,
   CountryIndexRoute: CountryIndexRoute,
+  CountryEmbedMetricIdRoute: CountryEmbedMetricIdRoute,
+  CountryExplainedMetricIdRoute: CountryExplainedMetricIdRoute,
+  CountryHistoryMetricIdRoute: CountryHistoryMetricIdRoute,
 }
 
 const CountryRouteWithChildren =
