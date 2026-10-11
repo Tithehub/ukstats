@@ -41,6 +41,7 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
 
@@ -204,6 +205,11 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
 } as any)
+const ApiPublicAgentsTickRoute = ApiPublicAgentsTickRouteImport.update({
+  id: '/api/public/agents-tick',
+  path: '/api/public/agents-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   id: '/api/public/outreach-tick',
   path: '/api/public/outreach-tick',
@@ -248,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/regions/': typeof RegionsIndexRoute
+  '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/regions': typeof RegionsIndexRoute
+  '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/regions/': typeof RegionsIndexRoute
+  '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/regions/$slug'
     | '/regions/'
+    | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesByTo: FileRoutesByTo
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/regions/$slug'
     | '/regions'
+    | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   id:
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/regions/$slug'
     | '/regions/'
+    | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesById: FileRoutesById
@@ -463,6 +475,7 @@ export interface RootRouteChildren {
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
   ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
 }
@@ -693,6 +706,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/api/public/agents-tick': {
+      id: '/api/public/agents-tick'
+      path: '/api/public/agents-tick'
+      fullPath: '/api/public/agents-tick'
+      preLoaderRoute: typeof ApiPublicAgentsTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/outreach-tick': {
       id: '/api/public/outreach-tick'
       path: '/api/public/outreach-tick'
@@ -763,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
   ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
 }
