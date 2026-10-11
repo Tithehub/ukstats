@@ -68,5 +68,7 @@
 - [ ] Full UK-equivalent coverage: integrate national feeds for every country (especially US/CA/AU), weather, alerts, polling, immigration costs, publisher-confirmed release dates, deeper explanations and revision history; current infrastructure does not imply complete topic parity
 
 ## Social branding
-- [ ] Solid-white logo versions for Bluesky (profile square + banner) — transparent PNGs render badly there
-- [ ] Nightly agents extended to the 33 country registers: revision detection (country_metric_snapshots) and a country figure-of-the-day draft
+- [x] Solid-white logo versions for Bluesky (profile square + banner) — transparent PNGs render badly there
+- [x] Nightly agents extended to the 33 country registers: revision detection (country_metric_snapshots) and a country figure-of-the-day draft
+- [x] Marketing posts now carry official figures only — weather-model and warning cards stay on the site but are never drafted as posts
+- [x] Page-age labels no longer force a full client re-render (server/client clock mismatch fixed with a wrapped clock text component)
