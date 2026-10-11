@@ -29,6 +29,10 @@ async function get(url: string, init: RequestInit = {}): Promise<Response> {
   }
 }
 
+async function getJson<T>(url: string): Promise<T> {
+  return (await (await get(url)).json()) as T;
+}
+
 type Def = { id: string; title: string; cadence: string; source: string; sourceUrl: string; next: string; fmt: (v: number) => string; load: () => Promise<{ pts: Pt[]; asOf?: string | null }> };
 
 const pct = (v: number) => `${v.toFixed(1)}%`;
@@ -150,8 +154,8 @@ function weatherMetrics(code: string): Promise<CountryMetric[]> {
     const end = new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10);
     try {
       const [fc, ar] = await Promise.all([
-        (await get(`https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min&timezone=${encodeURIComponent(place.tz)}&forecast_days=7`)).json() as { daily: { time: string[]; temperature_2m_mean: number[]; temperature_2m_max: number[]; temperature_2m_min: number[] } },
-        (await get(`https://archive-api.open-meteo.com/v1/archive?latitude=${place.lat}&longitude=${place.lon}&start_date=${start}&end_date=${end}&daily=temperature_2m_mean&timezone=${encodeURIComponent(place.tz)}`)).json() as { daily: { time: string[]; temperature_2m_mean: (number | null)[] } },
+        getJson<{ daily: { time: string[]; temperature_2m_mean: number[]; temperature_2m_max: number[]; temperature_2m_min: number[] } }>(`https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min&timezone=${encodeURIComponent(place.tz)}&forecast_days=7`),
+        getJson<{ daily: { time: string[]; temperature_2m_mean: (number | null)[] } }>(`https://archive-api.open-meteo.com/v1/archive?latitude=${place.lat}&longitude=${place.lon}&start_date=${start}&end_date=${end}&daily=temperature_2m_mean&timezone=${encodeURIComponent(place.tz)}`),
       ]);
       const mean = fc.daily.temperature_2m_mean?.[0];
       const hi = fc.daily.temperature_2m_max?.[0];
