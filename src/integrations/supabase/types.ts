@@ -83,6 +83,36 @@ export type Database = {
         }
         Relationships: []
       }
+      media_mentions: {
+        Row: {
+          approved: boolean
+          created_at: string
+          id: string
+          image_url: string | null
+          outlet: string
+          title: string
+          url: string
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          outlet: string
+          title: string
+          url: string
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          outlet?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       metric_changes: {
         Row: {
           as_of: string | null

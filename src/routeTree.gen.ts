@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ConnectionsRouteImport } from './routes/connections'
+import { Route as CoverageRouteImport } from './routes/coverage'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
@@ -67,6 +68,11 @@ const CompareRoute = CompareRouteImport.update({
 const ConnectionsRoute = ConnectionsRouteImport.update({
   id: '/connections',
   path: '/connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoverageRoute = CoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateRoute = CreateRouteImport.update({
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
   '/connections': typeof ConnectionsRoute
+  '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
   '/connections': typeof ConnectionsRoute
+  '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
   '/connections': typeof ConnectionsRoute
+  '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/compare'
     | '/connections'
+    | '/coverage'
     | '/create'
     | '/daily'
     | '/feed.xml'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/compare'
     | '/connections'
+    | '/coverage'
     | '/create'
     | '/daily'
     | '/feed.xml'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/compare'
     | '/connections'
+    | '/coverage'
     | '/create'
     | '/daily'
     | '/feed.xml'
@@ -382,6 +394,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   CompareRoute: typeof CompareRoute
   ConnectionsRoute: typeof ConnectionsRoute
+  CoverageRoute: typeof CoverageRoute
   CreateRoute: typeof CreateRoute
   DailyRoute: typeof DailyRouteWithChildren
   FeedDotxmlRoute: typeof FeedDotxmlRoute
@@ -448,6 +461,13 @@ declare module '@tanstack/react-router' {
       path: '/connections'
       fullPath: '/connections'
       preLoaderRoute: typeof ConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coverage': {
+      id: '/coverage'
+      path: '/coverage'
+      fullPath: '/coverage'
+      preLoaderRoute: typeof CoverageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/create': {
@@ -631,6 +651,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   CompareRoute: CompareRoute,
   ConnectionsRoute: ConnectionsRoute,
+  CoverageRoute: CoverageRoute,
   CreateRoute: CreateRoute,
   DailyRoute: DailyRouteWithChildren,
   FeedDotxmlRoute: FeedDotxmlRoute,
