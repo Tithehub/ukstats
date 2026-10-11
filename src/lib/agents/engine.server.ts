@@ -81,7 +81,7 @@ async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
   const titles = new Map<string, string>();
   for (const path of PAGES) {
     try {
-      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(10_000) });
+      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(20_000) });
       if (!res.ok) {
         out.push({ agent: "SEO & Accessibility", severity: "critical", title: `${path} returned ${res.status}`, url: SITE + path });
         continue;
@@ -103,7 +103,7 @@ async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
     }
   }
   try {
-    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(10_000) })).text();
+    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(20_000) })).text();
     const missing = metrics.filter((m) => !sm.includes(`/explained/${m.id}<`)).length;
     if (missing) out.push({ agent: "SEO & Accessibility", severity: "info", title: `${missing} explainer pages not listed in the sitemap`, url: `${SITE}/sitemap.xml` });
   } catch {
