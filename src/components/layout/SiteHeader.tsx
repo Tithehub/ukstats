@@ -26,6 +26,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/useAuth";
 import { btn, iconBtn } from "@/lib/ui";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 
 interface NavItem {
   to: string;
@@ -96,6 +97,7 @@ export function Wordmark() {
 export function SiteHeader({ status }: { status?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { signedIn, user } = useAuth();
+  const { isAdmin } = useIsAdmin();
 
   // Lock the page behind the drawer and close it on Escape.
   useEffect(() => {
@@ -128,6 +130,16 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
                 {n.label}
               </Link>
             ))}
+            {isAdmin ? (
+              <Link
+                to="/agents"
+                activeProps={{ className: "text-night-fg bg-night-panel" }}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+              >
+                <Bot className="size-4" aria-hidden="true" />
+                Agents
+              </Link>
+            ) : null}
           </nav>
         </div>
 
@@ -207,6 +219,24 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
                   </ul>
                 </div>
               ))}
+              {isAdmin ? (
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-electric">Admin</p>
+                  <ul className="mt-2 grid gap-0.5">
+                    <li>
+                      <Link
+                        to="/agents"
+                        onClick={() => setOpen(false)}
+                        activeProps={{ className: "text-night-fg bg-night-panel" }}
+                        className="flex min-h-11 items-center gap-2.5 rounded-md px-2 py-2 text-[14px] text-night-muted hover:bg-night-panel hover:text-night-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+                      >
+                        <Bot className="size-4 shrink-0 text-electric-soft" aria-hidden="true" />
+                        Agents
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              ) : null}
             </div>
             <Link to="/create" onClick={() => setOpen(false)} className={btn("primary", "md", "mt-6 w-full sm:hidden")}>
               <PlusCircle className="size-4" aria-hidden="true" />
