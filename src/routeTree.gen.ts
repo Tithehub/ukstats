@@ -56,6 +56,8 @@ import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.hi
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
+import { Route as ApiPublicV1CountriesCodeMetricsRouteImport } from './routes/api/public/v1/countries/$code.metrics'
+import { Route as ApiPublicV1CountriesCodeHistoryMetricIdRouteImport } from './routes/api/public/v1/countries/$code.history.$metricId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -293,6 +295,18 @@ const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
   path: '/public/v1/metrics',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicV1CountriesCodeMetricsRoute =
+  ApiPublicV1CountriesCodeMetricsRouteImport.update({
+    id: '/public/v1/countries/$code/metrics',
+    path: '/public/v1/countries/$code/metrics',
+    getParentRoute: () => ApiRoute,
+  } as any)
+const ApiPublicV1CountriesCodeHistoryMetricIdRoute =
+  ApiPublicV1CountriesCodeHistoryMetricIdRouteImport.update({
+    id: '/public/v1/countries/$code/history/$metricId',
+    path: '/public/v1/countries/$code/history/$metricId',
+    getParentRoute: () => ApiRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -342,6 +356,8 @@ export interface FileRoutesByFullPath {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
+  '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
+  '/api/public/v1/countries/$code/history/$metricId': typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -389,6 +405,8 @@ export interface FileRoutesByTo {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
+  '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
+  '/api/public/v1/countries/$code/history/$metricId': typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -439,6 +457,8 @@ export interface FileRoutesById {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
+  '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
+  '/api/public/v1/countries/$code/history/$metricId': typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -490,6 +510,8 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
+    | '/api/public/v1/countries/$code/metrics'
+    | '/api/public/v1/countries/$code/history/$metricId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -537,6 +559,8 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
+    | '/api/public/v1/countries/$code/metrics'
+    | '/api/public/v1/countries/$code/history/$metricId'
   id:
     | '__root__'
     | '/'
@@ -586,6 +610,8 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
+    | '/api/public/v1/countries/$code/metrics'
+    | '/api/public/v1/countries/$code/history/$metricId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -956,6 +982,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1MetricsRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/v1/countries/$code/metrics': {
+      id: '/api/public/v1/countries/$code/metrics'
+      path: '/public/v1/countries/$code/metrics'
+      fullPath: '/api/public/v1/countries/$code/metrics'
+      preLoaderRoute: typeof ApiPublicV1CountriesCodeMetricsRouteImport
+      parentRoute: typeof ApiRoute
+    }
+    '/api/public/v1/countries/$code/history/$metricId': {
+      id: '/api/public/v1/countries/$code/history/$metricId'
+      path: '/public/v1/countries/$code/history/$metricId'
+      fullPath: '/api/public/v1/countries/$code/history/$metricId'
+      preLoaderRoute: typeof ApiPublicV1CountriesCodeHistoryMetricIdRouteImport
+      parentRoute: typeof ApiRoute
+    }
   }
 }
 
@@ -986,12 +1026,17 @@ interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
   ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
+  ApiPublicV1CountriesCodeMetricsRoute: typeof ApiPublicV1CountriesCodeMetricsRoute
+  ApiPublicV1CountriesCodeHistoryMetricIdRoute: typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
 
 const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
   ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
+  ApiPublicV1CountriesCodeMetricsRoute: ApiPublicV1CountriesCodeMetricsRoute,
+  ApiPublicV1CountriesCodeHistoryMetricIdRoute:
+    ApiPublicV1CountriesCodeHistoryMetricIdRoute,
 }
 
 const ApiRouteWithChildren = ApiRoute._addFileChildren(ApiRouteChildren)
