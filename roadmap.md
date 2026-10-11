@@ -66,3 +66,7 @@
 - [x] Country infrastructure: grouped registers, explanations, available published history, embeds, publisher calendar links (exact dates still unconfirmed), JSON/CSV and nightly feed checks for all 33 registered countries
 - [x] Broadened verified Eurostat coverage: homicide, asylum decisions, residence permits, debt EUR, practising doctors, health/defence/social protection spending and six cost-of-living inflation series; remaining source gaps explicitly shown
 - [ ] Full UK-equivalent coverage: integrate national feeds for every country (especially US/CA/AU), weather, alerts, polling, immigration costs, publisher-confirmed release dates, deeper explanations and revision history; current infrastructure does not imply complete topic parity
+
+## Social branding
+- [ ] Solid-white logo versions for Bluesky (profile square + banner) — transparent PNGs render badly there
+- [ ] Nightly agents extended to the 33 country registers: revision detection (country_metric_snapshots) and a country figure-of-the-day draft

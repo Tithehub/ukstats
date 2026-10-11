@@ -1,5 +1,6 @@
 /** Marketing agent: drafts posts from published figures only. Numbers are copied verbatim. */
 import type { Metric } from "@/lib/uk-stats";
+import type { CountryPayload } from "@/lib/countries";
 
 export const SITE = "https://ukstats.co.uk";
 export const PLATFORMS = ["bluesky", "mastodon"] as const;
@@ -19,7 +20,7 @@ function compose(m: Metric, platform: (typeof PLATFORMS)[number], lead: string, 
   const link = tagLink(`/explained/${m.id}`, platform, campaign);
   const parts = [`${lead}${m.title}: ${m.value}${m.period ? ` (${m.period})` : ""}.`, `Source: ${m.source}.`, link];
   let body = parts.join("\n\n");
-  if (body.length > LIMIT[platform]) body = [parts[0], link].join("\n\n");
+  if (body.length > LIMIT[platform]) body = [parts[0]!, link].join("\n\n");
   return { kind: campaign, metric_id: m.id, platform, body, link, source_url: m.sourceUrl };
 }
 
@@ -44,4 +45,20 @@ export function releaseDay(metrics: Metric[], now = Date.now()): DraftPost[] {
     if (out.length >= 6) break;
   }
   return out;
+}
+
+/** One figure of the day for a country register, rotating by date. Figures are copied verbatim. */
+export function countryFigureOfDay(payload: CountryPayload, date = new Date()): DraftPost[] {
+  const live = payload.metrics.filter((m) => m.status === "ok" && m.value && m.period && /^https:\/\//.test(m.sourceUrl));
+  if (!live.length) return [];
+  const day = Math.floor(date.getTime() / 86400_000);
+  const m = live[day % live.length]!;
+  const lead = `${payload.country.name} figure of the day — `;
+  return PLATFORMS.map((p) => {
+    const link = tagLink(`/${payload.country.code}/explained/${m.id}`, p, "country_figure_of_day");
+    const parts = [`${lead}${m.title}: ${m.value}${m.period ? ` (${m.period})` : ""}.`, `Source: ${m.source}.`, link];
+    let body = parts.join("\n\n");
+    if (body.length > LIMIT[p]) body = [parts[0]!, link].join("\n\n");
+    return { kind: "country_figure_of_day", metric_id: `${payload.country.code}:${m.id}`, platform: p, body, link, source_url: m.sourceUrl };
+  });
 }
