@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink, Mail } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -115,6 +115,24 @@ function PressPage() {
               text={`UKStats (${new Date().getFullYear()}). UK National Data Register. Retrieved ${today}, from https://ukstats.co.uk`}
             />
             <CopyBlock label="Broadcast credit" text="Figures: official UK statistics compiled by UKStats" />
+          </div>
+        </Section>
+
+        <Section title="Press contact">
+          <p className="mb-4 text-[14px] text-night-muted">
+            For comment, interviews, data checks or embargo questions, email the press team — we reply to media
+            enquiries first.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="mailto:admin@xpre.ai?subject=Media%20enquiry%20%E2%80%94%20UKStats"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-electric px-4 text-[14px] font-semibold text-background hover:opacity-90"
+            >
+              <Mail className="h-4 w-4" /> Email press@ukstats — admin@xpre.ai
+            </a>
+          </div>
+          <div className="mt-3">
+            <CopyBlock label="Press contact" text="admin@xpre.ai" />
           </div>
         </Section>
 
