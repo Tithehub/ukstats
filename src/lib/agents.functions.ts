@@ -86,3 +86,22 @@ export const getMetricExtras = createServerFn({ method: "GET" })
       return { revisions: [], approved: null };
     }
   });
+
+export const listAgentPosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("agent_posts").select("*").in("status", ["pending", "approved"]).order("created_at", { ascending: false }).limit(40);
+    return data ?? [];
+  });
+
+export const reviewAgentPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid(), status: z.enum(["approved", "rejected", "posted"]), body: z.string().min(1).max(600).optional() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const patch: { status: string; reviewed_at: string; body?: string } = { status: data.status, reviewed_at: new Date().toISOString() };
+    if (data.body) patch.body = data.body;
+    await context.supabase.from("agent_posts").update(patch).eq("id", data.id);
+    return { ok: true };
+  });
