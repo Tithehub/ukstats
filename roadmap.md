@@ -65,6 +65,7 @@
 - [ ] Wave 2b: fill AU CPI, RBA rate, CBP border, national crime if machine-readable feeds appear
 - [x] Country infrastructure: grouped registers, explanations, available published history, embeds, publisher calendar links (exact dates still unconfirmed), JSON/CSV and nightly feed checks for all 33 registered countries
 - [x] Broadened verified Eurostat coverage: homicide, asylum decisions, residence permits, debt EUR, practising doctors, health/defence/social protection spending and six cost-of-living inflation series; remaining source gaps explicitly shown
+- [x] Published to ukstats.co.uk: all 33 country registers, their embeds and open-data endpoints are live (11 Oct 2026)
 - [ ] Full UK-equivalent coverage: integrate national feeds for every country (especially US/CA/AU), weather, alerts, polling, immigration costs, publisher-confirmed release dates, deeper explanations and revision history; current infrastructure does not imply complete topic parity
 
 ## Social branding
@@ -72,3 +73,4 @@
 - [x] Nightly agents extended to the 33 country registers: revision detection (country_metric_snapshots) and a country figure-of-the-day draft
 - [x] Marketing posts now carry official figures only — weather-model and warning cards stay on the site but are never drafted as posts
 - [x] Page-age labels no longer force a full client re-render (server/client clock mismatch fixed with a wrapped clock text component)
+- [x] Publication dates print to the UK day on every page, so the browser no longer rebuilds the home page over a one-day difference
