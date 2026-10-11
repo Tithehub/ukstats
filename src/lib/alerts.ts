@@ -1,11 +1,11 @@
 // Pure parser for official weather warnings published as OASIS CAP inside an Atom feed.
-// Used by Meteoalarm (EUMETNET national weather services) and the US National Weather
-// Service. No network here — the caller fetches, this only reads what arrived.
+// Used by Meteoalarm (EUMETNET national weather services). No network here — the caller
+// fetches, this only reads what arrived, and never invents a warning.
 
 export type AlertColour = "yellow" | "orange" | "red";
 
 export interface Alert {
-  /** Meteoalarm colours the warning; other services do not, so this can be null. */
+  /** Meteoalarm colours the warning; services that do not leave this null. */
   colour: AlertColour | null;
   event: string;
   area: string;
@@ -14,20 +14,19 @@ export interface Alert {
   title: string;
 }
 
-const ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: " ",
-};
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+// HTML 4 named entities for Latin-1, in code-point order from U+00A0.
+const LATIN1 =
+  "nbsp,iexcl,cent,pound,curren,yen,brvbar,sect,uml,copy,ordf,laquo,not,shy,reg,macr,deg,plusmn,sup2,sup3,acute,micro,para,middot,cedil,sup1,ordm,raquo,frac14,frac12,frac34,iquest,Agrave,Aacute,Acirc,Atilde,Auml,Aring,AElig,Ccedil,Egrave,Eacute,Ecirc,Euml,Igrave,Iacute,Icirc,Iuml,ETH,Ntilde,Ograve,Oacute,Ocirc,Otilde,Ouml,times,Oslash,Ugrave,Uacute,Ucirc,Uuml,Yacute,THORN,szlig,agrave,aacute,acirc,atilde,auml,aring,aelig,ccedil,egrave,eacute,ecirc,euml,igrave,iacute,icirc,iuml,eth,ntilde,ograve,oacute,ocirc,otilde,ouml,divide,oslash,ugrave,uacute,ucirc,uuml,yacute,thorn,yuml".split(",");
+LATIN1.forEach((n, i) => {
+  ENTITIES[n] = String.fromCodePoint(0xa0 + i);
+});
 
 function decode(s: string): string {
   return s
     .replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (all, code: string) => {
       if (code[0] === "#") {
-        const n = code[1].toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
+        const n = code[1]?.toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
         return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : all;
       }
       return ENTITIES[code] ?? all;
@@ -37,29 +36,28 @@ function decode(s: string): string {
 }
 
 function tag(body: string, name: string): string | null {
-  const m = body.match(new RegExp(`<cap:${name}[^>]*>([\\s\\S]*?)</cap:${name}>`));
-  if (m) return decode(m[1]);
+  const cap = body.match(new RegExp(`<cap:${name}[^>]*>([\\s\\S]*?)</cap:${name}>`));
+  if (cap) return decode(cap[1] ?? "");
   const plain = body.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`));
-  return plain ? decode(plain[1]) : null;
+  return plain ? decode(plain[1] ?? "") : null;
 }
 
 /** Split an Atom feed into its warnings. Entries without a CAP event are ignored. */
 export function parseCapFeed(xml: string): Alert[] {
   const out: Alert[] = [];
   for (const chunk of xml.split(/<entry[\s>]/).slice(1)) {
-    const body = chunk.split("</entry>")[0];
+    const body = chunk.split("</entry>")[0] ?? "";
     const event = tag(body, "event");
     if (!event) continue;
     const title = tag(body, "title") ?? "";
     const first = title.split(/[\s-]+/)[0]?.toLowerCase() ?? "";
-    const colour: AlertColour | null =
-      first === "yellow" || first === "orange" || first === "red" ? first : null;
+    const colour: AlertColour | null = first === "yellow" || first === "orange" || first === "red" ? first : null;
     out.push({
       colour,
       event,
       area: tag(body, "areaDesc") ?? "",
       severity: tag(body, "severity") ?? "",
-      expires: tag(body, "expires") ?? tag(body, "cap:expires"),
+      expires: tag(body, "expires"),
       title,
     });
   }
