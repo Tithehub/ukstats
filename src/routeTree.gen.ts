@@ -39,6 +39,7 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
+import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
@@ -200,6 +201,11 @@ const WidgetRoute = WidgetRouteImport.update({
   path: '/widget',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CountryIndexRoute = CountryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CountryRoute,
+} as any)
 const DailyDateRoute = DailyDateRouteImport.update({
   id: '/$date',
   path: '/$date',
@@ -253,7 +259,7 @@ const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$country': typeof CountryRoute
+  '/$country': typeof CountryRouteWithChildren
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
@@ -295,7 +302,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$country': typeof CountryRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
@@ -329,6 +335,7 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/$country': typeof CountryIndexRoute
   '/regions': typeof RegionsIndexRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
@@ -337,7 +344,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$country': typeof CountryRoute
+  '/$country': typeof CountryRouteWithChildren
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
@@ -372,6 +379,7 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
@@ -416,6 +424,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/$country/'
     | '/regions/'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
@@ -423,7 +432,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$country'
     | '/agents'
     | '/api'
     | '/api-docs'
@@ -457,6 +465,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/$country'
     | '/regions'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
@@ -499,6 +508,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/$country/'
     | '/regions/'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
@@ -507,7 +517,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CountryRoute: typeof CountryRoute
+  CountryRoute: typeof CountryRouteWithChildren
   AgentsRoute: typeof AgentsRoute
   ApiRoute: typeof ApiRouteWithChildren
   ApiDocsRoute: typeof ApiDocsRoute
@@ -754,6 +764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WidgetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$country/': {
+      id: '/$country/'
+      path: '/'
+      fullPath: '/$country/'
+      preLoaderRoute: typeof CountryIndexRouteImport
+      parentRoute: typeof CountryRoute
+    }
     '/daily/$date': {
       id: '/daily/$date'
       path: '/$date'
@@ -827,6 +844,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CountryRouteChildren {
+  CountryIndexRoute: typeof CountryIndexRoute
+}
+
+const CountryRouteChildren: CountryRouteChildren = {
+  CountryIndexRoute: CountryIndexRoute,
+}
+
+const CountryRouteWithChildren =
+  CountryRoute._addFileChildren(CountryRouteChildren)
+
 interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
@@ -866,7 +894,7 @@ const RegionsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CountryRoute: CountryRoute,
+  CountryRoute: CountryRouteWithChildren,
   AgentsRoute: AgentsRoute,
   ApiRoute: ApiRouteWithChildren,
   ApiDocsRoute: ApiDocsRoute,
