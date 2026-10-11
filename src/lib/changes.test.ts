@@ -11,7 +11,7 @@ describe("computeChanges", () => {
     ];
     const c = computeChanges(pts);
     expect(c.map((x) => x.diff)).toEqual([10, 20, 100]);
-    expect(c[2].pct).toBe(100);
+    expect(c[2]?.pct).toBe(100);
   });
   it("omits comparisons whose period was never published", () => {
     const c = computeChanges([{ label: "2025 Q1", value: 1 }, { label: "2026 Q1", value: 2 }]);

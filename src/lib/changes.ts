@@ -27,9 +27,9 @@ function cmp(label: string, from: Point | null, to: Point): Comparison | null {
 
 export function computeChanges(points: Point[]): Comparison[] {
   if (points.length < 2) return [];
-  const latest = points[points.length - 1];
+  const latest = points[points.length - 1]!;
   return [
-    cmp("Since previous release", points[points.length - 2], latest),
+    cmp("Since previous release", points[points.length - 2] ?? null, latest),
     cmp("Over 1 year", yearsBack(points, latest, 1), latest),
     cmp("Over 10 years", yearsBack(points, latest, 10), latest),
   ].filter((c): c is Comparison => c !== null);
