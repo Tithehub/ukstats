@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
+  Activity,
   Banknote,
   Bot,
   CalendarDays,
+  GitCompareArrows,
   FileText,
   Home,
   LayoutGrid,
@@ -40,6 +42,9 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/register", label: "Full register", icon: Table2 },
       { to: "/maps", label: "Maps", icon: MapIcon },
       { to: "/daily", label: "Daily statement", icon: CalendarDays },
+      { to: "/compare", label: "Compare figures", icon: GitCompareArrows },
+      { to: "/calendar", label: "Release calendar", icon: CalendarDays },
+      { to: "/status", label: "Feed health", icon: Activity },
     ],
   },
   {

@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_checks: {
+        Row: {
+          category: string
+          checked_at: string
+          id: string
+          metric_id: string
+          note: string | null
+          source: string
+          source_url: string
+          status: string
+          title: string
+        }
+        Insert: {
+          category: string
+          checked_at?: string
+          id?: string
+          metric_id: string
+          note?: string | null
+          source: string
+          source_url: string
+          status: string
+          title: string
+        }
+        Update: {
+          category?: string
+          checked_at?: string
+          id?: string
+          metric_id?: string
+          note?: string | null
+          source?: string
+          source_url?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       metric_changes: {
         Row: {
           as_of: string | null

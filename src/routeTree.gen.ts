@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DailyRouteImport } from './routes/daily'
@@ -25,6 +27,7 @@ import { Route as PressRouteImport } from './routes/press'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
@@ -42,6 +45,16 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnectionsRoute = ConnectionsRouteImport.update({
@@ -114,6 +127,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -158,6 +176,8 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/calendar': typeof CalendarRoute
+  '/compare': typeof CompareRoute
   '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
@@ -172,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
@@ -184,6 +205,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/calendar': typeof CalendarRoute
+  '/compare': typeof CompareRoute
   '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
@@ -198,6 +221,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
@@ -211,6 +235,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/calendar': typeof CalendarRoute
+  '/compare': typeof CompareRoute
   '/connections': typeof ConnectionsRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
@@ -225,6 +251,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
@@ -239,6 +266,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/calendar'
+    | '/compare'
     | '/connections'
     | '/create'
     | '/daily'
@@ -253,6 +282,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/status'
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
@@ -265,6 +295,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/calendar'
+    | '/compare'
     | '/connections'
     | '/create'
     | '/daily'
@@ -279,6 +311,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/status'
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
@@ -291,6 +324,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/calendar'
+    | '/compare'
     | '/connections'
     | '/create'
     | '/daily'
@@ -305,6 +340,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/status'
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
@@ -318,6 +354,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CalendarRoute: typeof CalendarRoute
+  CompareRoute: typeof CompareRoute
   ConnectionsRoute: typeof ConnectionsRoute
   CreateRoute: typeof CreateRoute
   DailyRoute: typeof DailyRouteWithChildren
@@ -332,6 +370,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  StatusRoute: typeof StatusRoute
   SupportRoute: typeof SupportRoute
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
@@ -355,6 +394,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connections': {
@@ -455,6 +508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -527,6 +587,8 @@ const DailyRouteWithChildren = DailyRoute._addFileChildren(DailyRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CalendarRoute: CalendarRoute,
+  CompareRoute: CompareRoute,
   ConnectionsRoute: ConnectionsRoute,
   CreateRoute: CreateRoute,
   DailyRoute: DailyRouteWithChildren,
@@ -541,6 +603,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  StatusRoute: StatusRoute,
   SupportRoute: SupportRoute,
   TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
