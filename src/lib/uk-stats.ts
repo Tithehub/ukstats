@@ -170,11 +170,19 @@ export function dueLabel(iso: string | null, now = Date.now()): string {
   return `due in ${days}d`;
 }
 
+/**
+ * Publication dates are quoted to the UK day, the same boundary the rest of the
+ * register uses. Without an explicit zone the browser formats the instant in the
+ * visitor's own clock zone, so a feed published just after UK midnight can print
+ * one day apart on the server and in the page — which makes React throw the
+ * server-rendered page away and rebuild it.
+ */
 export function fmtDate(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Europe/London",
   });
 }
