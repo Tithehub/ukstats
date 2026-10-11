@@ -16,8 +16,11 @@ async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise
   const rows = [...figureOfDay(metrics), ...releaseDay(metrics)]
     .filter((p) => !seen.has(`${p.kind}|${p.metric_id}|${p.platform}`))
     .map((p) => ({ ...p, run_id: runId }));
-  if (rows.length) await db.from("agent_posts").insert(rows);
-  return rows.length ? [{ agent: "Marketing", severity: "info", title: `${rows.length} social post draft(s) awaiting your approval` }] : [];
+  if (!rows.length) return [];
+  const { error } = await db.from("agent_posts").insert(rows);
+  if (error)
+    return [{ agent: "Marketing", severity: "critical", title: "Social post drafts could not be saved", detail: `${error.message} (${rows.length} draft(s) lost)` }];
+  return [{ agent: "Marketing", severity: "info", title: `${rows.length} social post draft(s) awaiting your approval` }];
 }
 
 type Finding = {
@@ -92,9 +95,12 @@ async function revisionDetective(db: Db, metrics: Metric[]): Promise<Finding[]> 
 async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
   const out: Finding[] = [];
   const titles = new Map<string, string>();
+  const TIMEOUT = 45_000;
+  const failed: string[] = [];
+  let lastError = "";
   for (const path of PAGES) {
     try {
-      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(20_000) });
+      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(TIMEOUT) });
       if (!res.ok) {
         out.push({ agent: "SEO & Accessibility", severity: "critical", title: `${path} returned ${res.status}`, url: SITE + path });
         continue;
@@ -112,15 +118,35 @@ async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
       if (noAlt) out.push({ agent: "SEO & Accessibility", severity: "info", title: `${path}: ${noAlt} image(s) without alt text`, url: SITE + path });
       if (!/<html[^>]+lang=/i.test(html)) out.push({ agent: "SEO & Accessibility", severity: "warning", title: `${path} missing page language`, url: SITE + path });
     } catch (e) {
-      out.push({ agent: "SEO & Accessibility", severity: "critical", title: `${path} could not be fetched`, detail: String(e).slice(0, 200), url: SITE + path });
+      failed.push(path);
+      lastError = String(e).slice(0, 120);
     }
   }
+  if (failed.length)
+    out.push({
+      agent: "SEO & Accessibility",
+      severity: failed.length === PAGES.length ? "critical" : "warning",
+      title: failed.length === PAGES.length ? "The site could not be fetched for the nightly check" : `${failed.length} page(s) could not be fetched: ${failed.join(", ")}`,
+      detail: lastError,
+      url: SITE,
+    });
   try {
-    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(20_000) })).text();
-    const missing = metrics.filter((m) => !sm.includes(`/explained/${m.id}<`)).length;
-    if (missing) out.push({ agent: "SEO & Accessibility", severity: "info", title: `${missing} explainer pages not listed in the sitemap`, url: `${SITE}/sitemap.xml` });
-  } catch {
-    /* sitemap check skipped */
+    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(TIMEOUT) })).text();
+    if (!sm.includes("<urlset")) {
+      out.push({ agent: "SEO & Accessibility", severity: "warning", title: "sitemap.xml did not return a sitemap", detail: sm.slice(0, 120), url: `${SITE}/sitemap.xml` });
+    } else {
+      const missing = metrics.filter((m) => !sm.includes(`/explained/${m.id}<`));
+      if (missing.length)
+        out.push({
+          agent: "SEO & Accessibility",
+          severity: "info",
+          title: `${missing.length} explainer pages not listed in the sitemap`,
+          detail: missing.slice(0, 8).map((m) => m.id).join(", "),
+          url: `${SITE}/sitemap.xml`,
+        });
+    }
+  } catch (e) {
+    out.push({ agent: "SEO & Accessibility", severity: "warning", title: "sitemap.xml could not be fetched", detail: String(e).slice(0, 120), url: `${SITE}/sitemap.xml` });
   }
   return out;
 }
