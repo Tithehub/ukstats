@@ -164,8 +164,8 @@ function SupportPage() {
       <main className="mx-auto max-w-[900px] px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">Support UKStats</h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-night-muted text-pretty">
-          UKStats pulls every figure live from the issuing bodies — ONS, Home Office, Police.uk, HM Land Registry, MOD,
-          MI5 / JTAC, the Met Office and the Environment Agency. It is free, carries no tracking and never estimates a
+          UKStats pulls every figure live from 14 publishers, including the ONS, Home Office, Police.uk, HM Land Registry,
+          MOD, MI5 / JTAC, the Met Office and the Environment Agency. It is free, carries no tracking and never estimates a
           number. Donations cover hosting and the time spent keeping the feeds connected.
         </p>
 

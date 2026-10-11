@@ -138,7 +138,7 @@ function PressPage() {
             the facts in seconds instead of hunting across dozens of government websites.
           </p>
           <ul className="mt-4 grid gap-2 text-[14px] text-night-fg/90 sm:grid-cols-2">
-            <li>• Official sources only — no estimates, models or invented figures</li>
+            <li>• Official sources, never estimated or invented — the few non-official feeds (such as weather model data) are labelled as such</li>
             <li>• Every figure shows its source, period, age and next release</li>
             <li>• "No live feed" shown plainly where a publisher offers no data</li>
             <li>• Free to use, embed and share; funded by voluntary donations</li>
