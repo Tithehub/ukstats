@@ -63,4 +63,5 @@
 - [x] Wave 1: 30 European countries live from Eurostat (/countries, /fr, /de…, /compare-countries)
 - [x] Wave 2: US (Treasury, BLS, NY Fed), Canada (StatCan, Bank of Canada), Australia (ABS), ECB rate for FR/DE/IE; crime/borders/asylum shown as "No live feed" with official links
 - [ ] Wave 2b: fill AU CPI, RBA rate, CBP border, national crime if machine-readable feeds appear
-- [ ] Per-country Explained/history/embeds/API, agents watching new feeds
+- [ ] Country parity: grouped registers, explanations, published history, embeds, release calendars, JSON/CSV and nightly feed checks for every registered country
+- [ ] Country parity: broaden verified Eurostat economy, crime, migration, cost-of-living, health and defence coverage; record remaining national-source gaps explicitly
