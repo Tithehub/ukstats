@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as CompareRouteImport } from './routes/compare'
@@ -36,10 +37,16 @@ import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocsRoute = ApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -172,9 +179,15 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   path: '/api/public/outreach-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
+  id: '/api/public/v1/metrics',
+  path: '/api/public/v1/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
@@ -201,9 +214,11 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
@@ -230,10 +245,12 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
@@ -260,11 +277,13 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/calendar'
     | '/compare'
@@ -291,9 +310,11 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/api/public/outreach-tick'
+    | '/api/public/v1/metrics'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/calendar'
     | '/compare'
@@ -320,9 +341,11 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/api/public/outreach-tick'
+    | '/api/public/v1/metrics'
   id:
     | '__root__'
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/calendar'
     | '/compare'
@@ -349,10 +372,12 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/api/public/outreach-tick'
+    | '/api/public/v1/metrics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   CalendarRoute: typeof CalendarRoute
   CompareRoute: typeof CompareRoute
@@ -378,6 +403,7 @@ export interface RootRouteChildren {
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
+  ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -387,6 +413,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-docs': {
+      id: '/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof ApiDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -571,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/metrics': {
+      id: '/api/public/v1/metrics'
+      path: '/api/public/v1/metrics'
+      fullPath: '/api/public/v1/metrics'
+      preLoaderRoute: typeof ApiPublicV1MetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -586,6 +626,7 @@ const DailyRouteWithChildren = DailyRoute._addFileChildren(DailyRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   CalendarRoute: CalendarRoute,
   CompareRoute: CompareRoute,
@@ -611,6 +652,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
+  ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
