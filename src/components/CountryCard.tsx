@@ -13,7 +13,7 @@ export function CountryCard({ m, country, embedded = false }: { m: CountryMetric
     <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-xs text-night-muted">
       <dt>Period</dt><dd className="break-words text-night-fg">{m.period ?? 'Not available'}</dd>
       <dt>Data age</dt><dd className="text-night-fg">{end ? `${ageLabel(end)} · period end` : 'Unknown'}</dd>
-      <dt>Published</dt><dd className="text-night-fg">{m.asOf ? `${fmtDate(m.asOf)} · ${ageLabel(m.asOf)}` : 'Date not supplied by feed'}</dd>
+      <dt>Source updated</dt><dd className="text-night-fg">{m.asOf ? `${fmtDate(m.asOf)} · ${ageLabel(m.asOf)}` : 'Date not supplied by feed'}</dd>
       <dt>Cadence</dt><dd className="text-night-fg">{m.cadence}</dd>
       <dt>Next release</dt><dd className="text-night-fg">{m.next ?? 'Date not confirmed · Eurostat calendar'}</dd>
     </dl>

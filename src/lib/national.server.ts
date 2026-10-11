@@ -40,7 +40,7 @@ const DEFS: Record<string, Def[]> = {
       load: async () => {
         const js = (await (await get("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?sort=-record_date&page%5Bsize%5D=30")).json()) as { data: { record_date: string; tot_pub_debt_out_amt: string }[] };
         const pts = js.data.map((r) => ({ time: r.record_date, value: Number(r.tot_pub_debt_out_amt) })).filter((p) => Number.isFinite(p.value)).reverse();
-        return { pts, asOf: pts.at(-1)?.time };
+        return { pts };
       } },
     { id: "us-cpi", title: "Inflation (CPI-U, 12-month change)", cadence: "Monthly", source: "Bureau of Labor Statistics (CUUR0000SA0)", sourceUrl: "https://data.bls.gov/timeseries/CUUR0000SA0", next: "Per BLS CPI release schedule", fmt: pct,
       load: async () => ({ pts: yoyFromIndex(await bls("CUUR0000SA0")()) }) },
@@ -50,7 +50,7 @@ const DEFS: Record<string, Def[]> = {
       load: async () => {
         const js = (await (await get("https://markets.newyorkfed.org/api/rates/unsecured/effr/last/30.json")).json()) as { refRates: { effectiveDate: string; percentRate: number }[] };
         const pts = js.refRates.map((r) => ({ time: r.effectiveDate, value: r.percentRate })).reverse();
-        return { pts, asOf: pts.at(-1)?.time };
+        return { pts };
       } },
   ],
   ca: [
@@ -62,7 +62,7 @@ const DEFS: Record<string, Def[]> = {
       load: async () => {
         const js = (await (await get("https://www.bankofcanada.ca/valet/observations/V39079/json?recent=30")).json()) as { observations: { d: string; V39079?: { v: string } }[] };
         const pts = js.observations.map((o) => ({ time: o.d, value: Number(o.V39079?.v) })).filter((p) => Number.isFinite(p.value)).sort((a, b) => a.time.localeCompare(b.time));
-        return { pts, asOf: pts.at(-1)?.time };
+        return { pts };
       } },
   ],
   au: [

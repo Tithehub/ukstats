@@ -47,13 +47,22 @@ async function metricFor(defId: string, geo: string): Promise<CountryMetric> {
   }
 }
 
-export async function loadCountryStats(code: string): Promise<CountryPayload | null> {
+async function collectCountryStats(code: string): Promise<CountryPayload | null> {
   const country = countryByCode(code);
   if (!country) return null;
   const geo = country.eurostat;
   const [es, nat] = await Promise.all([geo ? Promise.all(ES_DEFS.map(d => metricFor(d.id, geo))) : Promise.resolve([]), nationalMetrics(country.code)]);
   const known = [...nat.filter(m => m.value !== null), ...es, ...nat.filter(m => m.value === null)].map(m => ({ ...m, category: metricCategory(m) }));
   return { country, metrics: [...known, ...coverageGaps(country, known)], fetchedAt: new Date().toISOString() };
+}
+const countryCache = new Map<string, { at: number; data: Promise<CountryPayload | null> }>();
+export function loadCountryStats(code: string): Promise<CountryPayload | null> {
+  const hit = countryCache.get(code);
+  if (hit && Date.now() - hit.at < TTL) return hit.data;
+  const data = collectCountryStats(code);
+  countryCache.set(code, { at: Date.now(), data });
+  data.catch(() => countryCache.delete(code));
+  return data;
 }
 export async function loadCountryHistory(code: string, id: string): Promise<CountryMetric | null> {
   const country = countryByCode(code);
