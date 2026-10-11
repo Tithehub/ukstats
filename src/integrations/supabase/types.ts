@@ -128,6 +128,39 @@ export type Database = {
         }
         Relationships: []
       }
+      country_metric_snapshots: {
+        Row: {
+          code: string
+          metric_id: string
+          period: string | null
+          source: string | null
+          source_url: string | null
+          title: string | null
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          code: string
+          metric_id: string
+          period?: string | null
+          source?: string | null
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          code?: string
+          metric_id?: string
+          period?: string | null
+          source?: string | null
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       daily_briefings: {
         Row: {
           body: string

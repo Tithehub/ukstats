@@ -50,6 +50,13 @@
       "when": 1791751934412,
       "tag": "0006_grant_has_role_to_authenticated",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791760024146,
+      "tag": "0007_create_country_metric_snapshots",
+      "breakpoints": true
     }
   ]
 }

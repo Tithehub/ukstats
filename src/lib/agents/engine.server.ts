@@ -177,7 +177,7 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
   try {
     const stats = await getUkStats();
     const metrics = stats.metrics;
-    const countryChecks = await countryWatchdog();
+    const countryChecks = await countryWatchdog(db);
     findings.push(...feedWatchdog(metrics), ...dataAuditor(metrics));
     findings.push(...countryChecks.findings);
     findings.push(...(await revisionDetective(db, metrics)));
