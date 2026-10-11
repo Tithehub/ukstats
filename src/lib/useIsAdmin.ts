@@ -26,16 +26,16 @@ export function useIsAdmin() {
       return;
     }
     let live = true;
-    void supabase
-      .rpc("has_role", { _user_id: id, _role: "admin" })
-      .then(({ data }) => {
+    void (async () => {
+      try {
+        const { data } = await supabase.rpc("has_role", { _user_id: id, _role: "admin" });
         const ok = data === true;
         cache.set(id, ok);
         if (live) setIsAdmin(ok);
-      })
-      .catch(() => {
+      } catch {
         if (live) setIsAdmin(false);
-      });
+      }
+    })();
     return () => {
       live = false;
     };
