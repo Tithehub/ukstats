@@ -14,7 +14,7 @@
 - [x] /tax-vs-welfare: total current receipts vs net social benefits, full published history + CSV
 - [x] Defence & security / Crime personnel: HM Forces FTE and police workforce (ONS public sector employment)
 - [x] Army/Navy/RAF split (MOD quarterly tables, history since 2012) and UK-born/non-UK-born (Census 2021 TS004, England & Wales)
-- [ ] Add the real MetaMask/crypto addresses to src/lib/donate.ts once provided
+- [x] Add the real MetaMask/crypto addresses to src/lib/donate.ts once provided
 - [ ] Google Search Console setup (needs user to connect the account)
 
 ## Ideas for next
@@ -23,7 +23,8 @@
 - [x] Feed health monitor (/status) + feed_checks log written by the daily sweep
 - [x] Sweep hardening: London-day boundary fix; cron verified running daily 06:30 UTC
 - [x] Security pass: public logs locked behind controlled read functions; scan clean
-- [ ] Public JSON/CSV API for the whole register
+- [x] Public JSON/CSV API (/api/public/v1/metrics, docs at /api-docs)
+- [x] Installable app icon + favicon
 - [ ] Full history for non-ONS feeds (Home Office, Land Registry) where machine-readable
 
 ## NHS & doctors

@@ -20,6 +20,7 @@ const COLUMNS = [
       { to: "/connections", label: "Connect your socials", icon: Plug },
       { to: "/support", label: "Support UKStats", icon: LifeBuoy },
       { to: "/press", label: "Press kit", icon: Newspaper },
+      { to: "/api-docs", label: "Open data API", icon: Newspaper },
       { to: "/auth", label: "Sign in", icon: LogIn },
     ],
   },
