@@ -49,6 +49,7 @@ export const Route = createFileRoute("/regions/$slug")({
 function RegionPage() {
   const dash = Route.useLoaderData();
   const { region } = dash;
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   return (
     <div className="min-h-dvh bg-night text-night-fg">
@@ -168,7 +169,7 @@ function RegionPage() {
             <h2 id="region-nhs" className="text-lg font-semibold">NHS performance</h2>
             <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {dash.nhs.map((m) => (
-                <MetricCard key={m.id} m={m} />
+                <MetricCard key={m.id} metric={m} origin={origin} />
               ))}
             </div>
           </section>

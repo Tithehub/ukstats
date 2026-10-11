@@ -48,6 +48,7 @@ export const Route = createFileRoute("/explained/$metricId")({
 
 function ExplainedPage() {
   const { explainer, metric } = Route.useLoaderData();
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   return (
     <div className="min-h-dvh bg-night text-night-fg">
@@ -70,7 +71,7 @@ function ExplainedPage() {
           <div className="mt-8">
             <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-night-muted">The live figure</p>
             <div className="mt-2 max-w-sm">
-              <MetricCard m={metric} />
+              <MetricCard metric={metric} origin={origin} />
             </div>
             {metric.hasHistory ? (
               <Link
