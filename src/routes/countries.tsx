@@ -22,7 +22,7 @@ function CountriesPage() {
         <p className="mt-2 max-w-2xl text-night-muted">{D}</p>
         <div className="mt-4 flex gap-3 text-sm">
           <Link to="/" className="rounded-md border border-night-line px-3 py-1.5">United Kingdom (full register)</Link>
-          <Link to="/compare-countries" className="rounded-md border border-night-line px-3 py-1.5">Compare countries</Link>
+          <Link to="/compare-countries" search={{ metric: "hicp" }} className="rounded-md border border-night-line px-3 py-1.5">Compare countries</Link>
         </div>
         <h2 className="mt-10 text-lg font-semibold">Europe — live from Eurostat</h2>
         <ul className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
