@@ -2478,7 +2478,8 @@ async function collectStats(): Promise<StatsPayload> {
     nhsMetrics(),
     foreignAid(),
     politicsMetrics(),
-    Promise.resolve(unpublishedSplits()),
+    censusCountryOfBirth(),
+    modPersonnelByService(),
 
 
   ];
@@ -3161,69 +3162,200 @@ async function migrationFlows(): Promise<Metric[]> {
   }
 }
 
-/** Country-of-birth and service-level personnel splits with no machine-readable feed. */
-function unpublishedSplits(): Metric[] {
-  const noFeed = (
-    id: string,
-    category: Metric["category"],
-    title: string,
-    sub: string,
-    source: string,
-    sourceUrl: string,
-    cadence: string,
-    note: string,
-  ): Metric => ({
-    id,
-    category,
-    subcategory: category === "Population & migration" ? "Population" : "Personnel",
-    title,
-    source,
-    sourceUrl,
-    value: null,
-    sub,
-    period: null,
-    asOf: null,
-    nextDue: null,
-    cadence,
-    change: null,
-    spark: [],
-    status: "no-feed",
-    note,
-    emptyLabel: "No live feed",
-  });
+const colNum = (c: string) => [...c].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
 
-  return [
-    noFeed(
-      "uk-born-population",
-      "Population & migration",
-      "UK-born population",
-      "Population born in the United Kingdom",
-      "Office for National Statistics",
-      "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/a12employmentunemploymentandeconomicinactivitybynationalityandcountryofbirth",
-      "No current machine-readable series",
-      "The ONS discontinued its country-of-birth population series after June 2021. Country-of-birth estimates are now published only in survey tables (A12 / EMP06) and Census 2021, so no live figure is shown rather than an estimate.",
-    ),
-    noFeed(
-      "uk-foreign-born-population",
-      "Population & migration",
-      "Non-UK-born population",
-      "Population born outside the United Kingdom",
-      "Office for National Statistics",
-      "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/a12employmentunemploymentandeconomicinactivitybynationalityandcountryofbirth",
-      "No current machine-readable series",
-      "The ONS discontinued its country-of-birth population series after June 2021. Follow the source link for the published survey tables and the Census 2021 estimates.",
-    ),
-    noFeed(
-      "uk-armed-forces-by-service",
-      "Defence & security",
-      "Army, Royal Navy and RAF strength",
-      "Trained and untrained strength by service",
-      "Ministry of Defence · Quarterly service personnel statistics",
-      "https://www.gov.uk/government/collections/uk-armed-forces-quarterly-service-personnel-statistics",
-      "Quarterly, published by the MOD",
-      "The MOD publishes service-level strength only as spreadsheet tables with no API, so the split is not reproduced here. The UK total above is the ONS full-time equivalent series.",
-    ),
-  ];
+/** Census 2021 country of birth (England and Wales), ONS table TS004 via Nomis. */
+async function censusCountryOfBirth(): Promise<Metric[]> {
+  const sourceUrl = "https://www.nomisweb.co.uk/datasets/c2021ts004";
+  const base = {
+    category: "Population & migration" as const,
+    subcategory: "Population",
+    source: "ONS · Census 2021, table TS004 (Country of birth)",
+    sourceUrl,
+    period: "Census day, 21 March 2021",
+    asOf: "2022-11-02",
+    nextDue: null,
+    cadence: "Every ten years (next census 2031)",
+    change: null,
+    spark: [] as number[],
+  };
+  try {
+    const csv = await retrying(() =>
+      fetch(
+        "https://www.nomisweb.co.uk/api/v01/dataset/NM_2024_1.data.csv?geography=2092957703&measures=20100&select=c2021_cob_12_name,obs_value",
+        { headers: UA },
+      ).then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.text();
+      }),
+    );
+    const rows = new Map<string, number>();
+    for (const line of csv.trim().split("\n").slice(1)) {
+      const m = line.match(/^"([^"]+)",(\d+)/);
+      if (m) rows.set(m[1]!, Number(m[2]));
+    }
+    const total = rows.get("Total: All usual residents");
+    const uk = rows.get("Europe: United Kingdom");
+    if (!total || !uk) throw new Error("Census table returned no totals");
+    const nonUk = total - uk;
+    const pct = (v: number) => `${((v / total) * 100).toFixed(1)}%`;
+    const regions: [string, string][] = [
+      ["EU countries", "Europe: EU countries"],
+      ["Other Europe", "Europe: Non-EU countries - All other non-EU countries"],
+      ["Africa", "Africa"],
+      ["Middle East & Asia", "Middle East and Asia"],
+      ["Americas & Caribbean", "The Americas and the Caribbean"],
+      ["Oceania & other", "Antarctica and Oceania (including Australasia) and Other"],
+      ["British Overseas", "British Overseas"],
+    ];
+    const breakdown = regions
+      .map(([label, key]) => ({ label, value: rows.get(key) ?? 0 }))
+      .filter((b) => b.value > 0);
+    return [
+      {
+        ...base,
+        id: "uk-born-population",
+        title: "UK-born population",
+        value: uk.toLocaleString("en-GB"),
+        sub: `${pct(uk)} of ${total.toLocaleString("en-GB")} usual residents · England and Wales`,
+        status: "ok",
+        note: "Census counts for England and Wales. Scotland's and Northern Ireland's censuses publish separately.",
+        breakdown: [
+          { label: "Born in the UK", value: uk, highlight: true },
+          { label: "Born outside the UK", value: nonUk },
+        ],
+      },
+      {
+        ...base,
+        id: "uk-foreign-born-population",
+        title: "Non-UK-born population",
+        value: nonUk.toLocaleString("en-GB"),
+        sub: `${pct(nonUk)} of usual residents · England and Wales, by region of birth`,
+        status: "ok",
+        derivedFrom: "All usual residents minus those born in the United Kingdom, both as published in TS004",
+        note: "Census counts for England and Wales. Breakdown shows the ONS's own region-of-birth groups.",
+        breakdown,
+      },
+    ];
+  } catch (e) {
+    return ["uk-born-population", "uk-foreign-born-population"].map((id) => ({
+      ...base,
+      id,
+      title: id === "uk-born-population" ? "UK-born population" : "Non-UK-born population",
+      value: null,
+      sub: "Census 2021 · England and Wales",
+      period: null,
+      asOf: null,
+      status: "unavailable" as const,
+      note: `Source unreachable: ${(e as Error).message}`,
+    }));
+  }
+}
+
+/** MOD quarterly service personnel statistics: tri-service total plus Navy, Army and RAF. */
+async function modPersonnelByService(): Promise<Metric[]> {
+  const collection = "https://www.gov.uk/government/collections/uk-armed-forces-quarterly-service-personnel-statistics";
+  const base = {
+    category: "Defence & security" as const,
+    subcategory: "Personnel",
+    source: "Ministry of Defence · Quarterly service personnel statistics",
+    cadence: "Quarterly, published by the MOD",
+    nextDue: null,
+  };
+  try {
+    // Latest year's statistics page lists every quarter's tables, newest first.
+    const year = new Date().getUTCFullYear();
+    let page: { details?: { attachments?: { url?: string; content_type?: string; title?: string }[] }; public_updated_at?: string; base_path?: string } | null = null;
+    for (const y of [year, year - 1]) {
+      try {
+        page = await getJson(`https://www.gov.uk/api/content/government/statistics/quarterly-service-personnel-statistics-${y}`);
+        if (page?.details?.attachments?.length) break;
+      } catch {
+        page = null;
+      }
+    }
+    const xlsx = page?.details?.attachments?.find((a) => a.content_type?.includes("spreadsheetml"));
+    if (!xlsx?.url) throw new Error("No MOD tables found");
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(await retrying(() => getBytes(xlsx.url!, 40_000))) as unknown as Record<string, Uint8Array>;
+    const sharedXml = strFromU8(files["xl/sharedStrings.xml"]!);
+    const shared = [...sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+      xmlText([...(m[1] ?? "").matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1] ?? "").join("")),
+    );
+    const names = sheetsByName(files, strFromU8);
+    const sourceUrl = page?.base_path ? `https://www.gov.uk${page.base_path}` : collection;
+
+    const series = (sheet: string, rowLabel: string) => {
+      const path = names.get(sheet);
+      if (!path || !files[path]) return null;
+      const rows = parseSheet(strFromU8(files[path]!), shared);
+      const header = rows.find((r) => /\(number\)/.test(Object.values(r.cells).join(" ")));
+      const row = rows.find((r) => r.cells["A"]?.trim() === rowLabel);
+      if (!header || !row) return null;
+      const pts: { label: string; value: number }[] = [];
+      for (const col of Object.keys(header.cells).sort((a, b) => colNum(a) - colNum(b))) {
+        const label = header.cells[col]!.replace(/\(number\)/, "").replace(/\s+/g, " ").trim();
+        const v = Number(row.cells[col]);
+        if (/\d{4}/.test(label) && Number.isFinite(v) && row.cells[col]?.trim() !== "") pts.push({ label, value: v });
+      }
+      return pts.length ? pts : null;
+    };
+
+    const defs = [
+      { id: "uk-armed-forces-by-service", sheet: "1", row: "All UK Forces Personnel", title: "UK Forces: all service personnel", sub: "Regulars, Gurkhas, reserves and other personnel" },
+      { id: "uk-forces-regulars", sheet: "1", row: "All UK Forces UK Regular Forces", title: "UK Regular Forces", sub: "Full-time trained and untrained regulars" },
+      { id: "uk-forces-navy", sheet: "2a", row: "All Naval Service Personnel", title: "Royal Navy & Royal Marines", sub: "All Naval Service personnel" },
+      { id: "uk-forces-army", sheet: "2b", row: "All Army Service Personnel", title: "British Army", sub: "All Army personnel incl. Gurkhas and reserves" },
+      { id: "uk-forces-raf", sheet: "2c", row: "All Royal Air Force Service Personnel", title: "Royal Air Force", sub: "All RAF personnel incl. reserves" },
+    ];
+    const out: Metric[] = [];
+    let services: { label: string; value: number }[] = [];
+    for (const d of defs) {
+      const pts = series(d.sheet, d.row);
+      if (!pts) continue;
+      const last = pts[pts.length - 1]!;
+      const prev = pts[pts.length - 2];
+      const diff = prev ? last.value - prev.value : 0;
+      if (d.sheet !== "1") services.push({ label: d.title, value: last.value });
+      out.push({
+        ...base,
+        id: d.id,
+        title: d.title,
+        sourceUrl,
+        value: last.value.toLocaleString("en-GB"),
+        sub: `${d.sub} · since ${pts[0]!.label}`,
+        period: last.label,
+        asOf: page?.public_updated_at ?? null,
+        change: prev
+          ? { label: `${diff > 0 ? "▲" : diff < 0 ? "▼" : "■"} ${Math.abs(diff).toLocaleString("en-GB")} vs ${prev.label}`, dir: diff > 0 ? "up" : diff < 0 ? "down" : "flat" }
+          : null,
+        spark: pts.map((p) => p.value),
+        status: "ok",
+        note: null,
+      });
+    }
+    if (!out.length) throw new Error("MOD tables changed layout");
+    const total = out.find((m) => m.id === "uk-armed-forces-by-service");
+    if (total && services.length === 3) total.breakdown = services;
+    return out;
+  } catch (e) {
+    return [
+      {
+        ...base,
+        id: "uk-armed-forces-by-service",
+        title: "UK Forces: all service personnel",
+        sourceUrl: collection,
+        value: null,
+        sub: "Army, Royal Navy and RAF",
+        period: null,
+        asOf: null,
+        change: null,
+        spark: [],
+        status: "unavailable",
+        note: `Source unreachable: ${(e as Error).message}`,
+      },
+    ];
+  }
 }
 
 /* ------------------------------- map data ------------------------------- */
