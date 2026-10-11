@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth } from "@/lib/useAuth";
 import { dismissFinding, getAgentDashboard, reviewDraft, runAgentsNow } from "@/lib/agents.functions";
 import { LaunchKit, MarketingPanel } from "@/components/agents/MarketingPanel";
+import { DomainsPanel } from "@/components/agents/DomainsPanel";
 
 export const Route = createFileRoute("/agents")({
   head: () => ({
@@ -114,6 +115,7 @@ function AgentsPage() {
         </section>
         <MarketingPanel />
         <LaunchKit />
+        <DomainsPanel />
       </>
     );
   }
