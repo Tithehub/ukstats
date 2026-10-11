@@ -54,4 +54,4 @@
 
 ## Press
 - [x] /press press kit: mission, citation formats, data sources, media kit
-- [ ] Press contact email (needs user)
+- [x] Press contact email (admin@xpre.ai)
