@@ -105,3 +105,42 @@ export const reviewAgentPost = createServerFn({ method: "POST" })
     await context.supabase.from("agent_posts").update(patch).eq("id", data.id);
     return { ok: true };
   });
+
+export const SITE_DOMAINS = ["ukstats.co.uk", "www.ukstats.co.uk", "stat-central-uk.lovable.app"] as const;
+
+export type DomainCheck = {
+  domain: string;
+  ok: boolean;
+  status: number | null;
+  redirectsTo: string | null;
+  ms: number;
+  error: string | null;
+  checkedAt: string;
+};
+
+/** Admin: live reachability check for one site domain (or all). */
+export const checkDomains = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ domain: z.enum(SITE_DOMAINS).optional() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const targets = data.domain ? [data.domain] : [...SITE_DOMAINS];
+    const results: DomainCheck[] = await Promise.all(
+      targets.map(async (domain) => {
+        const started = Date.now();
+        try {
+          const res = await fetch(`https://${domain}/`, {
+            redirect: "manual",
+            signal: AbortSignal.timeout(12_000),
+            headers: { "user-agent": "UKStats-domain-check/1.0" },
+          });
+          const loc = res.headers.get("location");
+          const redirectsTo = res.status >= 300 && res.status < 400 && loc ? new URL(loc, `https://${domain}/`).host : null;
+          return { domain, ok: res.status >= 200 && res.status < 400, status: res.status, redirectsTo, ms: Date.now() - started, error: null, checkedAt: new Date().toISOString() };
+        } catch (e) {
+          return { domain, ok: false, status: null, redirectsTo: null, ms: Date.now() - started, error: e instanceof Error ? e.message : "fetch failed", checkedAt: new Date().toISOString() };
+        }
+      }),
+    );
+    return results;
+  });
