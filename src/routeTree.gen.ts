@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -41,12 +42,18 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsRoute = AgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDocsRoute = ApiDocsRouteImport.update({
@@ -204,6 +211,11 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
 } as any)
+const ApiPublicAgentsTickRoute = ApiPublicAgentsTickRouteImport.update({
+  id: '/api/public/agents-tick',
+  path: '/api/public/agents-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   id: '/api/public/outreach-tick',
   path: '/api/public/outreach-tick',
@@ -217,6 +229,7 @@ const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agents': typeof AgentsRoute
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
@@ -248,11 +261,13 @@ export interface FileRoutesByFullPath {
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/regions/': typeof RegionsIndexRoute
+  '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agents': typeof AgentsRoute
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
@@ -283,12 +298,14 @@ export interface FileRoutesByTo {
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/regions': typeof RegionsIndexRoute
+  '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agents': typeof AgentsRoute
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
@@ -320,6 +337,7 @@ export interface FileRoutesById {
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/regions/': typeof RegionsIndexRoute
+  '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -327,6 +345,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agents'
     | '/api-docs'
     | '/auth'
     | '/calendar'
@@ -358,11 +377,13 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/regions/$slug'
     | '/regions/'
+    | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agents'
     | '/api-docs'
     | '/auth'
     | '/calendar'
@@ -393,11 +414,13 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/regions/$slug'
     | '/regions'
+    | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   id:
     | '__root__'
     | '/'
+    | '/agents'
     | '/api-docs'
     | '/auth'
     | '/calendar'
@@ -429,12 +452,14 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/regions/$slug'
     | '/regions/'
+    | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentsRoute: typeof AgentsRoute
   ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   CalendarRoute: typeof CalendarRoute
@@ -463,6 +488,7 @@ export interface RootRouteChildren {
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
   ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
 }
@@ -474,6 +500,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents': {
+      id: '/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-docs': {
@@ -693,6 +726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/api/public/agents-tick': {
+      id: '/api/public/agents-tick'
+      path: '/api/public/agents-tick'
+      fullPath: '/api/public/agents-tick'
+      preLoaderRoute: typeof ApiPublicAgentsTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/outreach-tick': {
       id: '/api/public/outreach-tick'
       path: '/api/public/outreach-tick'
@@ -735,6 +775,7 @@ const RegionsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentsRoute: AgentsRoute,
   ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   CalendarRoute: CalendarRoute,
@@ -763,6 +804,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
   ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
 }

@@ -8,6 +8,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { explainerById, type Explainer } from "@/lib/explained";
 import { getMetricHistory, getUkStats } from "@/lib/uk-stats.functions";
 import { computeChanges } from "@/lib/changes";
+import { getMetricExtras } from "@/lib/agents.functions";
 import type { Metric } from "@/lib/uk-stats";
 
 function genericExplainer(m: Metric): Explainer {
@@ -38,7 +39,12 @@ export const Route = createFileRoute("/explained/$metricId")({
     const metric = stats.metrics.find((m) => m.id === params.metricId) ?? null;
     const written = explainerById(params.metricId);
     if (!written && !metric) throw notFound();
-    const explainer = written ?? genericExplainer(metric!);
+    const extras = await getMetricExtras({ data: { id: params.metricId } });
+    const ai = !written && extras.approved && metric
+      ? { id: metric.id, title: extras.approved.title, summary: extras.approved.summary, sections: extras.approved.sections, methodology: { label: `${metric.source} — original publication`, url: metric.sourceUrl } }
+      : null;
+    const explainer = written ?? ai ?? genericExplainer(metric!);
+    const revisions = extras.revisions;
     let changes: ReturnType<typeof computeChanges> = [];
     let unit = "";
     if (metric?.hasHistory) {
@@ -52,7 +58,7 @@ export const Route = createFileRoute("/explained/$metricId")({
         /* history unavailable — section hidden */
       }
     }
-    return { explainer, metric, changes, unit };
+    return { explainer, metric, changes, unit, revisions };
   },
   head: ({ loaderData, params }) => {
     const title = loaderData?.explainer.title ?? "Explained";
@@ -139,7 +145,7 @@ function downloadCardPng(id: string) {
 }
 
 function ExplainedPage() {
-  const { explainer, metric, changes, unit } = Route.useLoaderData();
+  const { explainer, metric, changes, unit, revisions } = Route.useLoaderData();
   const origin = typeof window === "undefined" ? "https://ukstats.co.uk" : window.location.origin;
   const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   const citation = metric
@@ -215,6 +221,21 @@ function ExplainedPage() {
             </section>
           ))}
         </article>
+
+        {revisions.length ? (
+          <section className="mt-10" aria-labelledby="revisions-h">
+            <h2 id="revisions-h" className="font-mono text-[12px] uppercase tracking-[0.14em] text-night-muted">Publisher revisions</h2>
+            <p className="mt-1 text-[13px] text-night-muted">Times the publisher changed an already-published value for the same period, as detected by our overnight checks.</p>
+            <ul className="mt-3 divide-y divide-night-line rounded-lg border border-night-line">
+              {revisions.map((r) => (
+                <li key={r.detected_at + r.period} className="flex flex-wrap justify-between gap-2 px-4 py-3 text-[14px]">
+                  <span>{r.period}: <span className="line-through text-night-muted">{r.old_value}</span> → <strong>{r.new_value}</strong></span>
+                  <span className="font-mono text-[12px] text-night-muted">detected {r.detected_at.slice(0, 10)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className="mt-10 rounded-lg border border-night-line/70 bg-night-panel p-5">
           <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-night-muted">Methodology</p>
