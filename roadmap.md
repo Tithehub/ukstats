@@ -57,3 +57,4 @@
 - [x] Press contact email (admin@xpre.ai)
 
 - [x] Overnight agent team (/agents, nightly 02:00 UK, revisions log on Explained pages)
+- [x] Admin-only "Agents" button in the site header and menu drawer (useIsAdmin hook; page gate unchanged)
