@@ -2523,9 +2523,12 @@ async function collectStats(): Promise<StatsPayload> {
 function persistPayload(d: StatsPayload) {
   import("@/integrations/supabase/client.server")
     .then(({ supabaseAdmin }) =>
-      supabaseAdmin
-        .from("payload_cache")
-        .upsert({ id: "uk-stats", data: d as unknown as Record<string, unknown>, updated_at: new Date().toISOString() }),
+      // payload_cache predates the generated types; cast until they regenerate.
+      (supabaseAdmin.from as (t: string) => any)("payload_cache").upsert({
+        id: "uk-stats",
+        data: d,
+        updated_at: new Date().toISOString(),
+      }),
     )
     .catch(() => {});
 }
@@ -2534,7 +2537,7 @@ function persistPayload(d: StatsPayload) {
 async function readPersistedPayload(): Promise<StatsPayload | null> {
   try {
     const read = import("@/integrations/supabase/client.server").then(({ supabaseAdmin }) =>
-      supabaseAdmin.from("payload_cache").select("data").eq("id", "uk-stats").maybeSingle(),
+      (supabaseAdmin.from as (t: string) => any)("payload_cache").select("data").eq("id", "uk-stats").maybeSingle(),
     );
     const { data } = (await Promise.race([read, wait(2_500).then(() => null)])) ?? {};
     const payload = (data as { data?: StatsPayload } | null)?.data;
