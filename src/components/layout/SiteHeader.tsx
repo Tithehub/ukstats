@@ -78,6 +78,7 @@ const PRIMARY: NavItem[] = [
 
   { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
   { to: "/polling", label: "Polling", icon: Vote },
+  { to: "/countries", label: "Countries", icon: MapIcon },
 ];
 
 export function Wordmark() {
