@@ -295,6 +295,13 @@ function PressPage() {
           <div className="mt-3">
             <CopyBlock label="Press contact" text={PRESS_EMAIL} />
           </div>
+          <p className="mt-4 text-[14px] text-night-muted">
+            Published something using our figures?{" "}
+            <a href="/coverage" className="text-electric hover:underline">
+              Submit it to our media coverage page
+            </a>{" "}
+            and we'll link to it with a thumbnail.
+          </p>
         </Section>
       </main>
       <SiteFooter />
