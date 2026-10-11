@@ -43,6 +43,13 @@
       "when": 1791750074156,
       "tag": "0005_agent_marketing_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791751934412,
+      "tag": "0006_grant_has_role_to_authenticated",
+      "breakpoints": true
     }
   ]
 }
