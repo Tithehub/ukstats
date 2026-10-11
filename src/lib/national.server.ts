@@ -1,5 +1,5 @@
 // Server-only fetchers for Wave 2 national publishers. Any failure → no figure, never a guess.
-import type { CountryMetric } from "@/lib/countries";
+import { countryByCode, type CountryMetric } from "@/lib/countries";
 import { noFeed, parseBls, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
 
 const TTL = 30 * 60_000;
@@ -69,7 +69,7 @@ const DEFS: Record<string, Def[]> = {
     { id: "au-unemployment", title: "Unemployment rate (seasonally adjusted)", cadence: "Monthly", source: "Australian Bureau of Statistics — Labour Force", sourceUrl: "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
       load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,LF,1.0.0/M13.3.1599.20.AUS.M?startPeriod=2024-01", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
   ],
-  fr: [ecbRate], de: [ecbRate], ie: [ecbRate],
+  
 };
 
 const NO_FEED: Record<string, CountryMetric[]> = {
@@ -100,12 +100,12 @@ function run(code: string, d: Def): Promise<CountryMetric> {
   const key = `${code}:${d.id}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL) return hit.p;
-  const base: CountryMetric = { id: d.id, title: d.title, value: null, period: null, asOf: null, cadence: d.cadence, source: d.source, sourceUrl: d.sourceUrl, spark: [], raw: null, note: null, next: d.next };
+  const base: CountryMetric = { id: d.id, title: d.title, value: null, period: null, asOf: null, cadence: d.cadence, source: d.source, sourceUrl: d.sourceUrl, spark: [], raw: null, note: null, next: d.next, status: "unavailable", history: [], calendarUrl: d.sourceUrl };
   const p = d.load().then(
     ({ pts, asOf }) => {
       const last = pts.at(-1);
       if (!last) return { ...base, note: "The publisher returned no figure for this series." };
-      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value) };
+      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value), status: "ok", history: pts.map(x => ({ ...x, formatted: d.fmt(x.value) })) };
     },
     () => {
       cache.delete(key);
@@ -117,6 +117,6 @@ function run(code: string, d: Def): Promise<CountryMetric> {
 }
 
 export async function nationalMetrics(code: string): Promise<CountryMetric[]> {
-  const live = await Promise.all((DEFS[code] ?? []).map((d) => run(code, d)));
+  const live = await Promise.all([...(DEFS[code] ?? []), ...(countryByCode(code)?.euro ? [ecbRate] : [])].map((d) => run(code, d)));
   return [...live, ...(NO_FEED[code] ?? [])];
 }

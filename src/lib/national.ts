@@ -18,7 +18,7 @@ export function yoyFromIndex(pts: Pt[]): Pt[] {
 export function parseBls(js: unknown): Pt[] {
   const d = (js as { Results?: { series?: { data?: { year: string; period: string; value: string }[] }[] } }).Results?.series?.[0]?.data ?? [];
   return d
-    .filter((r) => /^M(0[1-9]|1[0-2])$/.test(r.period) && Number.isFinite(Number(r.value)) && r.value !== "-")
+    .filter((r) => /^M(0[1-9]|1[0-2])$/.test(r.period) && Number.isFinite(Number(r.value)) && r.value !== "-" && r.value.trim() !== "")
     .map((r) => ({ time: `${r.year}-${r.period.slice(1)}`, value: Number(r.value) }))
     .sort((a, b) => a.time.localeCompare(b.time));
 }
@@ -38,11 +38,11 @@ export function parseSdmxCsv(csv: string): Pt[] {
   if (ti < 0 || vi < 0) return [];
   return lines
     .map((l) => l.split(","))
-    .filter((c) => c[vi] !== "" && Number.isFinite(Number(c[vi])))
-    .map((c) => ({ time: c[ti]!, value: Number(c[vi]) }))
+    .filter((c) => typeof c[ti] === "string" && typeof c[vi] === "string" && c[vi]?.trim() !== "" && Number.isFinite(Number(c[vi])))
+    .map((c) => ({ time: c[ti] ?? "", value: Number(c[vi]) }))
     .sort((a, b) => a.time.localeCompare(b.time));
 }
 
 export function noFeed(id: string, title: string, source: string, sourceUrl: string, note: string, cadence = "See publisher"): CountryMetric {
-  return { id, title, value: null, period: null, asOf: null, cadence, source, sourceUrl, spark: [], raw: null, note, next: "See publisher's release calendar" };
+  return { id, title, value: null, period: null, asOf: null, cadence, source, sourceUrl, spark: [], history: [], status: "no-feed", calendarUrl: sourceUrl, raw: null, note, next: "See publisher's release calendar" };
 }
