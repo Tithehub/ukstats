@@ -128,7 +128,7 @@ function PressPage() {
               href="mailto:admin@xpre.ai?subject=Media%20enquiry%20%E2%80%94%20UKStats"
               className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-electric px-4 text-[14px] font-semibold text-background hover:opacity-90"
             >
-              <Mail className="h-4 w-4" /> Email press@ukstats — admin@xpre.ai
+              <Mail className="h-4 w-4" /> Email the press team
             </a>
           </div>
           <div className="mt-3">
