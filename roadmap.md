@@ -18,8 +18,11 @@
 - [ ] Google Search Console setup (needs user to connect the account)
 
 ## Ideas for next
-- [ ] Compare mode (two metrics on one chart)
-- [ ] Release calendar + "what changed today"
+- [x] Compare mode (/compare: two metrics on one indexed chart)
+- [x] Release calendar (/calendar: announced next-release dates)
+- [x] Feed health monitor (/status) + feed_checks log written by the daily sweep
+- [x] Sweep hardening: London-day boundary fix; cron verified running daily 06:30 UTC
+- [x] Security pass: public logs locked behind controlled read functions; scan clean
 - [ ] Public JSON/CSV API for the whole register
 - [ ] Full history for non-ONS feeds (Home Office, Land Registry) where machine-readable
 
