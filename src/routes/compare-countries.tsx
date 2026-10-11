@@ -10,7 +10,7 @@ const T = "Compare European countries — inflation, debt, unemployment | UK Sta
 const D = "Side-by-side official Eurostat figures for 30 European countries, harmonised so they are genuinely comparable.";
 
 export const Route = createFileRoute("/compare-countries")({
-  validateSearch: (s: Record<string, unknown>) => ({ metric: typeof s.metric === "string" ? s.metric : "hicp" }),
+  validateSearch: (s: Record<string, unknown>) => ({ metric: typeof s["metric"] === "string" ? s["metric"] : "hicp" }),
   loaderDeps: ({ search }) => ({ metric: search.metric }),
   loader: ({ deps, context }) => context.queryClient.ensureQueryData(cmpQuery(deps.metric)),
   head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
