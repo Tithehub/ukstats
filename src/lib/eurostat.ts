@@ -46,15 +46,15 @@ export function parseByGeo(js: JsonStat): Record<string, GeoSeries> {
   let s = 1;
   for (let i = js.size.length - 1; i >= 0; i--) {
     strides[i] = s;
-    s *= js.size[i];
+    s *= js.size[i] ?? 1;
   }
   const gi = js.id.indexOf("geo");
   const ti = js.id.indexOf("time");
   if (gi < 0 || ti < 0) return {};
   // Only accept datasets filtered down to a single cell on every other dimension.
   for (let i = 0; i < js.size.length; i++) if (i !== gi && i !== ti && js.size[i] !== 1) return {};
-  const geos = indexMap(js.dimension.geo.category.index);
-  const times = Object.entries(indexMap(js.dimension.time.category.index)).sort((a, b) => a[1] - b[1]);
+  const geos = indexMap(js.dimension["geo"]!.category.index);
+  const times = Object.entries(indexMap(js.dimension["time"]!.category.index)).sort((a, b) => a[1] - b[1]);
   const out: Record<string, GeoSeries> = {};
   for (const [geo, g] of Object.entries(geos)) {
     const points: GeoSeries["points"] = [];

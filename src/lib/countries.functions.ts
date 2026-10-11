@@ -56,7 +56,7 @@ export const getCountryStats = createServerFn({ method: "GET" })
 export const getComparison = createServerFn({ method: "GET" })
   .inputValidator((d: { metric: string }) => d)
   .handler(async ({ data }) => {
-    const def = ES_DEFS.find((d) => d.id === data.metric) ?? ES_DEFS[0];
+    const def = ES_DEFS.find((d) => d.id === data.metric) ?? ES_DEFS[0]!;
     const rows = await Promise.all(
       COUNTRIES.filter((c) => c.eurostat).map(async (c) => ({ code: c.code, name: c.name, m: await metricFor(def.id, c.eurostat!) })),
     );
