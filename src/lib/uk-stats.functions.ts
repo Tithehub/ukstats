@@ -920,10 +920,10 @@ async function weather(): Promise<Metric[]> {
     status: "unavailable",
     note: null,
   });
-  const today = mk("uk-temp-today", "Central England temperature, today", "Daily mean, 52.4°N 1.5°W", "Hourly model refresh");
+  const today = mk("uk-temp-today", "Central England temperature, today (weather model)", "Daily mean, 52.4°N 1.5°W", "Hourly model refresh");
   const hist = mk(
     "uk-temp-history",
-    "Central England temperature, 30-day mean",
+    "Central England temperature, 30-day mean (weather model)",
     "Observed daily means, archive reanalysis",
     "Daily, two days in arrears",
   );
