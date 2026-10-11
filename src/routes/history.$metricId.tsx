@@ -33,6 +33,24 @@ export const Route = createFileRoute("/history/$metricId")({
         { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Dataset",
+            name: loaderData.title,
+            description,
+            url,
+            isAccessibleForFree: true,
+            license: "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+            creator: { "@type": "Organization", name: loaderData.source, url: loaderData.sourceUrl },
+            temporalCoverage: `${loaderData.points[0]?.label ?? ""}/${loaderData.points[loaderData.points.length - 1]?.label ?? ""}`,
+            spatialCoverage: "United Kingdom",
+            distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `https://ukstats.co.uk/api/public/v1/metrics?format=csv` }],
+          }),
+        },
+      ],
     };
   },
   component: HistoryPage,

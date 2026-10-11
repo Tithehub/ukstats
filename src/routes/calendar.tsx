@@ -78,7 +78,8 @@ function CalendarPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <p className="font-mono text-[13px] text-electric">
+                      <p className={`font-mono text-[13px] ${m.due.getTime() < Date.now() ? "text-ageing" : "text-electric"}`}>
+                        {m.due.getTime() < Date.now() ? "Date passed · awaiting update · " : ""}
                         {m.due.toLocaleDateString("en-GB", {
                           day: "numeric",
                           month: "short",

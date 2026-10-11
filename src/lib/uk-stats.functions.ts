@@ -737,7 +737,7 @@ async function crime(): Promise<Metric> {
   const base: Metric = {
     id: "uk-street-crime",
     category: "Crime",
-    title: "Street-level crimes recorded",
+    title: "Street-level crimes near Westminster",
     source: "Police.uk (Home Office open data)",
     sourceUrl: "https://data.police.uk/",
     value: null,
@@ -769,7 +769,8 @@ async function crime(): Promise<Metric> {
         year: "numeric",
         timeZone: "UTC",
       }),
-      asOf: published.toISOString(),
+      // Police.uk gives no publication date; only show the typical one once it has passed.
+      asOf: published.getTime() <= Date.now() ? published.toISOString() : null,
       nextDue: new Date(Date.UTC(y!, m! + 2, 15)).toISOString(),
       status: "ok",
       note: "Police.uk publishes street-level records, not national totals. This is a verbatim record count for the requested area and month.",
@@ -906,7 +907,7 @@ async function weather(): Promise<Metric[]> {
     id,
     category: "Weather",
     title,
-    source: "Open-Meteo (ECMWF / national model blend)",
+    source: "Open-Meteo weather model (not an official statistic)",
     sourceUrl: "https://open-meteo.com/",
     value: null,
     sub,
