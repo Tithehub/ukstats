@@ -10,13 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CountryRouteImport } from './routes/$country'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as ApiRouteImport } from './routes/api'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as CompareCountriesRouteImport } from './routes/compare-countries'
 import { Route as ConnectionsRouteImport } from './routes/connections'
+import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as CoverageRouteImport } from './routes/coverage'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DailyRouteImport } from './routes/daily'
@@ -52,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CountryRoute = CountryRouteImport.update({
+  id: '/$country',
+  path: '/$country',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsRoute = AgentsRouteImport.update({
   id: '/agents',
   path: '/agents',
@@ -82,9 +90,19 @@ const CompareRoute = CompareRouteImport.update({
   path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareCountriesRoute = CompareCountriesRouteImport.update({
+  id: '/compare-countries',
+  path: '/compare-countries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnectionsRoute = ConnectionsRouteImport.update({
   id: '/connections',
   path: '/connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CountriesRoute = CountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoverageRoute = CoverageRouteImport.update({
@@ -235,13 +253,16 @@ const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$country': typeof CountryRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
+  '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
+  '/countries': typeof CountriesRoute
   '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
@@ -274,13 +295,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$country': typeof CountryRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
+  '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
+  '/countries': typeof CountriesRoute
   '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
@@ -313,13 +337,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$country': typeof CountryRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/compare': typeof CompareRoute
+  '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
+  '/countries': typeof CountriesRoute
   '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRouteWithChildren
@@ -354,13 +381,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$country'
     | '/agents'
     | '/api'
     | '/api-docs'
     | '/auth'
     | '/calendar'
     | '/compare'
+    | '/compare-countries'
     | '/connections'
+    | '/countries'
     | '/coverage'
     | '/create'
     | '/daily'
@@ -393,13 +423,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$country'
     | '/agents'
     | '/api'
     | '/api-docs'
     | '/auth'
     | '/calendar'
     | '/compare'
+    | '/compare-countries'
     | '/connections'
+    | '/countries'
     | '/coverage'
     | '/create'
     | '/daily'
@@ -431,13 +464,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$country'
     | '/agents'
     | '/api'
     | '/api-docs'
     | '/auth'
     | '/calendar'
     | '/compare'
+    | '/compare-countries'
     | '/connections'
+    | '/countries'
     | '/coverage'
     | '/create'
     | '/daily'
@@ -471,13 +507,16 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CountryRoute: typeof CountryRoute
   AgentsRoute: typeof AgentsRoute
   ApiRoute: typeof ApiRouteWithChildren
   ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   CalendarRoute: typeof CalendarRoute
   CompareRoute: typeof CompareRoute
+  CompareCountriesRoute: typeof CompareCountriesRoute
   ConnectionsRoute: typeof ConnectionsRoute
+  CountriesRoute: typeof CountriesRoute
   CoverageRoute: typeof CoverageRoute
   CreateRoute: typeof CreateRoute
   DailyRoute: typeof DailyRouteWithChildren
@@ -510,6 +549,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$country': {
+      id: '/$country'
+      path: '/$country'
+      fullPath: '/$country'
+      preLoaderRoute: typeof CountryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents': {
@@ -554,11 +600,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compare-countries': {
+      id: '/compare-countries'
+      path: '/compare-countries'
+      fullPath: '/compare-countries'
+      preLoaderRoute: typeof CompareCountriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connections': {
       id: '/connections'
       path: '/connections'
       fullPath: '/connections'
       preLoaderRoute: typeof ConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/countries': {
+      id: '/countries'
+      path: '/countries'
+      fullPath: '/countries'
+      preLoaderRoute: typeof CountriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coverage': {
@@ -806,13 +866,16 @@ const RegionsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CountryRoute: CountryRoute,
   AgentsRoute: AgentsRoute,
   ApiRoute: ApiRouteWithChildren,
   ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   CalendarRoute: CalendarRoute,
   CompareRoute: CompareRoute,
+  CompareCountriesRoute: CompareCountriesRoute,
   ConnectionsRoute: ConnectionsRoute,
+  CountriesRoute: CountriesRoute,
   CoverageRoute: CoverageRoute,
   CreateRoute: CreateRoute,
   DailyRoute: DailyRouteWithChildren,
