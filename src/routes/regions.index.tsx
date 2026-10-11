@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { getRegionList } from "@/lib/regions.functions";
 
-export const Route = createFileRoute("/regions")({
+export const Route = createFileRoute("/regions/")({
   head: () => ({
     meta: [
       { title: "Regional dashboards — official statistics by UK nation and region" },

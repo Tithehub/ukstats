@@ -39,6 +39,7 @@ import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
@@ -193,6 +194,11 @@ const PSlugRoute = PSlugRouteImport.update({
   path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegionsIndexRoute = RegionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RegionsRoute,
+} as any)
 const RegionsSlugRoute = RegionsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/regions/': typeof RegionsIndexRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -262,7 +269,6 @@ export interface FileRoutesByTo {
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/press': typeof PressRoute
-  '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -276,6 +282,7 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/regions': typeof RegionsIndexRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -312,6 +319,7 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/regions/': typeof RegionsIndexRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
 }
@@ -349,6 +357,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/regions/'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesByTo: FileRoutesByTo
@@ -370,7 +379,6 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/polling'
     | '/press'
-    | '/regions'
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
@@ -384,6 +392,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/regions'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   id:
@@ -419,6 +428,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/regions/'
     | '/api/public/outreach-tick'
     | '/api/public/v1/metrics'
   fileRoutesById: FileRoutesById
@@ -669,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/regions/': {
+      id: '/regions/'
+      path: '/'
+      fullPath: '/regions/'
+      preLoaderRoute: typeof RegionsIndexRouteImport
+      parentRoute: typeof RegionsRoute
+    }
     '/regions/$slug': {
       id: '/regions/$slug'
       path: '/$slug'
@@ -705,10 +722,12 @@ const DailyRouteWithChildren = DailyRoute._addFileChildren(DailyRouteChildren)
 
 interface RegionsRouteChildren {
   RegionsSlugRoute: typeof RegionsSlugRoute
+  RegionsIndexRoute: typeof RegionsIndexRoute
 }
 
 const RegionsRouteChildren: RegionsRouteChildren = {
   RegionsSlugRoute: RegionsSlugRoute,
+  RegionsIndexRoute: RegionsIndexRoute,
 }
 
 const RegionsRouteWithChildren =
