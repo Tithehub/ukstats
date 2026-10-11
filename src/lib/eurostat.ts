@@ -1,4 +1,5 @@
 // Pure Eurostat JSON-stat 2.0 parsing + dataset definitions (no network).
+import type { Category } from "@/lib/uk-stats";
 
 export interface EsDef {
   id: string;
@@ -8,6 +9,7 @@ export interface EsDef {
   cadence: string;
   fmt: (v: number) => string;
   note?: string;
+  category?: Category;
 }
 
 const pct = (v: number) => `${v.toFixed(1)}%`;
@@ -25,6 +27,22 @@ export const ES_DEFS: EsDef[] = [
   { id: "returned", title: "Returned following an order to leave (year)", dataset: "migr_eirtn", params: { citizen: "TOTAL", c_dest: "TOTAL", sex: "T", age: "TOTAL", unit: "PER" }, cadence: "Yearly", fmt: (v) => Math.round(v).toLocaleString("en-GB"), note: "Non-EU citizens returned to any destination after an order to leave." },
   { id: "min-wage", title: "Monthly minimum wage (EUR)", dataset: "earn_mw_cur", params: { currency: "EUR" }, cadence: "Twice a year", fmt: (v) => `€${v.toLocaleString("en-GB", { maximumFractionDigits: 2 })}`, note: "Countries without a national statutory minimum wage show no figure." },
   { id: "population", title: "Population (1 January)", dataset: "tps00001", params: {}, cadence: "Yearly", fmt: (v) => Math.round(v).toLocaleString("en-GB") },
+  { id: "debt-eur", title: "Government debt (EUR)", dataset: "gov_10q_ggdebt", params: { unit: "MIO_EUR", sector: "S13", na_item: "GD" }, cadence: "Quarterly", fmt: (v) => `€${v.toLocaleString("en-GB", { maximumFractionDigits: 1 })} million`, category: "Finance", note: "General government consolidated gross debt; Eurostat publishes this series in millions of euros, including for non-euro countries." },
+  { id: "asylum-decisions", title: "First-instance asylum decisions", dataset: "migr_asydcfsta", params: { citizen: "TOTAL", sex: "T", age: "TOTAL", decision: "TOTAL", unit: "PER" }, cadence: "Yearly", fmt: (v) => v.toLocaleString("en-GB"), category: "Immigration", note: "All first-instance decisions, not just grants of protection. Not equivalent to applications or irregular arrivals." },
+  { id: "residence-permits", title: "First residence permits issued", dataset: "migr_resfirst", params: { citizen: "TOTAL", reason: "TOTAL", duration: "TOTAL", unit: "PER" }, cadence: "Yearly", fmt: (v) => v.toLocaleString("en-GB"), category: "Immigration", note: "First permits issued to non-EU citizens, for all reasons and durations. These are lawful residence permissions, not irregular migration." },
+  { id: "homicide", title: "Police-recorded intentional homicide", dataset: "crim_off_cat", params: { iccs: "ICCS0101", unit: "NR" }, cadence: "Yearly", fmt: (v) => v.toLocaleString("en-GB"), category: "Crime", note: "Police-recorded offences classified under ICCS. Legal definitions and recording practices differ between countries; counts are not population-adjusted." },
+  { id: "doctors", title: "Practising doctors per 100,000 people", dataset: "hlth_rs_prs1", params: { wstatus: "PRACT", unit: "P_HTHAB", isco08: "OC221" }, cadence: "Yearly", fmt: (v) => v.toLocaleString("en-GB", { maximumFractionDigits: 2 }), category: "NHS & doctors", note: "Practising medical doctors, not a national doctors' register total. Coverage varies by reporting country." },
+  { id: "health-spend", title: "Government health spending (% of GDP)", dataset: "gov_10a_exp", params: { unit: "PC_GDP", sector: "S13", cofog99: "GF07", na_item: "TE" }, cadence: "Yearly", fmt: pct, category: "NHS & doctors", note: "General government expenditure classified as health (COFOG); not total public and private health spending." },
+  { id: "defence-spend", title: "Government defence spending (% of GDP)", dataset: "gov_10a_exp", params: { unit: "PC_GDP", sector: "S13", cofog99: "GF02", na_item: "TE" }, cadence: "Yearly", fmt: pct, category: "Defence & security", note: "COFOG general government defence expenditure. This is not NATO's defence spending definition." },
+  { id: "social-protection", title: "Government social protection spending (% of GDP)", dataset: "gov_10a_exp", params: { unit: "PC_GDP", sector: "S13", cofog99: "GF10", na_item: "TE" }, cadence: "Yearly", fmt: pct, category: "Finance", note: "COFOG social protection expenditure, including pensions. Not equivalent to the UK benefits bill." },
+  ...[
+    ["food-inflation", "Food and non-alcoholic drinks inflation", "CP01"],
+    ["electricity-inflation", "Electricity inflation", "CP0451"],
+    ["gas-inflation", "Gas inflation", "CP0452"],
+    ["rent-inflation", "Actual rents inflation", "CP041"],
+    ["transport-inflation", "Transport inflation", "CP07"],
+    ["communications-inflation", "Communications inflation", "CP08"],
+  ].map(([id, title, coicop]) => ({ id: id ?? "", title: title ?? "", dataset: "prc_hicp_manr", params: { coicop: coicop ?? "", unit: "RCH_A" }, cadence: "Monthly", fmt: pct, category: "Cost of living" as Category, note: "Annual HICP price change for this category; not a cash bill, price level or household spending estimate." })),
 ];
 
 export interface JsonStat {
@@ -56,8 +74,10 @@ export function parseByGeo(js: JsonStat): Record<string, GeoSeries> {
   if (gi < 0 || ti < 0) return {};
   // Only accept datasets filtered down to a single cell on every other dimension.
   for (let i = 0; i < js.size.length; i++) if (i !== gi && i !== ti && js.size[i] !== 1) return {};
-  const geos = indexMap(js.dimension["geo"]!.category.index);
-  const times = Object.entries(indexMap(js.dimension["time"]!.category.index)).sort((a, b) => a[1] - b[1]);
+  const geoDimension = js.dimension["geo"], timeDimension = js.dimension["time"];
+  if (!geoDimension || !timeDimension) return {};
+  const geos = indexMap(geoDimension.category.index);
+  const times = Object.entries(indexMap(timeDimension.category.index)).sort((a, b) => a[0].localeCompare(b[0]));
   const out: Record<string, GeoSeries> = {};
   for (const [geo, g] of Object.entries(geos)) {
     const points: GeoSeries["points"] = [];

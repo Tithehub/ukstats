@@ -1,5 +1,5 @@
 // Server-only fetchers for Wave 2 national publishers. Any failure → no figure, never a guess.
-import type { CountryMetric } from "@/lib/countries";
+import { countryByCode, type CountryMetric } from "@/lib/countries";
 import { noFeed, parseBls, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
 
 const TTL = 30 * 60_000;
@@ -40,7 +40,7 @@ const DEFS: Record<string, Def[]> = {
       load: async () => {
         const js = (await (await get("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?sort=-record_date&page%5Bsize%5D=30")).json()) as { data: { record_date: string; tot_pub_debt_out_amt: string }[] };
         const pts = js.data.map((r) => ({ time: r.record_date, value: Number(r.tot_pub_debt_out_amt) })).filter((p) => Number.isFinite(p.value)).reverse();
-        return { pts, asOf: pts.at(-1)?.time };
+        return { pts };
       } },
     { id: "us-cpi", title: "Inflation (CPI-U, 12-month change)", cadence: "Monthly", source: "Bureau of Labor Statistics (CUUR0000SA0)", sourceUrl: "https://data.bls.gov/timeseries/CUUR0000SA0", next: "Per BLS CPI release schedule", fmt: pct,
       load: async () => ({ pts: yoyFromIndex(await bls("CUUR0000SA0")()) }) },
@@ -50,7 +50,7 @@ const DEFS: Record<string, Def[]> = {
       load: async () => {
         const js = (await (await get("https://markets.newyorkfed.org/api/rates/unsecured/effr/last/30.json")).json()) as { refRates: { effectiveDate: string; percentRate: number }[] };
         const pts = js.refRates.map((r) => ({ time: r.effectiveDate, value: r.percentRate })).reverse();
-        return { pts, asOf: pts.at(-1)?.time };
+        return { pts };
       } },
   ],
   ca: [
@@ -62,14 +62,14 @@ const DEFS: Record<string, Def[]> = {
       load: async () => {
         const js = (await (await get("https://www.bankofcanada.ca/valet/observations/V39079/json?recent=30")).json()) as { observations: { d: string; V39079?: { v: string } }[] };
         const pts = js.observations.map((o) => ({ time: o.d, value: Number(o.V39079?.v) })).filter((p) => Number.isFinite(p.value)).sort((a, b) => a.time.localeCompare(b.time));
-        return { pts, asOf: pts.at(-1)?.time };
+        return { pts };
       } },
   ],
   au: [
     { id: "au-unemployment", title: "Unemployment rate (seasonally adjusted)", cadence: "Monthly", source: "Australian Bureau of Statistics — Labour Force", sourceUrl: "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
       load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,LF,1.0.0/M13.3.1599.20.AUS.M?startPeriod=2024-01", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
   ],
-  fr: [ecbRate], de: [ecbRate], ie: [ecbRate],
+  
 };
 
 const NO_FEED: Record<string, CountryMetric[]> = {
@@ -100,12 +100,12 @@ function run(code: string, d: Def): Promise<CountryMetric> {
   const key = `${code}:${d.id}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL) return hit.p;
-  const base: CountryMetric = { id: d.id, title: d.title, value: null, period: null, asOf: null, cadence: d.cadence, source: d.source, sourceUrl: d.sourceUrl, spark: [], raw: null, note: null, next: d.next };
-  const p = d.load().then(
+  const base: CountryMetric = { id: d.id, title: d.title, value: null, period: null, asOf: null, cadence: d.cadence, source: d.source, sourceUrl: d.sourceUrl, spark: [], raw: null, note: null, next: d.next, status: "unavailable", history: [], calendarUrl: d.sourceUrl };
+  const p: Promise<CountryMetric> = d.load().then<CountryMetric, CountryMetric>(
     ({ pts, asOf }) => {
       const last = pts.at(-1);
       if (!last) return { ...base, note: "The publisher returned no figure for this series." };
-      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value) };
+      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value), status: "ok", history: pts.map(x => ({ ...x, formatted: d.fmt(x.value) })) };
     },
     () => {
       cache.delete(key);
@@ -117,6 +117,6 @@ function run(code: string, d: Def): Promise<CountryMetric> {
 }
 
 export async function nationalMetrics(code: string): Promise<CountryMetric[]> {
-  const live = await Promise.all((DEFS[code] ?? []).map((d) => run(code, d)));
+  const live = await Promise.all([...(DEFS[code] ?? []), ...(countryByCode(code)?.euro ? [ecbRate] : [])].map((d) => run(code, d)));
   return [...live, ...(NO_FEED[code] ?? [])];
 }

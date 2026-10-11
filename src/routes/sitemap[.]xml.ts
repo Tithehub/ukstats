@@ -1,4 +1,5 @@
 import { COUNTRIES } from "@/lib/countries";
+import { ES_DEFS } from "@/lib/eurostat";
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
@@ -32,6 +33,8 @@ const entries: SitemapEntry[] = [
   { path: "/countries", changefreq: "weekly", priority: "0.8" },
   { path: "/compare-countries", changefreq: "daily", priority: "0.8" },
   ...COUNTRIES.map((c) => ({ path: `/${c.code}`, changefreq: "daily" as const, priority: "0.7" })),
+  ...COUNTRIES.flatMap(c => ["calendar", "status", "sources"].map(page => ({ path: `/${c.code}/${page}`, changefreq: "daily" as const, priority: "0.5" }))),
+  ...COUNTRIES.filter(c => c.eurostat).flatMap(c => ES_DEFS.flatMap(d => ["history", "explained"].map(page => ({ path: `/${c.code}/${page}/${d.id}`, changefreq: "monthly" as const, priority: "0.5" })))),
   { path: "/compare", changefreq: "weekly", priority: "0.7" },
   { path: "/calendar", changefreq: "daily", priority: "0.7" },
   { path: "/status", changefreq: "daily", priority: "0.5" },
