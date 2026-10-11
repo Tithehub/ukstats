@@ -286,12 +286,92 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_daily_briefing: {
+        Args: { day: string }
+        Returns: {
+          body: string
+          briefing_date: string
+          change_count: number
+          created_at: string
+          figures: Json
+          headline: string
+          id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "daily_briefings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      list_daily_briefings: {
+        Args: { max_rows?: number }
+        Returns: {
+          body: string
+          briefing_date: string
+          change_count: number
+          created_at: string
+          figures: Json
+          headline: string
+          id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "daily_briefings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_feed_checks: {
+        Args: { max_rows?: number; since?: string }
+        Returns: {
+          category: string
+          checked_at: string
+          id: string
+          metric_id: string
+          note: string | null
+          source: string
+          source_url: string
+          status: string
+          title: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "feed_checks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_recent_changes: {
+        Args: { max_rows?: number }
+        Returns: {
+          as_of: string | null
+          category: string
+          detected_at: string
+          id: string
+          metric_id: string
+          period: string | null
+          previous_value: string | null
+          source: string
+          source_url: string
+          title: string
+          value: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "metric_changes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
     }
     Enums: {

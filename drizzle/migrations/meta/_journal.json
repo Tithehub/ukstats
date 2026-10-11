@@ -8,6 +8,13 @@
       "when": 1791736573784,
       "tag": "0000_feed_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791736800878,
+      "tag": "0001_lock_public_logs_behind_functions",
+      "breakpoints": true
     }
   ]
 }
