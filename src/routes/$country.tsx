@@ -35,7 +35,7 @@ function CountryPage() {
         <Link to="/countries" className="text-sm text-electric-soft">← All countries</Link>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">{c.name}</h1>
         <p className="mt-2 max-w-2xl text-night-muted">
-          Official figures from Eurostat, compiled from data supplied by{" "}
+          Official figures{c.eurostat ? " from Eurostat and national publishers" : " from national publishers"}, including{" "}
           <a href={c.officeUrl} target="_blank" rel="noreferrer" className="underline">{c.office}</a>. Nothing is estimated or filled in — a blank card means nothing is published.
         </p>
         {data.metrics.length === 0 ? (

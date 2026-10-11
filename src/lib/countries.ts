@@ -69,6 +69,8 @@ export interface CountryMetric {
   /** Raw latest number, used only for side-by-side comparison. */
   raw: number | null;
   note: string | null;
+  /** Next-release wording; defaults to the Eurostat calendar. */
+  next?: string;
 }
 
 export interface CountryPayload {

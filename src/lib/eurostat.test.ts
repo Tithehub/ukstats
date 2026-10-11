@@ -19,3 +19,13 @@ describe("eurostat parser", () => {
     expect(countryByCode("zz")).toBeUndefined();
   });
 });
+
+import { yoyFromIndex, parseSdmxCsv } from "./national";
+describe("national parsers", () => {
+  it("only computes a 12-month change when the same month a year earlier is published", () => {
+    expect(yoyFromIndex([{ time: "2025-08", value: 100 }, { time: "2026-07", value: 103 }, { time: "2026-08", value: 102.5 }])).toEqual([{ time: "2026-08", value: 2.5 }]);
+  });
+  it("skips blank SDMX values", () => {
+    expect(parseSdmxCsv("A,TIME_PERIOD,OBS_VALUE\nx,2026-01,4.1\nx,2026-02,")).toEqual([{ time: "2026-01", value: 4.1 }]);
+  });
+});

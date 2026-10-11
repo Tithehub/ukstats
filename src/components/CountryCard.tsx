@@ -21,7 +21,7 @@ export function CountryCard({ m }: { m: CountryMetric }) {
         <dt>Period</dt><dd className="text-night-fg">{m.period ?? "—"}</dd>
         <dt>Updated</dt><dd className="text-night-fg">{m.asOf ? `${fmtDate(m.asOf)} · ${ageLabel(m.asOf)}` : "—"}</dd>
         <dt>Cadence</dt><dd className="text-night-fg">{m.cadence}</dd>
-        <dt>Next release</dt><dd className="text-night-fg">Per Eurostat release calendar</dd>
+        <dt>Next release</dt><dd className="text-night-fg">{m.next ?? "Per Eurostat release calendar"}</dd>
       </dl>
       {m.note && <p className="text-xs text-night-muted">{m.note}</p>}
       <a href={m.sourceUrl} target="_blank" rel="noreferrer" className="mt-auto text-xs text-electric-soft underline">Source: {m.source}</a>
