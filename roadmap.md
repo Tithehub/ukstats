@@ -61,5 +61,6 @@
 
 ## Countries expansion
 - [x] Wave 1: 30 European countries live from Eurostat (/countries, /fr, /de…, /compare-countries)
-- [ ] Wave 2: USA, France, Germany, Ireland, Canada, Australia national sources (crime, borders, debt clocks)
+- [x] Wave 2: US (Treasury, BLS, NY Fed), Canada (StatCan, Bank of Canada), Australia (ABS), ECB rate for FR/DE/IE; crime/borders/asylum shown as "No live feed" with official links
+- [ ] Wave 2b: fill AU CPI, RBA rate, CBP border, national crime if machine-readable feeds appear
 - [ ] Per-country Explained/history/embeds/API, agents watching new feeds
