@@ -25,7 +25,10 @@
 - [x] Security pass: public logs locked behind controlled read functions; scan clean
 - [x] Public JSON/CSV API (/api/public/v1/metrics, docs at /api-docs)
 - [x] Installable app icon + favicon
-- [ ] Full history for non-ONS feeds (Home Office, Land Registry) where machine-readable
+- [x] Regional dashboards (/regions + /regions/$slug for all 12 UK nations/regions)
+- [x] SEO explainer pages (/explained/$metricId for the 10 most-asked-about figures)
+- [x] Full UK house price history back to Jan 2005 (HM Land Registry UK HPI)
+- [ ] Full history for Home Office feeds where machine-readable
 
 ## NHS & doctors
 - [x] "NHS & doctors" category on the home page and register
