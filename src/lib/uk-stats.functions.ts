@@ -707,8 +707,9 @@ async function housePrices(): Promise<Metric> {
     const chg = latest.percentageAnnualChange;
     return {
       ...base,
-      value: `£${latest.averagePrice.toLocaleString("en-GB")}`,
-      period: new Date(Date.UTC(y!, m! - 1, 1)).toLocaleDateString("en-GB", {
+    value: `£${latest.averagePrice.toLocaleString("en-GB")}`,
+    hasHistory: true,
+    period: new Date(Date.UTC(y!, m! - 1, 1)).toLocaleDateString("en-GB", {
         month: "long",
         year: "numeric",
         timeZone: "UTC",
@@ -2941,6 +2942,48 @@ async function sexualOffences(): Promise<Metric[]> {
  * Returns the complete published series for one ONS-backed metric, exactly as
  * the publisher releases it. Gaps in the source stay gaps: nothing is filled in.
  */
+/** Full published UK HPI monthly series (January 2005 onwards), straight from HM Land Registry. */
+async function housePriceHistory(): Promise<HistoryPayload | null> {
+  const data = await retrying(() =>
+    getJson<{
+      result: { items: { averagePrice: number; refMonth: string }[] };
+    }>(
+      "https://landregistry.data.gov.uk/data/ukhpi/region/united-kingdom/month?_sort=refMonth&_pageSize=600&_view=all",
+      45_000,
+    ),
+  );
+  const items = (data.result.items ?? []).filter((i) => typeof i.averagePrice === "number" && i.refMonth);
+  if (!items.length) return null;
+  const points: HistoryPoint[] = items.map((i) => {
+    const [y, m] = i.refMonth.split("-").map(Number);
+    return {
+      label: new Date(Date.UTC(y!, m! - 1, 1))
+        .toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })
+        .toUpperCase(),
+      value: i.averagePrice,
+      formatted: `£${i.averagePrice.toLocaleString("en-GB")}`,
+      updated: null,
+    };
+  });
+  const latest = items[items.length - 1]!;
+  const [ly, lm] = latest.refMonth.split("-").map(Number);
+  return {
+    id: "uk-house-prices",
+    title: "Average UK house price",
+    category: "Housing",
+    subcategory: null,
+    sub: "All property types, UK",
+    source: "HM Land Registry · UK HPI",
+    sourceUrl: "https://landregistry.data.gov.uk/app/ukhpi",
+    seriesTitle: "UK House Price Index — average price, all property types",
+    cadence: "Monthly, around the third Wednesday",
+    unit: "average price paid",
+    nextDue: new Date(Date.UTC(ly!, lm! + 2, 18)).toISOString(),
+    points,
+    fetchedAt: new Date().toISOString(),
+  };
+}
+
 export const getMetricHistory = createServerFn({ method: "GET" })
   .validator((data: { id: string }) => ({ id: String(data.id) }))
   .handler(async ({ data }): Promise<HistoryPayload | null> => {
