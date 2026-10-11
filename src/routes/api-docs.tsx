@@ -28,6 +28,10 @@ const EXAMPLES = [
   { label: "Every figure (CSV)", url: `${BASE}?format=csv` },
   { label: "One category", url: `${BASE}?category=Finance` },
   { label: "One figure", url: `${BASE}?id=uk-cpi` },
+  { label: "Country register (replace fr with a registered country code)", url: "https://ukstats.co.uk/api/public/v1/countries/fr/metrics" },
+  { label: "Country register CSV", url: "https://ukstats.co.uk/api/public/v1/countries/fr/metrics?format=csv" },
+  { label: "Country published history", url: "https://ukstats.co.uk/api/public/v1/countries/fr/history/hicp" },
+  { label: "Country published history CSV", url: "https://ukstats.co.uk/api/public/v1/countries/fr/history/hicp?format=csv" },
 ];
 
 function ApiDocs() {

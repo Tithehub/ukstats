@@ -101,7 +101,7 @@ function run(code: string, d: Def): Promise<CountryMetric> {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL) return hit.p;
   const base: CountryMetric = { id: d.id, title: d.title, value: null, period: null, asOf: null, cadence: d.cadence, source: d.source, sourceUrl: d.sourceUrl, spark: [], raw: null, note: null, next: d.next, status: "unavailable", history: [], calendarUrl: d.sourceUrl };
-  const p = d.load().then(
+  const p: Promise<CountryMetric> = d.load().then<CountryMetric, CountryMetric>(
     ({ pts, asOf }) => {
       const last = pts.at(-1);
       if (!last) return { ...base, note: "The publisher returned no figure for this series." };

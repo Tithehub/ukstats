@@ -35,7 +35,7 @@ async function metricFor(defId: string, geo: string): Promise<CountryMetric> {
   const def = ES_DEFS.find((d) => d.id === defId);
   if (!def) throw new Error("Unknown official series");
   const sourceUrl = `https://ec.europa.eu/eurostat/databrowser/view/${def.dataset}/default/table`;
-  const base: CountryMetric = { id: def.id, title: def.title, value: null, period: null, asOf: null, cadence: def.cadence, source: `Eurostat (${def.dataset})`, sourceUrl, spark: [], raw: null, note: def.note ?? null, category: def.category, status: "unavailable", history: [], calendarUrl: "https://ec.europa.eu/eurostat/web/main/news/release-calendar" };
+  const base: CountryMetric = { id: def.id, title: def.title, value: null, period: null, asOf: null, cadence: def.cadence, source: `Eurostat (${def.dataset})`, sourceUrl, spark: [], raw: null, note: def.note ?? null, ...(def.category ? { category: def.category } : {}), status: "unavailable", history: [], calendarUrl: "https://ec.europa.eu/eurostat/web/main/news/release-calendar" };
   try {
     const ds = await fetchDataset(defId);
     const pts = ds.geo[geo]?.points ?? [];

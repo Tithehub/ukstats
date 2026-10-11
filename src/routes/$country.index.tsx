@@ -10,7 +10,7 @@ import { countryByCode } from '@/lib/countries';
 import { categoryIcon } from '@/lib/ui';
 import { Download } from 'lucide-react';
 export const Route = createFileRoute('/$country/')({
-  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s['q'] === 'string' ? s['q'] : '' }),
+  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s['q'] === 'string' ? s['q'] : undefined } as { q?: string }),
   loader: ({ params, context }) => context.queryClient.ensureQueryData(countryQuery(params.country)),
   head: ({ params }) => countryHead(countryByCode(params.country)?.name ?? params.country, 'Official statistics register', 'Official economy, migration, crime, housing, health and defence figures with source links, reference periods, publication age and release information.'),
   component: CountryPage,
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/$country/')({
   notFoundComponent: () => <main className="p-8">Country not found.</main>,
 });
 function CountryPage() {
-  const { country } = Route.useParams(); const { q } = Route.useSearch(); const navigate = Route.useNavigate();
+  const { country } = Route.useParams(); const { q = "" } = Route.useSearch(); const navigate = Route.useNavigate();
   const { data } = useSuspenseQuery(countryQuery(country)); if (!data) return null;
   const published = data.metrics.filter(m => m.value !== null).length;
   const shown = data.metrics.filter(m => `${m.title} ${m.source} ${metricCategory(m)}`.toLowerCase().includes(q.toLowerCase()));
