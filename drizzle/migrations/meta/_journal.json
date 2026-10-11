@@ -36,6 +36,13 @@
       "when": 1791748008123,
       "tag": "0004_agent_team",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791750074156,
+      "tag": "0005_agent_marketing_posts",
+      "breakpoints": true
     }
   ]
 }

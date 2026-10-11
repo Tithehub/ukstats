@@ -53,6 +53,48 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_posts: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          link: string
+          metric_id: string | null
+          platform: string
+          reviewed_at: string | null
+          run_id: string | null
+          source_url: string | null
+          status: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link: string
+          metric_id?: string | null
+          platform: string
+          reviewed_at?: string | null
+          run_id?: string | null
+          source_url?: string | null
+          status?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string
+          metric_id?: string | null
+          platform?: string
+          reviewed_at?: string | null
+          run_id?: string | null
+          source_url?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       agent_runs: {
         Row: {
           briefing: string | null
