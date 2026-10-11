@@ -8,6 +8,7 @@ import type { Metric } from "@/lib/uk-stats";
 import { aiJson, AiBlockedError } from "./ai.server";
 import { figureOfDay, releaseDay } from "./marketing";
 import { feedWatchdog, dataAuditor, type Finding } from "./findings";
+import { countryWatchdog } from "./countries.server";
 
 /** Marketing agent: drafts posts for owner approval; skips anything already drafted today. */
 async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise<Finding[]> {
@@ -176,7 +177,9 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
   try {
     const stats = await getUkStats();
     const metrics = stats.metrics;
+    const countryChecks = await countryWatchdog();
     findings.push(...feedWatchdog(metrics), ...dataAuditor(metrics));
+    findings.push(...countryChecks.findings);
     findings.push(...(await revisionDetective(db, metrics)));
     findings.push(...(await marketingAgent(db, metrics, runId)));
     findings.push(...(await seoInspector(metrics)));
@@ -187,7 +190,7 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
         const w = await explainerWriter(db, metrics);
         drafted = w.drafted;
         findings.push(...w.findings);
-        briefing = await chiefOfStaff(findings, { tracked: metrics.length, drafted });
+        briefing = await chiefOfStaff(findings, { tracked: metrics.length + countryChecks.tracked, drafted });
       } catch (e) {
         if (e instanceof AiBlockedError && [401, 402, 403, 429].includes(e.status)) pauseReason = e.message;
         findings.push({ agent: "Chief of Staff", severity: "warning", title: "AI step stopped", detail: e instanceof Error ? e.message : String(e) });
@@ -202,7 +205,7 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
       pause_reason: pauseReason,
       finished_at: new Date().toISOString(),
       briefing,
-      summary: { tracked: metrics.length, findings: findings.length, drafted },
+      summary: { tracked: metrics.length + countryChecks.tracked, findings: findings.length, drafted },
     }).eq("id", runId);
     return { runId, findings: findings.length, drafted, paused: pauseReason };
   } catch (e) {
