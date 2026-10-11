@@ -197,6 +197,14 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
             Full history
           </Link>
         ) : null}
+        <Link
+          to="/explained/$metricId"
+          params={{ metricId: metric.id }}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium text-steel transition-colors hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        >
+          <CircleHelp className="size-4" aria-hidden="true" />
+          Explained
+        </Link>
         <code className="ml-auto hidden font-mono text-[10px] text-steel/50 lg:block">{metric.id}</code>
       </div>
 
