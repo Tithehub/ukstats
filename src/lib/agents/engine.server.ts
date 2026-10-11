@@ -180,19 +180,19 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
   let drafted = 0;
 
   try {
-    const stats = await getUkStats(); console.log("[agents]", 'const stats = await getUkStats', Date.now());
+    const stats = await getUkStats();
     const metrics = stats.metrics;
     findings.push(...feedWatchdog(metrics), ...dataAuditor(metrics));
-    findings.push(...(await revisionDetective(db, metrics))); console.log("[agents]", 'findings.push(...(await revisi', Date.now());
-    findings.push(...(await seoInspector(metrics))); console.log("[agents]", 'findings.push(...(await seoIns', Date.now());
+    findings.push(...(await revisionDetective(db, metrics)));
+    findings.push(...(await seoInspector(metrics)));
 
     let briefing = fallbackBriefing(findings);
     if (!aiPaused) {
       try {
-        const w = await explainerWriter(db, metrics); console.log("[agents]", 'const w = await explainerWrite', Date.now());
+        const w = await explainerWriter(db, metrics);
         drafted = w.drafted;
         findings.push(...w.findings);
-        briefing = await chiefOfStaff(findings, { tracked: metrics.length, drafted }); console.log("[agents]", 'briefing = await chiefOfStaff(', Date.now());
+        briefing = await chiefOfStaff(findings, { tracked: metrics.length, drafted });
       } catch (e) {
         if (e instanceof AiBlockedError && [401, 402, 403, 429].includes(e.status)) pauseReason = e.message;
         findings.push({ agent: "Chief of Staff", severity: "warning", title: "AI step stopped", detail: e instanceof Error ? e.message : String(e) });
