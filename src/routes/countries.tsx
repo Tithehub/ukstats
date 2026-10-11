@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
 const T = "Official statistics for Europe and the Western world | UK Stats";
-const D = "Inflation, unemployment, debt, house prices, asylum and population for 30 European countries from Eurostat — with source and data age on every figure.";
+const D = "Inflation, unemployment, debt, house prices, asylum and population for 30 European countries from Eurostat, plus the US, Canada and Australia from their own national publishers — with source and data age on every figure.";
 
 export const Route = createFileRoute("/countries")({
   head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -30,10 +30,10 @@ function CountriesPage() {
             <li key={c.code}><Link to="/$country" params={{ country: c.code }} className="block rounded-md border border-night-line bg-night-panel px-3 py-2 hover:text-electric-soft">{c.name}</Link></li>
           ))}
         </ul>
-        <h2 className="mt-10 text-lg font-semibold">Coming next — national sources</h2>
+        <h2 className="mt-10 text-lg font-semibold">North America and Australia — national sources</h2>
         <ul className="mt-3 grid gap-2 sm:grid-cols-3">
           {next.map((c) => (
-            <li key={c.code}><Link to="/$country" params={{ country: c.code }} className="block rounded-md border border-night-line px-3 py-2 text-night-muted">{c.name} · No live feed yet</Link></li>
+            <li key={c.code}><Link to="/$country" params={{ country: c.code }} className="block rounded-md border border-night-line px-3 py-2 hover:text-electric-soft">{c.name}</Link></li>
           ))}
         </ul>
       </main>
