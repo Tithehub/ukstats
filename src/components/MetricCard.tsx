@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type Freshness, type Metric } from "@/lib/uk-stats";
+import { ClockText } from "@/components/ClockText";
 import { categoryIcon } from "@/lib/ui";
 
 const freshText: Record<Freshness, string> = {
@@ -151,11 +152,11 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
           <span className={`size-1.5 rounded-full ${freshBg[tone]} ${tone === "fresh" ? "pulse-dot" : ""}`} />
           {freshLabel[tone]} · as of {fmtDate(metric.asOf)}
         </span>
-        <span className={tone === "overdue" ? "text-overdue/80" : "text-steel/60"}>{dueLabel(metric.nextDue)}</span>
+        <span className={tone === "overdue" ? "text-overdue/80" : "text-steel/60"}><ClockText>{dueLabel(metric.nextDue)}</ClockText></span>
       </div>
 
       <p className="mt-1 font-mono text-[10px] text-steel/50">
-        {ageLabel(metric.asOf)} · {metric.cadence}
+        <ClockText>{ageLabel(metric.asOf)}</ClockText> · {metric.cadence}
       </p>
       {metric.covers || metric.unknownFrom ? (
         <div className="mt-2 rounded-md bg-ink/[0.04] px-2 py-1.5 font-mono text-[10px] leading-relaxed text-steel/70">

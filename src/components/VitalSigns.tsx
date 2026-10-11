@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ageLabel, dueLabel, type Metric } from "@/lib/uk-stats";
+import { ClockText } from "@/components/ClockText";
 
 /** The figures pinned to the top of every page, in the publisher's own wording. */
 export const VITAL_IDS = [
@@ -38,7 +39,7 @@ export function VitalSigns({ metrics }: { metrics: Metric[] }) {
                 {m.value ?? m.emptyLabel ?? "Not published"}
               </p>
               <p className="mt-0.5 font-mono text-[10px] text-night-muted">
-                {ageLabel(m.asOf)} · {dueLabel(m.nextDue)}
+                <ClockText>{ageLabel(m.asOf)} · {dueLabel(m.nextDue)}</ClockText>
               </p>
             </>
           );

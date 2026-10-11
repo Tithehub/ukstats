@@ -4,6 +4,7 @@ import { periodEnd } from '@/lib/country-detail';
 import { Link } from '@tanstack/react-router';
 import { Button } from './ui/button';
 import { ChartNoAxesCombined, BookOpen } from 'lucide-react';
+import { ClockText } from '@/components/ClockText';
 export function CountryCard({ m, country, embedded = false }: { m: CountryMetric; country?: string; embedded?: boolean }) {
   const max = Math.max(...m.spark), min = Math.min(...m.spark); const end = periodEnd(m.period);
   return <article className="flex min-w-0 flex-col gap-3 rounded-lg border border-night-line bg-night-panel p-4">
@@ -12,8 +13,8 @@ export function CountryCard({ m, country, embedded = false }: { m: CountryMetric
     {m.spark.length > 1 && <svg viewBox={`0 0 ${m.spark.length - 1} 20`} className="h-8 w-full text-electric" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" points={m.spark.map((v,i) => `${i},${max === min ? 10 : 20 - ((v-min)/(max-min))*20}`).join(' ')} /></svg>}
     <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-xs text-night-muted">
       <dt>Period</dt><dd className="break-words text-night-fg">{m.period ?? 'Not available'}</dd>
-      <dt>Data age</dt><dd className="text-night-fg">{end ? `${ageLabel(end)} · period end` : 'Unknown'}</dd>
-      <dt>Source updated</dt><dd className="text-night-fg">{m.asOf ? `${fmtDate(m.asOf)} · ${ageLabel(m.asOf)}` : 'Date not supplied by feed'}</dd>
+      <dt>Data age</dt><dd className="text-night-fg">{end ? <ClockText>{`${ageLabel(end)} · period end`}</ClockText> : 'Unknown'}</dd>
+      <dt>Source updated</dt><dd className="text-night-fg">{m.asOf ? <>{fmtDate(m.asOf)} · <ClockText>{ageLabel(m.asOf)}</ClockText></> : 'Date not supplied by feed'}</dd>
       <dt>Cadence</dt><dd className="text-night-fg">{m.cadence}</dd>
       <dt>Next release</dt><dd className="text-night-fg">{m.next ?? 'Date not confirmed · Eurostat calendar'}</dd>
     </dl>
