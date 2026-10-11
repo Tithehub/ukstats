@@ -50,11 +50,7 @@ export const Route = createFileRoute("/sitemap.xml")({
               },
             },
           });
-          const { data } = await supabase
-            .from("daily_briefings")
-            .select("briefing_date")
-            .order("briefing_date", { ascending: false })
-            .limit(1000);
+          const { data } = await supabase.rpc("list_daily_briefings", { max_rows: 1000 });
           for (const d of data ?? []) {
             dayEntries.push({ path: `/daily/${d.briefing_date}`, changefreq: "never", priority: "0.5" });
           }

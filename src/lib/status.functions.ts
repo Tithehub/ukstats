@@ -43,12 +43,7 @@ export const getFeedStatus = createServerFn({ method: "GET" }).handler(
     });
 
     const since = new Date(Date.now() - 30 * 24 * 3600_000).toISOString();
-    const { data } = await db
-      .from("feed_checks")
-      .select("metric_id, title, category, source, source_url, status, note, checked_at")
-      .gte("checked_at", since)
-      .order("checked_at", { ascending: false })
-      .limit(20000);
+    const { data } = await db.rpc("list_feed_checks", { max_rows: 20000, since });
 
     const latest = new Map<string, FeedStatusRow>();
     for (const r of data ?? []) {

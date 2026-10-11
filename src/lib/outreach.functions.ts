@@ -56,11 +56,7 @@ export const getOutreachQueue = createServerFn({ method: "GET" }).handler(async 
 
   let changes: ChangeRow[] = [];
   try {
-    const { data } = await publicClient()
-      .from("metric_changes")
-      .select("*")
-      .order("detected_at", { ascending: false })
-      .limit(40);
+    const { data } = await publicClient().rpc("list_recent_changes", { max_rows: 40 });
     changes = (data ?? []) as ChangeRow[];
   } catch {
     /* the change log is an enhancement — drafts still build from live figures */

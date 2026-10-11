@@ -51,11 +51,7 @@ export interface DailyArchive {
 
 /** Latest statement plus the archive, newest first. Public data only. */
 export const getDailyArchive = createServerFn({ method: "GET" }).handler(async (): Promise<DailyArchive> => {
-  const { data } = await publicClient()
-    .from("daily_briefings")
-    .select("briefing_date, headline, body, figures, change_count, created_at")
-    .order("briefing_date", { ascending: false })
-    .limit(400);
+  const { data } = await publicClient().rpc("list_daily_briefings", { max_rows: 400 });
 
   const entries = ((data ?? []) as Raw[]).map(toRow);
   return { latest: entries[0] ?? null, entries, fetchedAt: new Date().toISOString() };
@@ -69,31 +65,19 @@ export const getDailyBriefing = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }): Promise<{ briefing: BriefingRow | null; prev: string | null; next: string | null }> => {
     const client = publicClient();
-    const [{ data: row }, { data: prevRow }, { data: nextRow }] = await Promise.all([
-      client
-        .from("daily_briefings")
-        .select("briefing_date, headline, body, figures, change_count, created_at")
-        .eq("briefing_date", data.date)
-        .maybeSingle(),
-      client
-        .from("daily_briefings")
-        .select("briefing_date")
-        .lt("briefing_date", data.date)
-        .order("briefing_date", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      client
-        .from("daily_briefings")
-        .select("briefing_date")
-        .gt("briefing_date", data.date)
-        .order("briefing_date", { ascending: true })
-        .limit(1)
-        .maybeSingle(),
+    const [{ data: rows }, { data: archive }] = await Promise.all([
+      client.rpc("get_daily_briefing", { day: data.date }),
+      client.rpc("list_daily_briefings", { max_rows: 400 }),
     ]);
+
+    const row = rows?.[0] ?? null;
+    const dates = (archive ?? []).map((r) => r.briefing_date);
+    const prev = dates.find((d) => d < data.date) ?? null;
+    const next = dates.filter((d) => d > data.date).pop() ?? null;
 
     return {
       briefing: row ? toRow(row as Raw) : null,
-      prev: prevRow?.briefing_date ?? null,
-      next: nextRow?.briefing_date ?? null,
+      prev,
+      next,
     };
   });
