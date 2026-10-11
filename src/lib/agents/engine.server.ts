@@ -53,7 +53,7 @@ export function dataAuditor(metrics: Metric[], now = Date.now()): Finding[] {
       out.push({ agent: "Data Auditor", severity: "warning", metric_id: m.id, title: `${m.title}: publication date is in the future`, detail: m.asOf });
     const s = m.spark.filter((v) => Number.isFinite(v));
     if (s.length >= 3) {
-      const last = s[s.length - 1], prev = s[s.length - 2];
+      const last = s[s.length - 1] ?? 0, prev = s[s.length - 2] ?? 0;
       if (prev !== 0 && Math.abs(last / prev) > 10)
         out.push({ agent: "Data Auditor", severity: "warning", metric_id: m.id, title: `${m.title}: tenfold jump in latest point — check units`, detail: `${prev} → ${last}` });
     }
