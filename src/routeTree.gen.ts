@@ -36,6 +36,7 @@ import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
+import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
@@ -177,6 +178,11 @@ const EmbedMetricRoute = EmbedMetricRouteImport.update({
   path: '/embed/$metric',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExplainedMetricIdRoute = ExplainedMetricIdRouteImport.update({
+  id: '/explained/$metricId',
+  path: '/explained/$metricId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryMetricIdRoute = HistoryMetricIdRouteImport.update({
   id: '/history/$metricId',
   path: '/history/$metricId',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/widget': typeof WidgetRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/widget': typeof WidgetRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/widget': typeof WidgetRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
+  '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/widget'
     | '/daily/$date'
     | '/embed/$metric'
+    | '/explained/$metricId'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/widget'
     | '/daily/$date'
     | '/embed/$metric'
+    | '/explained/$metricId'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -404,6 +415,7 @@ export interface FileRouteTypes {
     | '/widget'
     | '/daily/$date'
     | '/embed/$metric'
+    | '/explained/$metricId'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -438,6 +450,7 @@ export interface RootRouteChildren {
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
+  ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
@@ -635,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbedMetricRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explained/$metricId': {
+      id: '/explained/$metricId'
+      path: '/explained/$metricId'
+      fullPath: '/explained/$metricId'
+      preLoaderRoute: typeof ExplainedMetricIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history/$metricId': {
       id: '/history/$metricId'
       path: '/history/$metricId'
@@ -721,6 +741,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
   EmbedMetricRoute: EmbedMetricRoute,
+  ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
