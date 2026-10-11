@@ -58,3 +58,8 @@
 
 - [x] Overnight agent team (/agents, nightly 02:00 UK, revisions log on Explained pages)
 - [x] Admin-only "Agents" button in the site header and menu drawer (useIsAdmin hook; page gate unchanged)
+
+## Countries expansion
+- [x] Wave 1: 30 European countries live from Eurostat (/countries, /fr, /de…, /compare-countries)
+- [ ] Wave 2: USA, France, Germany, Ireland, Canada, Australia national sources (crime, borders, debt clocks)
+- [ ] Per-country Explained/history/embeds/API, agents watching new feeds

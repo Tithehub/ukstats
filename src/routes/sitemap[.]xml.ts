@@ -1,3 +1,4 @@
+import { COUNTRIES } from "@/lib/countries";
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
@@ -28,6 +29,9 @@ const entries: SitemapEntry[] = [
   { path: "/press", changefreq: "monthly", priority: "0.5" },
   { path: "/coverage", changefreq: "weekly", priority: "0.6" },
   { path: "/api-docs", changefreq: "monthly", priority: "0.5" },
+  { path: "/countries", changefreq: "weekly", priority: "0.8" },
+  { path: "/compare-countries", changefreq: "daily", priority: "0.8" },
+  ...COUNTRIES.map((c) => ({ path: `/${c.code}`, changefreq: "daily" as const, priority: "0.7" })),
   { path: "/compare", changefreq: "weekly", priority: "0.7" },
   { path: "/calendar", changefreq: "daily", priority: "0.7" },
   { path: "/status", changefreq: "daily", priority: "0.5" },
