@@ -24,9 +24,14 @@ function compose(m: Metric, platform: (typeof PLATFORMS)[number], lead: string, 
   return { kind: campaign, metric_id: m.id, platform, body, link, source_url: m.sourceUrl };
 }
 
+/** Weather-model and warning-feed cards are shown honestly on the site, but they are not official statistics — keep them out of posts. */
+function isOfficial(m: { id: string; source: string }): boolean {
+  return !/not an official statistic|weather model|meteoalarm/i.test(m.source);
+}
+
 /** Pick one figure of the day, rotating by date, from live figures with a value and period. */
 export function figureOfDay(metrics: Metric[], date = new Date()): DraftPost[] {
-  const live = metrics.filter((m) => m.status === "ok" && m.value && m.period && /^https:\/\//.test(m.sourceUrl));
+  const live = metrics.filter((m) => m.status === "ok" && m.value && m.period && /^https:\/\//.test(m.sourceUrl) && isOfficial(m));
   if (!live.length) return [];
   const day = Math.floor(date.getTime() / 86400_000);
   const m = live[day % live.length]!;
@@ -49,7 +54,7 @@ export function releaseDay(metrics: Metric[], now = Date.now()): DraftPost[] {
 
 /** One figure of the day for a country register, rotating by date. Figures are copied verbatim. */
 export function countryFigureOfDay(payload: CountryPayload, date = new Date()): DraftPost[] {
-  const live = payload.metrics.filter((m) => m.status === "ok" && m.value && m.period && /^https:\/\//.test(m.sourceUrl));
+  const live = payload.metrics.filter((m) => m.status === "ok" && m.value && m.period && /^https:\/\//.test(m.sourceUrl) && isOfficial(m));
   if (!live.length) return [];
   const day = Math.floor(date.getTime() / 86400_000);
   const m = live[day % live.length]!;
