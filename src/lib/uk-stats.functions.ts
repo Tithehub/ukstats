@@ -2519,6 +2519,32 @@ async function collectStats(): Promise<StatsPayload> {
   return { metrics, fetchedAt: new Date().toISOString() };
 }
 
+/** Persist the last good payload so a cold server can serve it instantly. */
+function persistPayload(d: StatsPayload) {
+  import("@/integrations/supabase/client.server")
+    .then(({ supabaseAdmin }) =>
+      supabaseAdmin
+        .from("payload_cache")
+        .upsert({ id: "uk-stats", data: d as unknown as Record<string, unknown>, updated_at: new Date().toISOString() }),
+    )
+    .catch(() => {});
+}
+
+/** Read the persisted payload with a short budget; never hold the page on it. */
+async function readPersistedPayload(): Promise<StatsPayload | null> {
+  try {
+    const read = import("@/integrations/supabase/client.server").then(({ supabaseAdmin }) =>
+      supabaseAdmin.from("payload_cache").select("data").eq("id", "uk-stats").maybeSingle(),
+    );
+    const { data } = (await Promise.race([read, wait(2_500).then(() => null)])) ?? {};
+    const payload = (data as { data?: StatsPayload } | null)?.data;
+    if (payload && Array.isArray(payload.metrics) && payload.metrics.length) return payload;
+  } catch {
+    /* fall through to a live collection */
+  }
+  return null;
+}
+
 export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Promise<StatsPayload> => {
   const fresh = payloadCache && Date.now() - payloadCache.at < PAYLOAD_TTL;
   if (payloadCache && fresh) return payloadCache.data;
@@ -2529,7 +2555,10 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
     data
       .then((d) => {
         // Keep the last good payload for instant stale-while-revalidate serving.
-        if (d.metrics.length) lastGood = d;
+        if (d.metrics.length) {
+          lastGood = d;
+          persistPayload(d);
+        }
       })
       .catch(() => {
         payloadCache = null;
@@ -2541,6 +2570,13 @@ export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Pr
   // immediately rather than holding the page open on the publishers.
   const pending = start();
   if (lastGood) return lastGood;
+  // Cold start: serve the persisted snapshot if one exists, else wait (bounded
+  // by COLLECT_DEADLINE) for the live collection.
+  const persisted = await readPersistedPayload();
+  if (persisted) {
+    lastGood = persisted;
+    return persisted;
+  }
   return pending;
 });
 
