@@ -1,4 +1,5 @@
 // Browser-safe country registry. UK keeps its own register at "/".
+import type { Category } from "@/lib/uk-stats";
 
 export interface Country {
   /** Lowercase URL code, e.g. "fr". */
@@ -71,6 +72,10 @@ export interface CountryMetric {
   note: string | null;
   /** Next-release wording; defaults to the Eurostat calendar. */
   next?: string;
+  category?: Category;
+  status?: "ok" | "unavailable" | "no-feed";
+  history?: { time: string; value: number; formatted: string }[];
+  calendarUrl?: string;
 }
 
 export interface CountryPayload {
