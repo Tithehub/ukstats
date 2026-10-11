@@ -41,7 +41,8 @@ export async function aiJson<T>(opts: {
   let buf = "";
   let text = "";
   let refused = false;
-  for (;;) {
+  let finished = false;
+  while (!finished) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += dec.decode(value, { stream: true });
@@ -55,6 +56,7 @@ export async function aiJson<T>(opts: {
       try {
         const ev = JSON.parse(data) as { type?: string; delta?: string };
         if (ev.type === "response.output_text.delta" && ev.delta) text += ev.delta;
+        if (ev.type === "response.completed" || ev.type === "response.incomplete") finished = true;
         if (ev.type === "response.refusal.delta") refused = true;
         if (ev.type === "response.failed" || ev.type === "error") throw new AiBlockedError(500, "AI response failed");
       } catch (e) {
@@ -62,6 +64,7 @@ export async function aiJson<T>(opts: {
       }
     }
   }
+  if (finished) void reader.cancel().catch(() => {});
   if (refused || !text) throw new AiBlockedError(422, "AI declined or returned nothing");
   return JSON.parse(text) as T;
 }

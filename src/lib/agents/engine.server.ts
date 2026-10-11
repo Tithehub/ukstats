@@ -18,7 +18,7 @@ type Finding = {
 
 const SITE = "https://ukstats.co.uk";
 const PAGES = ["/", "/register", "/daily", "/status", "/compare", "/calendar", "/regions", "/maps", "/press", "/polling", "/tax-vs-welfare", "/foreign-aid", "/api-docs", "/coverage"];
-const MAX_DRAFTS = 3;
+const MAX_DRAFTS = 2;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
 
@@ -81,7 +81,7 @@ async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
   const titles = new Map<string, string>();
   for (const path of PAGES) {
     try {
-      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" } });
+      const res = await fetch(SITE + path, { headers: { "User-Agent": "UKStats-Inspector/1.0" }, signal: AbortSignal.timeout(10_000) });
       if (!res.ok) {
         out.push({ agent: "SEO & Accessibility", severity: "critical", title: `${path} returned ${res.status}`, url: SITE + path });
         continue;
@@ -103,7 +103,7 @@ async function seoInspector(metrics: Metric[]): Promise<Finding[]> {
     }
   }
   try {
-    const sm = await (await fetch(`${SITE}/sitemap.xml`)).text();
+    const sm = await (await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(10_000) })).text();
     const missing = metrics.filter((m) => !sm.includes(`/explained/${m.id}<`)).length;
     if (missing) out.push({ agent: "SEO & Accessibility", severity: "info", title: `${missing} explainer pages not listed in the sitemap`, url: `${SITE}/sitemap.xml` });
   } catch {
@@ -180,19 +180,19 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
   let drafted = 0;
 
   try {
-    const stats = await getUkStats();
+    const stats = await getUkStats(); console.log("[agents]", 'const stats = await getUkStats', Date.now());
     const metrics = stats.metrics;
     findings.push(...feedWatchdog(metrics), ...dataAuditor(metrics));
-    findings.push(...(await revisionDetective(db, metrics)));
-    findings.push(...(await seoInspector(metrics)));
+    findings.push(...(await revisionDetective(db, metrics))); console.log("[agents]", 'findings.push(...(await revisi', Date.now());
+    findings.push(...(await seoInspector(metrics))); console.log("[agents]", 'findings.push(...(await seoIns', Date.now());
 
     let briefing = fallbackBriefing(findings);
     if (!aiPaused) {
       try {
-        const w = await explainerWriter(db, metrics);
+        const w = await explainerWriter(db, metrics); console.log("[agents]", 'const w = await explainerWrite', Date.now());
         drafted = w.drafted;
         findings.push(...w.findings);
-        briefing = await chiefOfStaff(findings, { tracked: metrics.length, drafted });
+        briefing = await chiefOfStaff(findings, { tracked: metrics.length, drafted }); console.log("[agents]", 'briefing = await chiefOfStaff(', Date.now());
       } catch (e) {
         if (e instanceof AiBlockedError && [401, 402, 403, 429].includes(e.status)) pauseReason = e.message;
         findings.push({ agent: "Chief of Staff", severity: "warning", title: "AI step stopped", detail: e instanceof Error ? e.message : String(e) });
