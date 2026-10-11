@@ -83,7 +83,19 @@ export const Route = createFileRoute("/sitemap.xml")({
           // A sitemap must still render if the archive is briefly unavailable.
         }
 
-        const urls = [...entries, ...dayEntries].map((e) =>
+        const explained: SitemapEntry[] = [];
+        try {
+          const { getUkStats } = await import("@/lib/uk-stats.functions");
+          const have = new Set(entries.map((e) => e.path));
+          for (const m of (await getUkStats()).metrics) {
+            const path = `/explained/${m.id}`;
+            if (!have.has(path)) { have.add(path); explained.push({ path, changefreq: "monthly", priority: "0.5" }); }
+          }
+        } catch {
+          // Keep the static sitemap if figures are briefly unavailable.
+        }
+
+        const urls = [...entries, ...explained, ...dayEntries].map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,

@@ -6,6 +6,19 @@ import { getUkStats } from "@/lib/uk-stats.functions";
 import { explainerById } from "@/lib/explained";
 import type { Metric } from "@/lib/uk-stats";
 import { aiJson, AiBlockedError } from "./ai.server";
+import { figureOfDay, releaseDay } from "./marketing";
+
+/** Marketing agent: drafts posts for owner approval; skips anything already drafted today. */
+async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise<Finding[]> {
+  const since = new Date(Date.now() - 20 * 3600_000).toISOString();
+  const { data: recent } = await db.from("agent_posts").select("metric_id, platform, kind").gte("created_at", since);
+  const seen = new Set((recent ?? []).map((r: { metric_id: string; platform: string; kind: string }) => `${r.kind}|${r.metric_id}|${r.platform}`));
+  const rows = [...figureOfDay(metrics), ...releaseDay(metrics)]
+    .filter((p) => !seen.has(`${p.kind}|${p.metric_id}|${p.platform}`))
+    .map((p) => ({ ...p, run_id: runId }));
+  if (rows.length) await db.from("agent_posts").insert(rows);
+  return rows.length ? [{ agent: "Marketing", severity: "info", title: `${rows.length} social post draft(s) awaiting your approval` }] : [];
+}
 
 type Finding = {
   agent: string;
@@ -184,6 +197,7 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
     const metrics = stats.metrics;
     findings.push(...feedWatchdog(metrics), ...dataAuditor(metrics));
     findings.push(...(await revisionDetective(db, metrics)));
+    findings.push(...(await marketingAgent(db, metrics, runId)));
     findings.push(...(await seoInspector(metrics)));
 
     let briefing = fallbackBriefing(findings);

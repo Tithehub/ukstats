@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth } from "@/lib/useAuth";
 import { dismissFinding, getAgentDashboard, reviewDraft, runAgentsNow } from "@/lib/agents.functions";
+import { LaunchKit, MarketingPanel } from "@/components/agents/MarketingPanel";
 
 export const Route = createFileRoute("/agents")({
   head: () => ({
@@ -111,6 +112,8 @@ function AgentsPage() {
             {!drafts.length ? <p className="text-night-muted">No drafts waiting.</p> : null}
           </div>
         </section>
+        <MarketingPanel />
+        <LaunchKit />
       </>
     );
   }

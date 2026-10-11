@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as ApiRouteImport } from './routes/api'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -54,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
 const AgentsRoute = AgentsRouteImport.update({
   id: '/agents',
   path: '/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRoute = ApiRouteImport.update({
+  id: '/api',
+  path: '/api',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDocsRoute = ApiDocsRouteImport.update({
@@ -212,24 +218,25 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   getParentRoute: () => RegionsRoute,
 } as any)
 const ApiPublicAgentsTickRoute = ApiPublicAgentsTickRouteImport.update({
-  id: '/api/public/agents-tick',
-  path: '/api/public/agents-tick',
-  getParentRoute: () => rootRouteImport,
+  id: '/public/agents-tick',
+  path: '/public/agents-tick',
+  getParentRoute: () => ApiRoute,
 } as any)
 const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
-  id: '/api/public/outreach-tick',
-  path: '/api/public/outreach-tick',
-  getParentRoute: () => rootRouteImport,
+  id: '/public/outreach-tick',
+  path: '/public/outreach-tick',
+  getParentRoute: () => ApiRoute,
 } as any)
 const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
-  id: '/api/public/v1/metrics',
-  path: '/api/public/v1/metrics',
-  getParentRoute: () => rootRouteImport,
+  id: '/public/v1/metrics',
+  path: '/public/v1/metrics',
+  getParentRoute: () => ApiRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
+  '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
+  '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
+  '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
@@ -346,6 +355,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agents'
+    | '/api'
     | '/api-docs'
     | '/auth'
     | '/calendar'
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agents'
+    | '/api'
     | '/api-docs'
     | '/auth'
     | '/calendar'
@@ -421,6 +432,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agents'
+    | '/api'
     | '/api-docs'
     | '/auth'
     | '/calendar'
@@ -460,6 +472,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRoute: typeof AgentsRoute
+  ApiRoute: typeof ApiRouteWithChildren
   ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   CalendarRoute: typeof CalendarRoute
@@ -488,9 +501,6 @@ export interface RootRouteChildren {
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
-  ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
-  ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
-  ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -507,6 +517,13 @@ declare module '@tanstack/react-router' {
       path: '/agents'
       fullPath: '/agents'
       preLoaderRoute: typeof AgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api': {
+      id: '/api'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof ApiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-docs': {
@@ -728,27 +745,41 @@ declare module '@tanstack/react-router' {
     }
     '/api/public/agents-tick': {
       id: '/api/public/agents-tick'
-      path: '/api/public/agents-tick'
+      path: '/public/agents-tick'
       fullPath: '/api/public/agents-tick'
       preLoaderRoute: typeof ApiPublicAgentsTickRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoute
     }
     '/api/public/outreach-tick': {
       id: '/api/public/outreach-tick'
-      path: '/api/public/outreach-tick'
+      path: '/public/outreach-tick'
       fullPath: '/api/public/outreach-tick'
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoute
     }
     '/api/public/v1/metrics': {
       id: '/api/public/v1/metrics'
-      path: '/api/public/v1/metrics'
+      path: '/public/v1/metrics'
       fullPath: '/api/public/v1/metrics'
       preLoaderRoute: typeof ApiPublicV1MetricsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoute
     }
   }
 }
+
+interface ApiRouteChildren {
+  ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
+  ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
+  ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
+}
+
+const ApiRouteChildren: ApiRouteChildren = {
+  ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
+  ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
+  ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
+}
+
+const ApiRouteWithChildren = ApiRoute._addFileChildren(ApiRouteChildren)
 
 interface DailyRouteChildren {
   DailyDateRoute: typeof DailyDateRoute
@@ -776,6 +807,7 @@ const RegionsRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRoute: AgentsRoute,
+  ApiRoute: ApiRouteWithChildren,
   ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   CalendarRoute: CalendarRoute,
@@ -804,9 +836,6 @@ const rootRouteChildren: RootRouteChildren = {
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
-  ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
-  ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
-  ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
