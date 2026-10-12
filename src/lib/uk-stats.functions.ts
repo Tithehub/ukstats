@@ -2549,7 +2549,7 @@ async function readPersistedPayload(): Promise<StatsPayload | null> {
   return null;
 }
 
-export const getUkStats = createServerFn({ method: "GET" }).handler(async (): Promise<StatsPayload> => {
+export const getUkStats = createServerFn({ method: "POST" }).handler(async (): Promise<StatsPayload> => {
   const fresh = payloadCache && Date.now() - payloadCache.at < PAYLOAD_TTL;
   if (payloadCache && fresh) return payloadCache.data;
 
@@ -3024,7 +3024,7 @@ async function housePriceHistory(): Promise<HistoryPayload | null> {
   };
 }
 
-export const getMetricHistory = createServerFn({ method: "GET" })
+export const getMetricHistory = createServerFn({ method: "POST" })
   .validator((data: { id: string }) => ({ id: String(data.id) }))
   .handler(async ({ data }): Promise<HistoryPayload | null> => {
     if (data.id === "uk-foreign-aid" || data.id === "uk-foreign-aid-gni") return aidHistory(data.id);
@@ -3701,7 +3701,7 @@ SELECT ?area ?name ?crime ?count WHERE {
 let mapCache: { at: number; data: Promise<MapLayer[]> } | null = null;
 
 /** Every regional layer the map can draw, each straight from its publisher. */
-export const getMapLayers = createServerFn({ method: "GET" }).handler(async (): Promise<MapLayer[]> => {
+export const getMapLayers = createServerFn({ method: "POST" }).handler(async (): Promise<MapLayer[]> => {
   if (mapCache && Date.now() - mapCache.at < 30 * 60_000) return mapCache.data;
   const p = (async () => {
     const [crime, scotland, houses] = await Promise.all([
@@ -3727,7 +3727,7 @@ export interface StreetCrime {
 }
 
 /** Street-level crimes published by Police.uk around a point. */
-export const getStreetCrime = createServerFn({ method: "GET" })
+export const getStreetCrime = createServerFn({ method: "POST" })
   .validator((data: { lat: number; lng: number }) => ({ lat: Number(data.lat), lng: Number(data.lng) }))
   .handler(async ({ data }): Promise<{ points: StreetCrime[]; month: string | null; error: string | null }> => {
     try {
@@ -3828,7 +3828,7 @@ function sumAnnual(all: OnsSeries[]) {
 }
 
 /** Published annual public sector receipts against the published welfare bill. */
-export const getTaxVsWelfare = createServerFn({ method: "GET" }).handler(
+export const getTaxVsWelfare = createServerFn({ method: "POST" }).handler(
   async (): Promise<{
     points: TaxWelfarePoint[];
     asOf: string | null;
@@ -3995,7 +3995,7 @@ async function aidSeries(): Promise<AidPoint[]> {
   return p;
 }
 
-export const getForeignAid = createServerFn({ method: "GET" }).handler(
+export const getForeignAid = createServerFn({ method: "POST" }).handler(
   async (): Promise<{ points: AidPoint[]; fetchedAt: string }> => {
     try {
       return { points: await aidSeries(), fetchedAt: new Date().toISOString() };
@@ -4197,7 +4197,7 @@ async function registeredParties(): Promise<RegisteredParty[]> {
 }
 
 /** Live index of registered parties for the Politics page. */
-export const getPartyRegister = createServerFn({ method: "GET" }).handler(
+export const getPartyRegister = createServerFn({ method: "POST" }).handler(
   async (): Promise<{ parties: RegisteredParty[]; fetchedAt: string; error: string | null }> => {
     try {
       const parties = await registeredParties();
@@ -4451,7 +4451,7 @@ async function cachedPolling(): Promise<PollingPayload> {
   return run;
 }
 
-export const getPolling = createServerFn({ method: "GET" }).handler(() => cachedPolling());
+export const getPolling = createServerFn({ method: "POST" }).handler(() => cachedPolling());
 
 /** Register cards: party count and the unweighted average of pollsters' own latest releases. */
 async function politicsMetrics(): Promise<Metric[]> {
@@ -4796,7 +4796,7 @@ async function buildEras(): Promise<ErasPayload> {
 }
 
 /** Start and end values of the headline published series for each administration. */
-export const getGovernmentEras = createServerFn({ method: "GET" }).handler(async (): Promise<ErasPayload> => {
+export const getGovernmentEras = createServerFn({ method: "POST" }).handler(async (): Promise<ErasPayload> => {
   if (erasCache && Date.now() - erasCache.at < 3_600_000) return erasCache.data;
   const run = buildEras();
   erasCache = { at: Date.now(), data: run };

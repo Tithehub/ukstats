@@ -50,7 +50,7 @@ const dateLabel = () =>
  * Build the draft queue: one post per recently changed official figure, plus a
  * digest of the pinned vital signs. Reads only public data.
  */
-export const getOutreachQueue = createServerFn({ method: "GET" }).handler(async (): Promise<OutreachQueue> => {
+export const getOutreachQueue = createServerFn({ method: "POST" }).handler(async (): Promise<OutreachQueue> => {
   const stats = await getUkStats();
   const byId = new Map(stats.metrics.map((m) => [m.id, m]));
 

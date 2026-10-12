@@ -26,11 +26,11 @@ export interface RegionDashboard {
   fetchedAt: string;
 }
 
-export const getRegionList = createServerFn({ method: "GET" }).handler(async () => {
+export const getRegionList = createServerFn({ method: "POST" }).handler(async () => {
   return REGIONS.map((r) => ({ slug: r.slug, name: r.name, code: r.code, blurb: r.blurb }));
 });
 
-export const getRegionDashboard = createServerFn({ method: "GET" })
+export const getRegionDashboard = createServerFn({ method: "POST" })
   .validator((data: { slug: string }) => ({ slug: String(data.slug).slice(0, 60) }))
   .handler(async ({ data }): Promise<RegionDashboard | null> => {
     const region = regionBySlug(data.slug);

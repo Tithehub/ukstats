@@ -158,7 +158,7 @@ function indexOfBytes(haystack: Uint8Array, needle: Uint8Array): number {
   return -1;
 }
 
-export const listSocialAccounts = createServerFn({ method: "GET" })
+export const listSocialAccounts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<SocialAccount[]> => {
     const db = await admin();
