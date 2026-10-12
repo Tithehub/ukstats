@@ -32,6 +32,7 @@ const entries: SitemapEntry[] = [
   { path: "/api-docs", changefreq: "monthly", priority: "0.5" },
   { path: "/countries", changefreq: "weekly", priority: "0.8" },
   { path: "/compare-countries", changefreq: "daily", priority: "0.8" },
+  { path: "/online-speech", changefreq: "weekly", priority: "0.6" },
   ...COUNTRIES.map((c) => ({ path: `/${c.code}`, changefreq: "daily" as const, priority: "0.7" })),
   ...COUNTRIES.flatMap(c => ["calendar", "status", "sources"].map(page => ({ path: `/${c.code}/${page}`, changefreq: "daily" as const, priority: "0.5" }))),
   ...COUNTRIES.filter(c => c.eurostat).flatMap(c => ES_DEFS.flatMap(d => ["history", "explained"].map(page => ({ path: `/${c.code}/${page}/${d.id}`, changefreq: "monthly" as const, priority: "0.5" })))),
