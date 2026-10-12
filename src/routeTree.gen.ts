@@ -60,6 +60,7 @@ import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.
 import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicV1GoldRouteImport } from './routes/api/public/v1/gold'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
 import { Route as ApiPublicV1CountriesCodeMetricsRouteImport } from './routes/api/public/v1/countries/$code.metrics'
@@ -321,6 +322,12 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   path: '/public/outreach-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/public/payments/webhook',
+    path: '/public/payments/webhook',
+    getParentRoute: () => ApiRoute,
+  } as any)
 const ApiPublicV1GoldRoute = ApiPublicV1GoldRouteImport.update({
   id: '/public/v1/gold',
   path: '/public/v1/gold',
@@ -396,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
   '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
@@ -451,6 +459,7 @@ export interface FileRoutesByTo {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
   '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
@@ -509,6 +518,7 @@ export interface FileRoutesById {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
   '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
@@ -568,6 +578,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
     | '/api/public/v1/countries/$code/metrics'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
     | '/api/public/v1/countries/$code/metrics'
@@ -680,6 +692,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
     | '/api/public/v1/countries/$code/metrics'
@@ -1087,6 +1100,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/api/public/v1/gold': {
       id: '/api/public/v1/gold'
       path: '/public/v1/gold'
@@ -1144,6 +1164,7 @@ const CountryRouteWithChildren =
 interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicV1GoldRoute: typeof ApiPublicV1GoldRoute
   ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
   ApiPublicV1CountriesCodeMetricsRoute: typeof ApiPublicV1CountriesCodeMetricsRoute
@@ -1153,6 +1174,7 @@ interface ApiRouteChildren {
 const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicV1GoldRoute: ApiPublicV1GoldRoute,
   ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
   ApiPublicV1CountriesCodeMetricsRoute: ApiPublicV1CountriesCodeMetricsRoute,
