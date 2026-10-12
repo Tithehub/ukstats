@@ -86,8 +86,8 @@ function MySponsorship() {
             </select>
           </label>
           {s.plan === "sponsor" ? (
-            <label className="text-sm sm:col-span-2">Banner image link (https://, 1536×512 or 3:1 wide)<input name="banner_url" maxLength={500} defaultValue={(s as { banner_url?: string | null }).banner_url ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
-            <label className="text-sm sm:col-span-2">Tagline (up to 80 characters)<input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
+            <><label className="text-sm sm:col-span-2">Banner image link (https://, 1536×512 or 3:1 wide)<input name="banner_url" maxLength={500} defaultValue={(s as { banner_url?: string | null }).banner_url ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
+            <label className="text-sm sm:col-span-2">Tagline (up to 80 characters)<input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label></>
           ) : null}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
             <button className="rounded-md bg-electric px-4 py-2 text-sm font-medium text-night">Save details</button>
