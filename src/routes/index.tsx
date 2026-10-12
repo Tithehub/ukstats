@@ -8,6 +8,7 @@ import { ShareRow } from "@/components/ShareRow";
 import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
 import heroNetwork from "@/assets/hero-network.jpg";
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -167,6 +168,11 @@ function Home() {
             ) : null}
           </div>
         </section>
+
+        {/* Sponsor banner — sits under the hero for visibility, always labelled, never beside individual figures. */}
+        <div className="mt-4">
+          <SponsorBanner variant="hero" />
+        </div>
 
         {/* Around the world */}
         <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-night-line/50 bg-night-panel/40 px-5 py-4">

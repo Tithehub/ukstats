@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
 import { SponsorStrip } from "@/components/SponsorStrip";
 import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
@@ -33,9 +33,11 @@ const COLUMNS = [
 ] as const;
 
 export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // The home page shows the banner under the hero instead, so the footer stays single-banner there.
   return (
     <footer className="border-t border-night-line/60 bg-night-panel/40">
-      <SponsorBanner />
+      {pathname !== "/" ? <SponsorBanner /> : null}
       <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <p className="text-base font-semibold">
