@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
+import { SponsorStrip } from "@/components/SponsorStrip";
 
 const COLUMNS = [
   {
@@ -20,6 +21,7 @@ const COLUMNS = [
       { to: "/outreach", label: "Outreach queue", icon: Bot },
       { to: "/connections", label: "Connect your socials", icon: Plug },
       { to: "/support", label: "Support UKStats", icon: LifeBuoy },
+      { to: "/advertise", label: "Sponsor UKStats", icon: LifeBuoy },
       { to: "/press", label: "Press kit", icon: Newspaper },
       { to: "/coverage", label: "Media coverage", icon: Newspaper },
       { to: "/api-docs", label: "Open data API", icon: Newspaper },
@@ -82,6 +84,11 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
             <li>Police.uk · HM Land Registry</li>
             <li>MOD · MI5 / JTAC · Met Office</li>
           </ul>
+        </div>
+      </div>
+      <div className="border-t border-night-line/50">
+        <div className="mx-auto max-w-[1280px] px-4 py-3 sm:px-6">
+          <SponsorStrip />
         </div>
       </div>
       <div className="border-t border-night-line/50">

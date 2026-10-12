@@ -86,3 +86,9 @@
 
 ## Global extension
 - [x] /global page: 164 national statistics offices beyond the 33 covered, grouped by region (UN directory, links checked 2026-10-12)
+
+## Monetisation
+- [x] /advertise sponsor page + footer "Supported by" strip + enquiries
+- [ ] Sponsor price (waiting on Marco)
+- [ ] Paid API plan (needs payment provider choice)
+- [ ] Weekly email briefing
