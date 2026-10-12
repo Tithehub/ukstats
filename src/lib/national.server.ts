@@ -68,6 +68,22 @@ const DEFS: Record<string, Def[]> = {
         const pts = js.refRates.map((r) => ({ time: r.effectiveDate, value: r.percentRate })).reverse();
         return { pts };
       } },
+    { id: "us-payrolls", title: "Nonfarm payroll employment (thousands)", cadence: "Monthly", source: "Bureau of Labor Statistics (CES0000000001)", sourceUrl: "https://data.bls.gov/timeseries/CES0000000001", next: "Per BLS Employment Situation schedule", fmt: (v) => `${Math.round(v).toLocaleString("en-GB")}k`,
+      load: async () => ({ pts: await bls("CES0000000001")() }) },
+    { id: "us-earnings", title: "Average hourly earnings, private sector", cadence: "Monthly", source: "Bureau of Labor Statistics (CES0500000003)", sourceUrl: "https://data.bls.gov/timeseries/CES0500000003", next: "Per BLS Employment Situation schedule", fmt: (v) => `$${v.toFixed(2)}`,
+      load: async () => ({ pts: await bls("CES0500000003")() }) },
+    ...([["V", "Violent crime offences (month)"], ["P", "Property crime offences (month)"]] as const).map(([code, title]): Def => ({
+      id: `us-crime-${code === "V" ? "violent" : "property"}`, title, cadence: "Monthly, published with a lag", source: "FBI Crime Data Explorer (UCR summarized)", sourceUrl: "https://cde.ucr.cjis.gov/", next: "Per FBI CDE update schedule", fmt: (v) => Math.round(v).toLocaleString("en-GB"),
+      load: async () => {
+        const key = process.env.FBI_API_KEY;
+        if (!key) throw new Error("FBI key not configured");
+        const y = new Date().getUTCFullYear();
+        const js = await getJson<{ offenses?: { actuals?: Record<string, Record<string, number | null>> } }>(`https://api.usa.gov/crime/fbi/cde/summarized/national/${code}?from=01-${y - 2}&to=12-${y}&API_KEY=${encodeURIComponent(key)}`);
+        const series = Object.entries(js.offenses?.actuals ?? {}).find(([k]) => /united states/i.test(k) && !/clearance/i.test(k))?.[1] ?? {};
+        const pts = Object.entries(series).filter(([, v]) => typeof v === "number" && Number.isFinite(v)).map(([mmYYYY, v]) => { const [m, yr] = mmYYYY.split("-"); return { time: `${yr}-${m}`, value: v as number }; }).sort((a, b) => a.time.localeCompare(b.time));
+        return { pts };
+      },
+    })),
   ],
   ca: [
     { id: "ca-cpi", title: "Inflation (CPI, 12-month change)", cadence: "Monthly", source: "Statistics Canada (v41690973)", sourceUrl: "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000401", next: "Per Statistics Canada release schedule", fmt: pct,
