@@ -24,8 +24,13 @@ const statsQuery = queryOptions<StatsPayload>({
 // of the page itself — even if the browser's interactive layer never starts.
 const sponsorBoardQuery = queryOptions<SponsorBannerRow[]>({
   queryKey: ["sponsor-banner-board"],
-  queryFn: async () =>
-    (await getSponsorBannerBoard({ data: { environment: readPaymentsEnvironment() ?? "sandbox" } })).sponsors,
+  queryFn: async () => {
+    try {
+      return (await getSponsorBannerBoard({ data: { environment: readPaymentsEnvironment() ?? "sandbox" } })).sponsors;
+    } catch {
+      return []; // a failed lookup must never take the page down — the labelled example shows instead
+    }
+  },
   staleTime: 60_000,
 });
 
