@@ -89,9 +89,13 @@
 
 ## Monetisation
 - [x] /advertise sponsor page + footer "Supported by" strip + enquiries
-- [ ] Sponsor price (waiting on Marco)
+- [x] Sponsor prices set: Supporter £5/month or £50/year, Sponsor £10/month or £100/year (yearly selected by default)
 - [ ] Paid API plan (needs payment provider choice)
 - [ ] Weekly email briefing
 - [x] Paid sponsor plans (Supporter £5/£50, Sponsor £10/£100) with checkout, admin approval, auto-off on cancel
 - [x] Sponsor lines render only when paid, approved, switched on and from the visitor's own environment (a test line can't reach the live site)
-- [ ] Go live with payments: Stripe account claimed and business details submitted (12 Oct); remaining — add the Lovable app to the LIVE Stripe account, run the readiness check, then publish
+- [x] Go live with payments: Stripe live account connected, readiness check passed (12 Oct 2026)
+- [x] Region-aware sponsor banner with a button at the top of the footer on every page (rotates three at a time every 8s, holds on hover, UK/EU/US/CA/AU regions); /sponsors hub page listing every approved sponsor by region; "See what you get" example box on /advertise using the clearly-labelled made-up estate agent
+- [x] Sponsor system published to ukstats.co.uk (12 Oct 2026): banner, /sponsors and live paid plans verified on the live site, no test-mode note
+- [ ] Real-money end-to-end test: pay £5, approve on /agents, confirm the "Supported by" line appears
+- [ ] Real sponsor photos uploaded through the approval flow (banner currently uses the example photo)
