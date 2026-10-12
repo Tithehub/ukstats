@@ -1,3 +1,4 @@
+import { normaliseRegions, PLACE_CODES } from "@/lib/sponsor-regions";
 import { COUNTRIES } from "@/lib/countries";
 import { createServerFn } from "@tanstack/react-start";
 import type Stripe from "stripe";
@@ -118,7 +119,7 @@ export const getMySponsorship = createServerFn({ method: "POST" })
       .maybeSingle();
     const { data: sponsor } = await context.supabase
       .from("sponsors")
-      .select("id,name,url,tagline,approved,paid,plan,region,banner_url,banner_path")
+      .select("id,name,url,tagline,approved,paid,plan,region,regions,banner_url,banner_path")
       .eq("user_id", context.userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
@@ -135,6 +136,7 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
     url: string;
     tagline?: string;
     region?: string;
+    regions?: string[];
     banner_url?: string;
     banner_path?: string;
   }) => {
@@ -144,12 +146,12 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
     const tagline = String(d.tagline ?? "").trim().slice(0, 80);
     if (!name) throw new Error("Name is required");
     if (!/^https:\/\/[^\s]+$/.test(url)) throw new Error("Link must start with https://");
-    const region = String(d.region ?? "all").toLowerCase();
-    if (region !== "all" && region !== "uk" && !COUNTRIES.some((c) => c.code === region)) throw new Error("Unknown region");
+    const regions = normaliseRegions(d.regions ?? [d.region ?? "all"]);
+    const region = regions.length === 1 && PLACE_CODES.includes(regions[0]) ? regions[0] : "all";
     const banner_url = String(d.banner_url ?? "").trim().slice(0, 500);
     if (banner_url && !/^https:\/\/[^\s]+$/.test(banner_url)) throw new Error("Banner image link must start with https://");
     const banner_path = String(d.banner_path ?? "").trim().slice(0, 500);
-    return { environment: d.environment, name, url, tagline, region, banner_url, banner_path };
+    return { environment: d.environment, name, url, tagline, region, regions, banner_url, banner_path };
   })
   .handler(async ({ data, context }) => {
     const { data: row } = await context.supabase
@@ -193,6 +195,7 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
         url: data.url,
         tagline: isSponsor ? data.tagline || null : null,
         region: data.region,
+        regions: data.regions,
         banner_url,
         banner_path,
         approved: false,
@@ -218,7 +221,7 @@ export const listSponsorsAdmin = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: sponsors } = await supabaseAdmin
       .from("sponsors")
-      .select("id,name,url,tagline,plan,region,banner_url,banner_path,approved,paid,active,environment,created_at")
+      .select("id,name,url,tagline,plan,region,regions,banner_url,banner_path,approved,paid,active,environment,created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     const { data: enquiries } = await supabaseAdmin

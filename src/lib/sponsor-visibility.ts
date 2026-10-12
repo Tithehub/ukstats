@@ -35,9 +35,12 @@ export function visibleSponsors<T extends SponsorVisibilityRow>(
   );
 }
 
-/** Sponsors featured on a page for `region` ("uk" or a country code): site-wide ones plus that region's own. */
-export function sponsorsForRegion<T extends { region?: string | null }>(rows: readonly T[], region: string): T[] {
-  return rows.filter((r) => !r.region || r.region === "all" || r.region === region);
+/** Sponsors featured on a page for `region` ("uk" or a country code): worldwide, group and country picks covering it. */
+export function sponsorsForRegion<T extends { region?: string | null; regions?: string[] | null }>(rows: readonly T[], region: string): T[] {
+  return rows.filter((r) => {
+    const e = expandRegions(rowRegions(r));
+    return e === "all" || e.has(region);
+  });
 }
 
 /** Region of a page from its path: a known country code as first segment, otherwise the UK register. */
