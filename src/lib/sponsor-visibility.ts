@@ -1,3 +1,4 @@
+import { expandRegions, rowRegions } from "@/lib/sponsor-regions";
 /**
  * Which sponsor lines a visitor is allowed to see.
  *

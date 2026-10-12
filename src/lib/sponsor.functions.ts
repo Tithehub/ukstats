@@ -147,7 +147,7 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
     if (!name) throw new Error("Name is required");
     if (!/^https:\/\/[^\s]+$/.test(url)) throw new Error("Link must start with https://");
     const regions = normaliseRegions(d.regions ?? [d.region ?? "all"]);
-    const region = regions.length === 1 && PLACE_CODES.includes(regions[0]) ? regions[0] : "all";
+    const region = regions.length === 1 && regions[0] && PLACE_CODES.includes(regions[0]) ? regions[0] : "all";
     const banner_url = String(d.banner_url ?? "").trim().slice(0, 500);
     if (banner_url && !/^https:\/\/[^\s]+$/.test(banner_url)) throw new Error("Banner image link must start with https://");
     const banner_path = String(d.banner_path ?? "").trim().slice(0, 500);

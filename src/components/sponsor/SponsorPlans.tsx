@@ -1,4 +1,5 @@
-import { COUNTRIES } from "@/lib/countries";
+import { RegionPicker } from "./RegionPicker";
+import { rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";

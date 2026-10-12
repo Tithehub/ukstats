@@ -44,7 +44,7 @@ export function expandRegions(regions: readonly string[]): "all" | Set<string> {
 export function reachSummary(regions: readonly string[]): string {
   const e = expandRegions(regions);
   if (e === "all") return "Every page on the site";
-  return e.size === 1 ? `1 country's pages (${placeName([...e][0])})` : `${e.size} countries' pages`;
+  return e.size === 1 ? `1 country's pages (${placeName([...e][0] ?? "")})` : `${e.size} countries' pages`;
 }
 
 /** A sponsor row's choices, falling back to the old single region. */
@@ -57,5 +57,5 @@ export function rowRegions(row: { regions?: string[] | null; region?: string | n
 export function reachKind(regions: readonly string[]): "Worldwide" | "Regional" | string {
   const e = expandRegions(regions);
   if (e === "all") return "Worldwide";
-  return e.size > 1 ? "Regional" : placeName([...e][0]);
+  return e.size > 1 ? "Regional" : placeName([...e][0] ?? "");
 }
