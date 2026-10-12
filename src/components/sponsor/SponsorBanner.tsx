@@ -50,6 +50,55 @@ export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "he
       : current.banner_url
     : null;
 
+  const body = (
+    <>
+      <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
+        <span>Thanks to our sponsors</span>
+        <Link to="/sponsors" className="hover:text-electric-soft">All sponsors →</Link>
+      </div>
+      {current ? (
+        <BannerCard
+          key={current.id}
+          image={currentImage}
+          name={current.name}
+          tagline={current.tagline}
+          cta={`Visit ${current.name}`}
+          href={current.url}
+          external
+        />
+      ) : (
+        <BannerCard
+          image={exampleBanner}
+          name="Harbour & Hale Estate Agents"
+          tagline="Local property experts since 2009"
+          cta="Your business here — from £5/month"
+          href="/advertise"
+          example
+        />
+      )}
+      {order.length > 1 ? (
+        <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
+          {order.map((s, i) => (
+            <span key={s.id} className={`h-1 w-6 rounded-full ${i === tick % order.length ? "bg-electric" : "bg-night-line"}`} />
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+
+  if (variant === "hero") {
+    return (
+      <section
+        aria-label="Our sponsors"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        className="rounded-2xl border border-night-line/50 bg-night-panel/40"
+      >
+        <div className="px-4 py-5 sm:px-5">{body}</div>
+      </section>
+    );
+  }
+
   return (
     <section
       aria-label="Our sponsors"
@@ -57,39 +106,7 @@ export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "he
       onMouseLeave={() => setPaused(false)}
       className="border-b border-night-line/50 bg-night"
     >
-      <div className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6">
-        <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
-          <span>Thanks to our sponsors</span>
-          <Link to="/sponsors" className="hover:text-electric-soft">All sponsors →</Link>
-        </div>
-        {current ? (
-          <BannerCard
-            key={current.id}
-            image={currentImage}
-            name={current.name}
-            tagline={current.tagline}
-            cta={`Visit ${current.name}`}
-            href={current.url}
-            external
-          />
-        ) : (
-          <BannerCard
-            image={exampleBanner}
-            name="Harbour & Hale Estate Agents"
-            tagline="Local property experts since 2009"
-            cta="Your business here — from £5/month"
-            href="/advertise"
-            example
-          />
-        )}
-        {order.length > 1 ? (
-          <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
-            {order.map((s, i) => (
-              <span key={s.id} className={`h-1 w-6 rounded-full ${i === tick % order.length ? "bg-electric" : "bg-night-line"}`} />
-            ))}
-          </div>
-        ) : null}
-      </div>
+      <div className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6">{body}</div>
     </section>
   );
 }
