@@ -1,3 +1,4 @@
+import { COUNTRIES } from "@/lib/countries";
 import { createServerFn } from "@tanstack/react-start";
 import type Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -116,7 +117,7 @@ export const getMySponsorship = createServerFn({ method: "POST" })
       .maybeSingle();
     const { data: sponsor } = await context.supabase
       .from("sponsors")
-      .select("id,name,url,tagline,approved,paid,plan")
+      .select("id,name,url,tagline,approved,paid,plan,region")
       .eq("user_id", context.userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
@@ -127,14 +128,16 @@ export const getMySponsorship = createServerFn({ method: "POST" })
 
 export const saveSponsorDetails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { environment: StripeEnv; name: string; url: string; tagline?: string }) => {
+  .inputValidator((d: { environment: StripeEnv; name: string; url: string; tagline?: string; region?: string }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
     const name = String(d.name ?? "").trim().slice(0, 80);
     const url = String(d.url ?? "").trim().slice(0, 300);
     const tagline = String(d.tagline ?? "").trim().slice(0, 80);
     if (!name) throw new Error("Name is required");
     if (!/^https:\/\/[^\s]+$/.test(url)) throw new Error("Link must start with https://");
-    return { environment: d.environment, name, url, tagline };
+    const region = String(d.region ?? "all").toLowerCase();
+    if (region !== "all" && region !== "uk" && !COUNTRIES.some((c) => c.code === region)) throw new Error("Unknown region");
+    return { environment: d.environment, name, url, tagline, region };
   })
   .handler(async ({ data, context }) => {
     const { data: row } = await context.supabase
@@ -153,6 +156,7 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
         name: data.name,
         url: data.url,
         tagline: row.plan === "sponsor" ? data.tagline || null : null,
+        region: data.region,
         approved: false,
         active: false,
       })
@@ -172,7 +176,7 @@ export const listSponsorsAdmin = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: sponsors } = await supabaseAdmin
       .from("sponsors")
-      .select("id,name,url,tagline,plan,approved,paid,active,environment,created_at")
+      .select("id,name,url,tagline,plan,region,approved,paid,active,environment,created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     const { data: enquiries } = await supabaseAdmin

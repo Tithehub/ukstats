@@ -1,0 +1,2 @@
+ALTER TABLE public.sponsors ADD COLUMN IF NOT EXISTS region text NOT NULL DEFAULT 'all';
+COMMENT ON COLUMN public.sponsors.region IS 'Where the sponsor is featured: all, uk, or a country code from the registry';

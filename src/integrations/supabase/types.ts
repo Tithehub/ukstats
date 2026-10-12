@@ -569,6 +569,7 @@ export type Database = {
           paid: boolean
           placement: string
           plan: string | null
+          region: string
           starts_at: string | null
           stripe_subscription_id: string | null
           tagline: string | null
@@ -587,6 +588,7 @@ export type Database = {
           paid?: boolean
           placement?: string
           plan?: string | null
+          region?: string
           starts_at?: string | null
           stripe_subscription_id?: string | null
           tagline?: string | null
@@ -605,6 +607,7 @@ export type Database = {
           paid?: boolean
           placement?: string
           plan?: string | null
+          region?: string
           starts_at?: string | null
           stripe_subscription_id?: string | null
           tagline?: string | null
