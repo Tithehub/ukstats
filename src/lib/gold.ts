@@ -23,6 +23,16 @@ export const ISO3_TO_SITE: Record<string, string> = {
 
 export const IMF_COUNTRY_NAMES: Record<string, string> = {"AGO": "Angola", "ALB": "Albania", "ARG": "Argentina", "ARM": "Armenia", "AUS": "Australia", "AUT": "Austria", "BEL": "Belgium", "BGR": "Bulgaria", "BLR": "Belarus", "BRA": "Brazil", "CHE": "Switzerland", "CHL": "Chile", "CHN": "China", "COL": "Colombia", "CRI": "Costa Rica", "CYP": "Cyprus", "CZE": "Czechia", "DEU": "Germany", "DNK": "Denmark", "DOM": "Dominican Republic", "ECU": "Ecuador", "EGY": "Egypt", "ESP": "Spain", "EST": "Estonia", "FIN": "Finland", "FRA": "France", "GBR": "United Kingdom", "GEO": "Georgia", "GRC": "Greece", "GTM": "Guatemala", "HKG": "Hong Kong SAR, China", "HND": "Honduras", "HUN": "Hungary", "IDN": "Indonesia", "IND": "India", "IRL": "Ireland", "ISL": "Iceland", "ITA": "Italy", "JAM": "Jamaica", "JOR": "Jordan", "JPN": "Japan", "KAZ": "Kazakhstan", "KHM": "Cambodia", "KOR": "South Korea", "KOS": "Kosovo", "LKA": "Sri Lanka", "LTU": "Lithuania", "LUX": "Luxembourg", "LVA": "Latvia", "MAR": "Morocco", "MDA": "Moldova", "MEX": "Mexico", "MKD": "North Macedonia", "MLT": "Malta", "MNG": "Mongolia", "MUS": "Mauritius", "MYS": "Malaysia", "NIC": "Nicaragua", "NLD": "Netherlands", "NOR": "Norway", "PER": "Peru", "PHL": "Philippines", "POL": "Poland", "PRT": "Portugal", "PRY": "Paraguay", "ROU": "Romania", "RUS": "Russian Federation", "SAU": "Saudi Arabia", "SGP": "Singapore", "SLV": "El Salvador", "SRB": "Serbia", "SVN": "Slovenia", "SWE": "Sweden", "THA": "Thailand", "TUR": "Türkiye", "UKR": "Ukraine", "URY": "Uruguay", "USA": "United States", "ZAF": "South Africa"};
 
+/** ISO3 → ISO 3166-1 alpha-2, for flag rendering. Kosovo (XK) has no official emoji flag. */
+export const ISO3_TO_ISO2: Record<string, string> = {"AGO": "AO", "ALB": "AL", "ARG": "AR", "ARM": "AM", "AUS": "AU", "AUT": "AT", "BEL": "BE", "BGR": "BG", "BLR": "BY", "BRA": "BR", "CHE": "CH", "CHL": "CL", "CHN": "CN", "COL": "CO", "CRI": "CR", "CYP": "CY", "CZE": "CZ", "DEU": "DE", "DNK": "DK", "DOM": "DO", "ECU": "EC", "EGY": "EG", "ESP": "ES", "EST": "EE", "FIN": "FI", "FRA": "FR", "GBR": "GB", "GEO": "GE", "GRC": "GR", "GTM": "GT", "HKG": "HK", "HND": "HN", "HUN": "HU", "IDN": "ID", "IND": "IN", "IRL": "IE", "ISL": "IS", "ITA": "IT", "JAM": "JM", "JOR": "JO", "JPN": "JP", "KAZ": "KZ", "KHM": "KH", "KOR": "KR", "KOS": "XK", "LKA": "LK", "LTU": "LT", "LUX": "LU", "LVA": "LV", "MAR": "MA", "MDA": "MD", "MEX": "MX", "MKD": "MK", "MLT": "MT", "MNG": "MN", "MUS": "MU", "MYS": "MY", "NIC": "NI", "NLD": "NL", "NOR": "NO", "PER": "PE", "PHL": "PH", "POL": "PL", "PRT": "PT", "PRY": "PY", "ROU": "RO", "RUS": "RU", "SAU": "SA", "SGP": "SG", "SLV": "SV", "SRB": "RS", "SVN": "SI", "SWE": "SE", "THA": "TH", "TUR": "TR", "UKR": "UA", "URY": "UY", "USA": "US", "ZAF": "ZA"};
+
+/** Flag emoji for an ISO3 code; null when no flag exists (e.g. Kosovo's XK). */
+export function flagEmoji(iso3: string): string | null {
+  const iso2 = ISO3_TO_ISO2[iso3];
+  if (!iso2) return null;
+  return String.fromCodePoint(...[...iso2].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+}
+
 /** "2026-M08" → "August 2026". */
 export function goldPeriodLabel(p: string): string {
   const m = /^(\d{4})-M(\d{2})$/.exec(p);
