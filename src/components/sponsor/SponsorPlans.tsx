@@ -1,4 +1,5 @@
-import { COUNTRIES } from "@/lib/countries";
+import { RegionPicker } from "./RegionPicker";
+import { rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -140,13 +141,7 @@ function MySponsorship() {
         >
           <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className={field} /></label>
           <label className="text-sm">Link (https://)<input name="url" required maxLength={300} defaultValue={s.name === "Pending details" ? "" : s.url} className={field} /></label>
-          <label className="text-sm sm:col-span-2">Where to feature you
-            <select name="region" defaultValue={(s as { region?: string }).region ?? "all"} className={field}>
-              <option value="all">Every page (site-wide)</option>
-              <option value="uk">United Kingdom pages</option>
-              {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name} pages</option>)}
-            </select>
-          </label>
+          <RegionPicker initial={rowRegions(s as { region?: string | null; regions?: string[] | null })} />
           {s.plan === "sponsor" ? (
             <>
               <div className="text-sm sm:col-span-2">

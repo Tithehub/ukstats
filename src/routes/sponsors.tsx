@@ -1,8 +1,8 @@
+import { reachKind, rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { COUNTRIES } from "@/lib/countries";
 import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -23,13 +23,7 @@ export const Route = createFileRoute("/sponsors")({
   component: SponsorsPage,
 });
 
-type Row = SponsorVisibilityRow & { region: string | null; plan: string | null };
-
-function regionName(code: string | null) {
-  if (!code || code === "all") return "Site-wide";
-  if (code === "uk") return "United Kingdom";
-  return COUNTRIES.find((c) => c.code === code)?.name ?? code;
-}
+type Row = SponsorVisibilityRow & { region: string | null; regions: string[] | null; plan: string | null };
 
 function SponsorsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -38,16 +32,19 @@ function SponsorsPage() {
     try { env = getStripeEnvironment(); } catch { setRows([]); return; }
     supabase
       .from("sponsors")
-      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,plan")
+      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions,plan")
       .order("plan", { ascending: true, nullsFirst: false })
       .then(({ data }) => setRows(visibleSponsors((data ?? []) as Row[], env)));
   }, []);
 
   const groups = new Map<string, Row[]>();
   for (const r of rows ?? []) {
-    const k = regionName(r.region);
+    const k = reachKind(rowRegions(r));
     groups.set(k, [...(groups.get(k) ?? []), r]);
   }
+
+  const rank = (k: string) => (k === "Worldwide" ? 0 : k === "Regional" ? 1 : 2);
+  const ordered = [...groups].sort((x, y) => rank(x[0]) - rank(y[0]));
 
   return (
     <>
@@ -63,7 +60,7 @@ function SponsorsPage() {
         ) : rows.length === 0 ? (
           <p className="mt-8">No sponsors yet. <Link to="/advertise" className="text-electric-soft underline">Be the first</Link>.</p>
         ) : (
-          [...groups].map(([name, list]) => (
+          ordered.map(([name, list]) => (
             <section key={name} className="mt-10">
               <h2 className="font-mono text-xs uppercase tracking-[0.18em] text-night-muted">{name}</h2>
               <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

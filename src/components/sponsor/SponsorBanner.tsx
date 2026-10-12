@@ -9,7 +9,7 @@ import { getSponsorBannerLinks } from "@/lib/banner.functions";
 import exampleBanner from "@/assets/sponsor-example-estate-agent.jpg";
 
 export const ROTATE_SECONDS = 8;
-type Row = SponsorVisibilityRow & { region: string | null; plan: string | null; banner_url: string | null; banner_path: string | null };
+type Row = SponsorVisibilityRow & { region: string | null; regions: string[] | null; plan: string | null; banner_url: string | null; banner_path: string | null };
 
 /** Rotating sponsor banner (one at a time, equal turns). Home page under the hero ("hero") or footer zone elsewhere ("footer") — never near figures, embeds, widgets or share images. */
 export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "hero" }) {
@@ -28,7 +28,7 @@ export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "he
     try { env = getStripeEnvironment(); } catch { return; }
     supabase
       .from("sponsors")
-      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,plan,banner_url,banner_path")
+      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions,plan,banner_url,banner_path")
       .then(({ data }) => setRows(visibleSponsors((data ?? []) as Row[], env)));
     links({ data: { environment: env } })
       .then((r) => setBannerLinks(Object.fromEntries(r.links.map((l) => [l.id, l.url] as const))))
