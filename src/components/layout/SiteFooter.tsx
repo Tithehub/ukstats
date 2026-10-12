@@ -48,7 +48,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
             New figures feed
           </a>
           <a
-            href="https://github.com/ukstats"
+            href="https://github.com/Tithehub/ukstats"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-1 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
