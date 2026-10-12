@@ -88,7 +88,7 @@
 - [x] /global page: 164 national statistics offices beyond the 33 covered, grouped by region (UN directory, links checked 2026-10-12)
 
 ## Monetisation
-- [ ] Add a self-service sponsor dashboard for banner uploads, name and website edits; verify with a signed-in sponsor.
+- [x] Add a self-service sponsor dashboard for banner uploads, name and website edits; signed-in RAREITUP upload, invalid-link rejection and saved-details readback verified; unchanged live approval restored after testing.
 - [x] Attach GoPharma, XPRE and Gold.live banners; all three pictures and website links verified rotating on live /fr (home-page rotation remained stuck on RAREITUP during verification)
 - [x] /advertise sponsor page + footer "Supported by" strip + enquiries
 - [x] Sponsor prices set: Supporter £5/month or £50/year, Sponsor £10/month or £100/year (yearly selected by default)

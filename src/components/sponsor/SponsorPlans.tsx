@@ -16,6 +16,7 @@ import {
   saveSponsorDetails,
 } from "@/lib/sponsor.functions";
 import type { SponsorPriceId } from "@/lib/sponsor-plans";
+import { hasSponsorshipDetails } from "@/lib/sponsor-plans";
 import { Button } from "@/components/ui/button";
 
 const PLANS = [
@@ -125,7 +126,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
 
   if (loadError) return <p role="alert" className="mt-8 text-overdue">Couldn't load your sponsorship. <Button variant="outline" onClick={() => void refresh()}>Try again</Button></p>;
   if (!data) return <p className="mt-8 text-night-muted">Loading your sponsorship…</p>;
-  if (!data.sponsor && !data.sub) return <p className="mt-8 text-night-muted">No {env === "live" ? "live" : "test"} sponsorship is linked to this account. <Link to="/advertise" className="text-electric-soft underline">Choose a sponsor plan</Link></p>;
+  if (!hasSponsorshipDetails(data.sponsor, data.sub)) return <p className="mt-8 text-night-muted">No {env === "live" ? "live" : "test"} sponsorship is linked to this account. <Link to="/advertise" className="text-electric-soft underline">Choose a sponsor plan</Link></p>;
   const s = data.sponsor;
   const status = !s ? "Setting up…" : !s.paid ? "Not showing — subscription ended" : s.approved ? "Live on the site" : s.name === "Pending details" ? "Add your details below" : "Waiting for approval";
   return (
