@@ -83,3 +83,6 @@
 - [x] Automated checks on every pull request (.github/workflows/ci.yml): install, typecheck, tests
 - [x] Code is live on GitHub — Lovable created the repo and two-way sync is working (12 Oct 2026); .env in repo holds only public publishable keys
 - [x] "We're open source" announcements posted to Bluesky and Mastodon (04:46 UTC 12 Oct 2026, verified live on both profiles)
+
+## Global extension
+- [ ] /global page: official statistics sources for all countries beyond the 33 covered, grouped by region, links checked
