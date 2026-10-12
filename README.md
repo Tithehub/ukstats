@@ -19,7 +19,7 @@
 ## Running it locally
 
 ```sh
-git clone <this-repo>
+git clone https://github.com/Tithehub/ukstats.git
 cd ukstats
 npm i
 cp .env.example .env   # fill in your own public Supabase keys
