@@ -58,7 +58,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
   const portal = useServerFn(createSponsorPortal);
   const [data, setData] = useState<Awaited<ReturnType<typeof load>> | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const [bannerPath, setBannerPath] = useState<string | null>(null);
+  const [bannerPath, setBannerPath] = useState<string | null | undefined>(undefined);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [bannerBusy, setBannerBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -76,7 +76,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
   useEffect(() => {
     if (!savedPath) return;
     let live = true;
-    setBannerPath((p) => p ?? savedPath);
+    setBannerPath((p) => p === undefined ? savedPath : p);
     supabase.storage
       .from(BANNER_BUCKET)
       .createSignedUrl(savedPath, 3600)
@@ -141,7 +141,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
             const f = new FormData(e.currentTarget);
             setSaving(true);
             try {
-              const r = await save({ data: { environment: env, name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), regions: f.getAll("regions").map(String), banner_url: String(f.get("banner_url") ?? ""), banner_path: bannerPath ?? savedPath ?? "" } });
+              const r = await save({ data: { environment: env, name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), regions: f.getAll("regions").map(String), banner_url: String(f.get("banner_url") ?? ""), banner_path: (bannerPath === undefined ? savedPath : bannerPath) ?? "" } });
               setMsg("error" in r ? r.error ?? "Couldn't save" : "Saved — we'll check it and switch it on.");
               refresh();
             } catch (err) { setMsg(err instanceof Error ? err.message : "Couldn't save"); }
