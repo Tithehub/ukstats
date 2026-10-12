@@ -74,3 +74,11 @@
 - [x] Marketing posts now carry official figures only — weather-model and warning cards stay on the site but are never drafted as posts
 - [x] Page-age labels no longer force a full client re-render (server/client clock mismatch fixed with a wrapped clock text component)
 - [x] Publication dates print to the UK day on every page, so the browser no longer rebuilds the home page over a one-day difference
+
+## Open source
+- [x] MIT licence, README, CONTRIBUTING (golden rule: never invent a figure), code of conduct, three issue templates
+- [x] Repository is public: https://github.com/Tithehub/ukstats — footer link, README clone line and both announcement posts point at it
+- [x] Contributor commands fixed: `npm test` and `npm run typecheck` now exist in package.json (the old `npx tsgo` only existed in the sandbox and would fail for anyone else)
+- [x] Automated checks on every pull request (.github/workflows/ci.yml): install, typecheck, tests
+- [ ] First push has not landed — repository still has zero commits; check Project settings → Git → GitHub sync status, reset the link if it stays empty
+- [ ] Post the two "we're open source" announcements once the code is visible
