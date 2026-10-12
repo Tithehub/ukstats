@@ -63,3 +63,22 @@ export function fairOrder<T>(rows: readonly T[], seed: number): T[] {
   const start = Math.abs(Math.floor(seed)) % rows.length;
   return [...rows.slice(start), ...rows.slice(0, start)];
 }
+
+/** A sponsor line ready to render in the banner: the visibility fields plus its reach, plan and picture. */
+export type SponsorBannerRow = SponsorVisibilityRow & {
+  region: string | null;
+  regions: string[] | null;
+  plan: string | null;
+  banner_url: string | null;
+  banner_path: string | null;
+  banner_link: string | null;
+};
+
+/** Attaches each line's short-lived picture address; a line with no picture, or no address issued for it, gets null. */
+export function withBannerLinks<T extends { banner_path: string | null }>(
+  rows: readonly T[],
+  urlByPath: ReadonlyMap<string, string>,
+): (T & { banner_link: string | null })[] {
+  return rows.map((r) => ({ ...r, banner_link: r.banner_path ? urlByPath.get(r.banner_path) ?? null : null }));
+}
+
