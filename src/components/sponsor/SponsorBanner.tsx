@@ -108,11 +108,11 @@ function BannerCard(props: { image: string | null; name: string; tagline: string
     </>
   );
   const body = (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-night-line bg-night-panel animate-in fade-in duration-700 sm:flex-row sm:items-center">
+    <div className="mx-auto flex max-w-[980px] flex-col overflow-hidden rounded-lg border border-night-line bg-night-panel animate-in fade-in duration-700 sm:flex-row sm:items-center">
       {/* On a phone the words sit under the picture; on a larger screen they sit beside it. */}
-      <div className="order-2 flex flex-1 flex-col justify-center gap-1 p-4 sm:order-1 sm:p-6">{words}</div>
+      <div className="order-2 flex w-full shrink-0 flex-col justify-center gap-1 p-4 sm:order-1 sm:w-[300px] sm:p-6">{words}</div>
       {/* The picture keeps its true 3:1 shape at every screen size, so none of it is ever cropped away. */}
-      <div className="relative order-1 aspect-[3/1] w-full sm:order-2 sm:w-auto sm:basis-[58%] sm:max-w-[720px]">
+      <div className="relative order-1 aspect-[3/1] w-full sm:order-2 sm:flex-1">
         {props.image ? (
           <img src={props.image} alt="" loading="lazy" width={1536} height={512} className="absolute inset-0 h-full w-full object-cover" />
         ) : null}
