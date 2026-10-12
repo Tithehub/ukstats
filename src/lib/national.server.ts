@@ -75,7 +75,7 @@ const DEFS: Record<string, Def[]> = {
     ...([["V", "Violent crime offences (month)"], ["P", "Property crime offences (month)"]] as const).map(([code, title]): Def => ({
       id: `us-crime-${code === "V" ? "violent" : "property"}`, title, cadence: "Monthly, published with a lag", source: "FBI Crime Data Explorer (UCR summarized)", sourceUrl: "https://cde.ucr.cjis.gov/", next: "Per FBI CDE update schedule", fmt: (v) => Math.round(v).toLocaleString("en-GB"),
       load: async () => {
-        const key = process.env.FBI_API_KEY;
+        const key = process.env["FBI_API_KEY"];
         if (!key) throw new Error("FBI key not configured");
         const y = new Date().getUTCFullYear();
         const js = await getJson<{ offenses?: { actuals?: Record<string, Record<string, number | null>> } }>(`https://api.usa.gov/crime/fbi/cde/summarized/national/${code}?from=01-${y - 2}&to=12-${y}&API_KEY=${encodeURIComponent(key)}`);
