@@ -28,6 +28,7 @@ import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as PressRouteImport } from './routes/press'
@@ -152,6 +153,11 @@ const MapsRoute = MapsRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnlineSpeechRoute = OnlineSpeechRouteImport.update({
+  id: '/online-speech',
+  path: '/online-speech',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OutreachRoute = OutreachRouteImport.update({
@@ -328,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/press': typeof PressRoute
@@ -378,6 +385,7 @@ export interface FileRoutesByTo {
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/press': typeof PressRoute
@@ -429,6 +437,7 @@ export interface FileRoutesById {
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/polling': typeof PollingRoute
   '/press': typeof PressRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/online-speech'
     | '/outreach'
     | '/polling'
     | '/press'
@@ -532,6 +542,7 @@ export interface FileRouteTypes {
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/online-speech'
     | '/outreach'
     | '/polling'
     | '/press'
@@ -582,6 +593,7 @@ export interface FileRouteTypes {
     | '/governments'
     | '/maps'
     | '/my-pages'
+    | '/online-speech'
     | '/outreach'
     | '/polling'
     | '/press'
@@ -634,6 +646,7 @@ export interface RootRouteChildren {
   GovernmentsRoute: typeof GovernmentsRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
+  OnlineSpeechRoute: typeof OnlineSpeechRoute
   OutreachRoute: typeof OutreachRoute
   PollingRoute: typeof PollingRoute
   PressRoute: typeof PressRoute
@@ -784,6 +797,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/online-speech': {
+      id: '/online-speech'
+      path: '/online-speech'
+      fullPath: '/online-speech'
+      preLoaderRoute: typeof OnlineSpeechRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/outreach': {
@@ -1084,6 +1104,7 @@ const rootRouteChildren: RootRouteChildren = {
   GovernmentsRoute: GovernmentsRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
+  OnlineSpeechRoute: OnlineSpeechRoute,
   OutreachRoute: OutreachRoute,
   PollingRoute: PollingRoute,
   PressRoute: PressRoute,

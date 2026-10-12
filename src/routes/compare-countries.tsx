@@ -4,6 +4,8 @@ import { getComparison } from "@/lib/countries.functions";
 import { ES_DEFS } from "@/lib/eurostat";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { Banner } from "@/components/Banner";
+import img from "@/assets/compare-europe.jpg";
 
 const cmpQuery = (metric: string) => queryOptions({ queryKey: ["compare", metric], queryFn: () => getComparison({ data: { metric } }), staleTime: 10 * 60_000 });
 const T = "Compare European countries — inflation, debt, unemployment | UK Stats";
@@ -26,7 +28,9 @@ function Compare() {
     <div className="min-h-screen bg-night text-night-fg">
       <SiteHeader />
       <main className="mx-auto max-w-4xl px-4 py-10">
+        <Banner src={img} alt="Aerial view of rivers, roads and towns at dusk" eager />
         <h1 className="text-4xl font-semibold tracking-tight">Compare countries</h1>
+        <Link to="/online-speech" className="mt-2 inline-block text-sm text-electric-soft underline">Online speech convictions by country →</Link>
         <p className="mt-2 text-night-muted">{D} The UK left Eurostat's series in 2020, so its own figures stay on the UK register.</p>
         <div className="mt-6 flex flex-wrap gap-2">
           {ES_DEFS.map((d) => (
