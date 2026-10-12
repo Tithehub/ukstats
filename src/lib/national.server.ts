@@ -243,6 +243,8 @@ function alertsMetric(code: string): Promise<CountryMetric> {
       spark: [], history: [], raw: null, note: null, status: "unavailable",
       next: "Feed updates whenever a warning is issued", calendarUrl: sourceUrl,
     };
+    if (code === "us") return usAlerts(base);
+    if (code === "ca") return ecccAlerts(base);
     if (!place?.alertSlug) {
       return {
         ...base, status: "no-feed",
