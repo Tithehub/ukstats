@@ -141,7 +141,6 @@ function MySponsorship() {
           <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className={field} /></label>
           <label className="text-sm">Link (https://)<input name="url" required maxLength={300} defaultValue={s.name === "Pending details" ? "" : s.url} className={field} /></label>
           <RegionPicker initial={rowRegions(s as { region?: string | null; regions?: string[] | null })} />
-          </label>
           {s.plan === "sponsor" ? (
             <>
               <div className="text-sm sm:col-span-2">

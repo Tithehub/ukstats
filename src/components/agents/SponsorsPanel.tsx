@@ -1,3 +1,4 @@
+import { placeName, rowRegions } from "@/lib/sponsor-regions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listSponsorsAdmin, setSponsorApproval } from "@/lib/sponsor.functions";
@@ -18,7 +19,7 @@ export function SponsorsPanel() {
         {sponsors.map((s) => (
           <li key={s.id} className="flex flex-wrap items-start gap-3 px-4 py-3 text-sm">
             <div className="min-w-0 flex-1">
-              <p className="font-medium">{s.name}{s.tagline ? ` — ${s.tagline}` : ""} <span className="font-mono text-xs text-night-muted">[{(s as { region?: string }).region ?? "all"}]</span></p>
+              <p className="font-medium">{s.name}{s.tagline ? ` — ${s.tagline}` : ""} <span className="font-mono text-xs text-night-muted">[{rowRegions(s as { region?: string | null; regions?: string[] | null }).map(placeName).join(", ")}]</span></p>
               <a href={s.url} target="_blank" rel="noopener noreferrer" className="break-all text-electric-soft">{s.url}</a>
               <p className="font-mono text-[11px] text-night-muted">{s.plan ?? "manual"} · {s.environment === "sandbox" ? "test" : s.environment === "live" ? "real" : "no test/real flag — won't show"} · {s.paid ? "paid" : "not paid"} · {s.approved ? "approved" : "awaiting approval"}</p>
               {s.banner_link ? (
