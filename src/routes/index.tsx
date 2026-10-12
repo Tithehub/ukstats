@@ -166,6 +166,21 @@ function Home() {
           </div>
         </section>
 
+        {/* Around the world */}
+        <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-night-line/50 bg-night-panel/40 px-5 py-4">
+          <p className="max-w-xl text-[13px] leading-relaxed text-night-muted text-pretty">
+            <span className="font-semibold text-night-fg">Around the world:</span> the same treatment for 33 countries —
+            Europe live from Eurostat, plus the US, Canada and Australia from their own official publishers.
+          </p>
+          <div className="flex flex-wrap gap-2 font-mono text-[12px]">
+            <Link to="/countries" className="rounded-md border border-night-line px-3 py-1.5 text-night-fg transition-colors hover:border-electric">All countries →</Link>
+            <Link to="/compare-countries" search={{ metric: "hicp" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-fg transition-colors hover:border-electric">Compare</Link>
+            <Link to="/$country" params={{ country: "fr" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-muted transition-colors hover:border-electric hover:text-night-fg">France</Link>
+            <Link to="/$country" params={{ country: "de" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-muted transition-colors hover:border-electric hover:text-night-fg">Germany</Link>
+            <Link to="/$country" params={{ country: "us" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-muted transition-colors hover:border-electric hover:text-night-fg">United States</Link>
+          </div>
+        </section>
+
         {/* Capability strip */}
         <section className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-night-line/50 bg-night-line/50 sm:grid-cols-3">
           {[
