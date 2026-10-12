@@ -1,7 +1,7 @@
 // Server-only fetchers for Wave 2 national publishers. Any failure → no figure, never a guess.
 import { mainEvent, parseCapFeed, worstColour } from "@/lib/alerts";
 import { countryByCode, PLACES, type CountryMetric } from "@/lib/countries";
-import { noFeed, parseBls, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
+import { dedupeAlerts, mainWarning, noFeed, parseBls, parseEcccAlerts, parseNwsAlerts, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
 
 const TTL = 30 * 60_000;
 const WEATHER_TTL = 15 * 60_000;
@@ -33,7 +33,7 @@ async function getJson<T>(url: string): Promise<T> {
   return (await (await get(url)).json()) as T;
 }
 
-type Def = { id: string; title: string; cadence: string; source: string; sourceUrl: string; next: string; fmt: (v: number) => string; load: () => Promise<{ pts: Pt[]; asOf?: string | null }> };
+type Def = { id: string; title: string; cadence: string; source: string; sourceUrl: string; next: string; fmt: (v: number) => string; load: () => Promise<{ pts: Pt[]; asOf?: string | null }>; note?: string };
 
 const pct = (v: number) => `${v.toFixed(1)}%`;
 const rate = (v: number) => `${v.toFixed(2)}%`;
@@ -72,8 +72,19 @@ const DEFS: Record<string, Def[]> = {
       load: async () => ({ pts: await bls("CES0000000001")() }) },
     { id: "us-earnings", title: "Average hourly earnings, private sector", cadence: "Monthly", source: "Bureau of Labor Statistics (CES0500000003)", sourceUrl: "https://data.bls.gov/timeseries/CES0500000003", next: "Per BLS Employment Situation schedule", fmt: (v) => `$${v.toFixed(2)}`,
       load: async () => ({ pts: await bls("CES0500000003")() }) },
+    { id: "us-debt-interest", title: "Average interest rate on the federal debt", cadence: "Monthly", source: "US Treasury Fiscal Data — Average Interest Rates", sourceUrl: "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates", next: "Monthly, with the Treasury Statement", fmt: rate,
+      load: async () => {
+        const js = await getJson<{ data: { record_date: string; avg_interest_rate_amt: string }[] }>("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?sort=-record_date&page%5Bsize%5D=24&filter=security_desc:eq:Total%20Interest-bearing%20Debt");
+        const pts = js.data.map((r) => ({ time: r.record_date, value: Number(r.avg_interest_rate_amt) })).filter((p) => Number.isFinite(p.value)).reverse();
+        return { pts };
+      } },
+    { id: "us-core-cpi", title: "Core inflation (excludes food and energy, 12-month change)", cadence: "Monthly", source: "Bureau of Labor Statistics (CUUR0000SAM)", sourceUrl: "https://data.bls.gov/timeseries/CUUR0000SAM", next: "Per BLS CPI release schedule", fmt: pct,
+      load: async () => ({ pts: yoyFromIndex(await bls("CUUR0000SAM")()) }) },
+    { id: "us-shelter", title: "Housing costs (shelter index, 12-month change)", cadence: "Monthly", source: "Bureau of Labor Statistics (CUUR0000SAH1)", sourceUrl: "https://data.bls.gov/timeseries/CUUR0000SAH1", next: "Per BLS CPI release schedule", fmt: pct,
+      load: async () => ({ pts: yoyFromIndex(await bls("CUUR0000SAH1")()) }) },
     ...([["V", "Violent crime offences (month)"], ["P", "Property crime offences (month)"]] as const).map(([code, title]): Def => ({
       id: `us-crime-${code === "V" ? "violent" : "property"}`, title, cadence: "Monthly, published with a lag", source: "FBI Crime Data Explorer (UCR summarized)", sourceUrl: "https://cde.ucr.cjis.gov/", next: "Per FBI CDE update schedule", fmt: (v) => Math.round(v).toLocaleString("en-GB"),
+      note: "Only months at least a year old are shown: police forces report to the FBI late, so the most recent months in the feed are incomplete.",
       load: async () => {
         const key = process.env["FBI_API_KEY"];
         if (!key) throw new Error("FBI key not configured");
@@ -103,7 +114,12 @@ const DEFS: Record<string, Def[]> = {
   au: [
     { id: "au-unemployment", title: "Unemployment rate (seasonally adjusted)", cadence: "Monthly", source: "Australian Bureau of Statistics — Labour Force", sourceUrl: "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
       load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,LF,1.0.0/M13.3.1599.20.AUS.M?startPeriod=2024-01", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
+    { id: "au-cpi", title: "Inflation (CPI, 12-month change)", cadence: "Quarterly", source: "Australian Bureau of Statistics — Consumer Price Index", sourceUrl: "https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
+      load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,CPI_Q,1.0.0/3.999901.20.50.Q?lastNObservations=24", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
+    { id: "au-earnings", title: "Average weekly earnings, all employees", cadence: "Half-yearly (February and August surveys)", source: "Australian Bureau of Statistics — Average Weekly Earnings", sourceUrl: "https://www.abs.gov.au/statistics/labour/earnings-and-work-hours/average-weekly-earnings-australia/latest-release", next: "Per ABS release calendar", fmt: (v) => `A$${v.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,AWE,1.0.0/1.1.3.7.TOT.10.AUS.S?lastNObservations=12", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
   ],
+
 
 };
 
@@ -114,7 +130,6 @@ const NO_FEED: Record<string, CountryMetric[]> = {
   ],
   ca: [noFeed("ca-asylum", "Asylum claimants", "Immigration, Refugees and Citizenship Canada", "https://www.canada.ca/en/immigration-refugees-citizenship/services/refugees/asylum-claims/processed-claims.html", "IRCC publishes asylum claims as monthly tables, not a live feed.")],
   au: [
-    noFeed("au-cpi", "Inflation (CPI)", "Australian Bureau of Statistics", "https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation", "The ABS data service returned no records for the CPI series we checked, so no figure is shown."),
     noFeed("au-rate", "RBA cash rate target", "Reserve Bank of Australia", "https://www.rba.gov.au/statistics/cash-rate/", "The RBA blocks automated download of its statistical tables. See the official page."),
     noFeed("au-boats", "Illegal maritime arrivals", "Operation Sovereign Borders (Home Affairs)", "https://www.osb.homeaffairs.gov.au/news-media/monthly-updates", "Published as monthly PDF updates only."),
   ],
@@ -140,7 +155,7 @@ function run(code: string, d: Def): Promise<CountryMetric> {
     ({ pts, asOf }) => {
       const last = pts.at(-1);
       if (!last) return { ...base, note: "The publisher returned no figure for this series." };
-      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value), status: "ok", history: pts.map(x => ({ ...x, formatted: d.fmt(x.value) })) };
+      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value), status: "ok", note: d.note ?? null, history: pts.map(x => ({ ...x, formatted: d.fmt(x.value) })) };
     },
     () => {
       cache.delete(key);
@@ -217,6 +232,61 @@ const ALERTS_SOURCE = "Meteoalarm — national weather-service warnings (EUMETNE
 const ALERTS_URL = "https://meteoalarm.org";
 const acache = new Map<string, { at: number; p: Promise<CountryMetric> }>();
 
+const US_AREAS = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
+
+const alertNote = (e: unknown) => `Warning feed unreachable just now (${e instanceof Error ? e.message : "no response"}) — no figure shown rather than a guess.`;
+
+/** The National Weather Service publishes per state, so a national count is built
+ * from all 50 states plus Washington D.C. Any area that fails to answer means no
+ * figure at all — a partial count would be read as the national total. */
+async function usAlerts(base: CountryMetric): Promise<CountryMetric> {
+  try {
+    const pages = await Promise.all(US_AREAS.map((a) => getJson<unknown>(`https://api.weather.gov/alerts/active?area=${a}`)));
+    const parsed = pages.map(parseNwsAlerts);
+    if (parsed.some((p) => p === null)) throw new Error("one or more areas returned no warning list");
+    const alerts = dedupeAlerts(parsed.flatMap((p) => p ?? []));
+    const main = mainWarning(alerts);
+    return {
+      ...base,
+      value: alerts.length ? `${alerts.length} in force` : "None in force",
+      raw: alerts.length,
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: alerts.length
+        ? `Counted across all 50 states and Washington D.C., each warning counted once. ${main ? `Most common: ${main.event} (${main.count}).` : ""}`.trim()
+        : "No official weather warning is in force anywhere in the country right now.",
+    };
+  } catch (e) {
+    return { ...base, note: alertNote(e) };
+  }
+}
+
+async function ecccAlerts(base: CountryMetric): Promise<CountryMetric> {
+  try {
+    const a = parseEcccAlerts(await getJson<unknown>("https://api.weather.gc.ca/collections/weather-alerts/items?limit=500"));
+    if (!a) throw new Error("feed did not return a warning list");
+    const top = a.provinces[0];
+    return {
+      ...base,
+      value: a.count ? `${a.count} in force` : "None in force",
+      raw: a.count,
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: a.count
+        ? [
+            a.worst ? `Highest level: ${a.worst}.` : null,
+            a.main ? `Most common: ${a.main.name} (${a.main.areas}).` : null,
+            top ? `Most affected: ${top.code} (${top.count}).` : null,
+            "Counted across all provinces and territories.",
+          ].filter(Boolean).join(" ")
+        : "No official weather warning is in force for this country right now.",
+    };
+  } catch (e) {
+    return { ...base, note: alertNote(e) };
+  }
+}
+
+
 function alertsMetric(code: string): Promise<CountryMetric> {
   return cached(acache, code, ALERTS_TTL, async () => {
     const place = PLACES[code];
@@ -228,6 +298,8 @@ function alertsMetric(code: string): Promise<CountryMetric> {
       spark: [], history: [], raw: null, note: null, status: "unavailable",
       next: "Feed updates whenever a warning is issued", calendarUrl: sourceUrl,
     };
+    if (code === "us") return usAlerts(base);
+    if (code === "ca") return ecccAlerts(base);
     if (!place?.alertSlug) {
       return {
         ...base, status: "no-feed",

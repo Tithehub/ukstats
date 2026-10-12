@@ -13,10 +13,12 @@ describe('country integrity', () => {
    expect(metricCategory(noFeed('irregular-present','Presence','Eurostat','https://ec.europa.eu',''))).toBe('Irregular immigration & cost');
  });
  it('uses the end of the reference period rather than download date', () => {
-   expect(periodEnd('2025-Q2')).toBe('2025-06-30');
-   expect(periodEnd('2024-02')).toBe('2024-02-29');
-   expect(periodEnd('2023')).toBe('2023-12-31');
-   expect(periodEnd(null)).toBeNull();
+    expect(periodEnd('2025-Q2')).toBe('2025-06-30');
+    expect(periodEnd('2024-02')).toBe('2024-02-29');
+    expect(periodEnd('2023')).toBe('2023-12-31');
+    expect(periodEnd('2026-S1')).toBe('2026-06-30');
+    expect(periodEnd('2025-S2')).toBe('2025-12-31');
+    expect(periodEnd(null)).toBeNull();
  });
  it('rejects truncated and missing CSV observations', () => {
    expect(parseSdmxCsv('TIME_PERIOD,OBS_VALUE\n2026-01\n2026-02,\n2026-03,2.5')).toEqual([{ time:'2026-03',value:2.5 }]);
