@@ -81,7 +81,10 @@ const DEFS: Record<string, Def[]> = {
         const js = await getJson<{ offenses?: { actuals?: Record<string, Record<string, number | null>> } }>(`https://api.usa.gov/crime/fbi/cde/summarized/national/${code}?from=01-${y - 2}&to=12-${y}&API_KEY=${encodeURIComponent(key)}`);
         const series = Object.entries(js.offenses?.actuals ?? {}).find(([k]) => /united states/i.test(k) && !/clearance/i.test(k))?.[1] ?? {};
         const pts = Object.entries(series).filter(([, v]) => typeof v === "number" && Number.isFinite(v)).map(([mmYYYY, v]) => { const [m, yr] = mmYYYY.split("-"); return { time: `${yr}-${m}`, value: v as number }; }).sort((a, b) => a.time.localeCompare(b.time));
-        return { pts };
+        // Agencies report late, so recent months are badly incomplete. Only show months at least 12 months old.
+        const cut = new Date(); cut.setUTCMonth(cut.getUTCMonth() - 12);
+        const cutoff = cut.toISOString().slice(0, 7);
+        return { pts: pts.filter((p) => p.time <= cutoff) };
       },
     })),
   ],
