@@ -62,6 +62,14 @@ export type EcccAlerts = {
 
 const ECCC_RANK: Record<string, number> = { yellow: 1, orange: 2, red: 3 };
 
+/** Read one text field out of a GeoJSON feature's properties. */
+function str(p: Record<string, unknown> | undefined, key: string): string {
+  const v = p?.[key];
+  return typeof v === "string" ? v.trim() : "";
+}
+
+const rankOf = (colour: string): number => ECCC_RANK[colour] ?? 0;
+
 /** Environment and Climate Change Canada's active-warning collection. */
 export function parseEcccAlerts(js: unknown): EcccAlerts | null {
   const feats = (js as { features?: unknown })?.features;
@@ -72,13 +80,13 @@ export function parseEcccAlerts(js: unknown): EcccAlerts | null {
   let count = 0;
   for (const f of feats) {
     const p = (f as { properties?: Record<string, unknown> })?.properties;
-    const name = typeof p?.alert_name_en === "string" ? p.alert_name_en.trim() : "";
+    const name = str(p, "alert_name_en");
     if (!name) continue;
     count++;
     names.set(name, (names.get(name) ?? 0) + 1);
-    const colour = typeof p?.risk_colour_en === "string" ? p.risk_colour_en.trim().toLowerCase() : "";
-    if (ECCC_RANK[colour] && (!worst || ECCC_RANK[colour] > ECCC_RANK[worst])) worst = colour;
-    const prov = typeof p?.province === "string" ? p.province.trim() : "";
+    const colour = str(p, "risk_colour_en").toLowerCase();
+    if (rankOf(colour) && (!worst || rankOf(colour) > rankOf(worst))) worst = colour;
+    const prov = str(p, "province");
     if (prov) provs.set(prov, (provs.get(prov) ?? 0) + 1);
   }
   let main: { name: string; areas: number } | null = null;
@@ -102,8 +110,8 @@ export function parseNwsAlerts(js: unknown): NwsAlert[] | null {
   const out: NwsAlert[] = [];
   for (const f of feats) {
     const p = (f as { properties?: Record<string, unknown> })?.properties;
-    const id = typeof p?.id === "string" ? p.id : "";
-    const event = typeof p?.event === "string" ? p.event.trim() : "";
+    const id = str(p, "id");
+    const event = str(p, "event");
     if (!id || !event) continue;
     // The service keeps its alerting system alive with test traffic.
     if (/keepalive/i.test(id) || /^test message$/i.test(event)) continue;
@@ -111,6 +119,7 @@ export function parseNwsAlerts(js: unknown): NwsAlert[] | null {
   }
   return out;
 }
+
 
 /** One warning covering several states arrives once per state: count it once. */
 export function dedupeAlerts(alerts: NwsAlert[]): NwsAlert[] {
