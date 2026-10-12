@@ -8,6 +8,7 @@ import { ShareRow } from "@/components/ShareRow";
 import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
 import heroNetwork from "@/assets/hero-network.jpg";
 
 const statsQuery = queryOptions<StatsPayload>({
