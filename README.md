@@ -1,29 +1,48 @@
-# Welcome to your Lovable project
+# UKStats — the UK National Data Register
 
-This project was built with [Lovable](https://lovable.dev).
+**[ukstats.co.uk](https://ukstats.co.uk)** — every major UK official statistic in one place, with its source, its age, and the date the next figure is due. Now covering 33 countries across Europe, North America and Australia.
 
-## Build with Lovable
+## The golden rule
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+**Nothing on this site is estimated, modelled or interpolated.** Every figure is pulled from an official, machine-readable source — ONS, Home Office, police.uk, HM Land Registry, Eurostat, national statistics offices — and displayed with its reference period and a link to the publisher. Where no live feed exists, the site says so plainly instead of guessing.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+## What it does
 
-## Development
+- **Live register** of UK crime, debt, migration, borders, cost of living, housing, defence, weather and more
+- **33 country pages** (`/fr`, `/de`, `/us`…) with comparable Eurostat and national figures, weather warnings and capital weather (clearly labelled as model data)
+- **Freshness metadata everywhere** — how old each figure is, and when the next release is due
+- **Revision tracking** — when a publisher quietly restates a figure, the site records it
+- **Public JSON/CSV API** and **embeddable widgets** for every metric
+- **Nightly agent team** that checks feed health, detects revisions, audits data and drafts (never posts) social updates — humans approve every post
+- **Online speech convictions** comparison — an honest map of which countries publish these figures and which do not
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Running it locally
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
+git clone <this-repo>
+cd ukstats
 npm i
+cp .env.example .env   # fill in your own public Supabase keys
 npm run dev
 ```
 
-## Built with
+Tests: `npm test` (Vitest). Typecheck: `npx tsgo --noEmit`.
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+## Architecture
+
+- **TanStack Start** (React 19, SSR) on a Cloudflare Workers-style edge runtime
+- **Lovable Cloud** (Supabase) for storage of snapshots, findings and drafts
+- Pure, testable parsers for every source (`src/lib/eurostat.ts`, `src/lib/national.ts`, `src/lib/alerts.ts`) — network code is server-only (`*.server.ts`)
+- The overnight agents live in `src/lib/agents/` and are triggered by cron via `/api/public/agents-tick`. **Agents can only write findings, drafts and revisions — never figures and never code.**
+
+## Contributing
+
+Yes please. Read [CONTRIBUTING.md](CONTRIBUTING.md) — the short version: every number needs an official source, and "we don't have that figure" is always a better answer than an invented one.
+
+## Licence
+
+MIT (see [LICENSE](LICENSE)). The code is yours to reuse; the statistics remain the copyright of their publishers and must keep their attribution.
+
+---
+
+Built by Marco Mead with [Lovable](https://lovable.dev). Not a government service.
