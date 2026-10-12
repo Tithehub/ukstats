@@ -81,4 +81,4 @@
 - [x] Contributor commands fixed: `npm test` and `npm run typecheck` now exist in package.json (the old `npx tsgo` only existed in the sandbox and would fail for anyone else)
 - [x] Automated checks on every pull request (.github/workflows/ci.yml): install, typecheck, tests
 - [x] Code is live on GitHub — Lovable created the repo and two-way sync is working (12 Oct 2026); .env in repo holds only public publishable keys
-- [ ] Post the two "we're open source" announcements (user approves in /agents)
+- [x] "We're open source" announcements posted to Bluesky and Mastodon (04:46 UTC 12 Oct 2026, verified live on both profiles)
