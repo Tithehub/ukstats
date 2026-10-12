@@ -9,6 +9,9 @@ import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/Night
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
+import { getSponsorBannerBoard } from "@/lib/banner.functions";
+import { readPaymentsEnvironment } from "@/lib/payments-env";
+import type { SponsorBannerRow } from "@/lib/sponsor-visibility";
 import heroNetwork from "@/assets/hero-network.jpg";
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -17,8 +20,21 @@ const statsQuery = queryOptions<StatsPayload>({
   staleTime: 5 * 60_000,
 });
 
+// Asked for while the page is being written out, so a sponsor's banner is part
+// of the page itself — even if the browser's interactive layer never starts.
+const sponsorBoardQuery = queryOptions<SponsorBannerRow[]>({
+  queryKey: ["sponsor-banner-board"],
+  queryFn: async () =>
+    (await getSponsorBannerBoard({ data: { environment: readPaymentsEnvironment() ?? "sandbox" } })).sponsors,
+  staleTime: 60_000,
+});
+
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(statsQuery),
+      context.queryClient.ensureQueryData(sponsorBoardQuery),
+    ]),
   head: () => ({
     meta: [
       { title: "UKStats — the UK in numbers, live from official sources" },
@@ -87,6 +103,7 @@ const PANELS: { category: Category; blurb: string }[] = [
 
 function Home() {
   const { data } = useSuspenseQuery(statsQuery);
+  const sponsors = useSuspenseQuery(sponsorBoardQuery).data;
   const metrics = data.metrics;
   const live = metrics.filter((m) => m.status === "ok").length;
 
@@ -171,7 +188,7 @@ function Home() {
 
         {/* Sponsor banner — sits under the hero for visibility, always labelled, never beside individual figures. */}
         <div className="mt-4">
-          <SponsorBanner variant="hero" />
+          <SponsorBanner variant="hero" initialRows={sponsors} />
         </div>
 
         {/* Around the world */}
