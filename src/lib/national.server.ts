@@ -72,8 +72,19 @@ const DEFS: Record<string, Def[]> = {
       load: async () => ({ pts: await bls("CES0000000001")() }) },
     { id: "us-earnings", title: "Average hourly earnings, private sector", cadence: "Monthly", source: "Bureau of Labor Statistics (CES0500000003)", sourceUrl: "https://data.bls.gov/timeseries/CES0500000003", next: "Per BLS Employment Situation schedule", fmt: (v) => `$${v.toFixed(2)}`,
       load: async () => ({ pts: await bls("CES0500000003")() }) },
+    { id: "us-debt-interest", title: "Average interest rate on the federal debt", cadence: "Monthly", source: "US Treasury Fiscal Data — Average Interest Rates", sourceUrl: "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates", next: "Monthly, with the Treasury Statement", fmt: rate,
+      load: async () => {
+        const js = await getJson<{ data: { record_date: string; avg_interest_rate_amt: string }[] }>("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?sort=-record_date&page%5Bsize%5D=24&filter=security_desc:eq:Total%20Interest-bearing%20Debt");
+        const pts = js.data.map((r) => ({ time: r.record_date, value: Number(r.avg_interest_rate_amt) })).filter((p) => Number.isFinite(p.value)).reverse();
+        return { pts };
+      } },
+    { id: "us-core-cpi", title: "Core inflation (excludes food and energy, 12-month change)", cadence: "Monthly", source: "Bureau of Labor Statistics (CUUR0000SAM)", sourceUrl: "https://data.bls.gov/timeseries/CUUR0000SAM", next: "Per BLS CPI release schedule", fmt: pct,
+      load: async () => ({ pts: yoyFromIndex(await bls("CUUR0000SAM")()) }) },
+    { id: "us-shelter", title: "Housing costs (shelter index, 12-month change)", cadence: "Monthly", source: "Bureau of Labor Statistics (CUUR0000SAH1)", sourceUrl: "https://data.bls.gov/timeseries/CUUR0000SAH1", next: "Per BLS CPI release schedule", fmt: pct,
+      load: async () => ({ pts: yoyFromIndex(await bls("CUUR0000SAH1")()) }) },
     ...([["V", "Violent crime offences (month)"], ["P", "Property crime offences (month)"]] as const).map(([code, title]): Def => ({
       id: `us-crime-${code === "V" ? "violent" : "property"}`, title, cadence: "Monthly, published with a lag", source: "FBI Crime Data Explorer (UCR summarized)", sourceUrl: "https://cde.ucr.cjis.gov/", next: "Per FBI CDE update schedule", fmt: (v) => Math.round(v).toLocaleString("en-GB"),
+      note: "Only months at least a year old are shown: police forces report to the FBI late, so the most recent months in the feed are incomplete.",
       load: async () => {
         const key = process.env["FBI_API_KEY"];
         if (!key) throw new Error("FBI key not configured");
@@ -103,7 +114,12 @@ const DEFS: Record<string, Def[]> = {
   au: [
     { id: "au-unemployment", title: "Unemployment rate (seasonally adjusted)", cadence: "Monthly", source: "Australian Bureau of Statistics — Labour Force", sourceUrl: "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
       load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,LF,1.0.0/M13.3.1599.20.AUS.M?startPeriod=2024-01", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
+    { id: "au-cpi", title: "Inflation (CPI, 12-month change)", cadence: "Quarterly", source: "Australian Bureau of Statistics — Consumer Price Index", sourceUrl: "https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/latest-release", next: "Per ABS release calendar", fmt: pct,
+      load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,CPI_Q,1.0.0/3.999901.20.50.Q?lastNObservations=24", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
+    { id: "au-earnings", title: "Average weekly earnings, all employees", cadence: "Half-yearly (February and August surveys)", source: "Australian Bureau of Statistics — Average Weekly Earnings", sourceUrl: "https://www.abs.gov.au/statistics/labour/earnings-and-work-hours/average-weekly-earnings-australia/latest-release", next: "Per ABS release calendar", fmt: (v) => `$${v.toFixed(2)}`,
+      load: async () => ({ pts: parseSdmxCsv(await (await get("https://data.api.abs.gov.au/rest/data/ABS,AWE,1.0.0/1.1.3.7.TOT.10.AUS.S?lastNObservations=12", { headers: { accept: "application/vnd.sdmx.data+csv" } })).text()) }) },
   ],
+
 
 };
 
@@ -114,7 +130,6 @@ const NO_FEED: Record<string, CountryMetric[]> = {
   ],
   ca: [noFeed("ca-asylum", "Asylum claimants", "Immigration, Refugees and Citizenship Canada", "https://www.canada.ca/en/immigration-refugees-citizenship/services/refugees/asylum-claims/processed-claims.html", "IRCC publishes asylum claims as monthly tables, not a live feed.")],
   au: [
-    noFeed("au-cpi", "Inflation (CPI)", "Australian Bureau of Statistics", "https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation", "The ABS data service returned no records for the CPI series we checked, so no figure is shown."),
     noFeed("au-rate", "RBA cash rate target", "Reserve Bank of Australia", "https://www.rba.gov.au/statistics/cash-rate/", "The RBA blocks automated download of its statistical tables. See the official page."),
     noFeed("au-boats", "Illegal maritime arrivals", "Operation Sovereign Borders (Home Affairs)", "https://www.osb.homeaffairs.gov.au/news-media/monthly-updates", "Published as monthly PDF updates only."),
   ],
