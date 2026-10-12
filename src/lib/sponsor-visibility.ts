@@ -50,5 +50,5 @@ export function regionFromPath(pathname: string, countryCodes: readonly string[]
 export function rotationWindow<T>(rows: readonly T[], tick: number, size: number): T[] {
   if (rows.length <= size) return [...rows];
   const start = (tick * size) % rows.length;
-  return Array.from({ length: size }, (_, i) => rows[(start + i) % rows.length]);
+  return Array.from({ length: size }, (_, i) => rows[(start + i) % rows.length] as T);
 }
