@@ -1,23 +1,22 @@
-# Test-mode message on the live site's checkout
+# Marco's £5 payment and the missing banner upload
 
-## What I've confirmed
-- The live site's settings hold the **live** payment key, and the live site on ukstats.co.uk is serving it — the page itself shows no test-mode note.
-- The website code picks test or live from that key automatically, so a fresh payment started now should open in live mode.
-- The most likely cause of what you saw: your browser was still showing an older copy of the page from before the live key went out, so the payment form opened in test mode.
+## What happened
+- Marco's £5 Supporter payment went through on the live site — live payments work.
+- He can't find the banner upload because **banners are a Sponsor-plan (£10) perk only**. The £5 Supporter plan is the name-and-link line in the footer. The upload box only appears for Sponsor-plan accounts, so his form correctly shows no upload.
 
 ## Plan
 
-### 1. You: clear the old copy
-- On ukstats.co.uk/advertise, do a hard refresh (Ctrl+Shift+R on Windows, Cmd+Shift+R on Mac).
-- Click a plan to open the payment form and tell me if you still see anything saying test mode.
+### 1. Make the plans clearer on /advertise
+- In the "See what you get" example and the plan list, state plainly: banner picture is Sponsor only; Supporter is the text line.
+- After a Supporter pays, the details form shows a short note: "Banner pictures come with the Sponsor plan — upgrade any time."
 
-### 2. Me: prove it end-to-end
-- Sign in to the live site as you (using the secure session I already have), open the £5 Supporter checkout, and screenshot the payment form.
-- Confirm the form is a live Stripe checkout (no test-mode label) and that Apple Pay / card options appear.
-- I will not complete any payment — just open the form and check.
+### 2. Marco chooses
+- **Stay on Supporter £5:** fill in your name and link, save, and I approve you on /agents — your line appears in the footer.
+- **Upgrade to Sponsor £10:** cancel the £5 in Manage subscription, take the Sponsor plan, and the banner upload box appears in your details form.
 
-### 3. If it still says test mode
-- Check the live server's payment keys are the live pair, fix whatever is pointing at test, and republish.
+### 3. Approve and verify
+- Once you've saved your details, I approve you on /agents and check your name shows on the pages you chose.
 
-## Not in this round
-- The £5 payment itself — still yours to make with your real card once we've confirmed the form is live.
+## Technical notes
+- No payment or Stripe changes needed — the live checkout is confirmed working by Marco's payment.
+- Copy changes only: SponsorPlans.tsx plan perks + post-payment form note.
