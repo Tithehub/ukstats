@@ -82,7 +82,7 @@ export const createSharedPage = createServerFn({ method: "POST" })
     return row2page(row);
   });
 
-export const getSharedPage = createServerFn({ method: "GET" })
+export const getSharedPage = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ slug: z.string().min(1).max(80) }).parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

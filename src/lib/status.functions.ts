@@ -27,7 +27,7 @@ export interface FeedStatusPayload {
  * Public feed-health read: the latest check per metric plus 30-day reliability,
  * from the sweep's feed_checks log. Read-only, published figures only.
  */
-export const getFeedStatus = createServerFn({ method: "GET" }).handler(
+export const getFeedStatus = createServerFn({ method: "POST" }).handler(
   async (): Promise<FeedStatusPayload> => {
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const db = createClient<Database>(process.env["SUPABASE_URL"]!, key, {

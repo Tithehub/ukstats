@@ -9,7 +9,7 @@ async function assertAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Admins only");
 }
 
-export const getAgentDashboard = createServerFn({ method: "GET" })
+export const getAgentDashboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
@@ -70,7 +70,7 @@ function publicClient() {
 }
 
 /** Public: revisions log + any approved AI explainer for one figure. */
-export const getMetricExtras = createServerFn({ method: "GET" })
+export const getMetricExtras = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ id: z.string().min(1).max(120) }).parse(i))
   .handler(async ({ data }) => {
     try {
@@ -87,7 +87,7 @@ export const getMetricExtras = createServerFn({ method: "GET" })
     }
   });
 
-export const listAgentPosts = createServerFn({ method: "GET" })
+export const listAgentPosts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);

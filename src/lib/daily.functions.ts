@@ -50,7 +50,7 @@ export interface DailyArchive {
 }
 
 /** Latest statement plus the archive, newest first. Public data only. */
-export const getDailyArchive = createServerFn({ method: "GET" }).handler(async (): Promise<DailyArchive> => {
+export const getDailyArchive = createServerFn({ method: "POST" }).handler(async (): Promise<DailyArchive> => {
   const { data } = await publicClient().rpc("list_daily_briefings", { max_rows: 400 });
 
   const entries = ((data ?? []) as Raw[]).map(toRow);
@@ -58,7 +58,7 @@ export const getDailyArchive = createServerFn({ method: "GET" }).handler(async (
 });
 
 /** One day's statement, or null when nothing was recorded for that date. */
-export const getDailyBriefing = createServerFn({ method: "GET" })
+export const getDailyBriefing = createServerFn({ method: "POST" })
   .inputValidator((input: { date: string }) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error("Invalid date");
     return input;
