@@ -10,7 +10,7 @@ const D = "Who publishes the official figure for crime, prices, migration, weath
 
 export const Route = createFileRoute("/sources")({
   head: () => ({
-    meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { property: "og:url", content: "https://ukstats.co.uk/sources" }, { name: "twitter:card", content: "summary_large_image" }],
+    meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { property: "og:url", content: "https://ukstats.co.uk/sources" }, { property: "og:image", content: "https://ukstats.co.uk/og/sources.jpg" }, { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/sources.jpg" }],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/sources" }],
   }),
   component: SourcesPage,
