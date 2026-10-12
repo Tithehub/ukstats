@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { SponsorPlans } from "@/components/sponsor/SponsorPlans";
+import { SponsorPreview } from "@/components/sponsor/SponsorPreview";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/advertise")({
@@ -68,6 +69,7 @@ function AdvertisePage() {
 
         <h2 className="mt-10 text-lg font-semibold">Choose a plan</h2>
         <SponsorPlans />
+        <SponsorPreview />
 
         <h2 className="mt-10 text-lg font-semibold">The rules</h2>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-night-muted">
