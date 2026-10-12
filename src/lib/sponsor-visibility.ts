@@ -34,3 +34,21 @@ export function visibleSponsors<T extends SponsorVisibilityRow>(
       (!row.ends_at || row.ends_at > iso),
   );
 }
+
+/** Sponsors featured on a page for `region` ("uk" or a country code): site-wide ones plus that region's own. */
+export function sponsorsForRegion<T extends { region?: string | null }>(rows: readonly T[], region: string): T[] {
+  return rows.filter((r) => !r.region || r.region === "all" || r.region === region);
+}
+
+/** Region of a page from its path: a known country code as first segment, otherwise the UK register. */
+export function regionFromPath(pathname: string, countryCodes: readonly string[]): string {
+  const first = pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+  return countryCodes.includes(first) ? first : "uk";
+}
+
+/** The `size` sponsors shown at rotation step `tick`, wrapping round the list. */
+export function rotationWindow<T>(rows: readonly T[], tick: number, size: number): T[] {
+  if (rows.length <= size) return [...rows];
+  const start = (tick * size) % rows.length;
+  return Array.from({ length: size }, (_, i) => rows[(start + i) % rows.length]);
+}

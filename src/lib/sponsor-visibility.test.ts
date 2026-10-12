@@ -47,3 +47,18 @@ describe("sponsor visibility", () => {
     ).toEqual(["Acme"]);
   });
 });
+
+import { sponsorsForRegion, regionFromPath, rotationWindow } from "./sponsor-visibility";
+describe("regional sponsors", () => {
+  const rows = [{ id: "a", region: "all" }, { id: "f", region: "fr" }, { id: "u", region: "uk" }];
+  it("France page shows site-wide and French sponsors only", () => {
+    expect(sponsorsForRegion(rows, "fr").map((r) => r.id)).toEqual(["a", "f"]);
+  });
+  it("country path maps to its code, anything else is UK", () => {
+    expect(regionFromPath("/fr/crime", ["fr", "de"])).toBe("fr");
+    expect(regionFromPath("/gold", ["fr", "de"])).toBe("uk");
+  });
+  it("rotation shows 3 at a time and wraps", () => {
+    expect(rotationWindow([1, 2, 3, 4, 5], 1, 3)).toEqual([4, 5, 1]);
+  });
+});
