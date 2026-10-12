@@ -80,5 +80,5 @@
 - [x] Repository is public: https://github.com/Tithehub/ukstats — footer link, README clone line and both announcement posts point at it
 - [x] Contributor commands fixed: `npm test` and `npm run typecheck` now exist in package.json (the old `npx tsgo` only existed in the sandbox and would fail for anyone else)
 - [x] Automated checks on every pull request (.github/workflows/ci.yml): install, typecheck, tests
-- [ ] First push has not landed — repository still has zero commits; check Project settings → Git → GitHub sync status, reset the link if it stays empty
-- [ ] Post the two "we're open source" announcements once the code is visible
+- [x] Code is live on GitHub — Lovable created the repo and two-way sync is working (12 Oct 2026); .env in repo holds only public publishable keys
+- [ ] Post the two "we're open source" announcements (user approves in /agents)
