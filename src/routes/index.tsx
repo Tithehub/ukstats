@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, COST_GROUPS, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
