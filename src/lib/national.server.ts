@@ -232,6 +232,61 @@ const ALERTS_SOURCE = "Meteoalarm — national weather-service warnings (EUMETNE
 const ALERTS_URL = "https://meteoalarm.org";
 const acache = new Map<string, { at: number; p: Promise<CountryMetric> }>();
 
+const US_AREAS = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
+
+const alertNote = (e: unknown) => `Warning feed unreachable just now (${e instanceof Error ? e.message : "no response"}) — no figure shown rather than a guess.`;
+
+/** The National Weather Service publishes per state, so a national count is built
+ * from all 50 states plus Washington D.C. Any area that fails to answer means no
+ * figure at all — a partial count would be read as the national total. */
+async function usAlerts(base: CountryMetric): Promise<CountryMetric> {
+  try {
+    const pages = await Promise.all(US_AREAS.map((a) => getJson<unknown>(`https://api.weather.gov/alerts/active?area=${a}`)));
+    const parsed = pages.map(parseNwsAlerts);
+    if (parsed.some((p) => p === null)) throw new Error("one or more areas returned no warning list");
+    const alerts = dedupeAlerts(parsed.flatMap((p) => p ?? []));
+    const main = mainWarning(alerts);
+    return {
+      ...base,
+      value: alerts.length ? `${alerts.length} in force` : "None in force",
+      raw: alerts.length,
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: alerts.length
+        ? `Counted across all 50 states and Washington D.C., each warning counted once. ${main ? `Most common: ${main.event} (${main.count}).` : ""}`.trim()
+        : "No official weather warning is in force anywhere in the country right now.",
+    };
+  } catch (e) {
+    return { ...base, note: alertNote(e) };
+  }
+}
+
+async function ecccAlerts(base: CountryMetric): Promise<CountryMetric> {
+  try {
+    const a = parseEcccAlerts(await getJson<unknown>("https://api.weather.gc.ca/collections/weather-alerts/items?limit=500"));
+    if (!a) throw new Error("feed did not return a warning list");
+    const top = a.provinces[0];
+    return {
+      ...base,
+      value: a.count ? `${a.count} in force` : "None in force",
+      raw: a.count,
+      asOf: new Date().toISOString(),
+      status: "ok",
+      note: a.count
+        ? [
+            a.worst ? `Highest level: ${a.worst}.` : null,
+            a.main ? `Most common: ${a.main.name} (${a.main.areas}).` : null,
+            top ? `Most affected: ${top.code} (${top.count}).` : null,
+            "Counted across all provinces and territories.",
+          ].filter(Boolean).join(" ")
+        : "No official weather warning is in force for this country right now.",
+    };
+  } catch (e) {
+    return { ...base, note: alertNote(e) };
+  }
+}
+
+
 function alertsMetric(code: string): Promise<CountryMetric> {
   return cached(acache, code, ALERTS_TTL, async () => {
     const place = PLACES[code];
