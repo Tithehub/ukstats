@@ -1,26 +1,27 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-
-type Sponsor = { id: string; name: string; url: string; tagline: string | null };
+import { getStripeEnvironment } from "@/lib/stripe";
+import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 
 /** Clearly-labelled sponsor line. Never render inside figure cards, embeds, widgets or share images. */
 export function SponsorStrip({ placement = "footer" }: { placement?: string }) {
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsors, setSponsors] = useState<SponsorVisibilityRow[]>([]);
   useEffect(() => {
-    const now = new Date().toISOString();
+    // This strip sits in the footer of every page: a missing payments token
+    // must leave the invitation showing, never break the page.
+    let environment: string;
+    try {
+      environment = getStripeEnvironment();
+    } catch {
+      return;
+    }
     supabase
       .from("sponsors")
-      .select("id,name,url,tagline,starts_at,ends_at")
+      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at")
       .eq("placement", placement)
       .order("plan", { ascending: true, nullsFirst: false })
-      .then(({ data }) =>
-        setSponsors(
-          (data ?? []).filter(
-            (s) => (!s.starts_at || s.starts_at <= now) && (!s.ends_at || s.ends_at > now),
-          ),
-        ),
-      );
+      .then(({ data }) => setSponsors(visibleSponsors(data ?? [], environment)));
   }, [placement]);
 
   return (
