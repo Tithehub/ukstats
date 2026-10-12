@@ -24,7 +24,7 @@ Thank you — the whole point of open sourcing UKStats is so more eyes keep it h
 
 ```sh
 npm test            # all parser and rule tests must pass
-npx tsgo --noEmit   # typecheck must be clean
+npm run typecheck   # typecheck must be clean
 ```
 
 ## What the agents do (and don't)
