@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BANNER_REQUIREMENTS } from "@/lib/banner-image";
 
 const EXAMPLE = {
   name: "Harbour & Hale Estate Agents",
@@ -54,6 +55,9 @@ export function SponsorPreview() {
         <li className={isSponsor ? "" : "opacity-50"}>→ Your tagline (Sponsor only)</li>
         <li className={isSponsor ? "" : "opacity-50"}>
           → {isSponsor ? "Shown first, before supporters" : "Rotates with other supporters"}
+        </li>
+        <li className={isSponsor ? "" : "opacity-50"}>
+          → {isSponsor ? `Your banner picture: ${BANNER_REQUIREMENTS}` : "Your own banner picture (Sponsor only)"}
         </li>
       </ul>
 

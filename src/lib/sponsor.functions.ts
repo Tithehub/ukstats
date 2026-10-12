@@ -4,6 +4,7 @@ import type Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import { SPONSOR_PRICE_IDS } from "@/lib/sponsor-plans";
+import { BANNER_BUCKET, BANNER_URL_SECONDS, isOwnBannerPath } from "@/lib/banner-paths";
 
 const envOk = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
 
@@ -117,7 +118,7 @@ export const getMySponsorship = createServerFn({ method: "POST" })
       .maybeSingle();
     const { data: sponsor } = await context.supabase
       .from("sponsors")
-      .select("id,name,url,tagline,approved,paid,plan,region,banner_url")
+      .select("id,name,url,tagline,approved,paid,plan,region,banner_url,banner_path")
       .eq("user_id", context.userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
@@ -128,7 +129,15 @@ export const getMySponsorship = createServerFn({ method: "POST" })
 
 export const saveSponsorDetails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { environment: StripeEnv; name: string; url: string; tagline?: string; region?: string; banner_url?: string }) => {
+  .inputValidator((d: {
+    environment: StripeEnv;
+    name: string;
+    url: string;
+    tagline?: string;
+    region?: string;
+    banner_url?: string;
+    banner_path?: string;
+  }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
     const name = String(d.name ?? "").trim().slice(0, 80);
     const url = String(d.url ?? "").trim().slice(0, 300);
@@ -139,12 +148,13 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
     if (region !== "all" && region !== "uk" && !COUNTRIES.some((c) => c.code === region)) throw new Error("Unknown region");
     const banner_url = String(d.banner_url ?? "").trim().slice(0, 500);
     if (banner_url && !/^https:\/\/[^\s]+$/.test(banner_url)) throw new Error("Banner image link must start with https://");
-    return { environment: d.environment, name, url, tagline, region, banner_url };
+    const banner_path = String(d.banner_path ?? "").trim().slice(0, 500);
+    return { environment: d.environment, name, url, tagline, region, banner_url, banner_path };
   })
   .handler(async ({ data, context }) => {
     const { data: row } = await context.supabase
       .from("sponsors")
-      .select("id,plan")
+      .select("id,plan,banner_path")
       .eq("user_id", context.userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
@@ -152,19 +162,48 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!row) return { error: "No paid plan found yet — give it a few seconds after paying." };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const isSponsor = row.plan === "sponsor";
+    const previous = (row as { banner_path?: string | null }).banner_path ?? null;
+
+    // A picture is only believed once we've read its real size from the bytes.
+    let banner_path: string | null = null;
+    if (isSponsor && data.banner_path) {
+      if (!isOwnBannerPath(data.banner_path, context.userId)) return { error: "That picture isn't yours to use." };
+      const { checkBannerUpload } = await import("@/lib/banner.server");
+      const check = await checkBannerUpload(supabaseAdmin, data.banner_path);
+      if (!check.ok) {
+        await supabaseAdmin.storage.from(BANNER_BUCKET).remove([data.banner_path]);
+        return { error: check.message };
+      }
+      banner_path = data.banner_path;
+    }
+
+    let banner_url: string | null = null;
+    if (isSponsor && !banner_path && data.banner_url) {
+      const { checkBannerLink } = await import("@/lib/banner.server");
+      const check = await checkBannerLink(data.banner_url);
+      if (!check.ok) return { error: check.message };
+      banner_url = data.banner_url;
+    }
+
     const { error } = await supabaseAdmin
       .from("sponsors")
       .update({
         name: data.name,
         url: data.url,
-        tagline: row.plan === "sponsor" ? data.tagline || null : null,
+        tagline: isSponsor ? data.tagline || null : null,
         region: data.region,
-        banner_url: row.plan === "sponsor" ? data.banner_url || null : null,
+        banner_url,
+        banner_path,
         approved: false,
         active: false,
       })
       .eq("id", row.id);
-    return error ? { error: "Couldn't save" } : { ok: true as const };
+    if (error) return { error: "Couldn't save" };
+    if (previous && previous !== banner_path) {
+      await supabaseAdmin.storage.from(BANNER_BUCKET).remove([previous]);
+    }
+    return { ok: true as const };
   });
 
 async function assertAdmin(supabase: any, userId: string) {
@@ -179,7 +218,7 @@ export const listSponsorsAdmin = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: sponsors } = await supabaseAdmin
       .from("sponsors")
-      .select("id,name,url,tagline,plan,region,banner_url,approved,paid,active,environment,created_at")
+      .select("id,name,url,tagline,plan,region,banner_url,banner_path,approved,paid,active,environment,created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     const { data: enquiries } = await supabaseAdmin
@@ -187,7 +226,20 @@ export const listSponsorsAdmin = createServerFn({ method: "POST" })
       .select("id,name,email,company,website,message,created_at")
       .order("created_at", { ascending: false })
       .limit(50);
-    return { sponsors: sponsors ?? [], enquiries: enquiries ?? [] };
+    const rows = sponsors ?? [];
+    const paths = rows.map((r) => r.banner_path).filter((p): p is string => Boolean(p));
+    const signed = paths.length
+      ? await supabaseAdmin.storage.from(BANNER_BUCKET).createSignedUrls(paths, BANNER_URL_SECONDS)
+      : null;
+    const urlByPath = new Map<string, string>();
+    const issued = signed?.data ?? [];
+    for (const entry of issued) {
+      if (entry.path && entry.signedUrl) urlByPath.set(entry.path, entry.signedUrl);
+    }
+    return {
+      sponsors: rows.map((r) => ({ ...r, banner_link: r.banner_path ? urlByPath.get(r.banner_path) ?? null : null })),
+      enquiries: enquiries ?? [],
+    };
   });
 
 export const setSponsorApproval = createServerFn({ method: "POST" })

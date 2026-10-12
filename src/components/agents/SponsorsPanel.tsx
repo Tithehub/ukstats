@@ -16,11 +16,16 @@ export function SponsorsPanel() {
       <ul className="mt-3 divide-y divide-night-line rounded-xl border border-night-line">
         {sponsors.length === 0 ? <li className="px-4 py-3 text-sm text-night-muted">No sponsors yet.</li> : null}
         {sponsors.map((s) => (
-          <li key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+          <li key={s.id} className="flex flex-wrap items-start gap-3 px-4 py-3 text-sm">
             <div className="min-w-0 flex-1">
               <p className="font-medium">{s.name}{s.tagline ? ` — ${s.tagline}` : ""} <span className="font-mono text-xs text-night-muted">[{(s as { region?: string }).region ?? "all"}]</span></p>
               <a href={s.url} target="_blank" rel="noopener noreferrer" className="break-all text-electric-soft">{s.url}</a>
               <p className="font-mono text-[11px] text-night-muted">{s.plan ?? "manual"} · {s.environment === "sandbox" ? "test" : s.environment === "live" ? "real" : "no test/real flag — won't show"} · {s.paid ? "paid" : "not paid"} · {s.approved ? "approved" : "awaiting approval"}</p>
+              {s.banner_link ? (
+                <img src={s.banner_link} alt={`${s.name} banner`} width={1536} height={512} className="mt-2 w-full max-w-[420px] rounded-md border border-night-line" />
+              ) : s.banner_url ? (
+                <p className="mt-1 break-all font-mono text-[11px] text-night-muted">banner: {s.banner_url}</p>
+              ) : null}
             </div>
             <button
               type="button"

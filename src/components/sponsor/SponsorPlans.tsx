@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/useAuth";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
+import { BANNER_REQUIREMENTS, bannerFileProblem, bannerProblem, readImageSize } from "@/lib/banner-image";
+import { BANNER_BUCKET, bannerObjectPath } from "@/lib/banner-paths";
 import {
   createSponsorCheckout,
   createSponsorPortal,
@@ -15,8 +18,10 @@ import type { SponsorPriceId } from "@/lib/sponsor-plans";
 
 const PLANS = [
   { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter"] },
-  { key: "sponsor", name: "Sponsor", monthly: 10, yearly: 100, perks: ["Everything in Supporter", "A short tagline next to your name", "Shown first in the rotation"] },
+  { key: "sponsor", name: "Sponsor", monthly: 10, yearly: 100, perks: ["Everything in Supporter", "A short tagline next to your name", "Your own banner picture in the rotating strip", "Shown first in the rotation"] },
 ] as const;
+
+const field = "mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2";
 
 function Checkout({ priceId, onClose }: { priceId: SponsorPriceId; onClose: () => void }) {
   const start = useServerFn(createSponsorCheckout);
@@ -44,11 +49,15 @@ function Checkout({ priceId, onClose }: { priceId: SponsorPriceId; onClose: () =
 }
 
 function MySponsorship() {
+  const { user } = useAuth();
   const load = useServerFn(getMySponsorship);
   const save = useServerFn(saveSponsorDetails);
   const portal = useServerFn(createSponsorPortal);
   const [data, setData] = useState<Awaited<ReturnType<typeof load>> | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [bannerPath, setBannerPath] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [bannerBusy, setBannerBusy] = useState(false);
   const refresh = () => load({ data: { environment: getStripeEnvironment() } }).then(setData).catch(() => {});
   useEffect(() => {
     refresh();
@@ -56,6 +65,59 @@ function MySponsorship() {
     const stop = setTimeout(() => clearInterval(t), 30000);
     return () => { clearInterval(t); clearTimeout(stop); };
   }, []);
+
+  const savedPath = data?.sponsor?.banner_path ?? null;
+  // The picture folder is private, so we ask for a short link to see it ourselves.
+  useEffect(() => {
+    if (!savedPath) return;
+    let live = true;
+    setBannerPath((p) => p ?? savedPath);
+    supabase.storage
+      .from(BANNER_BUCKET)
+      .createSignedUrl(savedPath, 3600)
+      .then(({ data: signed }) => { if (live) setBannerPreview(signed?.signedUrl ?? null); });
+    return () => { live = false; };
+  }, [savedPath]);
+
+  async function pick(file: File | undefined) {
+    setMsg(null);
+    if (!file) return;
+    const quick = bannerFileProblem({ name: file.name, size: file.size, type: file.type });
+    if (quick) { setMsg(quick); return; }
+    setBannerBusy(true);
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const problem = bannerProblem(readImageSize(bytes), bytes.length);
+      if (problem) { setMsg(problem); return; }
+      if (!user) { setMsg("Please sign in again, then try once more."); return; }
+      const path = bannerObjectPath(user.id, file.name);
+      const { error } = await supabase.storage
+        .from(BANNER_BUCKET)
+        .upload(path, bytes, { contentType: file.type || "image/jpeg", upsert: false });
+      if (error) { setMsg("Couldn't upload that picture — please try again."); return; }
+      setBannerPath(path);
+      const { data: signed } = await supabase.storage.from(BANNER_BUCKET).createSignedUrl(path, 3600);
+      setBannerPreview(signed?.signedUrl ?? null);
+      setMsg("That picture fits — save below and we'll check it and switch it on.");
+    } catch {
+      setMsg("Couldn't read that file — please try a different picture.");
+    } finally {
+      setBannerBusy(false);
+    }
+  }
+
+  async function dropBanner() {
+    const path = bannerPath;
+    setBannerPath(null);
+    setBannerPreview(null);
+    if (path && path !== savedPath) {
+      await supabase.storage.from(BANNER_BUCKET).remove([path]);
+      setMsg("Picture removed — press Save below to finish.");
+    } else {
+      setMsg("Press Save below and we'll take the picture away.");
+    }
+  }
+
   if (!data?.sub) return null;
   const s = data.sponsor;
   const status = !s ? "Setting up…" : !s.paid ? "Not showing — subscription ended" : s.approved ? "Live on the site" : s.name === "Pending details" ? "Add your details below" : "Waiting for approval";
@@ -70,24 +132,50 @@ function MySponsorship() {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
             try {
-              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), region: String(f.get("region") ?? "all"), banner_url: String(f.get("banner_url") ?? "") } });
+              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), region: String(f.get("region") ?? "all"), banner_url: String(f.get("banner_url") ?? ""), banner_path: bannerPath ?? "" } });
               setMsg("error" in r ? r.error ?? "Couldn't save" : "Saved — we'll check it and switch it on.");
               refresh();
             } catch (err) { setMsg(err instanceof Error ? err.message : "Couldn't save"); }
           }}
         >
-          <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
-          <label className="text-sm">Link (https://)<input name="url" required maxLength={300} defaultValue={s.name === "Pending details" ? "" : s.url} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
+          <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className={field} /></label>
+          <label className="text-sm">Link (https://)<input name="url" required maxLength={300} defaultValue={s.name === "Pending details" ? "" : s.url} className={field} /></label>
           <label className="text-sm sm:col-span-2">Where to feature you
-            <select name="region" defaultValue={(s as { region?: string }).region ?? "all"} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2">
+            <select name="region" defaultValue={(s as { region?: string }).region ?? "all"} className={field}>
               <option value="all">Every page (site-wide)</option>
               <option value="uk">United Kingdom pages</option>
               {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name} pages</option>)}
             </select>
           </label>
           {s.plan === "sponsor" ? (
-            <><label className="text-sm sm:col-span-2">Banner image link (https://, 1536×512 or 3:1 wide)<input name="banner_url" maxLength={500} defaultValue={(s as { banner_url?: string | null }).banner_url ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
-            <label className="text-sm sm:col-span-2">Tagline (up to 80 characters)<input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label></>
+            <>
+              <div className="text-sm sm:col-span-2">
+                <p className="font-medium">Banner picture</p>
+                <p className="mt-1 text-xs text-night-muted">{BANNER_REQUIREMENTS}</p>
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  disabled={bannerBusy}
+                  onChange={(e) => void pick(e.target.files?.[0])}
+                  className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-electric file:px-3 file:py-1.5 file:text-night"
+                />
+                {bannerBusy ? <p className="mt-1 text-xs text-night-muted">Checking your picture…</p> : null}
+                {bannerPreview ? (
+                  <div className="mt-3">
+                    <img src={bannerPreview} alt="Your banner picture" width={1536} height={512} className="w-full rounded-md border border-night-line" />
+                    <button type="button" onClick={() => void dropBanner()} className="mt-1 text-xs text-night-muted underline">
+                      Remove picture
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              <label className="text-sm sm:col-span-2">…or a picture link (https://)
+                <input name="banner_url" maxLength={500} defaultValue={s.banner_url ?? ""} className={field} />
+              </label>
+              <label className="text-sm sm:col-span-2">Tagline (up to 80 characters)
+                <input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className={field} />
+              </label>
+            </>
           ) : null}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
             <button className="rounded-md bg-electric px-4 py-2 text-sm font-medium text-night">Save details</button>

@@ -98,4 +98,6 @@
 - [x] Region-aware sponsor banner with a button at the top of the footer on every page (rotates three at a time every 8s, holds on hover, UK/EU/US/CA/AU regions); /sponsors hub page listing every approved sponsor by region; "See what you get" example box on /advertise using the clearly-labelled made-up estate agent
 - [x] Sponsor system published to ukstats.co.uk (12 Oct 2026): banner, /sponsors and live paid plans verified on the live site, no test-mode note
 - [ ] Real-money end-to-end test: pay £5, approve on /agents, confirm the "Supported by" line appears
-- [ ] Real sponsor photos uploaded through the approval flow (banner currently uses the example photo)
+- [x] Sponsor banner uploads: the sponsor picks a picture, checked from the file bytes (3 wide to 1 tall, at least 1536×512, jpg/png/webp, under 2MB) both in the browser and on the server; private picture folder with short-lived links; the banner keeps one true 3:1 shape at every screen size so nothing is cropped; your admin list shows the picture
+- [ ] Publish the sponsor banner upload work
+- [ ] Real sponsor pictures going through the live approval flow (banner still shows the example estate agent)
