@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { COUNTRIES } from "@/lib/countries";
 import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
