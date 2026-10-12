@@ -93,4 +93,5 @@
 - [ ] Paid API plan (needs payment provider choice)
 - [ ] Weekly email briefing
 - [x] Paid sponsor plans (Supporter £5/£50, Sponsor £10/£100) with checkout, admin approval, auto-off on cancel
-- [ ] Go live with payments (Marco: claim account in Payments tab)
+- [x] Sponsor lines render only when paid, approved, switched on and from the visitor's own environment (a test line can't reach the live site)
+- [ ] Go live with payments: Stripe account claimed and business details submitted (12 Oct); remaining — add the Lovable app to the LIVE Stripe account, run the readiness check, then publish
