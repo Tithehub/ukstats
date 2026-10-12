@@ -18,7 +18,7 @@ import {
 import type { SponsorPriceId } from "@/lib/sponsor-plans";
 
 const PLANS = [
-  { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter"] },
+  { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter", "Text line only — banner pictures come with the Sponsor plan"] },
   { key: "sponsor", name: "Sponsor", monthly: 10, yearly: 100, perks: ["Everything in Supporter", "A short tagline next to your name", "Your own banner picture in the rotating strip", "Shown first in the rotation"] },
 ] as const;
 
@@ -171,7 +171,11 @@ function MySponsorship() {
                 <input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className={field} />
               </label>
             </>
-          ) : null}
+          ) : (
+            <p className="text-xs text-night-muted sm:col-span-2">
+              Banner pictures and a tagline come with the Sponsor plan — upgrade any time from Manage subscription below.
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
             <button className="rounded-md bg-electric px-4 py-2 text-sm font-medium text-night">Save details</button>
             <button
