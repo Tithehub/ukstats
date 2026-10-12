@@ -4,19 +4,26 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { COUNTRIES } from "@/lib/countries";
-import { fairOrder, regionFromPath, sponsorsForRegion, visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
+import { fairOrder, regionFromPath, sponsorsForRegion, visibleSponsors, type SponsorBannerRow, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { getSponsorBannerLinks } from "@/lib/banner.functions";
 import exampleBanner from "@/assets/sponsor-example-estate-agent.jpg";
 
 export const ROTATE_SECONDS = 8;
-type Row = SponsorVisibilityRow & { region: string | null; regions: string[] | null; plan: string | null; banner_url: string | null; banner_path: string | null };
+type Row = SponsorBannerRow;
 
 /** Rotating sponsor banner (one at a time, equal turns). Home page under the hero ("hero") or footer zone elsewhere ("footer") — never near figures, embeds, widgets or share images. */
-export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "hero" }) {
+export function SponsorBanner({
+  variant = "footer",
+  initialRows,
+}: {
+  variant?: "footer" | "hero";
+  /** Lines already fetched while the page was written out (the home page). When given, nothing is fetched here. */
+  initialRows?: readonly SponsorBannerRow[];
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const region = regionFromPath(pathname, COUNTRIES.map((c) => c.code));
   const links = useServerFn(getSponsorBannerLinks);
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<Row[]>(() => [...(initialRows ?? [])]);
   const [bannerLinks, setBannerLinks] = useState<Record<string, string>>({});
   const [seed, setSeed] = useState(0);
   const [tick, setTick] = useState(0);
@@ -24,6 +31,7 @@ export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "he
 
   useEffect(() => {
     setSeed(Math.floor(Math.random() * 1e6));
+    if (initialRows) return; // already rendered with the page — nothing to fetch
     let env: string;
     try { env = getStripeEnvironment(); } catch { return; }
     supabase
@@ -44,10 +52,10 @@ export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "he
   }, [paused, order.length]);
 
   const current = order.length ? order[tick % order.length] : null;
+  // A server-rendered line carries its own picture address; a line fetched in
+  // the browser gets its address from the request made alongside it.
   const currentImage = current
-    ? current.banner_path
-      ? bannerLinks[current.id] ?? null
-      : current.banner_url
+    ? current.banner_link ?? (current.banner_path ? bannerLinks[current.id] ?? null : current.banner_url)
     : null;
 
   const body = (

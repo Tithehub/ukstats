@@ -72,3 +72,22 @@ describe("fair rotation", () => {
     expect(fairOrder(["a", "b", "c"], 1)[0]).toBe("b");
   });
 });
+
+import { withBannerLinks } from "./sponsor-visibility";
+describe("banner board", () => {
+  const rows = [
+    { id: "a", banner_path: "a/banner.png" },
+    { id: "b", banner_path: "b/banner.png" },
+    { id: "c", banner_path: null },
+  ];
+  const urls = new Map([["a/banner.png", "https://cdn.example/a?token=1"]]);
+
+  it("gives each line its own picture address, and none to a line without one", () => {
+    expect(withBannerLinks(rows, urls).map((r) => r.banner_link)).toEqual([
+      "https://cdn.example/a?token=1",
+      null,
+      null,
+    ]);
+  });
+});
+

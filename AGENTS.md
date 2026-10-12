@@ -19,3 +19,5 @@
 
 - Sponsors render only via SponsorStrip/SponsorBanner — the banner sits under the hero on the home page and in the footer zone on every other page — and /sponsors; region = page country code via regionFromPath, matched against the sponsor's chosen regions (groups expand in src/lib/sponsor-regions.ts; old single region column is a fallback) in footer/hub pages, never on figure cards, embeds, widgets or share images — keeps paid placement away from the numbers.
 - Sponsor banner pictures live in the private sponsor-banners folder (or a pasted link we open and check), must be 3 wide to 1 tall and at least 1536×512, and are judged from the file bytes server-side before saving — so unapproved or wrongly shaped artwork never shows; the footer banner keeps one true 3:1 shape at every screen width so a sponsor's picture is never cropped.
+- The home page's sponsor banner comes from the route loader via getSponsorBannerBoard (src/lib/banner.functions.ts) and is rendered with the page, never only by the page's interactive layer — that layer can fail to start on the live home page, and a sponsor's banner must show regardless.
+
