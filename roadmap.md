@@ -88,6 +88,7 @@
 - [x] /global page: 164 national statistics offices beyond the 33 covered, grouped by region (UN directory, links checked 2026-10-12)
 
 ## Monetisation
+- [x] Attach GoPharma, XPRE and Gold.live banners; all three pictures and website links verified rotating on live /fr (home-page rotation remained stuck on RAREITUP during verification)
 - [x] /advertise sponsor page + footer "Supported by" strip + enquiries
 - [x] Sponsor prices set: Supporter £5/month or £50/year, Sponsor £10/month or £100/year (yearly selected by default)
 - [ ] Paid API plan (needs payment provider choice)
