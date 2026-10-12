@@ -12,6 +12,8 @@ export interface Country {
   officeUrl: string;
   euro: boolean;
   wave: 1 | 2;
+  /** Extra official agencies to credit on the Sources page (e.g. the US has several). */
+  agencies?: { name: string; url: string }[];
 }
 
 const c = (code: string, name: string, office: string, officeUrl: string, euro: boolean, eurostat: string | null = code.toUpperCase(), wave: 1 | 2 = 1): Country => ({ code, name, eurostat, office, officeUrl, euro, wave });
@@ -47,7 +49,14 @@ export const COUNTRIES: Country[] = [
   c("no", "Norway", "Statistics Norway", "https://www.ssb.no", false),
   c("is", "Iceland", "Statistics Iceland", "https://statice.is", false),
   c("ch", "Switzerland", "Federal Statistical Office", "https://www.bfs.admin.ch", false),
-  c("us", "United States", "BLS / BEA / US Treasury", "https://www.usa.gov/statistics", false, null, 2),
+  { ...c("us", "United States", "US Census Bureau", "https://www.census.gov", false, null, 2), agencies: [
+    { name: "Bureau of Labor Statistics", url: "https://www.bls.gov" },
+    { name: "Bureau of Economic Analysis", url: "https://www.bea.gov" },
+    { name: "US Treasury — Fiscal Data", url: "https://fiscaldata.treasury.gov" },
+    { name: "Federal Reserve", url: "https://www.federalreserve.gov" },
+    { name: "Federal Reserve Bank of New York", url: "https://www.newyorkfed.org" },
+    { name: "FBI Crime Data Explorer", url: "https://cde.ucr.cjis.gov" },
+  ] },
   c("ca", "Canada", "Statistics Canada", "https://www.statcan.gc.ca", false, null, 2),
   c("au", "Australia", "Australian Bureau of Statistics", "https://www.abs.gov.au", false, null, 2),
 ];
