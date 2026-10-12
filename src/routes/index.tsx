@@ -35,11 +35,15 @@ const sponsorBoardQuery = queryOptions<SponsorBannerRow[]>({
 });
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) =>
-    Promise.all([
+  // Return the data itself: the loader's return travels with the page, so the
+  // browser never has to ask for it again just to become interactive.
+  loader: async ({ context }) => {
+    const [stats, sponsors] = await Promise.all([
       context.queryClient.ensureQueryData(statsQuery),
       context.queryClient.ensureQueryData(sponsorBoardQuery),
-    ]),
+    ]);
+    return { stats, sponsors };
+  },
   head: () => ({
     meta: [
       { title: "UKStats — the UK in numbers, live from official sources" },
