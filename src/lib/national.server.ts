@@ -1,7 +1,7 @@
 // Server-only fetchers for Wave 2 national publishers. Any failure → no figure, never a guess.
 import { mainEvent, parseCapFeed, worstColour } from "@/lib/alerts";
 import { countryByCode, PLACES, type CountryMetric } from "@/lib/countries";
-import { noFeed, parseBls, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
+import { dedupeAlerts, mainWarning, noFeed, parseBls, parseEcccAlerts, parseNwsAlerts, parseSdmxCsv, parseStatCan, yoyFromIndex, type Pt } from "@/lib/national";
 
 const TTL = 30 * 60_000;
 const WEATHER_TTL = 15 * 60_000;
@@ -33,7 +33,7 @@ async function getJson<T>(url: string): Promise<T> {
   return (await (await get(url)).json()) as T;
 }
 
-type Def = { id: string; title: string; cadence: string; source: string; sourceUrl: string; next: string; fmt: (v: number) => string; load: () => Promise<{ pts: Pt[]; asOf?: string | null }> };
+type Def = { id: string; title: string; cadence: string; source: string; sourceUrl: string; next: string; fmt: (v: number) => string; load: () => Promise<{ pts: Pt[]; asOf?: string | null }>; note?: string };
 
 const pct = (v: number) => `${v.toFixed(1)}%`;
 const rate = (v: number) => `${v.toFixed(2)}%`;
@@ -140,7 +140,7 @@ function run(code: string, d: Def): Promise<CountryMetric> {
     ({ pts, asOf }) => {
       const last = pts.at(-1);
       if (!last) return { ...base, note: "The publisher returned no figure for this series." };
-      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value), status: "ok", history: pts.map(x => ({ ...x, formatted: d.fmt(x.value) })) };
+      return { ...base, value: d.fmt(last.value), raw: last.value, period: last.time, asOf: asOf ?? null, spark: pts.slice(-24).map((x) => x.value), status: "ok", note: d.note ?? null, history: pts.map(x => ({ ...x, formatted: d.fmt(x.value) })) };
     },
     () => {
       cache.delete(key);
