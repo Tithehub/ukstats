@@ -1,7 +1,7 @@
 // Wave 2 national parsers: every one of them must return nothing rather than a
 // guessed figure when the publisher's payload is missing, blank or malformed.
 import { describe, expect, it } from "vitest";
-import { noFeed, parseBls, parseSdmxCsv, parseStatCan, yoyFromIndex } from "./national";
+import { dedupeAlerts, mainWarning, noFeed, parseBls, parseEcccAlerts, parseNwsAlerts, parseSdmxCsv, parseStatCan, yoyFromIndex } from "./national";
 
 describe("yoyFromIndex", () => {
   it("only compares a month with the same month a year earlier", () => {
