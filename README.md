@@ -26,7 +26,7 @@ cp .env.example .env   # fill in your own public Supabase keys
 npm run dev
 ```
 
-Tests: `npm test` (Vitest). Typecheck: `npx tsgo --noEmit`.
+Tests: `npm test` (Vitest). Typecheck: `npm run typecheck`.
 
 ## Architecture
 
