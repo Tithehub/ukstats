@@ -38,6 +38,9 @@ export function periodEnd(period: string | null): string | null {
   if (/^\d{4}$/.test(period)) return `${period}-12-31`;
   const q = period.match(/^(\d{4})-?Q([1-4])$/);
   if (q) return new Date(Date.UTC(Number(q[1]), Number(q[2]) * 3, 0)).toISOString().slice(0, 10);
+  // ISO semester notation: 2026-S1 is the first half of the year, S2 the second.
+  const s = period.match(/^(\d{4})-?S([12])$/);
+  if (s) return s[2] === "1" ? `${s[1]}-06-30` : `${s[1]}-12-31`;
   if (/^\d{4}-\d{2}$/.test(period)) return new Date(Date.UTC(Number(period.slice(0,4)), Number(period.slice(5,7)), 0)).toISOString().slice(0,10);
   return /^\d{4}-\d{2}-\d{2}$/.test(period) ? period : null;
 }
