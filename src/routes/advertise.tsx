@@ -3,6 +3,8 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { supabase } from "@/integrations/supabase/client";
+import { SponsorPlans } from "@/components/sponsor/SponsorPlans";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/advertise")({
   head: () => ({
@@ -24,11 +26,6 @@ export const Route = createFileRoute("/advertise")({
   component: AdvertisePage,
 });
 
-const OFFERS = [
-  { t: "Footer sponsor line", d: "Your name and a short line in the “Supported by” strip on every page footer." },
-  { t: "Topic hub sponsor", d: "One sponsor card on a topic hub page, such as house prices or interest rates — away from the figures." },
-  { t: "Weekly briefing", d: "One sponsor line at the bottom of the release-day email briefing (coming soon)." },
-];
 
 const RULES = [
   "Sponsors never appear on a figure card, an embed widget or a share image.",
@@ -59,6 +56,7 @@ function AdvertisePage() {
   const field = "mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2 text-sm";
   return (
     <div className="min-h-screen bg-night text-foreground">
+      <PaymentTestModeBanner />
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-electric">Sponsorship</p>
@@ -68,23 +66,15 @@ function AdvertisePage() {
           — in clearly labelled places that never touch the numbers.
         </p>
 
-        <h2 className="mt-10 text-lg font-semibold">What's on offer</h2>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-3">
-          {OFFERS.map((o) => (
-            <li key={o.t} className="rounded-lg border border-night-line bg-night-panel/50 p-4">
-              <p className="font-medium">{o.t}</p>
-              <p className="mt-1 text-sm text-night-muted">{o.d}</p>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-sm text-night-muted">Pricing: monthly, on request.</p>
+        <h2 className="mt-10 text-lg font-semibold">Choose a plan</h2>
+        <SponsorPlans />
 
         <h2 className="mt-10 text-lg font-semibold">The rules</h2>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-night-muted">
           {RULES.map((r) => <li key={r}>{r}</li>)}
         </ul>
 
-        <h2 className="mt-10 text-lg font-semibold">Enquire</h2>
+        <h2 className="mt-10 text-lg font-semibold">Something bigger? Enquire</h2>
         {state === "sent" ? (
           <p className="mt-3 rounded-md border border-fresh/40 bg-fresh/10 p-4 text-sm">Thanks — we'll be in touch.</p>
         ) : (

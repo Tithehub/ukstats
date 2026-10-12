@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/useAuth";
 import { dismissFinding, getAgentDashboard, reviewDraft, runAgentsNow } from "@/lib/agents.functions";
 import { LaunchKit, MarketingPanel } from "@/components/agents/MarketingPanel";
 import { DomainsPanel } from "@/components/agents/DomainsPanel";
+import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
 
 export const Route = createFileRoute("/agents")({
   head: () => ({
@@ -116,6 +117,7 @@ function AgentsPage() {
         <MarketingPanel />
         <LaunchKit />
         <DomainsPanel />
+        <SponsorsPanel />
       </>
     );
   }

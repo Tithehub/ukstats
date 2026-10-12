@@ -560,36 +560,105 @@ export type Database = {
       sponsors: {
         Row: {
           active: boolean
+          approved: boolean
           created_at: string
           ends_at: string | null
+          environment: string | null
           id: string
           name: string
+          paid: boolean
           placement: string
+          plan: string | null
           starts_at: string | null
+          stripe_subscription_id: string | null
           tagline: string | null
+          topic: string | null
           url: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
+          approved?: boolean
           created_at?: string
           ends_at?: string | null
+          environment?: string | null
           id?: string
           name: string
+          paid?: boolean
           placement?: string
+          plan?: string | null
           starts_at?: string | null
+          stripe_subscription_id?: string | null
           tagline?: string | null
+          topic?: string | null
           url: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
+          approved?: boolean
           created_at?: string
           ends_at?: string | null
+          environment?: string | null
           id?: string
           name?: string
+          paid?: boolean
           placement?: string
+          plan?: string | null
           starts_at?: string | null
+          stripe_subscription_id?: string | null
           tagline?: string | null
+          topic?: string | null
           url?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          price_id: string
+          product_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id: string
+          product_id: string
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

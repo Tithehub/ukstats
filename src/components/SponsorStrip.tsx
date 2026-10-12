@@ -13,6 +13,7 @@ export function SponsorStrip({ placement = "footer" }: { placement?: string }) {
       .from("sponsors")
       .select("id,name,url,tagline,starts_at,ends_at")
       .eq("placement", placement)
+      .order("plan", { ascending: true, nullsFirst: false })
       .then(({ data }) =>
         setSponsors(
           (data ?? []).filter(

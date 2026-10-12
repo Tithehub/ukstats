@@ -92,3 +92,5 @@
 - [ ] Sponsor price (waiting on Marco)
 - [ ] Paid API plan (needs payment provider choice)
 - [ ] Weekly email briefing
+- [x] Paid sponsor plans (Supporter £5/£50, Sponsor £10/£100) with checkout, admin approval, auto-off on cancel
+- [ ] Go live with payments (Marco: claim account in Payments tab)
