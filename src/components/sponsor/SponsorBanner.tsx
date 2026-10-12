@@ -11,8 +11,8 @@ import exampleBanner from "@/assets/sponsor-example-estate-agent.jpg";
 export const ROTATE_SECONDS = 8;
 type Row = SponsorVisibilityRow & { region: string | null; plan: string | null; banner_url: string | null; banner_path: string | null };
 
-/** Rotating sponsor banner (one at a time, equal turns). Footer zone only — never near figures, embeds, widgets or share images. */
-export function SponsorBanner() {
+/** Rotating sponsor banner (one at a time, equal turns). Home page under the hero ("hero") or footer zone elsewhere ("footer") — never near figures, embeds, widgets or share images. */
+export function SponsorBanner({ variant = "footer" }: { variant?: "footer" | "hero" }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const region = regionFromPath(pathname, COUNTRIES.map((c) => c.code));
   const links = useServerFn(getSponsorBannerLinks);
