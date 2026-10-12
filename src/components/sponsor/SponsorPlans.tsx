@@ -1,3 +1,4 @@
+import { COUNTRIES } from "@/lib/countries";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -69,7 +70,7 @@ function MySponsorship() {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
             try {
-              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? "") } });
+              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), region: String(f.get("region") ?? "all") } });
               setMsg("error" in r ? r.error ?? "Couldn't save" : "Saved — we'll check it and switch it on.");
               refresh();
             } catch (err) { setMsg(err instanceof Error ? err.message : "Couldn't save"); }
@@ -77,6 +78,13 @@ function MySponsorship() {
         >
           <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
           <label className="text-sm">Link (https://)<input name="url" required maxLength={300} defaultValue={s.name === "Pending details" ? "" : s.url} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
+          <label className="text-sm sm:col-span-2">Where to feature you
+            <select name="region" defaultValue={(s as { region?: string }).region ?? "all"} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2">
+              <option value="all">Every page (site-wide)</option>
+              <option value="uk">United Kingdom pages</option>
+              {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name} pages</option>)}
+            </select>
+          </label>
           {s.plan === "sponsor" ? (
             <label className="text-sm sm:col-span-2">Tagline (up to 80 characters)<input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
           ) : null}
