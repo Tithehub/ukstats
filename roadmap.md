@@ -62,10 +62,11 @@
 ## Countries expansion
 - [x] Wave 1: 30 European countries live from Eurostat (/countries, /fr, /de…, /compare-countries)
 - [x] Wave 2: US (Treasury, BLS, NY Fed), Canada (StatCan, Bank of Canada), Australia (ABS), ECB rate for FR/DE/IE; crime/borders/asylum shown as "No live feed" with official links
-- [ ] Wave 2b: fill AU CPI, RBA rate, CBP border, national crime if machine-readable feeds appear
+- [x] Wave 2b (partial): AU CPI and average weekly earnings now live from the ABS; RBA rate, BOM warnings, CBP border and national crime stay "No live feed" (feeds blocked or not machine-readable)
 - [x] Country infrastructure: grouped registers, explanations, available published history, embeds, publisher calendar links (exact dates still unconfirmed), JSON/CSV and nightly feed checks for all 33 registered countries
 - [x] Broadened verified Eurostat coverage: homicide, asylum decisions, residence permits, debt EUR, practising doctors, health/defence/social protection spending and six cost-of-living inflation series; remaining source gaps explicitly shown
 - [x] Published to ukstats.co.uk: all 33 country registers, their embeds and open-data endpoints are live (11 Oct 2026)
+- [x] Wave 2c (12 Oct 2026): US federal debt interest rate, core and shelter inflation, FBI violent/property crime with a reporting-lag note, and national weather warnings counted across all 50 states and Washington D.C.; Canada warnings counted from Environment and Climate Change Canada; published to ukstats.co.uk
 - [ ] Full UK-equivalent coverage: integrate national feeds for every country (especially US/CA/AU), weather, alerts, polling, immigration costs, publisher-confirmed release dates, deeper explanations and revision history; current infrastructure does not imply complete topic parity
 
 ## Social branding
