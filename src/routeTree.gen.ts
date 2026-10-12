@@ -25,6 +25,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
+import { Route as GlobalRouteImport } from './routes/global'
 import { Route as GoldRouteImport } from './routes/gold'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as MapsRouteImport } from './routes/maps'
@@ -141,6 +142,11 @@ const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
 const ForeignAidRoute = ForeignAidRouteImport.update({
   id: '/foreign-aid',
   path: '/foreign-aid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlobalRoute = GlobalRouteImport.update({
+  id: '/global',
+  path: '/global',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GoldRoute = GoldRouteImport.update({
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/global': typeof GlobalRoute
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByTo {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/global': typeof GlobalRoute
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
@@ -458,6 +466,7 @@ export interface FileRoutesById {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/global': typeof GlobalRoute
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
@@ -515,6 +524,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/global'
     | '/gold'
     | '/governments'
     | '/maps'
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/global'
     | '/gold'
     | '/governments'
     | '/maps'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/global'
     | '/gold'
     | '/governments'
     | '/maps'
@@ -679,6 +691,7 @@ export interface RootRouteChildren {
   DailyRoute: typeof DailyRouteWithChildren
   FeedDotxmlRoute: typeof FeedDotxmlRoute
   ForeignAidRoute: typeof ForeignAidRoute
+  GlobalRoute: typeof GlobalRoute
   GoldRoute: typeof GoldRoute
   GovernmentsRoute: typeof GovernmentsRoute
   MapsRoute: typeof MapsRoute
@@ -814,6 +827,13 @@ declare module '@tanstack/react-router' {
       path: '/foreign-aid'
       fullPath: '/foreign-aid'
       preLoaderRoute: typeof ForeignAidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/global': {
+      id: '/global'
+      path: '/global'
+      fullPath: '/global'
+      preLoaderRoute: typeof GlobalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gold': {
@@ -1162,6 +1182,7 @@ const rootRouteChildren: RootRouteChildren = {
   DailyRoute: DailyRouteWithChildren,
   FeedDotxmlRoute: FeedDotxmlRoute,
   ForeignAidRoute: ForeignAidRoute,
+  GlobalRoute: GlobalRoute,
   GoldRoute: GoldRoute,
   GovernmentsRoute: GovernmentsRoute,
   MapsRoute: MapsRoute,

@@ -85,4 +85,4 @@
 - [x] "We're open source" announcements posted to Bluesky and Mastodon (04:46 UTC 12 Oct 2026, verified live on both profiles)
 
 ## Global extension
-- [ ] /global page: official statistics sources for all countries beyond the 33 covered, grouped by region, links checked
+- [x] /global page: 164 national statistics offices beyond the 33 covered, grouped by region (UN directory, links checked 2026-10-12)
