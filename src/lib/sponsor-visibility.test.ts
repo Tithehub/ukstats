@@ -62,3 +62,13 @@ describe("regional sponsors", () => {
     expect(rotationWindow([1, 2, 3, 4, 5], 1, 3)).toEqual([4, 5, 1]);
   });
 });
+
+import { fairOrder } from "./sponsor-visibility";
+describe("fair rotation", () => {
+  it("every sponsor appears exactly once per cycle", () => {
+    expect(fairOrder(["a", "b", "c"], 4).sort()).toEqual(["a", "b", "c"]);
+  });
+  it("starting point moves with the seed", () => {
+    expect(fairOrder(["a", "b", "c"], 1)[0]).toBe("b");
+  });
+});

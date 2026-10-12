@@ -70,7 +70,7 @@ function MySponsorship() {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
             try {
-              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), region: String(f.get("region") ?? "all") } });
+              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), region: String(f.get("region") ?? "all"), banner_url: String(f.get("banner_url") ?? "") } });
               setMsg("error" in r ? r.error ?? "Couldn't save" : "Saved — we'll check it and switch it on.");
               refresh();
             } catch (err) { setMsg(err instanceof Error ? err.message : "Couldn't save"); }
@@ -86,6 +86,7 @@ function MySponsorship() {
             </select>
           </label>
           {s.plan === "sponsor" ? (
+            <label className="text-sm sm:col-span-2">Banner image link (https://, 1536×512 or 3:1 wide)<input name="banner_url" maxLength={500} defaultValue={(s as { banner_url?: string | null }).banner_url ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
             <label className="text-sm sm:col-span-2">Tagline (up to 80 characters)<input name="tagline" maxLength={80} defaultValue={s.tagline ?? ""} className="mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2" /></label>
           ) : null}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">

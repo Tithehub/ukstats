@@ -52,3 +52,10 @@ export function rotationWindow<T>(rows: readonly T[], tick: number, size: number
   const start = (tick * size) % rows.length;
   return Array.from({ length: size }, (_, i) => rows[(start + i) % rows.length] as T);
 }
+
+/** Fair rotation order: everyone gets equal turns; a random starting point per visit means nobody is always first. */
+export function fairOrder<T>(rows: readonly T[], seed: number): T[] {
+  if (rows.length === 0) return [];
+  const start = Math.abs(Math.floor(seed)) % rows.length;
+  return [...rows.slice(start), ...rows.slice(0, start)];
+}
