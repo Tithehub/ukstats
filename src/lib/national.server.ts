@@ -75,13 +75,16 @@ const DEFS: Record<string, Def[]> = {
     ...([["V", "Violent crime offences (month)"], ["P", "Property crime offences (month)"]] as const).map(([code, title]): Def => ({
       id: `us-crime-${code === "V" ? "violent" : "property"}`, title, cadence: "Monthly, published with a lag", source: "FBI Crime Data Explorer (UCR summarized)", sourceUrl: "https://cde.ucr.cjis.gov/", next: "Per FBI CDE update schedule", fmt: (v) => Math.round(v).toLocaleString("en-GB"),
       load: async () => {
-        const key = process.env.FBI_API_KEY;
+        const key = process.env["FBI_API_KEY"];
         if (!key) throw new Error("FBI key not configured");
         const y = new Date().getUTCFullYear();
         const js = await getJson<{ offenses?: { actuals?: Record<string, Record<string, number | null>> } }>(`https://api.usa.gov/crime/fbi/cde/summarized/national/${code}?from=01-${y - 2}&to=12-${y}&API_KEY=${encodeURIComponent(key)}`);
         const series = Object.entries(js.offenses?.actuals ?? {}).find(([k]) => /united states/i.test(k) && !/clearance/i.test(k))?.[1] ?? {};
         const pts = Object.entries(series).filter(([, v]) => typeof v === "number" && Number.isFinite(v)).map(([mmYYYY, v]) => { const [m, yr] = mmYYYY.split("-"); return { time: `${yr}-${m}`, value: v as number }; }).sort((a, b) => a.time.localeCompare(b.time));
-        return { pts };
+        // Agencies report late, so recent months are badly incomplete. Only show months at least 12 months old.
+        const cut = new Date(); cut.setUTCMonth(cut.getUTCMonth() - 12);
+        const cutoff = cut.toISOString().slice(0, 7);
+        return { pts: pts.filter((p) => p.time <= cutoff) };
       },
     })),
   ],
