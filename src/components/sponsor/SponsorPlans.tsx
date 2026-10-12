@@ -16,6 +16,8 @@ import {
   saveSponsorDetails,
 } from "@/lib/sponsor.functions";
 import type { SponsorPriceId } from "@/lib/sponsor-plans";
+import { hasSponsorshipDetails } from "@/lib/sponsor-plans";
+import { Button } from "@/components/ui/button";
 
 const PLANS = [
   { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter", "Text line only — banner pictures come with the Sponsor plan"] },
@@ -49,30 +51,33 @@ function Checkout({ priceId, onClose }: { priceId: SponsorPriceId; onClose: () =
   );
 }
 
-function MySponsorship() {
+export function MySponsorship({ environment }: { environment?: "live" | "sandbox" }) {
+  const env = environment ?? getStripeEnvironment();
   const { user } = useAuth();
   const load = useServerFn(getMySponsorship);
   const save = useServerFn(saveSponsorDetails);
   const portal = useServerFn(createSponsorPortal);
   const [data, setData] = useState<Awaited<ReturnType<typeof load>> | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const [bannerPath, setBannerPath] = useState<string | null>(null);
+  const [bannerPath, setBannerPath] = useState<string | null | undefined>(undefined);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [bannerBusy, setBannerBusy] = useState(false);
-  const refresh = () => load({ data: { environment: getStripeEnvironment() } }).then(setData).catch(() => {});
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const refresh = () => load({ data: { environment: env } }).then((result) => { setData(result); setLoadError(false); }).catch(() => setLoadError(true));
   useEffect(() => {
     refresh();
     const t = setInterval(refresh, 5000);
     const stop = setTimeout(() => clearInterval(t), 30000);
     return () => { clearInterval(t); clearTimeout(stop); };
-  }, []);
+  }, [env]);
 
   const savedPath = data?.sponsor?.banner_path ?? null;
   // The picture folder is private, so we ask for a short link to see it ourselves.
   useEffect(() => {
     if (!savedPath) return;
     let live = true;
-    setBannerPath((p) => p ?? savedPath);
+    setBannerPath((p) => p === undefined ? savedPath : p);
     supabase.storage
       .from(BANNER_BUCKET)
       .createSignedUrl(savedPath, 3600)
@@ -119,24 +124,29 @@ function MySponsorship() {
     }
   }
 
-  if (!data?.sub) return null;
+  if (loadError) return <p role="alert" className="mt-8 text-overdue">Couldn't load your sponsorship. <Button variant="outline" onClick={() => void refresh()}>Try again</Button></p>;
+  if (!data) return <p className="mt-8 text-night-muted">Loading your sponsorship…</p>;
+  if (!hasSponsorshipDetails(data.sponsor, data.sub)) return <p className="mt-8 text-night-muted">No {env === "live" ? "live" : "test"} sponsorship is linked to this account. <Link to="/advertise" className="text-electric-soft underline">Choose a sponsor plan</Link></p>;
   const s = data.sponsor;
   const status = !s ? "Setting up…" : !s.paid ? "Not showing — subscription ended" : s.approved ? "Live on the site" : s.name === "Pending details" ? "Add your details below" : "Waiting for approval";
   return (
-    <section className="mt-8 rounded-xl border border-electric/40 bg-night-panel/60 p-5">
+    <section className="mt-8">
       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-electric">Your sponsorship</p>
-      <p className="mt-1 text-sm">Plan: <strong>{data.sub.price_id.replace("_", " ")}</strong> · Status: <strong>{status}</strong></p>
+      <p className="mt-1 text-sm">Plan: <strong>{s?.plan ?? data.sub?.price_id.replace("_", " ")}</strong> · Status: <strong>{status}</strong></p>
+      <p className="mt-2 text-xs text-night-muted">Changes need approval before appearing on the site. Editing does not change your payment.</p>
       {s ? (
         <form
           className="mt-4 grid gap-3 sm:grid-cols-2"
           onSubmit={async (e) => {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
+            setSaving(true);
             try {
-              const r = await save({ data: { environment: getStripeEnvironment(), name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), region: String(f.get("region") ?? "all"), banner_url: String(f.get("banner_url") ?? ""), banner_path: bannerPath ?? "" } });
+              const r = await save({ data: { environment: env, name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), regions: f.getAll("regions").map(String), banner_url: String(f.get("banner_url") ?? ""), banner_path: (bannerPath === undefined ? savedPath : bannerPath) ?? "" } });
               setMsg("error" in r ? r.error ?? "Couldn't save" : "Saved — we'll check it and switch it on.");
               refresh();
             } catch (err) { setMsg(err instanceof Error ? err.message : "Couldn't save"); }
+            finally { setSaving(false); }
           }}
         >
           <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className={field} /></label>
@@ -158,9 +168,9 @@ function MySponsorship() {
                 {bannerPreview ? (
                   <div className="mt-3">
                     <img src={bannerPreview} alt="Your banner picture" width={1536} height={512} className="w-full rounded-md border border-night-line" />
-                    <button type="button" onClick={() => void dropBanner()} className="mt-1 text-xs text-night-muted underline">
+                    <Button variant="link" type="button" onClick={() => void dropBanner()} className="mt-1 text-xs text-night-muted underline">
                       Remove picture
-                    </button>
+                    </Button>
                   </div>
                 ) : null}
               </div>
@@ -177,18 +187,18 @@ function MySponsorship() {
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-            <button className="rounded-md bg-electric px-4 py-2 text-sm font-medium text-night">Save details</button>
-            <button
+            <Button disabled={saving || bannerBusy} className="bg-electric text-night">{saving ? "Saving…" : "Save details"}</Button>
+            {data.sub ? <Button
               type="button"
               className="rounded-md border border-night-line px-4 py-2 text-sm"
               onClick={async () => {
-                const r = await portal({ data: { environment: getStripeEnvironment(), returnUrl: window.location.href } });
+                const r = await portal({ data: { environment: env, returnUrl: window.location.href } });
                 if ("error" in r) setMsg(r.error); else window.open(r.url, "_blank");
               }}
             >
               Manage subscription
-            </button>
-            {msg ? <span className="text-sm text-night-muted">{msg}</span> : null}
+            </Button> : null}
+            {msg ? <span role="status" className="text-sm text-night-muted">{msg}</span> : null}
           </div>
         </form>
       ) : null}

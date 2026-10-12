@@ -6,6 +6,7 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/sponsors")({
   head: () => ({
@@ -52,6 +53,7 @@ function SponsorsPage() {
       <main className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-electric">Thank you</p>
         <h1 className="mt-2 text-3xl font-semibold">Our sponsors</h1>
+        <Button asChild variant="outline" className="mt-4"><Link to="/sponsor-dashboard">Manage my sponsorship</Link></Button>
         <p className="mt-3 max-w-2xl text-night-muted">
           These businesses and people keep UKStats free, open and ad-free. Sponsors never see or influence any figure.
         </p>

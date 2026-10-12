@@ -2,6 +2,11 @@
 export const SPONSOR_PRICE_IDS = ["supporter_monthly", "supporter_yearly", "sponsor_monthly", "sponsor_yearly"] as const;
 export type SponsorPriceId = (typeof SPONSOR_PRICE_IDS)[number];
 
+/** Complimentary sponsor rows are editable without a payment subscription. */
+export function hasSponsorshipDetails(sponsor: unknown, subscription: unknown): boolean {
+  return Boolean(sponsor || subscription);
+}
+
 export function planFromPriceId(priceId: string | null | undefined): "supporter" | "sponsor" | null {
   if (!priceId) return null;
   if (priceId.startsWith("supporter_")) return "supporter";
