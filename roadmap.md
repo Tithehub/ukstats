@@ -103,3 +103,4 @@
 - [x] Sponsor banner uploads: the sponsor picks a picture, checked from the file bytes (3 wide to 1 tall, at least 1536×512, jpg/png/webp, under 2MB) both in the browser and on the server; private picture folder with short-lived links; the banner keeps one true 3:1 shape at every screen size so nothing is cropped; your admin list shows the picture
 - [ ] Publish the sponsor banner upload work
 - [ ] Real sponsor pictures going through the live approval flow (banner still shows the example estate agent)
+- [x] Home-page sponsor banner rotation fixed (12 Oct 2026): home now reads its data from the page itself instead of re-asking the server in the browser; live home verified rotating RAREITUP → Gold.live → XPRE → YachtFino → GoPharma every 8s with no errors
