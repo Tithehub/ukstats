@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { goldQuery } from "@/lib/gold.functions";
-import { GOLD_SOURCE, goldPeriodLabel } from "@/lib/gold";
+import { GOLD_SOURCE, goldPeriodLabel, flagEmoji } from "@/lib/gold";
 import { ShareRow } from "@/components/ShareRow";
 
 const T = "Which countries hold the most gold? Official reserves | UK Stats";
@@ -51,6 +51,7 @@ function GoldPage() {
                     <tr key={r.iso3} className={r.site !== null ? "bg-electric/5" : undefined}>
                       <td className="px-3 py-2 font-mono text-night-muted">{i + 1}</td>
                       <td className="px-3 py-2">
+                        {flagEmoji(r.iso3) && <span className="mr-2" aria-hidden="true">{flagEmoji(r.iso3)}</span>}
                         {r.site === "" ? <Link to="/" className="text-electric-soft underline">{r.name}</Link>
                           : r.site ? <Link to="/$country" params={{ country: r.site }} className="text-electric-soft underline">{r.name}</Link>
                           : r.name}
@@ -67,7 +68,7 @@ function GoldPage() {
               <section className="mt-6 rounded-md border border-night-line p-4 text-sm">
                 <h2 className="font-semibold">Filed, but not ranked</h2>
                 <p className="mt-1 text-night-muted">These filings are larger than any gold holding ever declared and look like a unit error in the submission. We show them exactly as filed and leave them out of the ranking rather than correct them ourselves.</p>
-                <ul className="mt-2 space-y-1">{t.flagged.map((r) => <li key={r.iso3}>{r.name}: {r.ounces.toLocaleString("en-GB")} troy ounces as filed ({goldPeriodLabel(r.period)})</li>)}</ul>
+                <ul className="mt-2 space-y-1">{t.flagged.map((r) => <li key={r.iso3}>{flagEmoji(r.iso3) && <span className="mr-2" aria-hidden="true">{flagEmoji(r.iso3)}</span>}{r.name}: {r.ounces.toLocaleString("en-GB")} troy ounces as filed ({goldPeriodLabel(r.period)})</li>)}</ul>
               </section>
             )}
           </>
