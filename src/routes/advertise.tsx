@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SponsorPlans } from "@/components/sponsor/SponsorPlans";
 import { SponsorPreview } from "@/components/sponsor/SponsorPreview";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/advertise")({
   head: () => ({
@@ -68,6 +69,7 @@ function AdvertisePage() {
         </p>
 
         <h2 className="mt-10 text-lg font-semibold">Choose a plan</h2>
+        <Button asChild variant="outline" className="mt-3"><Link to="/sponsor-dashboard">Manage my sponsorship</Link></Button>
         <SponsorPlans />
         <SponsorPreview />
 
