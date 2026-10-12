@@ -561,6 +561,7 @@ export type Database = {
         Row: {
           active: boolean
           approved: boolean
+          banner_url: string | null
           created_at: string
           ends_at: string | null
           environment: string | null
@@ -580,6 +581,7 @@ export type Database = {
         Insert: {
           active?: boolean
           approved?: boolean
+          banner_url?: string | null
           created_at?: string
           ends_at?: string | null
           environment?: string | null
@@ -599,6 +601,7 @@ export type Database = {
         Update: {
           active?: boolean
           approved?: boolean
+          banner_url?: string | null
           created_at?: string
           ends_at?: string | null
           environment?: string | null

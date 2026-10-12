@@ -78,6 +78,13 @@
       "when": 1791818177406,
       "tag": "0010_sponsor_region",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791818559181,
+      "tag": "0011_sponsor_banner_image",
+      "breakpoints": true
     }
   ]
 }
