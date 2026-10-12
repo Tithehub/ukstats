@@ -45,6 +45,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/countries", label: "Countries", icon: MapIcon },
       { to: "/gold", label: "Gold reserves", icon: Banknote },
       { to: "/sources", label: "Official sources", icon: Table2 },
+      { to: "/global", label: "Rest of the world", icon: MapIcon },
       { to: "/daily", label: "Daily statement", icon: CalendarDays },
       { to: "/compare", label: "Compare figures", icon: GitCompareArrows },
       { to: "/calendar", label: "Release calendar", icon: CalendarDays },
