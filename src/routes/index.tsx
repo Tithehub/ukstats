@@ -111,8 +111,7 @@ const PANELS: { category: Category; blurb: string }[] = [
 ];
 
 function Home() {
-  const { data } = useSuspenseQuery(statsQuery);
-  const sponsors = useSuspenseQuery(sponsorBoardQuery).data;
+  const { stats: data, sponsors } = Route.useLoaderData();
   const metrics = data.metrics;
   const live = metrics.filter((m) => m.status === "ok").length;
 
