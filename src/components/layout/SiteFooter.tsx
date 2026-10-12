@@ -99,7 +99,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
       <div className="border-t border-night-line/50">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2 px-4 py-4 font-mono text-[11px] text-night-muted sm:px-6">
           <span>Every figure sourced · nothing estimated</span>
-          {fetchedAt ? <span>Last pull {new Date(fetchedAt).toLocaleString("en-GB")}</span> : null}
+          {fetchedAt ? <span>Last pull {new Date(fetchedAt).toLocaleString("en-GB", { timeZone: "Europe/London" })}</span> : null}
         </div>
       </div>
     </footer>
