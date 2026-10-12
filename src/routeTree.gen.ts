@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryRouteImport } from './routes/$country'
+import { Route as AdvertiseRouteImport } from './routes/advertise'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as ApiRouteImport } from './routes/api'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
@@ -72,6 +73,11 @@ const IndexRoute = IndexRouteImport.update({
 const CountryRoute = CountryRouteImport.update({
   id: '/$country',
   path: '/$country',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvertiseRoute = AdvertiseRouteImport.update({
+  id: '/advertise',
+  path: '/advertise',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsRoute = AgentsRouteImport.update({
@@ -341,6 +347,7 @@ const ApiPublicV1CountriesCodeHistoryMetricIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$country': typeof CountryRouteWithChildren
+  '/advertise': typeof AdvertiseRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
@@ -396,6 +403,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/advertise': typeof AdvertiseRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
@@ -452,6 +460,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$country': typeof CountryRouteWithChildren
+  '/advertise': typeof AdvertiseRoute
   '/agents': typeof AgentsRoute
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
@@ -510,6 +519,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$country'
+    | '/advertise'
     | '/agents'
     | '/api'
     | '/api-docs'
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/advertise'
     | '/agents'
     | '/api'
     | '/api-docs'
@@ -620,6 +631,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$country'
+    | '/advertise'
     | '/agents'
     | '/api'
     | '/api-docs'
@@ -677,6 +689,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CountryRoute: typeof CountryRouteWithChildren
+  AdvertiseRoute: typeof AdvertiseRoute
   AgentsRoute: typeof AgentsRoute
   ApiRoute: typeof ApiRouteWithChildren
   ApiDocsRoute: typeof ApiDocsRoute
@@ -729,6 +742,13 @@ declare module '@tanstack/react-router' {
       path: '/$country'
       fullPath: '/$country'
       preLoaderRoute: typeof CountryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advertise': {
+      id: '/advertise'
+      path: '/advertise'
+      fullPath: '/advertise'
+      preLoaderRoute: typeof AdvertiseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents': {
@@ -1168,6 +1188,7 @@ const RegionsRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountryRoute: CountryRouteWithChildren,
+  AdvertiseRoute: AdvertiseRoute,
   AgentsRoute: AgentsRoute,
   ApiRoute: ApiRouteWithChildren,
   ApiDocsRoute: ApiDocsRoute,
