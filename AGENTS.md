@@ -22,3 +22,5 @@
 - The home page's sponsor banner comes from the route loader via getSponsorBannerBoard (src/lib/banner.functions.ts) and is rendered with the page, never only by the page's interactive layer — that layer can fail to start on the live home page, and a sponsor's banner must show regardless.
 - Sponsor self-service lives in a shared MySponsorship form used by /sponsor-dashboard and /advertise; authenticated server functions scope reads and changes to the caller's own sponsor row, including complimentary plans without subscriptions — keeps editing separate from buying a plan.
 
+
+- Server functions must use method "POST", never "GET": GET server-function responses hang forever on the live edge runtime (POST reaches the handler fine), which left the home page frozen pre-hydration.
