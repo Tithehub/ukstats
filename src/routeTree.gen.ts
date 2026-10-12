@@ -25,6 +25,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
+import { Route as GoldRouteImport } from './routes/gold'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
@@ -36,6 +37,7 @@ import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
@@ -141,6 +143,11 @@ const ForeignAidRoute = ForeignAidRouteImport.update({
   path: '/foreign-aid',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GoldRoute = GoldRouteImport.update({
+  id: '/gold',
+  path: '/gold',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GovernmentsRoute = GovernmentsRouteImport.update({
   id: '/governments',
   path: '/governments',
@@ -194,6 +201,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatusRoute = StatusRouteImport.update({
@@ -337,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
@@ -348,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sources': typeof SourcesRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
@@ -389,6 +403,7 @@ export interface FileRoutesByTo {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
@@ -399,6 +414,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sources': typeof SourcesRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
@@ -442,6 +458,7 @@ export interface FileRoutesById {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
@@ -453,6 +470,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sources': typeof SourcesRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
@@ -497,6 +515,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/gold'
     | '/governments'
     | '/maps'
     | '/my-pages'
@@ -508,6 +527,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/sources'
     | '/status'
     | '/support'
     | '/tax-vs-welfare'
@@ -549,6 +569,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/gold'
     | '/governments'
     | '/maps'
     | '/my-pages'
@@ -559,6 +580,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/sources'
     | '/status'
     | '/support'
     | '/tax-vs-welfare'
@@ -601,6 +623,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/gold'
     | '/governments'
     | '/maps'
     | '/my-pages'
@@ -612,6 +635,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/sources'
     | '/status'
     | '/support'
     | '/tax-vs-welfare'
@@ -655,6 +679,7 @@ export interface RootRouteChildren {
   DailyRoute: typeof DailyRouteWithChildren
   FeedDotxmlRoute: typeof FeedDotxmlRoute
   ForeignAidRoute: typeof ForeignAidRoute
+  GoldRoute: typeof GoldRoute
   GovernmentsRoute: typeof GovernmentsRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
@@ -666,6 +691,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SourcesRoute: typeof SourcesRoute
   StatusRoute: typeof StatusRoute
   SupportRoute: typeof SupportRoute
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
@@ -790,6 +816,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForeignAidRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gold': {
+      id: '/gold'
+      path: '/gold'
+      fullPath: '/gold'
+      preLoaderRoute: typeof GoldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/governments': {
       id: '/governments'
       path: '/governments'
@@ -865,6 +898,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/status': {
@@ -1122,6 +1162,7 @@ const rootRouteChildren: RootRouteChildren = {
   DailyRoute: DailyRouteWithChildren,
   FeedDotxmlRoute: FeedDotxmlRoute,
   ForeignAidRoute: ForeignAidRoute,
+  GoldRoute: GoldRoute,
   GovernmentsRoute: GovernmentsRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
@@ -1133,6 +1174,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SourcesRoute: SourcesRoute,
   StatusRoute: StatusRoute,
   SupportRoute: SupportRoute,
   TaxVsWelfareRoute: TaxVsWelfareRoute,
