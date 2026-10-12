@@ -169,6 +169,11 @@ function Home() {
           </div>
         </section>
 
+        {/* Sponsor banner — sits under the hero for visibility, always labelled, never beside individual figures. */}
+        <div className="mt-4">
+          <SponsorBanner variant="hero" />
+        </div>
+
         {/* Around the world */}
         <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-night-line/50 bg-night-panel/40 px-5 py-4">
           <p className="max-w-xl text-[13px] leading-relaxed text-night-muted text-pretty">
