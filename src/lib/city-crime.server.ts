@@ -149,11 +149,16 @@ async function usBoard(): Promise<CityCrimeBoard> {
   if (hit) return hit;
   const base: CityCrimeBoard = { ...baseBoard('us'), source: 'FBI · Crime Data Explorer', sourceUrl: 'https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads', metric: 'Violent crime known to law enforcement', unit: 'Offences per 100,000 residents', geography: 'Cities reporting to the FBI', note: 'FBI city data is published at least a year in arrears and covers only agencies that report to the FBI. Reporting is voluntary, so some large cities are missing.' };
   try {
-    const parsed = await parseFbiCities();
+    const parsed = await loadFbiCities();
     const board: CityCrimeBoard = { ...base, ...parsed };
     boardCache.set('us', { at: Date.now(), board }); return board;
   } catch {
     return { ...base, reason: 'The FBI city table could not be read just now. No ranking is shown rather than a guess.' };
   }
+}
+
+/* Wired in once the FBI feed layout is verified against the downloaded file. */
+async function loadFbiCities(): Promise<Partial<CityCrimeBoard>> {
+  throw new Error('FBI feed not connected yet');
 }
 
