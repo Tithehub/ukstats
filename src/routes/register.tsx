@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, COST_GROUPS, freshnessOf, fmtDate, type StatsPayload } from "@/lib/uk-stats";
 import { VitalSigns } from "@/components/VitalSigns";
@@ -9,6 +9,11 @@ import { MetricCard } from "@/components/MetricCard";
 import { ThreatBoard, isStatusMetric } from "@/components/ThreatBoard";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { matchesMetric } from '@/lib/stat-search';
+import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -18,7 +23,13 @@ const statsQuery = queryOptions<StatsPayload>({
 });
 
 export const Route = createFileRoute("/register")({
+  validateSearch: (s: Record<string, unknown>): { q?: string; category?: string } => ({
+    q: typeof s.q === 'string' ? s.q : undefined,
+    category: typeof s.category === 'string' && CATEGORIES.some(c => c === s.category) ? s.category : undefined,
+  }),
   loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
+  errorComponent: PageLoadError,
+  notFoundComponent: PageNotFound,
   head: () => ({
     meta: [
       { title: "Full UK data register — every official figure, timestamped" },
@@ -44,17 +55,20 @@ export const Route = createFileRoute("/register")({
 
 function Dashboard() {
   const { data } = useSuspenseQuery(statsQuery);
-  const [filter, setFilter] = useState<string>("All");
+  const { q = '', category } = Route.useSearch();
+  const filter = category ?? 'All';
+  const navigate = Route.useNavigate();
+  const searched = useMemo(() => data.metrics.filter(m => matchesMetric(m, q)), [data.metrics, q]);
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   const debt = data.metrics.find((m) => m.id === "uk-national-debt");
   const statusMetrics = useMemo(
-    () => data.metrics.filter((m) => isStatusMetric(m) && (filter === "All" || m.category === filter)),
-    [data.metrics, filter],
+    () => searched.filter((m) => isStatusMetric(m) && (filter === "All" || m.category === filter)),
+    [searched, filter],
   );
   const shown = useMemo(
-    () => data.metrics.filter((m) => !isStatusMetric(m) && (filter === "All" || m.category === filter)),
-    [data.metrics, filter],
+    () => searched.filter((m) => !isStatusMetric(m) && (filter === "All" || m.category === filter)),
+    [searched, filter],
   );
   const live = data.metrics.filter((m) => m.status === "ok").length;
 
@@ -146,6 +160,12 @@ function Dashboard() {
 
       <div className="border-b border-night-line/60 bg-night-panel/40">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-4 pt-6 pb-4">
+            <div><h1 className="text-3xl font-semibold">UK statistics</h1><p className="mt-2 text-sm text-night-muted">Official figures, with their sources and publication dates.</p></div>
+            <div className="relative w-full sm:max-w-md"><Search aria-hidden="true" className="absolute left-3 top-3.5 size-4 text-muted-foreground" /><Input type="search" aria-label="Search UK statistics" placeholder="Search debt, inflation, crime…" value={q} onChange={e => void navigate({ search: prev => ({ ...prev, q: e.target.value || undefined }), replace: true, resetScroll: false })} className="min-h-11 pl-10" /></div>
+          </div>
+          <details className="border-t border-night-line/50">
+          <summary className="min-h-11 cursor-pointer py-3 text-sm text-night-muted">Public sector net debt · {debt?.value ?? 'Unavailable'}</summary>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 py-4">
             <div className="leading-none">
               <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-night-muted">
@@ -172,29 +192,18 @@ function Dashboard() {
               </p>
             </div>
           </div>
+          </details>
 
-          <nav aria-label="Categories" className="-mx-1 flex gap-1 overflow-x-auto pb-3">
-            {["All", ...CATEGORIES].map((c) => (
-              <button
-                key={c}
-                onClick={() => setFilter(c)}
-                aria-pressed={filter === c}
-                className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric ${
-                  filter === c
-                    ? "bg-electric text-night"
-                    : "text-night-muted hover:bg-night-panel hover:text-night-fg"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </nav>
+          <div className="flex flex-wrap items-center justify-between gap-3 py-4">
+            <label className="flex min-w-0 items-center gap-3 text-sm text-night-muted">Category<select aria-label="Statistics category" value={filter} onChange={e => void navigate({ search: prev => ({ ...prev, category: e.target.value === 'All' ? undefined : e.target.value }), replace: true, resetScroll: false })} className="min-h-11 max-w-[230px] rounded-md border border-input bg-background px-3 text-foreground">{['All', ...CATEGORIES].map(c => <option key={c}>{c}</option>)}</select></label>
+            <p role="status" className="text-sm text-night-muted">{shown.length + statusMetrics.length} figures</p>
+          </div>
         </div>
       </div>
 
 
-      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
-        <h1 className="sr-only">UK National Data Register — live official statistics</h1>
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
+        {!shown.length && !statusMetrics.length ? <div className="py-8"><h2 className="text-xl font-semibold">No matching figures</h2><Button variant="outline" className="mt-4" onClick={() => void navigate({ search: {}, replace: true })}>Clear filters</Button></div> : null}
 
         {statusMetrics.length ? (
           <div className="pb-6">
@@ -218,7 +227,7 @@ function Dashboard() {
           </span>
         </div>
 
-        <div className="pb-6">
+        <div className={q || category ? 'hidden' : 'pb-6'}>
           <VitalSigns metrics={data.metrics} />
         </div>
 
