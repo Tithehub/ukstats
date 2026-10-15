@@ -142,12 +142,14 @@ async function ukBoard(): Promise<CityCrimeBoard> {
   }
 }
 
-/* ---------------- United States: FBI city-agency table ---------------- */
+/* ---------------- United States: FBI Crime in the United States, Table 8 (state by city) ---------------- */
+
+const CDE = 'https://cde.ucr.cjis.gov';
 
 async function usBoard(): Promise<CityCrimeBoard> {
   const hit = cached('us');
   if (hit) return hit;
-  const base: CityCrimeBoard = { ...baseBoard('us'), source: 'FBI · Crime Data Explorer', sourceUrl: 'https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads', metric: 'Violent crime known to law enforcement', unit: 'Offences per 100,000 residents', geography: 'Cities reporting to the FBI', note: 'FBI city data is published at least a year in arrears and covers only agencies that report to the FBI. Reporting is voluntary, so some large cities are missing.' };
+  const base: CityCrimeBoard = { ...baseBoard('us'), source: 'FBI · Crime in the United States, Table 8 (Crime Data Explorer)', sourceUrl: 'https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads', metric: 'Violent crime (murder and nonnegligent manslaughter, rape, robbery, aggravated assault)', unit: 'Rate per 100,000 residents, calculated from the FBI\'s published counts', geography: 'Cities with a published population of 10,000 or more', note: 'The FBI\'s Table 8 publishes counts, not rates; the per-100,000 rate here is a straight calculation from those counts and each city\'s published population. Cities under 10,000 population are excluded because a single offence swings the rate by dozens of points. The FBI cautions that its city tables are not rankable in every case: reporting is voluntary, some large cities report separately, and states named in the table\'s own footnotes as having limited data are left out entirely.' };
   try {
     const parsed = await loadFbiCities();
     const board: CityCrimeBoard = { ...base, ...parsed };
@@ -157,8 +159,43 @@ async function usBoard(): Promise<CityCrimeBoard> {
   }
 }
 
-/* Wired in once the FBI feed layout is verified against the downloaded file. */
 async function loadFbiCities(): Promise<Partial<CityCrimeBoard>> {
-  throw new Error('FBI feed not connected yet');
+  // The FBI publishes Table 8 inside the annual "offenses known to law enforcement" zip.
+  // A signed S3 address is issued on demand by the Crime Data Explorer's own endpoint.
+  const cius = await (await request(`${CDE}/LATEST/webapp/assets/JSON/downloads/cius.json`, {}, 15_000)).json() as { years?: { maxYear?: number } };
+  const year = cius.years?.maxYear;
+  if (!year) throw new Error('No CIUS year');
+  const signed = await (await request(`${CDE}/LATEST/s3/signedurl?key=cius/${year}/offenses-known-to-le-${year}.zip`, {}, 15_000)).json() as Record<string, string>;
+  const url = Object.values(signed)[0];
+  if (!url) throw new Error('No signed address');
+  const bytes = new Uint8Array(await (await request(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, 120_000)).arrayBuffer());
+  const files = unzipSync(bytes) as unknown as Record<string, Uint8Array>;
+  const t8 = Object.keys(files).find(f => /CIUS_Table_8_.*\.xlsx$/.test(f));
+  if (!t8 || !files[t8]) throw new Error('Official table not found');
+
+  const { sheets, shared } = readSheets(files);
+  const sheetPath = [...sheets.values()].find(Boolean);
+  if (!sheetPath || !files[sheetPath]) throw new Error('Official table not found');
+  const rows = sheetRows(files, sheetPath, shared);
+  const headerRow = [...rows.entries()].find(([, c]) => /state/i.test(c['A'] ?? '') && /city/i.test(c['B'] ?? '') && /population/i.test(c['C'] ?? ''));
+  if (!headerRow) throw new Error('Official table format has changed');
+
+  const cityRows: FbiCityRow[] = [];
+  const footnotes: string[] = [];
+  for (const [rn, c] of rows) {
+    if (rn <= headerRow[0]) continue;
+    const city = noteText(c['B'] ?? '');
+    if (!city) { const note = noteText(c['A'] ?? ''); if (note.length > 20) footnotes.push(note); continue; }
+    cityRows.push({ state: noteText(c['A'] ?? ''), city, population: c['C'] ?? null, violent: c['D'] ?? null });
+  }
+
+  const parsed = parseFbiCities(cityRows, { excludedStates: fbiLimitedDataStates(footnotes) });
+  let published: string | null = null;
+  try {
+    const refresh = await (await request(`${CDE}/LATEST/refresh-date`, {}, 10_000)).json() as { last_refresh_date?: { UCR?: string } };
+    const raw = refresh.last_refresh_date?.UCR;
+    if (raw) { const [m, d, y] = raw.split('/'); published = y && m && d ? `${y}-${m}-${d}` : null; }
+  } catch { /* published date is secondary to the figures themselves */ }
+  return { period: `Calendar year ${year}, United States`, published, next: 'No confirmed release date', ...parsed };
 }
 

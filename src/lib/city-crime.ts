@@ -5,6 +5,55 @@ export const CRIME_COVERAGE = ['uk', 'us', 'ca'];
 export type CityCrimeRow = { name: string; code: string; value: number };
 export type CityCrimeBoard = { code: string; period: string | null; published: string | null; metric: string; unit: string; geography: string; source: string; sourceUrl: string; next: string; rows: CityCrimeRow[]; reason: string | null; note?: string | null };
 
+/* ---------------- United States: FBI Crime in the United States, Table 8 (state by city) ---------------- */
+
+/** One Table 8 row as read from the published workbook. */
+export type FbiCityRow = { state: string; city: string; population: string | null; violent: string | null };
+/** Cities below this published population are never ranked: a single offence moves the rate by dozens of points. */
+export const FBI_MIN_CITY_POPULATION = 10_000;
+
+/**
+ * The FBI's footnotes name states whose figures are incomplete ("Limited data for 2025 were
+ * available for Florida and North Dakota."). Those cities must never be ranked: their low
+ * figures would be an artefact of under-recording, not safety.
+ */
+export function fbiLimitedDataStates(footnotes: string[]): string[] {
+  const names: string[] = [];
+  for (const note of footnotes) {
+    const m = /limited data for \d{4} were available for ([^.]+)/i.exec(note.replace(/\s+/g, ' '));
+    if (!m) continue;
+    for (const name of m[1]!.replace(/,\s+and\s+/gi, ',').split(/\s+and\s+|,\s*/i)) {
+      const clean = name.trim().replace(/[.,]$/, '');
+      if (clean && /[A-Za-z]/.test(clean)) names.push(clean);
+    }
+  }
+  return names;
+}
+
+/**
+ * Ranks cities by violent crime per 100,000 residents, calculated from the FBI's published
+ * counts (population and violent-crime total). All-or-nothing: any missing or unreadable
+ * population or count blocks the ranking rather than silently dropping cities.
+ */
+export function parseFbiCities(rows: FbiCityRow[], opts: { excludedStates?: string[]; minPopulation?: number } = {}): { rows: CityCrimeRow[]; reason: string | null } {
+  const excluded = new Set((opts.excludedStates ?? []).map(s => s.trim().toLowerCase()));
+  const min = opts.minPopulation ?? FBI_MIN_CITY_POPULATION;
+  const out: CityCrimeRow[] = [];
+  for (const r of rows) {
+    const state = (r.state ?? '').trim(); const city = (r.city ?? '').trim();
+    if (!city) continue; // footnote rows carry no city name
+    if (excluded.has(state.toLowerCase())) continue;
+    const pop = Number((r.population ?? '').replace(/,/g, ''));
+    const violent = Number((r.violent ?? '').replace(/,/g, ''));
+    if (!Number.isFinite(pop) || !Number.isFinite(violent) || pop < 0 || violent < 0) return { rows: [], reason: 'A published city figure is missing or unreadable. No partial ranking is shown.' };
+    if (pop < min) continue;
+    out.push({ name: `${city}, ${state}`, code: `${state}|${city}`.toLowerCase(), value: Math.round((violent / pop) * 100_000 * 10) / 10 });
+  }
+  if (out.length < 20) return { rows: out, reason: 'Fewer than twenty comparable cities are available; two top-ten lists would overlap.' };
+  if (new Set(out.map(r => r.code)).size !== out.length) return { rows: [], reason: 'Duplicate cities prevent a reliable ranking.' };
+  return { rows: out, reason: null };
+}
+
 /** Quoted CSV fields may contain commas, escaped quotes or newlines. */
 export function csvRows(text: string): string[][] {
   const rows: string[][] = []; let row: string[] = [], field = '', quoted = false;
