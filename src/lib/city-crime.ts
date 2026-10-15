@@ -41,3 +41,50 @@ export function cityTopTens(rows: CityCrimeRow[]) {
   const sorted = [...rows].sort((a,b) => a.value - b.value || a.name.localeCompare(b.name, 'en'));
   return { lowest: sorted.slice(0,10), highest: [...sorted].reverse().slice(0,10) };
 }
+
+/* ---------------- UK: ONS Community Safety Partnership rates (Table C4) ---------------- */
+
+/** One CSP row as read from the published workbook: the rate cell may be a number or a publisher marker like "[x]". */
+export type UkCspRow = { name: string; code: string; rawValue: string | null };
+
+/**
+ * The publisher's notes list areas whose crime is recorded under an unassigned CSP group
+ * (ongoing IT issues). Their published rates are near zero and must never be ranked.
+ * Extracts those area names from the note text, e.g.
+ * "... crime data for Maidstone, Medway, Tonbridge and Malling, Dartford and Gravesham, and Tunbridge Wells are recorded under an unassigned CSP group from 2024 onwards."
+ */
+export function unassignedRecordedNames(notes: string[]): string[] {
+  const names: string[] = [];
+  for (const note of notes) {
+    const m = /data for ([^]+?) are recorded under an unassigned CSP group/i.exec(note.replace(/\s+/g,' '));
+    if (!m) continue;
+    for (const part of m[1]!.split(/,| and (?=[A-Z])/)) {
+      const name = part.trim().replace(/[.,]$/,'');
+      if (name && /[A-Za-z]/.test(name)) names.push(name);
+    }
+  }
+  return names;
+}
+
+/**
+ * Ranks CSP areas by the published "Total recorded crime (excluding fraud)" rate per 1,000 population.
+ * All-or-nothing: any unexplained missing value, duplicate area, or rate the publisher's own notes
+ * contradict (a live area below 1 per 1,000 means its crimes are recorded elsewhere) blocks the ranking.
+ */
+export function parseUkCspRates(rows: UkCspRow[], opts: { excluded?: string[] } = {}): { rows: CityCrimeRow[]; reason: string | null } {
+  const blocked = new Set((opts.excluded ?? []).map(n => n.trim().toLowerCase()));
+  const out: CityCrimeRow[] = [];
+  for (const r of rows) {
+    const name = (r.name ?? '').replace(/\s+/g,' ').trim();
+    if (!name || !r.code || /^unassigned/i.test(name)) continue;
+    if (blocked.has(name.toLowerCase())) continue;
+    const raw = r.rawValue?.trim() ?? '';
+    const value = Number(raw);
+    if (!raw || !Number.isFinite(value) || value < 0) return { rows: [], reason: 'A published area rate is missing or marked unavailable. No partial ranking is shown.' };
+    if (value < 1) return { rows: [], reason: 'The published table contains an area whose rate contradicts its own recorded counts (crimes recorded under an unassigned group). No ranking is shown rather than a misleading "safest" list.' };
+    out.push({ name, code: r.code, value });
+  }
+  if (out.length < 20) return { rows: out, reason: 'Fewer than twenty comparable areas are available; two top-ten lists would overlap.' };
+  if (new Set(out.map(r => r.code)).size !== out.length) return { rows: [], reason: 'Duplicate areas prevent a reliable ranking.' };
+  return { rows: out, reason: null };
+}
