@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { Button } from '@/components/ui/button';
+import { Eye, Copy, Check } from 'lucide-react';
+import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import { isStatusMetric } from "@/components/ThreatBoard";
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -33,6 +36,8 @@ export const Route = createFileRoute("/widget")({
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/widget" }],
   }),
+  errorComponent: PageLoadError,
+  notFoundComponent: PageNotFound,
   component: WidgetBuilder,
 });
 
@@ -50,6 +55,7 @@ function WidgetBuilder() {
   const [density, setDensity] = useState<"full" | "compact">("full");
   const [provenance, setProvenance] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   const choosable = data.metrics.filter((m) => !isStatusMetric(m));
 
@@ -85,12 +91,13 @@ function WidgetBuilder() {
       </div>
 
 
-      <main className="mx-auto grid max-w-[1200px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,380px)_1fr]">
+      <main id="main-content" tabIndex={-1} className="mx-auto grid max-w-[1200px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,380px)_1fr]">
+        <a href="#widget-preview" className="inline-flex min-h-11 items-center gap-2 text-sm text-electric-soft lg:hidden"><Eye className="size-4" />View preview</a>
         <section className="space-y-5" aria-labelledby="widget-options-heading">
           <h2 id="widget-options-heading" className="sr-only">
             Widget options
           </h2>
-          <div className="rounded-[14px] bg-card/60 p-4 ring-1 ring-ink/10">
+          <div className="rounded-lg bg-card/60 p-4 ring-1 ring-ink/10">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/60">1 · What to show</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {(
@@ -99,15 +106,16 @@ function WidgetBuilder() {
                   ["metrics", "Chosen figures"],
                 ] as [Mode, string][]
               ).map(([m, label]) => (
-                <button
+                <Button
                   key={m}
+                  aria-pressed={mode === m}
                   onClick={() => setMode(m)}
                   className={`rounded-md px-3 py-2 text-[12px] font-medium transition-colors ${
                     mode === m ? "bg-ink text-ground" : "bg-ink/5 text-steel hover:bg-ink/10"
                   }`}
                 >
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
             {mode === "board" ? (
@@ -148,22 +156,23 @@ function WidgetBuilder() {
             )}
           </div>
 
-          <div className="rounded-[14px] bg-card/60 p-4 ring-1 ring-ink/10">
+          <div className="rounded-lg bg-card/60 p-4 ring-1 ring-ink/10">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel/60">2 · Appearance</p>
             <div className="mt-3 grid gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-[12px]">Theme</span>
                 <div className="flex gap-1">
                   {(["light", "dark"] as const).map((t) => (
-                    <button
+                    <Button
                       key={t}
+                      aria-pressed={theme === t}
                       onClick={() => setTheme(t)}
                       className={`rounded-md px-3 py-1.5 font-mono text-[11px] ${
                         theme === t ? "bg-ink text-ground" : "bg-ink/5 text-steel"
                       }`}
                     >
                       {t}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -171,15 +180,16 @@ function WidgetBuilder() {
                 <span className="text-[12px]">Density</span>
                 <div className="flex gap-1">
                   {(["full", "compact"] as const).map((d) => (
-                    <button
+                    <Button
                       key={d}
+                      aria-pressed={density === d}
                       onClick={() => setDensity(d)}
                       className={`rounded-md px-3 py-1.5 font-mono text-[11px] ${
                         density === d ? "bg-ink text-ground" : "bg-ink/5 text-steel"
                       }`}
                     >
                       {d}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -190,29 +200,29 @@ function WidgetBuilder() {
             </div>
           </div>
 
-          <div className="rounded-[14px] bg-ink p-4">
+          <div className="rounded-lg bg-ink p-4">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand">3 · Paste anywhere</p>
             <code className="mt-2 block break-all font-mono text-[10px] leading-relaxed text-ground/80">
               {valid ? snippet : "Select at least one figure."}
             </code>
-            <button
+            <Button
               disabled={!valid}
-              onClick={() => {
-                void navigator.clipboard.writeText(snippet);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(snippet);
+                  setCopied(true); setCopyError(false);
+                  setTimeout(() => setCopied(false), 2000);
+                } catch { setCopyError(true); }
               }}
               className="mt-3 rounded-md bg-ground px-3 py-2 text-[12px] font-medium text-ink disabled:opacity-40"
             >
-              {copied ? "Copied" : "Copy embed code"}
-            </button>
-            <p className="mt-2 font-mono text-[10px] leading-relaxed text-ground/50">
-              The widget re-fetches from the official sources itself, so the figures stay live wherever it is embedded.
-            </p>
+              {copied ? <Check /> : <Copy />}{copied ? "Copied" : "Copy embed code"}
+            </Button>
+            {copyError ? <p role="alert" className="mt-3 text-sm text-ground">Copying wasn’t available. Select and copy the code above.</p> : null}
           </div>
         </section>
 
-        <section aria-labelledby="widget-preview-heading">
+        <section id="widget-preview" aria-labelledby="widget-preview-heading" className="min-w-0">
           <div className="mb-2 flex items-baseline justify-between">
             <h2
               id="widget-preview-heading"
@@ -234,11 +244,11 @@ function WidgetBuilder() {
               key={src}
               src={src}
               title="Widget preview"
-              className="w-full rounded-[14px] ring-1 ring-ink/10"
+              className="w-full rounded-lg ring-1 ring-ink/10"
               style={{ height }}
             />
           ) : (
-            <div className="grid h-40 place-items-center rounded-[14px] bg-card/40 font-mono text-[12px] text-steel/60 ring-1 ring-ink/10">
+            <div className="grid h-40 place-items-center rounded-lg bg-card/40 font-mono text-[12px] text-steel/60 ring-1 ring-ink/10">
               Select at least one figure to preview.
             </div>
           )}
