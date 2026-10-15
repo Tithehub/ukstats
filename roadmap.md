@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Restore Britain dedication and colours
-- [ ] Add the uploaded logo and independent dedication to the shared footer, retaining donations and local-business sponsorship
-- [ ] Apply the logo's navy palette to light and dark themes and verify layouts and links
+- [x] Add the uploaded logo and independent dedication to the shared footer, retaining donations and local-business sponsorship
+- [x] Apply the logo's navy palette to light and dark themes and verify layouts and links
 - [ ] Publish the dedication and colour changes (awaiting request to publish)
 
 ## Town and city crime rankings
