@@ -53,7 +53,7 @@ describe('FBI Table 8 city rankings', () => {
    const states = fbiLimitedDataStates(['2 Limited data for 2025 were available for Florida and North Dakota.']);
    expect(states).toEqual(['Florida', 'North Dakota']);
    const parsed = parseFbiCities([...fbiFixture(), { state: 'Florida', city: 'Tallahassee', population: '200000', violent: '2' }], { excludedStates: states });
-   expect(parsed.rows.some(r => r.state !== undefined)).toBe(true);
+   expect(parsed.rows.length).toBe(25);
    expect(parsed.rows.some(r => r.name.includes('Tallahassee'))).toBe(false);
  });
  it('never ranks cities below the 10,000 population floor', () => {
