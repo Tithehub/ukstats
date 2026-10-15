@@ -1,5 +1,10 @@
 # Roadmap
 
+## Restore Britain dedication and colours
+- [x] Add the uploaded logo and independent dedication to the shared footer, retaining donations and local-business sponsorship
+- [x] Apply the logo's navy palette to light and dark themes and verify layouts and links
+- [ ] Publish the dedication and colour changes (awaiting request to publish)
+
 ## Town and city crime rankings
 - [x] Add country selector and verified Canadian city-area lowest/highest ten lists from the official 2025 Crime Severity Index
 - [x] Link rankings from country pages and navigation, explain coverage gaps and validate real-source results
