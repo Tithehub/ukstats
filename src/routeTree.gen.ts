@@ -38,6 +38,7 @@ import { Route as PressRouteImport } from './routes/press'
 import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SafestPlacesRouteImport } from './routes/safest-places'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SponsorDashboardRouteImport } from './routes/sponsor-dashboard'
@@ -48,6 +49,7 @@ import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as CountryCalendarRouteImport } from './routes/$country.calendar'
+import { Route as CountrySafestPlacesRouteImport } from './routes/$country.safest-places'
 import { Route as CountrySourcesRouteImport } from './routes/$country.sources'
 import { Route as CountryStatusRouteImport } from './routes/$country.status'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
@@ -213,6 +215,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SafestPlacesRoute = SafestPlacesRouteImport.update({
+  id: '/safest-places',
+  path: '/safest-places',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -261,6 +268,11 @@ const CountryIndexRoute = CountryIndexRouteImport.update({
 const CountryCalendarRoute = CountryCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => CountryRoute,
+} as any)
+const CountrySafestPlacesRoute = CountrySafestPlacesRouteImport.update({
+  id: '/safest-places',
+  path: '/safest-places',
   getParentRoute: () => CountryRoute,
 } as any)
 const CountrySourcesRoute = CountrySourcesRouteImport.update({
@@ -393,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sources': typeof SourcesRoute
   '/sponsor-dashboard': typeof SponsorDashboardRoute
@@ -402,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/$country/calendar': typeof CountryCalendarRoute
+  '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
   '/daily/$date': typeof DailyDateRoute
@@ -451,6 +465,7 @@ export interface FileRoutesByTo {
   '/press': typeof PressRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sources': typeof SourcesRoute
   '/sponsor-dashboard': typeof SponsorDashboardRoute
@@ -460,6 +475,7 @@ export interface FileRoutesByTo {
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/$country/calendar': typeof CountryCalendarRoute
+  '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
   '/daily/$date': typeof DailyDateRoute
@@ -512,6 +528,7 @@ export interface FileRoutesById {
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sources': typeof SourcesRoute
   '/sponsor-dashboard': typeof SponsorDashboardRoute
@@ -521,6 +538,7 @@ export interface FileRoutesById {
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
   '/$country/calendar': typeof CountryCalendarRoute
+  '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
   '/daily/$date': typeof DailyDateRoute
@@ -574,6 +592,7 @@ export interface FileRouteTypes {
     | '/regions'
     | '/register'
     | '/reset-password'
+    | '/safest-places'
     | '/sitemap.xml'
     | '/sources'
     | '/sponsor-dashboard'
@@ -583,6 +602,7 @@ export interface FileRouteTypes {
     | '/tax-vs-welfare'
     | '/widget'
     | '/$country/calendar'
+    | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
     | '/daily/$date'
@@ -632,6 +652,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/register'
     | '/reset-password'
+    | '/safest-places'
     | '/sitemap.xml'
     | '/sources'
     | '/sponsor-dashboard'
@@ -641,6 +662,7 @@ export interface FileRouteTypes {
     | '/tax-vs-welfare'
     | '/widget'
     | '/$country/calendar'
+    | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
     | '/daily/$date'
@@ -692,6 +714,7 @@ export interface FileRouteTypes {
     | '/regions'
     | '/register'
     | '/reset-password'
+    | '/safest-places'
     | '/sitemap.xml'
     | '/sources'
     | '/sponsor-dashboard'
@@ -701,6 +724,7 @@ export interface FileRouteTypes {
     | '/tax-vs-welfare'
     | '/widget'
     | '/$country/calendar'
+    | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
     | '/daily/$date'
@@ -753,6 +777,7 @@ export interface RootRouteChildren {
   RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SafestPlacesRoute: typeof SafestPlacesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SourcesRoute: typeof SourcesRoute
   SponsorDashboardRoute: typeof SponsorDashboardRoute
@@ -972,6 +997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/safest-places': {
+      id: '/safest-places'
+      path: '/safest-places'
+      fullPath: '/safest-places'
+      preLoaderRoute: typeof SafestPlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1040,6 +1072,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/$country/calendar'
       preLoaderRoute: typeof CountryCalendarRouteImport
+      parentRoute: typeof CountryRoute
+    }
+    '/$country/safest-places': {
+      id: '/$country/safest-places'
+      path: '/safest-places'
+      fullPath: '/$country/safest-places'
+      preLoaderRoute: typeof CountrySafestPlacesRouteImport
       parentRoute: typeof CountryRoute
     }
     '/$country/sources': {
@@ -1180,6 +1219,7 @@ declare module '@tanstack/react-router' {
 
 interface CountryRouteChildren {
   CountryCalendarRoute: typeof CountryCalendarRoute
+  CountrySafestPlacesRoute: typeof CountrySafestPlacesRoute
   CountrySourcesRoute: typeof CountrySourcesRoute
   CountryStatusRoute: typeof CountryStatusRoute
   CountryIndexRoute: typeof CountryIndexRoute
@@ -1190,6 +1230,7 @@ interface CountryRouteChildren {
 
 const CountryRouteChildren: CountryRouteChildren = {
   CountryCalendarRoute: CountryCalendarRoute,
+  CountrySafestPlacesRoute: CountrySafestPlacesRoute,
   CountrySourcesRoute: CountrySourcesRoute,
   CountryStatusRoute: CountryStatusRoute,
   CountryIndexRoute: CountryIndexRoute,
@@ -1277,6 +1318,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SafestPlacesRoute: SafestPlacesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SourcesRoute: SourcesRoute,
   SponsorDashboardRoute: SponsorDashboardRoute,
