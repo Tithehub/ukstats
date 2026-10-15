@@ -16,6 +16,7 @@ export function CountryShell({ country, children }: { country: Country; children
       <Button asChild variant="outline" size="sm"><Link to="/$country/calendar" params={{ country: country.code }}>Releases</Link></Button>
       <Button asChild variant="outline" size="sm"><Link to="/$country/status" params={{ country: country.code }}>Availability</Link></Button>
       <Button asChild variant="outline" size="sm"><Link to="/$country/sources" params={{ country: country.code }}>Sources</Link></Button>
+      <Button asChild variant="outline" size="sm"><Link to="/$country/safest-places" params={{ country: country.code }}>City crime</Link></Button>
       <Button asChild variant="outline" size="sm"><Link to="/compare-countries" search={{ metric: 'hicp' }}>Compare</Link></Button>
       <Button asChild variant="outline" size="sm"><Link to="/online-speech">Online speech</Link></Button>
     </nav>{children}</main><SiteFooter /></div>;
