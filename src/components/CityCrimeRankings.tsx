@@ -19,7 +19,6 @@ export function CityCrimeRankings({code}:{code:string}) {
   <p className="mt-4 text-sm text-night-muted">{data.geography}{data.rows.length ? ` · ${data.rows.length} city areas in the published table` : ''}</p>
   <a href={data.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm text-electric-soft underline">{data.source}<ExternalLink className="size-4 shrink-0" aria-hidden="true" /></a>
   {data.reason ? <div className="mt-6 border-l-2 border-ageing py-2 pl-4"><h3 className="font-semibold">Ranking unavailable</h3><p className="mt-2 max-w-3xl text-sm leading-relaxed text-night-muted">{data.reason}</p></div> : <>
-   <p className="mt-4 max-w-3xl text-sm text-night-muted">The Crime Severity Index weights police-recorded offences by their seriousness and adjusts for population. It is an index, not a count of crimes per 100,000. These are metropolitan areas, not individual neighbourhoods or every town in Canada.</p>
   {data.note ? <p className="mt-4 max-w-3xl text-sm leading-relaxed text-night-muted">{data.note}</p> : null}
   <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-2"><Ranking title="10 lowest recorded crime" rows={lists.lowest} lower /><Ranking title="10 highest recorded crime" rows={lists.highest} /></div>
    <p className="mt-5 text-xs leading-relaxed text-night-muted">Equal values are ties, not differences in safety. Source notes describe local reporting and boundary differences. No cross-country league table is implied.</p>
