@@ -9,8 +9,9 @@ export function FundingLegalNotice({ tone = "panel", className = "" }: { tone?: 
   if (!statement) return null;
   if (tone === "plain") return <p className={className}>{statement}</p>;
   return (
-    <p className={`rounded-md border border-night-line/70 bg-night-panel/60 px-4 py-3 text-sm leading-relaxed text-night-muted ${className}`}>
+    <p className={`rounded-md border border-night-line bg-night-panel/80 px-4 py-3 text-sm leading-relaxed text-night-fg ${className}`}>
       {statement}
     </p>
+
   );
 }
