@@ -6,6 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import { SPONSOR_PRICE_IDS } from "@/lib/sponsor-plans";
 import { BANNER_BUCKET, BANNER_URL_SECONDS, isOwnBannerPath } from "@/lib/banner-paths";
+import { fundingPaymentError } from "@/lib/funding-policy";
 
 const envOk = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
 
@@ -45,6 +46,8 @@ export const createSponsorCheckout = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data, context }): Promise<{ clientSecret: string } | { error: string }> => {
+    const paused = fundingPaymentError();
+    if (paused) return { error: paused };
     try {
       const { data: existing } = await context.supabase
         .from("subscriptions")
