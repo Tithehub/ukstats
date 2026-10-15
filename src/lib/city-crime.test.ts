@@ -40,3 +40,29 @@ describe('UK community safety partnership rankings', () => {
    expect(parsed.reason).toContain('Fewer than twenty');
  });
 });
+
+describe('FBI Table 8 city rankings', () => {
+ it('ranks cities by violent crime per 100,000, exactly ten each way', () => {
+   const parsed = parseFbiCities(fbiFixture());
+   expect(parsed.reason).toBeNull();
+   expect(cityTopTens(parsed.rows).lowest[0]!.name).toBe('City 0, California');
+   expect(cityTopTens(parsed.rows).highest[0]!.name).toBe('City 24, California');
+   expect(cityTopTens(parsed.rows).lowest[0]!.value).toBeCloseTo(100.0, 1);
+ });
+ it('leaves out states the FBI footnotes as having limited data', () => {
+   const states = fbiLimitedDataStates(['2 Limited data for 2025 were available for Florida and North Dakota.']);
+   expect(states).toEqual(['Florida', 'North Dakota']);
+   const parsed = parseFbiCities([...fbiFixture(), { state: 'Florida', city: 'Tallahassee', population: '200000', violent: '2' }], { excludedStates: states });
+   expect(parsed.rows.some(r => r.state !== undefined)).toBe(true);
+   expect(parsed.rows.some(r => r.name.includes('Tallahassee'))).toBe(false);
+ });
+ it('never ranks cities below the 10,000 population floor', () => {
+   const parsed = parseFbiCities([...fbiFixture(), { state: 'California', city: 'Tiny Ville', population: '900', violent: '40' }]);
+   expect(parsed.rows.some(r => r.name.includes('Tiny Ville'))).toBe(false);
+ });
+ it('blocks the whole ranking when a city figure is missing', () => {
+   const parsed = parseFbiCities([...fbiFixture(), { state: 'California', city: 'Broken', population: null, violent: '10' }]);
+   expect(parsed.rows).toEqual([]);
+   expect(parsed.reason).toContain('No partial ranking');
+ });
+});
