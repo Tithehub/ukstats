@@ -58,8 +58,10 @@ export function unassignedRecordedNames(notes: string[]): string[] {
   for (const note of notes) {
     const m = /data for ([^]+?) are recorded under an unassigned CSP group/i.exec(note.replace(/\s+/g,' '));
     if (!m) continue;
-    for (const part of m[1]!.split(/,| and (?=[A-Z])/)) {
-      const name = part.trim().replace(/[.,]$/,'');
+    // ONS lists areas with a serial comma: "A, B, C and D, and E". Join the final ", and" first,
+    // then split on commas so multi-word names like "Tonbridge and Malling" stay intact.
+    for (const part of m[1]!.replace(/,\s+and\s+/gi, ', ').split(',')) {
+      const name = part.trim().replace(/^and\s+/i,'').replace(/[.,]$/,'');
       if (name && /[A-Za-z]/.test(name)) names.push(name);
     }
   }
