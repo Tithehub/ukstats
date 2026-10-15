@@ -1,5 +1,9 @@
 # Roadmap
 
+## Town and city crime rankings
+- [ ] Add country-selectable lowest/highest ten rankings from comparable official city crime data
+- [ ] Link rankings from country pages and navigation, explain coverage gaps and validate real-source results
+
 ## Current usability and speed pass
 - [x] Simplify home and navigation around finding, comparing and using official figures
 - [x] Improve register search, small-screen controls and loading/error feedback
