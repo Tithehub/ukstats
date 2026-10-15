@@ -1,9 +1,10 @@
 # Roadmap
 
 ## Current usability and speed pass
-- [ ] Simplify home and navigation around finding, comparing and using official figures
-- [ ] Improve register search, small-screen controls and loading/error feedback
-- [ ] Remove avoidable slow requests and verify main journeys at phone, tablet and desktop widths
+- [x] Simplify home and navigation around finding, comparing and using official figures
+- [x] Improve register search, small-screen controls and loading/error feedback
+- [x] Remove avoidable slow requests and verify main journeys at phone, tablet and desktop widths
+- [ ] Publish this usability/speed pass and measure live loading (awaiting request to publish)
 
 - [x] SEO: og:url/canonical, headings, sitemap.xml + robots.txt
 - [x] Remove the "Edit with Lovable" badge from the published site

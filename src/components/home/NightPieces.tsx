@@ -218,7 +218,7 @@ export function CategoryPanel({
 
   return (
     <details
-      open={defaultOpen}
+      open={expanded}
       onToggle={event => setExpanded(event.currentTarget.open)}
       className="group border-b border-night-line/60"
     >
