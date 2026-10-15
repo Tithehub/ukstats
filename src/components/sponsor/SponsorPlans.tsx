@@ -18,6 +18,7 @@ import {
 import type { SponsorPriceId } from "@/lib/sponsor-plans";
 import { hasSponsorshipDetails } from "@/lib/sponsor-plans";
 import { Button } from "@/components/ui/button";
+import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 
 const PLANS = [
   { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter", "Text line only — banner pictures come with the Sponsor plan"] },
@@ -215,6 +216,7 @@ export function SponsorPlans() {
 
   return (
     <div>
+      {FUNDING_PAUSED ? <p role="status" className="mt-4 border-l-2 border-electric pl-4 text-sm text-night-muted">{FUNDING_PAUSE_MESSAGE} Existing sponsors can still edit their details and manage or cancel their subscription.</p> : null}
       <div className="mt-4 inline-flex rounded-lg border border-night-line p-1 text-sm" role="group" aria-label="Billing period">
         {[["Monthly", false], ["Yearly — 2 months free", true]].map(([l, v]) => (
           <button key={String(l)} type="button" aria-pressed={yearly === v} onClick={() => setYearly(v as boolean)} className={`rounded-md px-3 py-1.5 ${yearly === v ? "bg-electric text-night" : "text-night-muted"}`}>{l as string}</button>
@@ -228,7 +230,7 @@ export function SponsorPlans() {
               <p className="font-semibold">{p.name}</p>
               <p className="mt-2 text-3xl font-semibold">£{yearly ? p.yearly : p.monthly}<span className="text-sm font-normal text-night-muted">/{yearly ? "year" : "month"}</span></p>
               <ul className="mt-3 flex-1 list-disc space-y-1 pl-5 text-sm text-night-muted">{p.perks.map((x) => <li key={x}>{x}</li>)}</ul>
-              {loading ? null : !signedIn ? (
+              {FUNDING_PAUSED ? <Button disabled variant="outline" className="mt-4">Payments temporarily paused</Button> : loading ? null : !signedIn ? (
                 <Link to="/auth" className="mt-4 rounded-md border border-electric px-4 py-2 text-center text-sm text-electric-soft">Sign in to choose {p.name}</Link>
               ) : (
                 <button type="button" disabled={!ready} onClick={() => setPriceId(id)} className="mt-4 rounded-md bg-electric px-4 py-2 text-sm font-medium text-night disabled:opacity-50">Choose {p.name}</button>
@@ -238,7 +240,7 @@ export function SponsorPlans() {
         })}
       </ul>
       <p className="mt-2 text-xs text-night-muted">Cancel any time. Your line is checked against the rules before it appears.</p>
-      {priceId ? <Checkout key={priceId} priceId={priceId} onClose={() => setPriceId(null)} /> : null}
+      {!FUNDING_PAUSED && priceId ? <Checkout key={priceId} priceId={priceId} onClose={() => setPriceId(null)} /> : null}
       {signedIn ? <MySponsorship /> : null}
     </div>
   );

@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { DONATION_ADDRESSES, DONATION_SUGGESTIONS, qrSrc, type DonationAddress } from "@/lib/donate";
+import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 
 export const Route = createFileRoute("/support")({
   head: () => ({
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "UKStats is an independent aggregator of official UK statistics. Support the running costs with a crypto donation via MetaMask, or share the register.",
+          "UKStats is an independent register of official statistics. Donations are temporarily paused; help by sharing the free register.",
       },
       { property: "og:title", content: "Support UKStats" },
       {
@@ -44,11 +45,12 @@ function toWeiHex(amount: string): string {
 }
 
 function AddressCard({ a }: { a: DonationAddress }) {
-  const [amount, setAmount] = useState(DONATION_SUGGESTIONS[1]!);
+  const [amount, setAmount] = useState(DONATION_SUGGESTIONS[1] ?? "0");
   const [state, setState] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   async function send() {
+    if (FUNDING_PAUSED) { setState(FUNDING_PAUSE_MESSAGE); return; }
     const eth = metamask();
     if (!eth) {
       setState("MetaMask was not detected in this browser.");
@@ -75,6 +77,7 @@ function AddressCard({ a }: { a: DonationAddress }) {
   }
 
   async function connect() {
+    if (FUNDING_PAUSED) { setState(FUNDING_PAUSE_MESSAGE); return; }
     const eth = metamask();
     if (!eth) {
       setState("MetaMask was not detected in this browser.");
@@ -166,11 +169,16 @@ function SupportPage() {
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-night-muted text-pretty">
           UKStats pulls every figure live from 14 publishers, including the ONS, Home Office, Police.uk, HM Land Registry,
           MOD, MI5 / JTAC, the Met Office and the Environment Agency. It is free, carries no tracking and never estimates a
-          number. Donations cover hosting and the time spent keeping the feeds connected.
+          number. You can help by sharing the register.
         </p>
 
         <section className="mt-8 space-y-4">
-          {DONATION_ADDRESSES.length ? (
+          {FUNDING_PAUSED ? (
+            <div className="border-l-2 border-electric pl-4">
+              <h2 className="text-lg font-semibold">Donations temporarily paused</h2>
+              <p role="status" className="mt-2 text-sm leading-relaxed text-night-muted">{FUNDING_PAUSE_MESSAGE}</p>
+            </div>
+          ) : DONATION_ADDRESSES.length ? (
             DONATION_ADDRESSES.map((a) => <AddressCard key={a.symbol + a.address} a={a} />)
           ) : (
             <div className="rounded-xl border border-dashed border-night-line/70 bg-night-panel/40 p-6">

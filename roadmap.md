@@ -1,5 +1,10 @@
 # Roadmap
 
+## Temporary funding pause
+- [x] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
+- [x] Verify paused payment and donation pages (policy test passed; both pages checked in browser; build OK)
+- [ ] Publish the funding pause (awaiting request to publish)
+
 ## Restore Britain dedication and colours
 - [x] Add the uploaded logo and independent dedication to the shared footer, retaining donations and local-business sponsorship
 - [x] Apply the logo's navy palette to light and dark themes and verify layouts and links
