@@ -157,7 +157,3 @@ async function usBoard(): Promise<CityCrimeBoard> {
   }
 }
 
-async function parseFbiCities(): Promise<{ period: string | null; published: string | null; next: string; rows: CityCrimeRow[]; reason: string | null; source: string; sourceUrl: string; }> {
-  const { parseFbiCityAgencies } = await import('./city-crime');
-  throw new Error('FBI feed not connected yet');
-}
