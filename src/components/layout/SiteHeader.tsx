@@ -177,11 +177,12 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               Sign in
             </Link>
           )}
-          <Link to="/widget" className={btn("secondary", "sm", "hidden xl:inline-flex")}>
+          <Link to="/widget" className={btn("secondary", "sm", "max-xl:hidden")}>
             <LayoutGrid className="size-4" aria-hidden="true" />
             Embed figures
           </Link>
           <Button
+            variant="ghost"
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
@@ -197,6 +198,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
       {open ? (
         <>
           <Button
+            variant="ghost"
             type="button"
             aria-hidden="true"
             tabIndex={-1}

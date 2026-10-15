@@ -28,3 +28,5 @@
 - Shared request-pool helpers hold slots through response-body consumption; Eurostat uses four slots to leave headroom for national feeds and failed or unused responses are cancelled to avoid stalled connections.
 - Register search and category filters live in URL search parameters and use the shared stat-search matcher; this keeps results shareable and browser Back restores the selection.
 - Use PageFeedback for shared loading and recoverable data errors and keep automatic link preloading disabled; this gives explicit feedback without fetching large data collections for incidental pointer movement.
+- Router dehydrate/hydrate serializes the successful Query cache per request; data pages must not re-download loader results before their controls can become interactive.
+- Public sponsor displays read only payments-env, never the Stripe SDK; this prevents payment scripts from loading on statistics-only pages.
