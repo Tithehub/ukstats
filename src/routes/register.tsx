@@ -23,9 +23,9 @@ const statsQuery = queryOptions<StatsPayload>({
 });
 
 export const Route = createFileRoute("/register")({
-  validateSearch: (s: Record<string, unknown>): { q?: string; category?: string } => ({
-    q: typeof s.q === 'string' ? s.q : undefined,
-    category: typeof s.category === 'string' && CATEGORIES.some(c => c === s.category) ? s.category : undefined,
+  validateSearch: (s: Record<string, unknown>): { q?: string | undefined; category?: string | undefined } => ({
+    q: typeof s['q'] === 'string' ? s['q'] : undefined,
+    category: typeof s['category'] === 'string' && CATEGORIES.some(c => c === s['category']) ? s['category'] : undefined,
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
   errorComponent: PageLoadError,

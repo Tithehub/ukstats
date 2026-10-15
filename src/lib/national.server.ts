@@ -22,8 +22,14 @@ async function get(url: string, init: RequestInit = {}): Promise<Response> {
   const t = setTimeout(() => ctrl.abort(), 20_000);
   try {
     const res = await fetch(url, { ...init, signal: ctrl.signal, headers: { "user-agent": "ukstats-register/1.0", ...(init.headers ?? {}) } });
-    if (!res.ok) throw new Error(`${res.status}`);
-    return res;
+    if (!res.ok) {
+      await res.body?.cancel();
+      throw new Error(`${res.status}`);
+    }
+    // Finish reading under the same timeout; an unread body holds an outbound
+    // connection open and used to stall the remaining country feeds.
+    const bytes = await res.arrayBuffer();
+    return new Response(bytes, { status: res.status, headers: res.headers });
   } finally {
     clearTimeout(t);
   }

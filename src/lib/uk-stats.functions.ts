@@ -1274,7 +1274,10 @@ async function getText(url: string, ms = 20_000): Promise<string> {
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
     const res = await fetch(url, { headers: { ...UA }, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    if (!res.ok) {
+      await res.body?.cancel();
+      throw new Error(`${res.status} ${url}`);
+    }
     return await res.text();
   } finally {
     clearTimeout(t);
@@ -1580,7 +1583,10 @@ async function getBytes(url: string, ms = 25_000): Promise<Uint8Array> {
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
     const res = await fetch(url, { headers: { ...UA }, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    if (!res.ok) {
+      await res.body?.cancel();
+      throw new Error(`${res.status} ${url}`);
+    }
     return new Uint8Array(await res.arrayBuffer());
   } finally {
     clearTimeout(t);
@@ -2156,7 +2162,7 @@ async function nhsEnglandProbe(def: {
       signal: ctrl.signal,
     });
     clearTimeout(t);
-    if (res.status === 403 || res.status === 202) return base;
+    await res.body?.cancel();
     return base;
   } catch {
     return base;
