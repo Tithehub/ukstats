@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Temporary funding pause
+- [ ] Add Marco's whole-site donation message and verify every crypto address, QR code and donation control is hidden
 - [x] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
 - [x] Verify paused payment and donation pages (policy test passed; both pages checked in browser; build OK)
 - [ ] Publish the funding pause (awaiting request to publish)

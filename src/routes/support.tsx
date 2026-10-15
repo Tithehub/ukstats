@@ -3,7 +3,7 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
-import { DONATION_ADDRESSES, DONATION_SUGGESTIONS, qrSrc, type DonationAddress } from "@/lib/donate";
+import { availableDonationAddresses, DONATION_SUGGESTIONS, qrSrc, type DonationAddress } from "@/lib/donate";
 import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 
 export const Route = createFileRoute("/support")({
@@ -13,12 +13,12 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "UKStats is an independent register of official statistics. Donations are temporarily paused; help by sharing the free register.",
+           "Marco Mead has donated the whole UKStats site to Restore Britain. Donations are paused and crypto addresses are hidden; the statistics remain free.",
       },
       { property: "og:title", content: "Support UKStats" },
       {
         property: "og:description",
-        content: "Help keep an independent, source-linked register of UK official statistics online.",
+        content: "Marco Mead has donated the whole UKStats site to Restore Britain. Donations are temporarily paused; the statistics remain free.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/support" },
@@ -161,6 +161,7 @@ function AddressCard({ a }: { a: DonationAddress }) {
 }
 
 function SupportPage() {
+  const donationAddresses = availableDonationAddresses();
   return (
     <div className="min-h-screen bg-night font-sans text-night-fg">
       <SiteHeader />
@@ -175,11 +176,13 @@ function SupportPage() {
         <section className="mt-8 space-y-4">
           {FUNDING_PAUSED ? (
             <div className="border-l-2 border-electric pl-4">
-              <h2 className="text-lg font-semibold">Donations temporarily paused</h2>
+              <h2 className="text-lg font-semibold">This site has been donated to Restore Britain</h2>
+              <p className="mt-2 text-sm leading-relaxed text-night-muted">I have donated the whole UKStats site to Restore Britain, for Rupert Lowe, the team and the people, free of charge. — Marco Mead</p>
               <p role="status" className="mt-2 text-sm leading-relaxed text-night-muted">{FUNDING_PAUSE_MESSAGE}</p>
+              <p className="mt-2 text-sm leading-relaxed text-night-muted">All crypto donation addresses, QR codes and donation buttons are hidden. Please do not send donations to previously shared wallet addresses.</p>
             </div>
-          ) : DONATION_ADDRESSES.length ? (
-            DONATION_ADDRESSES.map((a) => <AddressCard key={a.symbol + a.address} a={a} />)
+          ) : donationAddresses.length ? (
+            donationAddresses.map((a) => <AddressCard key={a.symbol + a.address} a={a} />)
           ) : (
             <div className="rounded-xl border border-dashed border-night-line/70 bg-night-panel/40 p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Crypto donations</p>
