@@ -2,11 +2,13 @@ import { countryByCode, COUNTRIES, type CountryMetric, type CountryPayload } fro
 import { ES_DEFS, parseByGeo, type GeoSeries, type JsonStat } from "./eurostat";
 import { coverageGaps, metricCategory } from "./country-detail";
 import { nationalMetrics } from "./national.server";
+import { createRequestPool } from './request-pool';
 
 const BASE = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/";
 const TTL = 30 * 60_000;
 type DS = { at: number; data: Promise<{ geo: Record<string, GeoSeries>; updated: string | null }> };
 const cache = new Map<string, DS>();
+const eurostatPool = createRequestPool(4);
 
 function fetchDataset(id: string) {
   const hit = cache.get(id);
@@ -14,18 +16,21 @@ function fetchDataset(id: string) {
   const def = ES_DEFS.find((d) => d.id === id);
   if (!def) throw new Error("Unknown official series");
   const qs = new URLSearchParams({ ...def.params, lastTimePeriod: "24", lang: "EN" });
-  const data = (async () => {
+  const data = eurostatPool(async () => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 20_000);
     try {
       const res = await fetch(`${BASE}${def.dataset}?${qs}`, { signal: ctrl.signal, headers: { "user-agent": "ukstats-register/1.0" } });
-      if (!res.ok) throw new Error(`Eurostat ${res.status}`);
+      if (!res.ok) {
+        await res.body?.cancel();
+        throw new Error(`Eurostat ${res.status}`);
+      }
       const js = (await res.json()) as JsonStat;
       return { geo: parseByGeo(js), updated: js.updated ?? null };
     } finally {
       clearTimeout(t);
     }
-  })();
+  });
   data.catch(() => cache.delete(id));
   cache.set(id, { at: Date.now(), data });
   return data;
@@ -73,7 +78,10 @@ export async function loadCountryHistory(code: string, id: string): Promise<Coun
     try {
       const qs = new URLSearchParams({ ...def.params, geo: country.eurostat, lang: 'EN' });
       const res = await fetch(`${BASE}${def.dataset}?${qs}`, { signal: AbortSignal.timeout(25000) });
-      if (!res.ok) return { ...base, history: [], note: 'Historical feed unavailable; the latest figure remains independently sourced.' };
+      if (!res.ok) {
+        await res.body?.cancel();
+        return { ...base, history: [], note: 'Historical feed unavailable; the latest figure remains independently sourced.' };
+      }
       const js = await res.json() as JsonStat;
       const pts = parseByGeo(js)[country.eurostat]?.points ?? [];
       return { ...base, history: pts.map(p => ({ ...p, formatted: def.fmt(p.value) })) };

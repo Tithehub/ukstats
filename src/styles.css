@@ -229,6 +229,26 @@
 @layer base {
   html {
     font-family: var(--font-sans);
+    scroll-padding-top: 5rem;
+    letter-spacing: 0;
+  }
+  main {
+    min-width: 0;
+  }
+  input, select, textarea {
+    font-size: 16px;
+  }
+  button, a, input, select, textarea, summary {
+    touch-action: manipulation;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
