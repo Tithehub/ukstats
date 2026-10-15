@@ -13,7 +13,7 @@ import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import type { SponsorBannerRow } from "@/lib/sponsor-visibility";
 import { Button } from '@/components/ui/button';
-import { Search, ArrowRight, Globe2 } from 'lucide-react';
+import { Search, ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 
