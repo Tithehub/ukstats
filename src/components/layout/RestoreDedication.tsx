@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/restore-britain-logo.png.asset.json";
 import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 import { FundingLegalNotice } from "@/components/FundingLegalNotice";
+import { SLOGAN } from "@/lib/brand";
 
 
 /** Independent dedication, never a paid sponsor placement. */
