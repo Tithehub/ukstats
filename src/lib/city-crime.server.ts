@@ -106,7 +106,7 @@ async function ukBoard(): Promise<CityCrimeBoard> {
     };
     const file = version.downloads?.[0]?.file;
     if (!file) throw new Error('No workbook');
-    const files = unzipSync(await (await request(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`)).arrayBuffer()) as unknown as Record<string, Uint8Array>;
+    const files = unzipSync(new Uint8Array(await (await request(`https://www.ons.gov.uk/file?uri=${versionUri}/${file}`)).arrayBuffer())) as unknown as Record<string, Uint8Array>;
     const { sheets, shared } = readSheets(files);
     const c4 = sheets.get('Table C4');
     const notes = sheets.get('Notes - CSP');
