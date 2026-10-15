@@ -1,5 +1,10 @@
 # Roadmap
 
+## Current usability and speed pass
+- [ ] Simplify home and navigation around finding, comparing and using official figures
+- [ ] Improve register search, small-screen controls and loading/error feedback
+- [ ] Remove avoidable slow requests and verify main journeys at phone, tablet and desktop widths
+
 - [x] SEO: og:url/canonical, headings, sitemap.xml + robots.txt
 - [x] Remove the "Edit with Lovable" badge from the published site
 - [x] Crime: all published offence groups + per-population rates (ONS/Home Office PFA tables)
