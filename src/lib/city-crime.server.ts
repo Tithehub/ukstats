@@ -1,7 +1,7 @@
 import { unzipSync, strFromU8 } from 'fflate';
 import { agencyGroups } from './agencies';
 import { countryByCode } from './countries';
-import { parseCanadianCities, parseUkCspRates, unassignedRecordedNames, type CityCrimeBoard, type UkCspRow } from './city-crime';
+import { fbiLimitedDataStates, parseCanadianCities, parseFbiCities, parseUkCspRates, unassignedRecordedNames, type CityCrimeBoard, type FbiCityRow, type UkCspRow } from './city-crime';
 
 const STATCAN = 'https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3510002601';
 const ONS_PFA = '/peoplepopulationandcommunity/crimeandjustice/datasets/policeforceareadatatables';

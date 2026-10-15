@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { cityTopTens, parseCanadianCities, parseUkCspRates, unassignedRecordedNames, type UkCspRow } from './city-crime';
+import { cityTopTens, fbiLimitedDataStates, parseCanadianCities, parseFbiCities, parseUkCspRates, unassignedRecordedNames, type FbiCityRow, type UkCspRow } from './city-crime';
 const fixture = (missing = false) => 'REF_DATE,GEO,DGUID,Statistics,VALUE,STATUS,UOM\n' + Array.from({length:25},(_,i) => `2025,"City ${i}, Province [${i}]",2021A0035${i},Crime severity index,${missing && i===0 ? '' : i},,Index`).join('\n');
 
 const ukFixture = (n = 25): UkCspRow[] => Array.from({length:n},(_,i)=>({name:`Area ${i}`,code:`E220000${String(i).padStart(2,'0')}`,rawValue:String(20+i)}));
+
+const fbiFixture = (): FbiCityRow[] => Array.from({length:25},(_,i)=>({state:'California',city:`City ${i}`,population:'100000',violent:String(100+i)}));
 
 describe('official city crime rankings', () => {
  it('shows exactly ten lowest and ten highest city values', () => { const data=parseCanadianCities(fixture());const lists=cityTopTens(data.rows);expect(data.period).toBe('2025');expect(lists.lowest.map(r=>r.value)).toEqual([0,1,2,3,4,5,6,7,8,9]);expect(lists.highest.map(r=>r.value)).toEqual([24,23,22,21,20,19,18,17,16,15]); });
