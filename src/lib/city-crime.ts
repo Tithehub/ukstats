@@ -1,7 +1,9 @@
 import { COUNTRIES } from './countries';
 export const CRIME_COUNTRIES = [{ code: 'uk', name: 'United Kingdom' }, ...COUNTRIES.map(c => ({ code: c.code, name: c.name }))];
+/** Countries with a live, verified town/city ranking feed. Shown on /safest-places as coverage at a glance. */
+export const CRIME_COVERAGE = ['uk', 'us', 'ca'];
 export type CityCrimeRow = { name: string; code: string; value: number };
-export type CityCrimeBoard = { code: string; period: string | null; published: string | null; metric: string; unit: string; geography: string; source: string; sourceUrl: string; next: string; rows: CityCrimeRow[]; reason: string | null };
+export type CityCrimeBoard = { code: string; period: string | null; published: string | null; metric: string; unit: string; geography: string; source: string; sourceUrl: string; next: string; rows: CityCrimeRow[]; reason: string | null; note?: string | null };
 
 /** Quoted CSV fields may contain commas, escaped quotes or newlines. */
 export function csvRows(text: string): string[][] {
