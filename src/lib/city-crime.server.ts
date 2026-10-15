@@ -173,10 +173,11 @@ async function loadFbiCities(): Promise<Partial<CityCrimeBoard>> {
   const t8 = Object.keys(files).find(f => /CIUS_Table_8_.*\.xlsx$/.test(f));
   if (!t8 || !files[t8]) throw new Error('Official table not found');
 
-  const { sheets, shared } = readSheets(files);
+  const inner = unzipSync(files[t8]!) as unknown as Record<string, Uint8Array>;
+  const { sheets, shared } = readSheets(inner);
   const sheetPath = [...sheets.values()].find(Boolean);
-  if (!sheetPath || !files[sheetPath]) throw new Error('Official table not found');
-  const rows = sheetRows(files, sheetPath, shared);
+  if (!sheetPath || !inner[sheetPath]) throw new Error('Official table not found');
+  const rows = sheetRows(inner, sheetPath, shared);
   const headerRow = [...rows.entries()].find(([, c]) => /state/i.test(c['A'] ?? '') && /city/i.test(c['B'] ?? '') && /population/i.test(c['C'] ?? ''));
   if (!headerRow) throw new Error('Official table format has changed');
 
