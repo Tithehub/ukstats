@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Temporary funding pause
-- [ ] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
-- [ ] Verify paused payment and donation pages
+- [x] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
+- [x] Verify paused payment and donation pages (policy test passed; both pages checked in browser; build OK)
 - [ ] Publish the funding pause (awaiting request to publish)
 
 ## Restore Britain dedication and colours
