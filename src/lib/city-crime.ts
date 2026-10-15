@@ -79,8 +79,9 @@ export function parseUkCspRates(rows: UkCspRow[], opts: { excluded?: string[] } 
     if (!name || !r.code || /^unassigned/i.test(name)) continue;
     if (blocked.has(name.toLowerCase())) continue;
     const raw = r.rawValue?.trim() ?? '';
+    if (raw.startsWith('[')) continue; // publisher marker ([x]/[u1]): no rate is presented for this area, e.g. City of London
     const value = Number(raw);
-    if (!raw || !Number.isFinite(value) || value < 0) return { rows: [], reason: 'A published area rate is missing or marked unavailable. No partial ranking is shown.' };
+    if (!raw || !Number.isFinite(value) || value < 0) return { rows: [], reason: 'A published area rate is missing. No partial ranking is shown.' };
     if (value < 1) return { rows: [], reason: 'The published table contains an area whose rate contradicts its own recorded counts (crimes recorded under an unassigned group). No ranking is shown rather than a misleading "safest" list.' };
     out.push({ name, code: r.code, value });
   }
