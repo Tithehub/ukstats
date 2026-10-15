@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Search, ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
+import { SLOGAN } from "@/lib/brand";
 
 const statsQuery = queryOptions<StatsPayload>({
   queryKey: ["uk-stats"],
@@ -49,17 +50,15 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "UKStats — the UK in numbers, live from official sources" },
+      { title: "UKStats — Built by the people, for the people" },
       {
         name: "description",
-        content:
-          "Live UK official statistics at a glance: debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.",
+        content: `${SLOGAN}. Live UK official statistics at a glance: debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.`,
       },
-      { property: "og:title", content: "UKStats — the UK in numbers, live from official sources" },
+      { property: "og:title", content: "UKStats — Built by the people, for the people" },
       {
         property: "og:description",
-        content:
-          "Key UK indicators and official alert levels on one calm page, every figure timestamped and embeddable. Nothing estimated.",
+        content: `${SLOGAN}. Every figure timestamped, sourced and embeddable. Nothing estimated.`,
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/" },
@@ -153,7 +152,7 @@ function Home() {
             <div>
               <p className="mb-3 font-mono text-xs text-electric-soft">Official statistics · UK & worldwide</p>
               <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl">UKStats</h1>
-              <p className="mt-3 text-xl text-night-fg">The numbers. The source. The full picture.</p>
+              <p className="mt-3 text-xl text-night-fg">{SLOGAN}</p>
             </div>
             <p className="max-w-xl text-sm leading-relaxed text-night-muted">Debt, prices, crime, migration and more — from official publishers. Every figure dated. Nothing guessed.</p>
             <form action="/register" method="get" role="search" className="flex max-w-xl flex-wrap gap-2">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/restore-britain-logo.png.asset.json";
 import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 import { FundingLegalNotice } from "@/components/FundingLegalNotice";
+import { SLOGAN } from "@/lib/brand";
 
 
 /** Independent dedication, never a paid sponsor placement. */
@@ -14,6 +15,7 @@ export function RestoreDedication() {
         <img src={logoAsset.url} alt="Restore Britain" width={589} height={263} loading="lazy" className="h-auto w-full max-w-[260px]" />
         <div className="min-w-0">
           <h2 id="restore-dedication-title" className="text-xl font-semibold leading-snug text-balance sm:text-2xl">For Rupert Lowe, the Restore Britain team, and the people</h2>
+          <p className="mt-2 max-w-3xl text-sm font-medium text-balance">{SLOGAN}</p>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed">
             UKStats was built independently as a free resource for Rupert Lowe, the Restore Britain team, and the public. Access to the statistics is free of charge. {FUNDING_PAUSED ? FUNDING_PAUSE_MESSAGE : "Funding comes from voluntary donations and clearly labelled business sponsorships, giving local businesses a place to share their details and supporting their visibility and growth."}
           </p>
