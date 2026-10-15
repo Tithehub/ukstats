@@ -3,6 +3,9 @@
 ## Town and city crime rankings
 - [x] Add country selector and verified Canadian city-area lowest/highest ten lists from the official 2025 Crime Severity Index
 - [x] Link rankings from country pages and navigation, explain coverage gaps and validate real-source results
+- [x] UK rankings live: ONS Police Force Area Table C4 recorded-crime rates per 1,000 by Community Safety Partnership (England and Wales; Kent unassigned-IT areas and City of London excluded per the publisher's own notes)
+- [x] US rankings live: FBI Crime in the United States Table 8, violent crime per 100,000 for cities of 10,000+, limited-data states excluded per FBI footnotes (2025 data)
+- [x] Coverage line on /safest-places listing the three connected countries
 - [ ] Populate remaining countries (requires verified, comparable town/city datasets; current regional/capital-only feeds cannot establish national city top tens)
 
 ## Current usability and speed pass
