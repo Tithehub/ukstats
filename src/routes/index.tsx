@@ -13,7 +13,7 @@ import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import type { SponsorBannerRow } from "@/lib/sponsor-visibility";
 import { Button } from '@/components/ui/button';
-import { Search, ArrowRight, Globe2 } from 'lucide-react';
+import { Search, ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 
@@ -164,6 +164,7 @@ function Home() {
             <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
               <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
+              <Button asChild variant="ghost"><Link to="/safest-places" search={{ country: 'uk' }}><ShieldCheck />Safest places</Link></Button>
             </div>
             {debt ? (
               <p className="font-mono text-[11px] text-night-muted">
@@ -182,6 +183,7 @@ function Home() {
         <div className="mt-6"><VitalSigns metrics={metrics} /></div>
         <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">
           <Link to="/daily" className="inline-flex min-h-11 items-center">Latest releases →</Link>
+          <Link to="/safest-places" search={{ country: 'uk' }} className="inline-flex min-h-11 items-center">Safest places →</Link>
           <Link to="/compare-countries" search={{ metric: 'hicp' }} className="inline-flex min-h-11 items-center">Compare countries →</Link>
           <Link to="/widget" className="inline-flex min-h-11 items-center">Embed a figure →</Link>
         </nav>
