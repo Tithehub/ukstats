@@ -13,7 +13,7 @@ export function CityCrimeRankings({code}:{code:string}) {
   <dl className="mt-5 grid gap-x-8 gap-y-4 border-y border-night-line py-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
    <div><dt className="text-night-muted">Measure</dt><dd className="mt-1">{data.metric}{data.unit ? <span className="mt-1 block text-xs text-night-muted">{data.unit}</span>:null}</dd></div>
    <div><dt className="text-night-muted">Reference period</dt><dd className="mt-1">{data.period ?? 'Not available'}</dd></div>
-   <div><dt className="text-night-muted">Published / age</dt><dd className="mt-1">{data.published ? <>{fmtDate(data.published)}<ClockText as="span" className="mt-1 block text-xs text-night-muted" render={()=>`${Math.max(0,Math.floor((Date.now()-Date.parse(data.published ?? ''))/86_400_000))} days since publication`} /></>:'Not available'}</dd></div>
+   <div><dt className="text-night-muted">Published / age</dt><dd className="mt-1">{data.published ? <>{fmtDate(data.published)}<span className="mt-1 block text-xs text-night-muted"><ClockText>{Math.max(0,Math.floor((Date.now()-Date.parse(data.published))/86_400_000))} days since publication</ClockText></span></>:'Not available'}</dd></div>
    <div><dt className="text-night-muted">Next release</dt><dd className="mt-1">{data.next}</dd></div>
   </dl>
   <p className="mt-4 text-sm text-night-muted">{data.geography}{data.rows.length ? ` · ${data.rows.length} city areas in the published table` : ''}</p>
