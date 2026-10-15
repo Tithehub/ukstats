@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
 import { SponsorStrip } from "@/components/SponsorStrip";
 import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
+import { RestoreDedication } from "./RestoreDedication";
 
 const COLUMNS = [
   {
@@ -102,6 +103,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
           {fetchedAt ? <span>Last pull {new Date(fetchedAt).toLocaleString("en-GB", { timeZone: "Europe/London" })}</span> : null}
         </div>
       </div>
+      <RestoreDedication />
     </footer>
   );
 }
