@@ -164,6 +164,7 @@ function Home() {
             <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
               <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
+              <Button asChild variant="ghost"><Link to="/safest-places"><ShieldCheck />Safest places</Link></Button>
             </div>
             {debt ? (
               <p className="font-mono text-[11px] text-night-muted">
