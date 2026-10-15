@@ -1,8 +1,9 @@
 # Roadmap
 
 ## Town and city crime rankings
-- [ ] Add country-selectable lowest/highest ten rankings from comparable official city crime data
-- [ ] Link rankings from country pages and navigation, explain coverage gaps and validate real-source results
+- [x] Add country selector and verified Canadian city-area lowest/highest ten lists from the official 2025 Crime Severity Index
+- [x] Link rankings from country pages and navigation, explain coverage gaps and validate real-source results
+- [ ] Populate remaining countries (requires verified, comparable town/city datasets; current regional/capital-only feeds cannot establish national city top tens)
 
 ## Current usability and speed pass
 - [x] Simplify home and navigation around finding, comparing and using official figures
