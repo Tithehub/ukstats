@@ -4,6 +4,7 @@
 - [x] Add Marco's whole-site donation message and verify every crypto address, QR code and donation control is hidden (browser verified; both policy tests passed)
 - [x] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
 - [x] Verify paused payment and donation pages (policy test passed; both pages checked in browser; build OK)
+- [x] Add the legal statement that donations and sponsorships are on hold until the full legal due diligence process is completed and the site stays completely free (policy test added; shown in the footer dedication on every page plus /support, /advertise, /sponsors and the sponsor dashboard)
 - [ ] Publish the funding pause (awaiting request to publish)
 
 ## Restore Britain dedication and colours

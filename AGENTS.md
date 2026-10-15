@@ -31,5 +31,5 @@
 - Use PageFeedback for shared loading and recoverable data errors and keep automatic link preloading disabled; this gives explicit feedback without fetching large data collections for incidental pointer movement.
 - Router dehydrate/hydrate serializes the successful Query cache per request; data pages must not re-download loader results before their controls can become interactive.
 - Public sponsor displays read only payments-env, never the Stripe SDK; this prevents payment scripts from loading on statistics-only pages.
-- Funding availability is governed by src/lib/funding-policy.ts in both checkout handlers and payment/donation UI; retain configuration and existing subscription management so pausing new funding is reversible.
+- Funding availability and the legal hold statement live in src/lib/funding-policy.ts and render via FundingLegalNotice.tsx, so one flag pauses or resumes both; retain checkout and subscription setup so the pause is reversible.
 - City crime ranks use city-crime pure parsers and a POST server wrapper with official-source adapters; latest-year missing/suppressed cells block rankings, national/provincial totals and overlapping subareas are excluded, and unavailable countries never substitute regional or perception data.

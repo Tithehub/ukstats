@@ -3,6 +3,8 @@ import { ArrowRight, HeartHandshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/restore-britain-logo.png.asset.json";
 import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
+import { FundingLegalNotice } from "@/components/FundingLegalNotice";
+
 
 /** Independent dedication, never a paid sponsor placement. */
 export function RestoreDedication() {
@@ -15,7 +17,9 @@ export function RestoreDedication() {
           <p className="mt-4 max-w-3xl text-sm leading-relaxed">
             UKStats was built independently as a free resource for Rupert Lowe, the Restore Britain team, and the public. Access to the statistics is free of charge. {FUNDING_PAUSED ? FUNDING_PAUSE_MESSAGE : "Funding comes from voluntary donations and clearly labelled business sponsorships, giving local businesses a place to share their details and supporting their visibility and growth."}
           </p>
+          <FundingLegalNotice tone="plain" className="mt-4 max-w-3xl border-l-2 border-dedication-foreground/25 pl-4 text-sm leading-relaxed text-dedication-foreground" />
           <div className="mt-5 flex flex-wrap gap-3">
+
             {FUNDING_PAUSED ? <Button asChild variant="dedicationOutline"><Link to="/sponsors">Our sponsors<ArrowRight aria-hidden="true" /></Link></Button> : <>
               <Button asChild variant="dedication"><Link to="/advertise">Sponsor your local business<ArrowRight aria-hidden="true" /></Link></Button>
               <Button asChild variant="dedicationOutline"><Link to="/support"><HeartHandshake aria-hidden="true" />Donate</Link></Button>

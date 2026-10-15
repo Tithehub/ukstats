@@ -5,6 +5,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { availableDonationAddresses, DONATION_SUGGESTIONS, qrSrc, type DonationAddress } from "@/lib/donate";
 import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
+import { FundingLegalNotice } from "@/components/FundingLegalNotice";
+
 
 export const Route = createFileRoute("/support")({
   head: () => ({
@@ -180,7 +182,9 @@ function SupportPage() {
               <p className="mt-2 text-sm leading-relaxed text-night-muted">I have donated the whole UKStats site to Restore Britain, for Rupert Lowe, the team and the people, free of charge. — Marco Mead</p>
               <p role="status" className="mt-2 text-sm leading-relaxed text-night-muted">{FUNDING_PAUSE_MESSAGE}</p>
               <p className="mt-2 text-sm leading-relaxed text-night-muted">All crypto donation addresses, QR codes and donation buttons are hidden. Please do not send donations to previously shared wallet addresses.</p>
+              <FundingLegalNotice tone="plain" className="mt-3 text-sm leading-relaxed text-night-muted" />
             </div>
+
           ) : donationAddresses.length ? (
             donationAddresses.map((a) => <AddressCard key={a.symbol + a.address} a={a} />)
           ) : (

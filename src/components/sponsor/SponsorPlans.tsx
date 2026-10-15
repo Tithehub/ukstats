@@ -19,6 +19,8 @@ import type { SponsorPriceId } from "@/lib/sponsor-plans";
 import { hasSponsorshipDetails } from "@/lib/sponsor-plans";
 import { Button } from "@/components/ui/button";
 import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
+import { FundingLegalNotice } from "@/components/FundingLegalNotice";
+
 
 const PLANS = [
   { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter", "Text line only — banner pictures come with the Sponsor plan"] },
@@ -135,6 +137,8 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-electric">Your sponsorship</p>
       <p className="mt-1 text-sm">Plan: <strong>{s?.plan ?? data.sub?.price_id.replace("_", " ")}</strong> · Status: <strong>{status}</strong></p>
       <p className="mt-2 text-xs text-night-muted">Changes need approval before appearing on the site. Editing does not change your payment.</p>
+      <FundingLegalNotice className="mt-3" />
+
       {s ? (
         <form
           className="mt-4 grid gap-3 sm:grid-cols-2"
@@ -217,6 +221,8 @@ export function SponsorPlans() {
   return (
     <div>
       {FUNDING_PAUSED ? <p role="status" className="mt-4 border-l-2 border-electric pl-4 text-sm text-night-muted">{FUNDING_PAUSE_MESSAGE} Existing sponsors can still edit their details and manage or cancel their subscription.</p> : null}
+      <FundingLegalNotice className="mt-3" />
+
       <div className="mt-4 inline-flex rounded-lg border border-night-line p-1 text-sm" role="group" aria-label="Billing period">
         {[["Monthly", false], ["Yearly — 2 months free", true]].map(([l, v]) => (
           <button key={String(l)} type="button" aria-pressed={yearly === v} onClick={() => setYearly(v as boolean)} className={`rounded-md px-3 py-1.5 ${yearly === v ? "bg-electric text-night" : "text-night-muted"}`}>{l as string}</button>
