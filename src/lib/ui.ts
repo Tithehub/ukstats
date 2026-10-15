@@ -31,7 +31,7 @@ const BASE =
 
 // min-h keeps the hit area comfortable on touch even when the label is tiny.
 const SIZES: Record<ButtonSize, string> = {
-  sm: "min-h-9 px-2.5 py-1.5 text-[12px]",
+  sm: "min-h-11 px-2.5 py-1.5 text-[12px]",
   md: "min-h-11 px-3.5 py-2.5 text-[13px]",
 };
 

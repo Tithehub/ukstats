@@ -30,7 +30,7 @@ export function VitalSigns({ metrics }: { metrics: Metric[] }) {
           Pinned figures, each straight from its issuing body
         </p>
       </div>
-      <ul className="grid grid-cols-1 divide-night-line/50 min-[420px]:grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
+      <ul className="flex snap-x snap-mandatory overflow-x-auto divide-night-line/50 md:grid md:grid-cols-4 xl:grid-cols-8">
         {fallback.map((m) => {
           const body = (
             <>
@@ -44,7 +44,7 @@ export function VitalSigns({ metrics }: { metrics: Metric[] }) {
             </>
           );
           return (
-            <li key={m.id} className="border-b border-night-line/40 px-4 py-3 md:border-b-0 md:border-r last:md:border-r-0">
+            <li key={m.id} className="w-48 shrink-0 snap-start border-r border-night-line/40 px-4 py-3 md:w-auto md:min-w-0 last:border-r-0">
               {m.hasHistory ? (
                 <Link
                   to="/history/$metricId"

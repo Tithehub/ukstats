@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Activity,
@@ -21,12 +21,15 @@ import {
   Table2,
   Vote,
   X,
+  Search,
+  Globe2,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/useAuth";
 import { btn, iconBtn } from "@/lib/ui";
 import { useIsAdmin } from "@/lib/useIsAdmin";
+import { Button } from '@/components/ui/button';
 
 interface NavItem {
   to: string;
@@ -37,10 +40,10 @@ interface NavItem {
 /** Grouped so the drawer reads by theme rather than as one long list. */
 const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
   {
-    name: "Data",
+    name: "Explore statistics",
     items: [
       { to: "/", label: "Home", icon: Home },
-      { to: "/register", label: "Full register", icon: Table2 },
+      { to: "/register", label: "UK statistics", icon: Table2 },
       { to: "/maps", label: "Maps", icon: MapIcon },
       { to: "/countries", label: "Countries", icon: MapIcon },
       { to: "/gold", label: "Gold reserves", icon: Banknote },
@@ -49,11 +52,11 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/daily", label: "Daily statement", icon: CalendarDays },
       { to: "/compare", label: "Compare figures", icon: GitCompareArrows },
       { to: "/calendar", label: "Release calendar", icon: CalendarDays },
-      { to: "/status", label: "Feed health", icon: Activity },
+      { to: "/status", label: "Source availability", icon: Activity },
     ],
   },
   {
-    name: "Analysis",
+    name: "Understand the numbers",
     items: [
       { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
       { to: "/foreign-aid", label: "Foreign aid", icon: Plane },
@@ -62,7 +65,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
     ],
   },
   {
-    name: "Tools",
+    name: "Use & share",
     items: [
       { to: "/widget", label: "Widgets", icon: LayoutGrid },
       { to: "/create", label: "Create a live page", icon: PlusCircle },
@@ -70,19 +73,18 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/outreach", label: "Outreach", icon: Bot },
       { to: "/connections", label: "Connect socials", icon: Plug },
       { to: "/support", label: "Support", icon: LifeBuoy },
+      { to: "/sponsors", label: "Our sponsors", icon: LifeBuoy },
+      { to: "/sponsor-dashboard", label: "My sponsorship", icon: FileText },
     ],
   },
 ];
 
 /** The few links that stay on the desktop bar; everything else lives in the menu. */
 const PRIMARY: NavItem[] = [
-  { to: "/register", label: "Data", icon: Table2 },
-  { to: "/daily", label: "Daily", icon: CalendarDays },
+  { to: "/register", label: "UK statistics", icon: Table2 },
+  { to: "/countries", label: "World", icon: Globe2 },
   { to: "/maps", label: "Maps", icon: MapIcon },
-
-  { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
-  { to: "/polling", label: "Polling", icon: Vote },
-  { to: "/countries", label: "Countries", icon: MapIcon },
+  { to: "/compare-countries", label: "Compare", icon: GitCompareArrows },
 ];
 
 export function Wordmark() {
@@ -103,6 +105,8 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { signedIn, user } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const pathname = useRouterState({ select: state => state.location.pathname });
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   // Lock the page behind the drawer and close it on Escape.
   useEffect(() => {
@@ -119,6 +123,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-night-line/60 bg-night/85 backdrop-blur-md">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-3 focus:text-primary-foreground">Skip to content</a>
       <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-4 py-2.5 sm:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-6">
           <Wordmark />
@@ -129,7 +134,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
                 to={n.to}
                 activeOptions={{ exact: n.to === "/" }}
                 activeProps={{ className: "text-night-fg bg-night-panel" }}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
               >
                 <n.icon className="size-4" aria-hidden="true" />
                 {n.label}
@@ -139,7 +144,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               <Link
                 to="/agents"
                 activeProps={{ className: "text-night-fg bg-night-panel" }}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
               >
                 <Bot className="size-4" aria-hidden="true" />
                 Agents
@@ -149,6 +154,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Button asChild variant="ghost" size="icon" title="Find a statistic"><Link to="/register" aria-label="Find a statistic"><Search /></Link></Button>
           {status ? (
             <span className="hidden items-center gap-2 rounded-full border border-night-line/70 px-3 py-1.5 font-mono text-[11px] text-night-muted xl:inline-flex">
               {status}
@@ -156,7 +162,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
           ) : null}
           <ThemeToggle />
           {signedIn ? (
-            <button
+            <Button
               type="button"
               onClick={() => void supabase.auth.signOut()}
               className={btn("ghost", "sm", "max-sm:hidden")}
@@ -164,18 +170,19 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             >
               <LogOut className="size-4" aria-hidden="true" />
               Sign out
-            </button>
+            </Button>
           ) : (
             <Link to="/auth" className={btn("ghost", "sm", "max-sm:hidden")}>
               <LogIn className="size-4" aria-hidden="true" />
               Sign in
             </Link>
           )}
-          <Link to="/create" className={btn("primary", "sm", "max-sm:hidden")}>
-            <PlusCircle className="size-4" aria-hidden="true" />
-            Create live page
+          <Link to="/widget" className={btn("secondary", "sm", "max-xl:hidden")}>
+            <LayoutGrid className="size-4" aria-hidden="true" />
+            Embed figures
           </Link>
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
@@ -184,23 +191,24 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             className={iconBtn()}
           >
             {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
-          </button>
+          </Button>
         </div>
       </div>
 
       {open ? (
         <>
-          <button
+          <Button
+            variant="ghost"
             type="button"
             aria-hidden="true"
             tabIndex={-1}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 top-[57px] z-30 cursor-default bg-night/70 backdrop-blur-sm"
+            className="fixed inset-0 top-[65px] z-30 h-auto w-auto rounded-none cursor-default bg-night/70 backdrop-blur-sm"
           />
           <nav
             id="site-menu"
             aria-label="All pages"
-            className="relative z-40 max-h-[calc(100dvh-57px)] overflow-y-auto border-t border-night-line/60 bg-night px-4 pb-6 pt-4 sm:px-6"
+            className="relative z-40 max-h-[calc(100dvh-65px)] overflow-y-auto border-t border-night-line/60 bg-night px-4 pb-6 pt-4 sm:px-6"
           >
             <div className="mx-auto grid max-w-[1280px] gap-6 sm:grid-cols-3">
               {NAV_GROUPS.map((g) => (
@@ -248,7 +256,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               Create live page
             </Link>
             {signedIn ? (
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   setOpen(false);
@@ -258,7 +266,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               >
                 <LogOut className="size-4" aria-hidden="true" />
                 Sign out{user?.email ? ` (${user.email})` : ""}
-              </button>
+              </Button>
             ) : (
               <Link to="/auth" onClick={() => setOpen(false)} className={btn("secondary", "md", "mt-2 w-full sm:hidden")}>
                 <LogIn className="size-4" aria-hidden="true" />

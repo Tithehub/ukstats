@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { themeBootScript } from "@/components/layout/ThemeToggle";
+import { useRouterState } from '@tanstack/react-router';
 
 function NotFoundComponent() {
   return (
@@ -134,9 +135,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const loading = useRouterState({ select: state => state.status === 'pending' });
 
   return (
     <QueryClientProvider client={queryClient}>
+      {loading ? <div role="status" aria-label="Loading page" className="fixed inset-x-0 top-0 z-50 h-1 bg-primary motion-safe:animate-pulse" /> : null}
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

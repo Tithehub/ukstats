@@ -24,3 +24,9 @@
 
 
 - Server functions must use method "POST", never "GET": GET server-function responses hang forever on the live edge runtime (POST reaches the handler fine), which left the home page frozen pre-hydration.
+- Read the stored official UK payload before launching publisher collection and serve lastGood during refresh; this keeps a cold request from starving its own cache lookup and repeat visitors from waiting on a refresh.
+- Shared request-pool helpers hold slots through response-body consumption; Eurostat uses four slots to leave headroom for national feeds and failed or unused responses are cancelled to avoid stalled connections.
+- Register search and category filters live in URL search parameters and use the shared stat-search matcher; this keeps results shareable and browser Back restores the selection.
+- Use PageFeedback for shared loading and recoverable data errors and keep automatic link preloading disabled; this gives explicit feedback without fetching large data collections for incidental pointer movement.
+- Router dehydrate/hydrate serializes the successful Query cache per request; data pages must not re-download loader results before their controls can become interactive.
+- Public sponsor displays read only payments-env, never the Stripe SDK; this prevents payment scripts from loading on statistics-only pages.

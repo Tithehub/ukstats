@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { readPaymentsEnvironment } from "@/lib/payments-env";
 import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 
 /** Clearly-labelled sponsor line. Never render inside figure cards, embeds, widgets or share images. */
@@ -12,7 +12,9 @@ export function SponsorStrip({ placement = "footer" }: { placement?: string }) {
     // must leave the invitation showing, never break the page.
     let environment: string;
     try {
-      environment = getStripeEnvironment();
+      const currentEnvironment = readPaymentsEnvironment();
+      if (!currentEnvironment) return;
+      environment = currentEnvironment;
     } catch {
       return;
     }

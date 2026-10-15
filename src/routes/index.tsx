@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
-import { CATEGORIES, COST_GROUPS, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
+import { CATEGORIES, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { VitalSigns } from "@/components/VitalSigns";
 import { ShareRow } from "@/components/ShareRow";
 import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
@@ -12,6 +12,9 @@ import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import type { SponsorBannerRow } from "@/lib/sponsor-visibility";
+import { Button } from '@/components/ui/button';
+import { Search, ArrowRight, Globe2 } from 'lucide-react';
+import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -64,8 +67,10 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://ukstats.co.uk/og/home.jpg" },
     ],
-    links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }],
+    links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }, { rel: "preload", as: "image", href: heroNetwork, fetchPriority: "high" }],
   }),
+  errorComponent: PageLoadError,
+  notFoundComponent: PageNotFound,
   component: Home,
 });
 
@@ -132,58 +137,33 @@ function Home() {
       />
 
 
-      <main className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
-        {/* Vital signs */}
-        <div className="pt-4 pb-4">
-          <VitalSigns metrics={metrics} />
-        </div>
-
-        {/* Today's written statement */}
-        <Link
-          to="/daily"
-          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-night-line/60 bg-night-panel/40 px-4 py-3 transition-colors hover:border-electric focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
-        >
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">Daily statement</span>
-          <span className="text-[14px] text-night-fg/90">
-            What was published today, written down and kept in public history
-          </span>
-          <span className="font-mono text-[11px] text-night-muted">Read the archive →</span>
-        </Link>
-
-
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl border border-night-line/50">
+        <section className="relative mt-5 overflow-hidden border-b border-night-line/50">
           <img
             src={heroNetwork}
             alt=""
+            fetchPriority="high"
             width={1408}
             height={1024}
             className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-70 sm:w-[62%]"
           />
           <div className="absolute inset-0 bg-linear-to-r from-night via-night/90 to-night/20" />
-          <div className="relative grid gap-6 px-6 py-14 sm:px-10 sm:py-20 lg:max-w-[58%]">
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-5xl">
-              The UK in numbers,
-              <br />
-              <span className="text-electric">live from the source</span>
-            </h1>
-            <p className="max-w-xl text-[15px] leading-relaxed text-night-muted text-pretty">
-              Official statistics from the ONS, Home Office, Police.uk, HM Land Registry, MOD and the Met Office —
-              gathered at request time, never estimated, every figure carrying its age and next release date.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 rounded-md bg-electric px-4 py-2.5 text-[13px] font-medium text-night transition-opacity hover:opacity-90"
-              >
-                Explore the full register →
-              </Link>
-              <Link
-                to="/widget"
-                className="inline-flex items-center gap-2 rounded-md border border-night-line px-4 py-2.5 text-[13px] font-medium text-night-fg transition-colors hover:border-electric"
-              >
-                Build an embeddable widget
-              </Link>
+          <div className="relative grid gap-5 px-2 py-8 sm:px-6 sm:py-10 lg:max-w-[65%]">
+            <div>
+              <p className="mb-3 font-mono text-xs text-electric-soft">Official statistics · UK & worldwide</p>
+              <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl">UKStats</h1>
+              <p className="mt-3 text-xl text-night-fg">The numbers. The source. The full picture.</p>
+            </div>
+            <p className="max-w-xl text-sm leading-relaxed text-night-muted">Debt, prices, crime, migration and more — from official publishers. Every figure dated. Nothing guessed.</p>
+            <form action="/register" method="get" role="search" className="flex max-w-xl flex-wrap gap-2">
+              <label className="sr-only" htmlFor="home-stat-search">Find a UK statistic</label>
+              <div className="relative min-w-0 flex-1 basis-48"><Search aria-hidden="true" className="absolute left-3 top-3.5 size-4 text-muted-foreground" /><input id="home-stat-search" name="q" type="search" placeholder="Find debt, inflation, crime…" className="min-h-11 w-full rounded-md border border-input bg-background py-2 pr-3 pl-10 text-foreground" /></div>
+              <Button type="submit"><ArrowRight aria-hidden="true" />Find figures</Button>
+            </form>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
+              <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
             </div>
             {debt ? (
               <p className="font-mono text-[11px] text-night-muted">
@@ -199,43 +179,12 @@ function Home() {
           <SponsorBanner variant="hero" initialRows={sponsors} />
         </div>
 
-        {/* Around the world */}
-        <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-night-line/50 bg-night-panel/40 px-5 py-4">
-          <p className="max-w-xl text-[13px] leading-relaxed text-night-muted text-pretty">
-            <span className="font-semibold text-night-fg">Around the world:</span> the same treatment for 33 countries —
-            Europe live from Eurostat, plus the US, Canada and Australia from their own official publishers.
-          </p>
-          <div className="flex flex-wrap gap-2 font-mono text-[12px]">
-            <Link to="/countries" className="rounded-md border border-night-line px-3 py-1.5 text-night-fg transition-colors hover:border-electric">All countries →</Link>
-            <Link to="/compare-countries" search={{ metric: "hicp" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-fg transition-colors hover:border-electric">Compare</Link>
-            <Link to="/$country" params={{ country: "fr" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-muted transition-colors hover:border-electric hover:text-night-fg">France</Link>
-            <Link to="/$country" params={{ country: "de" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-muted transition-colors hover:border-electric hover:text-night-fg">Germany</Link>
-            <Link to="/$country" params={{ country: "us" }} className="rounded-md border border-night-line px-3 py-1.5 text-night-muted transition-colors hover:border-electric hover:text-night-fg">United States</Link>
-          </div>
-        </section>
-
-        {/* Capability strip */}
-        <section className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-night-line/50 bg-night-line/50 sm:grid-cols-3">
-          {[
-            {
-              title: "Live dashboards",
-              body: "One page pulling every connected official feed, refreshed on request.",
-            },
-            {
-              title: "Embeddable widgets",
-              body: "Drop any figure or the alert board into your own site with one iframe.",
-            },
-            {
-              title: "Shareable live pages",
-              body: "Publish a timed snapshot link that keeps updating while it is live.",
-            },
-          ].map((c) => (
-            <div key={c.title} className="bg-night-panel/60 p-5">
-              <h2 className="text-sm font-semibold text-night-fg">{c.title}</h2>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-night-muted text-pretty">{c.body}</p>
-            </div>
-          ))}
-        </section>
+        <div className="mt-6"><VitalSigns metrics={metrics} /></div>
+        <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">
+          <Link to="/daily" className="inline-flex min-h-11 items-center">Latest releases →</Link>
+          <Link to="/compare-countries" search={{ metric: 'hicp' }} className="inline-flex min-h-11 items-center">Compare countries →</Link>
+          <Link to="/widget" className="inline-flex min-h-11 items-center">Embed a figure →</Link>
+        </nav>
 
         {/* Key indicators */}
         <section className="mt-10">
@@ -269,37 +218,16 @@ function Home() {
           </section>
         ) : null}
 
-        {/* Cost of living */}
-        <section className="mt-10">
-          <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">Cost of living, by category</h2>
-            <p className="font-mono text-[11px] text-night-muted">
-              ONS consumer price series, each with its full published history back to the first release.
-            </p>
-          </div>
-          <div className="space-y-3">
-            {COST_GROUPS.map((g, i) => (
-              <CategoryPanel
-                key={g.name}
-                title={g.name}
-                blurb={g.blurb}
-                defaultOpen={i === 0}
-                metrics={metrics.filter((m) => m.category === "Cost of living" && m.subcategory === g.name)}
-              />
-            ))}
-          </div>
-        </section>
-
         {/* Categories */}
         <section className="mt-10">
           <h2 className="mb-4 text-lg font-semibold tracking-tight">Browse by category</h2>
           <div className="space-y-3">
-            {PANELS.filter((p) => CATEGORIES.includes(p.category)).map((p, i) => (
+            {[{ category: "Cost of living" as Category, blurb: "Published prices, household costs and earnings." }, ...PANELS].filter((p) => CATEGORIES.includes(p.category)).map((p) => (
               <CategoryPanel
                 key={p.category}
                 title={p.category}
                 blurb={p.blurb}
-                defaultOpen={i === 0}
+                defaultOpen={false}
                 metrics={metrics.filter((m) => m.category === p.category && !m.scale)}
               />
             ))}

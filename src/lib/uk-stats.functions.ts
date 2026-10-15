@@ -35,7 +35,10 @@ async function getJson<T>(url: string, ms = 20_000): Promise<T> {
     const t = setTimeout(() => ctrl.abort(), ms);
     try {
       const res = await fetch(url, { headers: { accept: "application/json", ...UA }, signal: ctrl.signal });
-      if (!res.ok) throw new Error(`${res.status} ${url}`);
+      if (!res.ok) {
+        await res.body?.cancel();
+        throw new Error(`${res.status} ${url}`);
+      }
       return (await res.json()) as T;
     } finally {
       clearTimeout(t);
@@ -1271,7 +1274,10 @@ async function getText(url: string, ms = 20_000): Promise<string> {
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
     const res = await fetch(url, { headers: { ...UA }, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    if (!res.ok) {
+      await res.body?.cancel();
+      throw new Error(`${res.status} ${url}`);
+    }
     return await res.text();
   } finally {
     clearTimeout(t);
@@ -1577,7 +1583,10 @@ async function getBytes(url: string, ms = 25_000): Promise<Uint8Array> {
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
     const res = await fetch(url, { headers: { ...UA }, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    if (!res.ok) {
+      await res.body?.cancel();
+      throw new Error(`${res.status} ${url}`);
+    }
     return new Uint8Array(await res.arrayBuffer());
   } finally {
     clearTimeout(t);
@@ -2153,7 +2162,7 @@ async function nhsEnglandProbe(def: {
       signal: ctrl.signal,
     });
     clearTimeout(t);
-    if (res.status === 403 || res.status === 202) return base;
+    await res.body?.cancel();
     return base;
   } catch {
     return base;
@@ -2551,7 +2560,18 @@ async function readPersistedPayload(): Promise<StatsPayload | null> {
 
 export const getUkStats = createServerFn({ method: "POST" }).handler(async (): Promise<StatsPayload> => {
   const fresh = payloadCache && Date.now() - payloadCache.at < PAYLOAD_TTL;
-  if (payloadCache && fresh) return payloadCache.data;
+  if (payloadCache && fresh) return lastGood ?? payloadCache.data;
+
+  // Read the saved official snapshot before launching dozens of publisher
+  // requests: otherwise those requests can starve the cache lookup itself.
+  if (!lastGood) {
+    const persisted = await readPersistedPayload();
+    if (persisted) {
+      lastGood = persisted;
+      payloadCache = { at: Date.now(), data: Promise.resolve(persisted) };
+      return persisted;
+    }
+  }
 
   const start = () => {
     const data = collectStats();
@@ -2574,13 +2594,7 @@ export const getUkStats = createServerFn({ method: "POST" }).handler(async (): P
   // immediately rather than holding the page open on the publishers.
   const pending = start();
   if (lastGood) return lastGood;
-  // Cold start: serve the persisted snapshot if one exists, else wait (bounded
-  // by COLLECT_DEADLINE) for the live collection.
-  const persisted = await readPersistedPayload();
-  if (persisted) {
-    lastGood = persisted;
-    return persisted;
-  }
+  // No stored official snapshot exists; live collection remains bounded.
   return pending;
 });
 

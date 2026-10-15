@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type AlertTone, type Freshness, type Metric } from "@/lib/uk-stats";
 import { ClockText } from "@/components/ClockText";
+import { useState } from 'react';
 
 const freshDot: Record<Freshness, string> = {
   fresh: "bg-fresh",
@@ -61,7 +62,7 @@ export function Sparkline({ points, className = "" }: { points: number[]; classN
 export function IndicatorCard({ metric }: { metric: Metric }) {
   const known = metric.status === "ok" && metric.value != null;
   return (
-    <article className="rounded-xl border border-night-line/60 bg-night-panel/70 p-4">
+    <article className="min-w-0 rounded-lg border border-night-line/60 bg-night-panel/70 p-4">
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[13px] font-semibold leading-tight text-night-fg text-balance">{metric.title}</h3>
         <FreshnessPip metric={metric} />
@@ -82,7 +83,7 @@ export function IndicatorCard({ metric }: { metric: Metric }) {
 
       {metric.spark?.length > 1 ? <Sparkline points={metric.spark} className="mt-3" /> : <div className="mt-3 h-7" />}
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-night-line/50 pt-3 font-mono text-[10px] text-night-muted">
+      <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-night-line/50 pt-3 font-mono text-[11px] text-night-muted">
         <div className="col-span-2 truncate">
           <dt className="sr-only">Source</dt>
           <dd className="truncate">
@@ -179,10 +180,10 @@ export function AlertDial({ metric }: { metric: Metric }) {
         </svg>
         <div className="min-w-0">
           <p className="truncate font-mono text-lg font-semibold leading-tight text-night-fg">
-            {known ? (metric.value ?? steps[current]!.label) : "Not published"}
+            {known && current != null ? (metric.value ?? steps[current]?.label ?? "Not published") : "Not published"}
           </p>
           <p className="mt-0.5 font-mono text-[10px] text-night-muted">
-            {known ? `step ${current! + 1} of ${steps.length}` : "level not readable"}
+            {known && current != null ? `step ${current + 1} of ${steps.length}` : "level not readable"}
           </p>
         </div>
       </div>
@@ -209,18 +210,21 @@ export function CategoryPanel({
   metrics: Metric[];
   defaultOpen?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(defaultOpen);
   if (!metrics.length) return null;
-  const lead = metrics.find((m) => m.status === "ok" && m.value) ?? metrics[0]!;
+  const lead = metrics.find((m) => m.status === "ok" && m.value) ?? metrics[0];
+  if (!lead) return null;
   const live = metrics.filter((m) => m.status === "ok").length;
 
   return (
     <details
-      open={defaultOpen}
-      className="group overflow-hidden rounded-xl border border-night-line/60 bg-night-panel/40 open:bg-night-panel/70"
+      open={expanded}
+      onToggle={event => setExpanded(event.currentTarget.open)}
+      className="group border-b border-night-line/60"
     >
       <summary className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3.5 transition-colors hover:bg-night-panel/80 sm:flex sm:justify-between [&::-webkit-details-marker]:hidden">
         <div className="flex min-w-0 items-baseline gap-3">
-          <h3 className="truncate text-sm font-semibold text-night-fg">{title}</h3>
+          <h3 className="min-w-0 break-words text-sm font-semibold text-night-fg">{title}</h3>
           <span className="hidden shrink-0 font-mono text-[10px] text-night-muted sm:inline">
             {live} of {metrics.length} live
           </span>
@@ -247,14 +251,14 @@ export function CategoryPanel({
         </div>
       </summary>
 
-      <div className="border-t border-night-line/50 p-4">
+      {expanded ? <div className="border-t border-night-line/50 py-4">
         <p className="mb-4 font-mono text-[11px] text-night-muted">{blurb}</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {metrics.map((m) => (
             <IndicatorCard key={m.id} metric={m} />
           ))}
         </div>
-      </div>
+      </div> : null}
     </details>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { readPaymentsEnvironment } from "@/lib/payments-env";
 import { COUNTRIES } from "@/lib/countries";
 import { fairOrder, regionFromPath, sponsorsForRegion, visibleSponsors, type SponsorBannerRow, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { getSponsorBannerLinks } from "@/lib/banner.functions";
@@ -33,7 +33,9 @@ export function SponsorBanner({
     setSeed(Math.floor(Math.random() * 1e6));
     if (initialRows) return; // already rendered with the page — nothing to fetch
     let env: string;
-    try { env = getStripeEnvironment(); } catch { return; }
+    const environment = readPaymentsEnvironment();
+    if (!environment) return;
+    env = environment;
     supabase
       .from("sponsors")
       .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions,plan,banner_url,banner_path")
