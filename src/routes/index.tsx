@@ -49,17 +49,15 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "UKStats — the UK in numbers, live from official sources" },
+      { title: "UKStats — Built by the people, for the people" },
       {
         name: "description",
-        content:
-          "Live UK official statistics at a glance: debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.",
+        content: `${SLOGAN}. Live UK official statistics at a glance: debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.`,
       },
-      { property: "og:title", content: "UKStats — the UK in numbers, live from official sources" },
+      { property: "og:title", content: "UKStats — Built by the people, for the people" },
       {
         property: "og:description",
-        content:
-          "Key UK indicators and official alert levels on one calm page, every figure timestamped and embeddable. Nothing estimated.",
+        content: `${SLOGAN}. Every figure timestamped, sourced and embeddable. Nothing estimated.`,
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/" },
