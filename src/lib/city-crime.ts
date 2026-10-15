@@ -43,9 +43,10 @@ export function parseFbiCities(rows: FbiCityRow[], opts: { excludedStates?: stri
     const state = (r.state ?? '').trim(); const city = (r.city ?? '').trim();
     if (!city) continue; // footnote rows carry no city name
     if (excluded.has(state.toLowerCase())) continue;
-    const pop = Number((r.population ?? '').replace(/,/g, ''));
-    const violent = Number((r.violent ?? '').replace(/,/g, ''));
-    if (!Number.isFinite(pop) || !Number.isFinite(violent) || pop < 0 || violent < 0) return { rows: [], reason: 'A published city figure is missing or unreadable. No partial ranking is shown.' };
+    const rawPop = (r.population ?? '').replace(/,/g, '').trim();
+    const rawViolent = (r.violent ?? '').replace(/,/g, '').trim();
+    const pop = Number(rawPop); const violent = Number(rawViolent);
+    if (!rawPop || !rawViolent || !Number.isFinite(pop) || !Number.isFinite(violent) || pop < 0 || violent < 0) return { rows: [], reason: 'A published city figure is missing or unreadable. No partial ranking is shown.' };
     if (pop < min) continue;
     out.push({ name: `${city}, ${state}`, code: `${state}|${city}`.toLowerCase(), value: Math.round((violent / pop) * 100_000 * 10) / 10 });
   }
