@@ -130,3 +130,13 @@
 - [ ] Publish the sponsor banner upload work
 - [ ] Real sponsor pictures going through the live approval flow (banner still shows the example estate agent)
 - [x] Home-page sponsor banner rotation fixed (12 Oct 2026): home now reads its data from the page itself instead of re-asking the server in the browser; live home verified rotating RAREITUP → Gold.live → XPRE → YachtFino → GoPharma every 8s with no errors
+
+## Trust and visitors (17 Oct 2026)
+- [x] Feed health page (/status) confirmed live in nav and sitemap; shows last check and 30-day reliability per feed
+- [x] Daily sweep fixed: it had not run since 11 Oct — new schedule "ukstats-daily-sweep" (06:30 daily) now calls the sweep that logs feed checks, snapshots and the daily statement
+- [x] Fresh security scan: no issues found
+- [x] History pages added to the sitemap (they carry the Dataset markup Google Dataset Search reads)
+- [x] "Embed this figure" button on every history page, linking to the embed builder
+- [x] Outreach drafts saved (Show HN post, awesome-public-datasets listing, daily social posts, newsletter pitches) — Marco sends these himself
+- [ ] Submit the sitemap in Google Search Console (needs Marco's Google account)
+- [ ] Publish everything waiting (slogan, dedication, safest places, funding pause, this work) when Marco says "publish"
