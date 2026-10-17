@@ -165,6 +165,13 @@ function HistoryPage() {
               >
                 Download CSV
               </button>
+              <Link
+                to="/embed/$metric"
+                params={{ metric: data.id }}
+                className="rounded-md border border-night-line px-3 py-2 text-[12px] font-medium text-night-fg hover:border-electric"
+              >
+                Embed this figure
+              </Link>
               <a
                 href={data.sourceUrl}
                 target="_blank"

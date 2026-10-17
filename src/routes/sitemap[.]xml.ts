@@ -103,6 +103,11 @@ export const Route = createFileRoute("/sitemap.xml")({
           for (const m of (await getUkStats()).metrics) {
             const path = `/explained/${m.id}`;
             if (!have.has(path)) { have.add(path); explained.push({ path, changefreq: "monthly", priority: "0.5" }); }
+            // History pages carry the Dataset markup Google Dataset Search reads.
+            if (m.hasHistory) {
+              const hpath = `/history/${m.id}`;
+              if (!have.has(hpath)) { have.add(hpath); explained.push({ path: hpath, changefreq: "weekly", priority: "0.6" }); }
+            }
           }
         } catch {
           // Keep the static sitemap if figures are briefly unavailable.
