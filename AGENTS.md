@@ -19,9 +19,7 @@
 
 - Sponsors render only via SponsorStrip/SponsorBanner — the banner sits under the hero on the home page and in the footer zone on every other page — and /sponsors; region = page country code via regionFromPath, matched against the sponsor's chosen regions (groups expand in src/lib/sponsor-regions.ts; old single region column is a fallback) in footer/hub pages, never on figure cards, embeds, widgets or share images — keeps paid placement away from the numbers.
 - Independent dedications render through RestoreDedication at the bottom of SiteFooter, separate from sponsor records and never in embeds, widgets or share images — keeps attribution distinct from paid placements and statistics.
-- Sponsor banner pictures live in the private sponsor-banners folder (or a pasted link we open and check), must be 3 wide to 1 tall and at least 1536×512, and are judged from the file bytes server-side before saving — so unapproved or wrongly shaped artwork never shows; the footer banner keeps one true 3:1 shape at every screen width so a sponsor's picture is never cropped.
 - The home page's sponsor banner comes from the route loader via getSponsorBannerBoard (src/lib/banner.functions.ts) and is rendered with the page, never only by the page's interactive layer — that layer can fail to start on the live home page, and a sponsor's banner must show regardless.
-- Sponsor self-service lives in a shared MySponsorship form used by /sponsor-dashboard and /advertise; authenticated server functions scope reads and changes to the caller's own sponsor row, including complimentary plans without subscriptions — keeps editing separate from buying a plan.
 
 
 - Server functions must use method "POST", never "GET": GET server-function responses hang forever on the live edge runtime (POST reaches the handler fine), which left the home page frozen pre-hydration.
@@ -34,3 +32,5 @@
 - Funding availability and the legal hold statement live in src/lib/funding-policy.ts and render via FundingLegalNotice.tsx, so one flag pauses or resumes both; retain checkout and subscription setup so the pause is reversible.
 - City crime ranks use city-crime pure parsers and a POST server wrapper with official-source adapters; latest-year missing/suppressed cells block rankings, national/provincial totals and overlapping subareas are excluded, and unavailable countries never substitute regional or perception data.
 - Brand comes from the request host via src/lib/site-host.ts (stats.solutions = world-first, everything else UK); canonicals for world/country paths use stats.solutions, sitemap and robots are generated per host — one codebase serves both domains.
+
+- Subdirectories may have their own AGENTS.md (e.g. src/components/sponsor/); read it before changing files there.
