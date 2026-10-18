@@ -21,7 +21,7 @@ import { currentBrand } from "@/lib/brand-host";
 import { GlobalHome } from "@/components/home/GlobalHome";
 
 const GT = "Stats Solutions — official statistics from around the world";
-const GD = "Live official figures for 34 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
+const GD = "Live official figures for over 30 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
 const GLOBAL_HEAD = {
   meta: [
     { title: GT },
