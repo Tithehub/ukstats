@@ -1,5 +1,16 @@
 # Roadmap
 
+## Approved morning improvements
+- [ ] Restore weather-health access with bounded retries and verified failure behaviour
+- [ ] Verify religion/ethnicity remain unpublished, never inferred or counted as outages
+- [ ] Prepare the official-source country coverage shortlist
+- [ ] Check and submit the sitemap through the connected Google account (subject to verified property access)
+- [ ] Review the ten social drafts and two explainers; publication waits for Marco's individual decisions
+- [ ] Build three evidenced answer pages (blocked until reader questions or Search Console topics are available)
+- [ ] Add a focused two/three-country comparison with dates, sources and incompatibility flags
+- [ ] Measure repeat visits and implement evidence-backed speed improvements
+- [ ] Verify and request publishing to ukstats.co.uk
+
 ## Political party comparison
 - [x] Build /parties with official 2024 seat/vote rankings, individual-poll comparisons and verified historical manifesto summaries
 - [x] Verify comparison controls, unavailable polling, URL restoration and small-screen layout; five tests pass
