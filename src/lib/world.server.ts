@@ -2,7 +2,7 @@ import { WORLD_INDICATORS, parseCountries, parseIndicator, type WorldPayload } f
 
 const API = "https://api.worldbank.org/v2";
 const TTL = 12 * 3600_000;
-const ID = "world-bank";
+const ID = "world-bank-v2"; // bump when the indicator list changes
 let mem: { at: number; data: WorldPayload } | null = null;
 let inflight: Promise<WorldPayload> | null = null;
 
