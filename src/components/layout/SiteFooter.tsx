@@ -1,8 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
+import { AtSign, Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2, Twitter } from "lucide-react";
+import { SOCIAL_PROFILES } from "@/lib/social-profiles";
 import { SponsorStrip } from "@/components/SponsorStrip";
 import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
 import { RestoreDedication } from "./RestoreDedication";
+
+const PROFILE_ICONS = { x: Twitter, bluesky: AtSign, mastodon: AtSign } as const;
 
 const COLUMNS = [
   {
@@ -50,7 +53,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
           </p>
           <a
             href="/feed.xml"
-            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+            className="mt-3 flex w-fit min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
           >
             <Rss className="size-4" aria-hidden="true" />
             New figures feed
@@ -59,11 +62,26 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
             href="https://github.com/Tithehub/ukstats"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+            className="mt-1 flex w-fit min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
           >
             <Github className="size-4" aria-hidden="true" />
             Open source on GitHub
           </a>
+          {SOCIAL_PROFILES.map((p) => {
+            const Icon = PROFILE_ICONS[p.key];
+            return (
+              <a
+                key={p.key}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 flex w-fit min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+              >
+                <Icon className="size-4" aria-hidden="true" />
+                {p.label} <span className="font-mono text-[12px]">{p.handle}</span>
+              </a>
+            );
+          })}
         </div>
         {COLUMNS.map((c) => (
           <div key={c.name}>
