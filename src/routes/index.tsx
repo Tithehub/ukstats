@@ -17,6 +17,24 @@ import { Search, ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 import { SLOGAN } from "@/lib/brand";
+import { currentBrand } from "@/lib/brand-host";
+import { GlobalHome } from "@/components/home/GlobalHome";
+
+const GT = "Stats Solutions — official statistics from around the world";
+const GD = "Live official figures for 34 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
+const GLOBAL_HEAD = {
+  meta: [
+    { title: GT },
+    { name: "description", content: GD },
+    { property: "og:title", content: GT },
+    { property: "og:description", content: GD },
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "Stats Solutions" },
+    { property: "og:url", content: "https://stats.solutions/" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
+  links: [{ rel: "canonical", href: "https://stats.solutions/" }],
+};
 
 const statsQuery = queryOptions<StatsPayload>({
   queryKey: ["uk-stats"],
@@ -48,7 +66,7 @@ export const Route = createFileRoute("/")({
     ]);
     return { stats, sponsors };
   },
-  head: () => ({
+  head: () => (currentBrand() === "global" ? GLOBAL_HEAD : {
     meta: [
       { title: "UKStats — Built by the people, for the people" },
       {
@@ -115,6 +133,10 @@ const PANELS: { category: Category; blurb: string }[] = [
 ];
 
 function Home() {
+  return currentBrand() === "global" ? <GlobalHome /> : <UkHome />;
+}
+
+function UkHome() {
   const { stats: data, sponsors } = Route.useLoaderData();
   const metrics = data.metrics;
   const live = metrics.filter((m) => m.status === "ok").length;
