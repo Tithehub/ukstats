@@ -54,6 +54,27 @@ export const dismissFinding = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getLatestPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("improvement_plans").select("id, summary, tasks, created_at").order("created_at", { ascending: false }).limit(1);
+    const p = data?.[0];
+    return p ? { id: p.id as string, summary: p.summary as string, created_at: p.created_at as string, tasks: (p.tasks ?? []) as import("@/lib/agents/planner").PlanTask[] } : null;
+  });
+
+export const setPlanTaskStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid(), index: z.number().int().min(-1).max(20), status: z.enum(["pending", "approved", "skipped"]) }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: p } = await context.supabase.from("improvement_plans").select("tasks").eq("id", data.id).single();
+    if (!p) throw new Error("Plan not found");
+    const tasks = ((p.tasks ?? []) as { status: string }[]).map((t, i) => (data.index === -1 || i === data.index ? { ...t, status: data.status } : t));
+    await context.supabase.from("improvement_plans").update({ tasks }).eq("id", data.id);
+    return { ok: true };
+  });
+
 function publicClient() {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
   return createClient(process.env["SUPABASE_URL"]!, key, {

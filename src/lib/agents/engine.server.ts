@@ -11,6 +11,7 @@ import { feedWatchdog, dataAuditor, type Finding } from "./findings";
 import { countryWatchdog } from "./countries.server";
 import { COUNTRIES } from "@/lib/countries";
 import { loadCountryStats } from "@/lib/countries.server";
+import { cleanPlan, OPEN_ROADMAP, type PlanTask } from "./planner";
 
 /** Marketing agent: drafts posts for owner approval; skips anything already drafted today. */
 async function marketingAgent(db: Db, metrics: Metric[], runId: string): Promise<Finding[]> {
@@ -157,6 +158,43 @@ async function chiefOfStaff(findings: Finding[], stats: { tracked: number; draft
   return r.briefing;
 }
 
+const PLAN_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["summary", "tasks"],
+  properties: {
+    summary: { type: "string" },
+    tasks: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "why", "evidence", "size", "success_check", "needs_user"],
+        properties: {
+          title: { type: "string" },
+          why: { type: "string" },
+          evidence: { type: "string" },
+          size: { type: "string", enum: ["small", "medium", "large"] },
+          success_check: { type: "string" },
+          needs_user: { type: ["string", "null"] },
+        },
+      },
+    },
+  },
+};
+
+async function plannerAgent(db: Db, runId: string, findings: Finding[]): Promise<void> {
+  const top = findings.slice(0, 80).map((f) => `[${f.severity}] ${f.agent}: ${f.title}${f.detail ? ` — ${f.detail}` : ""}`).join("\n");
+  const r = await aiJson<{ summary: string; tasks: Omit<PlanTask, "status">[] }>({
+    schemaName: "improvement_plan",
+    schema: PLAN_SCHEMA,
+    instructions:
+      "You are the planner for ukstats.co.uk, an official-statistics site. Write a ready-to-approve improvement plan for the non-technical owner: a plain-English summary (max 120 words) of what the overnight checks found, then up to 10 ranked tasks (highest impact first). Each task: short title, why it matters, evidence (quote the finding or roadmap item it comes from), size, how we'll know it worked, and needs_user (what the owner must supply, or null). Hard rules: never propose inventing, estimating or changing any figure; never propose automatic social posting; never propose resuming donations or payments (legal hold); never place sponsors beside figures, embeds or widgets. Fix real breakages first, then growth. British English, no jargon.",
+    input: `Overnight findings:\n${top || "None."}\n\nOpen roadmap items:\n${OPEN_ROADMAP.map((x) => `- ${x}`).join("\n")}`,
+  });
+  await db.from("improvement_plans").insert({ run_id: runId, summary: r.summary, tasks: cleanPlan(r.tasks ?? []) });
+}
+
 function fallbackBriefing(findings: Finding[]): string {
   const c = findings.filter((f) => f.severity === "critical").length;
   const w = findings.filter((f) => f.severity === "warning").length;
@@ -196,6 +234,7 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
         drafted = w.drafted;
         findings.push(...w.findings);
         briefing = await chiefOfStaff(findings, { tracked: metrics.length + countryChecks.tracked, drafted });
+        await plannerAgent(db, runId, findings);
       } catch (e) {
         if (e instanceof AiBlockedError && [401, 402, 403, 429].includes(e.status)) pauseReason = e.message;
         findings.push({ agent: "Chief of Staff", severity: "warning", title: "AI step stopped", detail: e instanceof Error ? e.message : String(e) });

@@ -10,6 +10,7 @@ import { dismissFinding, getAgentDashboard, reviewDraft, runAgentsNow } from "@/
 import { LaunchKit, MarketingPanel } from "@/components/agents/MarketingPanel";
 import { DomainsPanel } from "@/components/agents/DomainsPanel";
 import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
+import { ImprovementPlanPanel } from "@/components/agents/ImprovementPlanPanel";
 
 export const Route = createFileRoute("/agents")({
   head: () => ({
@@ -39,7 +40,7 @@ function AgentsPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const q = useQuery({ queryKey: ["agents"], queryFn: () => fetchDash(), enabled: signedIn });
-  const refresh = () => qc.invalidateQueries({ queryKey: ["agents"] });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["agents"] }); qc.invalidateQueries({ queryKey: ["improvement-plan"] }); };
 
   let body: React.ReactNode;
   if (loading || (signedIn && q.isLoading)) body = <Loader2 className="h-5 w-5 animate-spin" aria-label="Loading" />;
@@ -67,6 +68,7 @@ function AgentsPage() {
           {latest ? <span className="font-mono text-[12px] text-night-muted">Last run {new Date(latest.started_at).toLocaleString("en-GB")} · {latest.status}</span> : null}
         </div>
         {err ? <p className="mt-3 text-overdue">{err}</p> : null}
+        <ImprovementPlanPanel />
         {latest?.pause_reason ? <p className="mt-3 text-ageing">AI agents paused: {latest.pause_reason}</p> : null}
 
         <section className="mt-8 rounded-xl border border-night-line bg-night-panel p-5">
