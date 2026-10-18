@@ -263,6 +263,30 @@ export type Database = {
         }
         Relationships: []
       }
+      improvement_plans: {
+        Row: {
+          created_at: string
+          id: string
+          run_id: string | null
+          summary: string
+          tasks: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          run_id?: string | null
+          summary: string
+          tasks?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          run_id?: string | null
+          summary?: string
+          tasks?: Json
+        }
+        Relationships: []
+      }
       media_mentions: {
         Row: {
           approved: boolean

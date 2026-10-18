@@ -99,6 +99,13 @@
       "when": 1791821061759,
       "tag": "0013_sponsor_regions",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792300820370,
+      "tag": "0014_migration",
+      "breakpoints": true
     }
   ]
 }
