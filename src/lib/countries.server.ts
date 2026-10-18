@@ -61,13 +61,64 @@ async function collectCountryStats(code: string): Promise<CountryPayload | null>
   return { country, metrics: [...known, ...coverageGaps(country, known)], fetchedAt: new Date().toISOString() };
 }
 const countryCache = new Map<string, { at: number; data: Promise<CountryPayload | null> }>();
-export function loadCountryStats(code: string): Promise<CountryPayload | null> {
-  const hit = countryCache.get(code);
-  if (hit && Date.now() - hit.at < TTL) return hit.data;
+const lastGoodCountry = new Map<string, CountryPayload>();
+
+/** Persist the last good payload so a cold server can serve it instantly. */
+function persistCountry(code: string, d: CountryPayload) {
+  import("@/integrations/supabase/client.server")
+    .then(({ supabaseAdmin }) =>
+      (supabaseAdmin.from as (t: string) => any)("payload_cache").upsert({ id: `country-${code}`, data: d, updated_at: new Date().toISOString() }),
+    )
+    .catch(() => {});
+}
+
+/** Read the stored payload with a short budget; never hold the page on it. */
+async function readPersistedCountry(code: string): Promise<CountryPayload | null> {
+  try {
+    const read = import("@/integrations/supabase/client.server").then(({ supabaseAdmin }) =>
+      (supabaseAdmin.from as (t: string) => any)("payload_cache").select("data").eq("id", `country-${code}`).maybeSingle(),
+    );
+    const res = (await Promise.race([read, new Promise((r) => setTimeout(() => r(null), 2_000))])) as { data?: { data?: CountryPayload } } | null;
+    const p = res?.data?.data;
+    if (p && Array.isArray(p.metrics) && p.metrics.some((m) => m.status === "ok")) return p;
+  } catch {
+    /* fall through to a live collection */
+  }
+  return null;
+}
+
+function refreshCountry(code: string) {
   const data = collectCountryStats(code);
   countryCache.set(code, { at: Date.now(), data });
-  data.catch(() => countryCache.delete(code));
+  data
+    .then((d) => {
+      if (d && d.metrics.some((m) => m.status === "ok")) {
+        lastGoodCountry.set(code, d);
+        persistCountry(code, d);
+      }
+    })
+    .catch(() => countryCache.delete(code));
   return data;
+}
+
+export async function loadCountryStats(code: string): Promise<CountryPayload | null> {
+  if (!countryByCode(code)) return null;
+  const hit = countryCache.get(code);
+  if (hit && Date.now() - hit.at < TTL) return lastGoodCountry.get(code) ?? hit.data;
+  // Serve the last official snapshot instantly; refresh in the background.
+  let good = lastGoodCountry.get(code) ?? null;
+  if (!good) {
+    good = await readPersistedCountry(code);
+    if (good) {
+      lastGoodCountry.set(code, good);
+      if (Date.now() - Date.parse(good.fetchedAt) < TTL) {
+        countryCache.set(code, { at: Date.parse(good.fetchedAt), data: Promise.resolve(good) });
+        return good;
+      }
+    }
+  }
+  const pending = refreshCountry(code);
+  return good ?? pending;
 }
 export async function loadCountryHistory(code: string, id: string): Promise<CountryMetric | null> {
   const country = countryByCode(code);
