@@ -9,7 +9,7 @@ const T = "Official statistics for Europe and the Western world | UK Stats";
 const D = "Inflation, unemployment, debt, house prices, asylum and population for 30 European countries from Eurostat, plus the US, Canada and Australia from their own national publishers — with source and data age on every figure.";
 
 export const Route = createFileRoute("/countries")({
-  head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { property: "og:url", content: "https://ukstats.co.uk/countries" }, { property: "og:image", content: "https://ukstats.co.uk/og/countries.jpg" }, { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/countries.jpg" }] }),
+  head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { property: "og:url", content: "https://stats.solutions/countries" }, { property: "og:image", content: "https://ukstats.co.uk/og/countries.jpg" }, { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/countries.jpg" }], links: [{ rel: "canonical", href: "https://stats.solutions/countries" }] }),
   component: CountriesPage,
 });
 

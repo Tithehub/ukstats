@@ -106,7 +106,7 @@ export const reviewAgentPost = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const SITE_DOMAINS = ["ukstats.co.uk", "www.ukstats.co.uk", "stat-central-uk.lovable.app"] as const;
+export const SITE_DOMAINS = ["ukstats.co.uk", "www.ukstats.co.uk", "stat-central-uk.lovable.app", "stats.solutions", "www.stats.solutions"] as const;
 
 export type DomainCheck = {
   domain: string;

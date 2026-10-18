@@ -140,3 +140,9 @@
 - [x] Outreach drafts saved (Show HN post, awesome-public-datasets listing, daily social posts, newsletter pitches) — Marco sends these himself
 - [ ] Submit the sitemap in Google Search Console (needs Marco's Google account)
 - [ ] Publish everything waiting (slogan, dedication, safest places, funding pause, this work) when Marco says "publish"
+
+## stats.solutions global door
+- [x] Host-aware brand, world-first home, per-host sitemap/robots, world canonicals
+- [ ] Connect stats.solutions DNS (waiting on Marco at his provider)
+- [ ] Unset ukstats.co.uk as primary so both addresses serve (Marco, Project Settings)
+- [ ] Publish (awaiting "publish")

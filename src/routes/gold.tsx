@@ -12,8 +12,8 @@ const D = "Official gold reserves by country, in tonnes, from central-bank filin
 export const Route = createFileRoute("/gold")({
   loader: ({ context }) => context.queryClient.ensureQueryData(goldQuery()),
   head: () => ({
-    meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "article" }, { property: "og:url", content: "https://ukstats.co.uk/gold" }, { property: "og:image", content: "https://ukstats.co.uk/og/gold.jpg" }, { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/gold.jpg" }],
-    links: [{ rel: "canonical", href: "https://ukstats.co.uk/gold" }],
+    meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "article" }, { property: "og:url", content: "https://stats.solutions/gold" }, { property: "og:image", content: "https://ukstats.co.uk/og/gold.jpg" }, { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/gold.jpg" }],
+    links: [{ rel: "canonical", href: "https://stats.solutions/gold" }],
   }),
   component: GoldPage,
   errorComponent: () => <main className="p-8">Gold reserves are unavailable right now. Please try again.</main>,

@@ -1,11 +1,11 @@
 import { COUNTRIES } from "@/lib/countries";
 import { ES_DEFS } from "@/lib/eurostat";
+import { brandFromHost, isGlobalPath, SITES } from "@/lib/site-host";
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
-const BASE_URL = "https://ukstats.co.uk";
 
 interface SitemapEntry {
   path: string;
@@ -72,7 +72,11 @@ const entries: SitemapEntry[] = [
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        // Each address lists only the pages it is the main address for.
+        const brand = brandFromHost(new URL(request.url).host);
+        const BASE_URL = SITES[brand].origin;
+        const mine = (e: SitemapEntry) => e.path === "/" || isGlobalPath(e.path) === (brand === "global");
         // Every recorded daily statement is a permanent, indexable page.
         const dayEntries: SitemapEntry[] = [];
         try {
@@ -113,7 +117,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           // Keep the static sitemap if figures are briefly unavailable.
         }
 
-        const urls = [...entries, ...explained, ...dayEntries].map((e) =>
+        const urls = [...entries, ...explained, ...dayEntries].filter(mine).map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,
