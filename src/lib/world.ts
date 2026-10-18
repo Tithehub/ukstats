@@ -62,7 +62,7 @@ export interface RankedRow { country: WorldCountry; value: number; year: number;
 /** Ranks countries whose figure is recent enough; older figures are listed after, unranked. */
 export function rankIndicator(p: WorldPayload, ind: WorldIndicator): RankedRow[] {
   const vals = p.values[ind.id] ?? {};
-  const rows = p.countries.filter((c) => vals[c.iso3]).map((c) => ({ country: c, ...vals[c.iso3], rank: null as number | null }));
+  const rows: RankedRow[] = p.countries.flatMap((c) => { const v = vals[c.iso3]; return v ? [{ country: c, value: v.value, year: v.year, rank: null }] : []; });
   if (!rows.length) return [];
   const newest = Math.max(...rows.map((r) => r.year));
   const fresh = rows.filter((r) => newest - r.year <= MAX_LAG_YEARS).sort((a, b) => (ind.higherFirst ? b.value - a.value : a.value - b.value));

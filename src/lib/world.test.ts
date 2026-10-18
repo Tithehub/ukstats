@@ -15,7 +15,7 @@ describe("world bank helpers", () => {
 
   it("ranks only figures within three years of the newest; older ones are unranked", () => {
     const keep = new Set(["GBR", "FRA", "OLD", "WLD"]);
-    const ind = WORLD_INDICATORS[0];
+    const ind = WORLD_INDICATORS[0]!;
     const { values } = parseIndicator([{}, [
       { countryiso3code: "GBR", date: "2025", value: 69 },
       { countryiso3code: "FRA", date: "2024", value: 68 },
