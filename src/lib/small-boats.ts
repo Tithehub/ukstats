@@ -68,13 +68,13 @@ export function pmTotals(series: BoatDay[]): PmRow[] {
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 /** Monthly totals, labelled like "2026 OCT"; the latest month may be partial. */
-export function monthlyTotals(series: BoatDay[]): { label: string; value: number }[] {
+export function monthlyTotals(series: BoatDay[]): { label: string; value: number; formatted: string; updated: null }[] {
   const m = new Map<string, number>();
   for (const d of series) {
     const k = `${d.date.slice(0, 4)} ${MON[Number(d.date.slice(5, 7)) - 1]}`;
     m.set(k, (m.get(k) ?? 0) + d.arrivals);
   }
-  return [...m].map(([label, value]) => ({ label, value }));
+  return [...m].map(([label, value]) => ({ label, value, formatted: value.toLocaleString("en-GB"), updated: null }));
 }
 
 export function yearlyTotals(series: BoatDay[]): { year: string; arrivals: number; boats: number; days: number }[] {
