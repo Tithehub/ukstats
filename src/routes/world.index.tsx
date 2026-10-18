@@ -5,10 +5,10 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
-import { MAX_LAG_YEARS, WORLD_INDICATORS, WORLD_SOURCE, fmtWorld, indicatorBySlug, rankIndicator } from "@/lib/world";
+import { MAX_LAG_YEARS, WORLD_CATEGORIES, WORLD_INDICATORS, WORLD_SOURCE, fmtWorld, indicatorBySlug, rankIndicator } from "@/lib/world";
 
 const T = "World rankings for every country | UKStats";
-const D = "Population, GDP, GDP per person, inflation, government debt and homicide rates for over 200 countries, ranked from the World Bank's official figures, with the year of each figure.";
+const D = "Country leaderboards for 20 official figures — economy, people, jobs, health, safety and energy — across over 200 countries, ranked from the World Bank's published data, with the year of each figure.";
 
 export const Route = createFileRoute("/world/")({
   validateSearch: (s: Record<string, unknown>) => ({ figure: typeof s['figure'] === "string" ? s['figure'] : undefined }),
@@ -48,13 +48,21 @@ function WorldPage() {
           {data?.updated[ind.id] && <> · last updated by the World Bank {data.updated[ind.id]}</>}
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          {WORLD_INDICATORS.map((i) => (
-            <Button key={i.slug} size="sm" variant={i.slug === ind.slug ? "default" : "outline"} onClick={() => navigate({ search: { figure: i.slug }, replace: true })}>
-              {i.label}
-            </Button>
+        <div className="mt-6 space-y-3">
+          {WORLD_CATEGORIES.map((cat) => (
+            <div key={cat}>
+              <p className="mb-1.5 font-mono text-[11px] uppercase tracking-wider text-night-muted">{cat}</p>
+              <div className="flex flex-wrap gap-2">
+                {WORLD_INDICATORS.filter((i) => i.category === cat).map((i) => (
+                  <Button key={i.slug} size="sm" variant={i.slug === ind.slug ? "default" : "outline"} onClick={() => navigate({ search: { figure: i.slug }, replace: true })}>
+                    {i.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
+        <h2 className="mt-8 text-2xl font-semibold">{ind.label}: country leaderboard</h2>
 
         {!data ? (
           <div className="mt-8 rounded-md border border-night-line bg-night-panel p-6">
