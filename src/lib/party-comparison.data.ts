@@ -55,7 +55,7 @@ export const MANIFESTOS: Record<string, ManifestoEvidence> = {
     positions: {
       immigration: "Scrap the Illegal Migration Act and Rwanda scheme; create safe routes and improve asylum processing.",
       tax: "Reform capital gains tax, reverse bank tax cuts and increase the Digital Services Tax on major technology firms.",
-      nhs: "Improve GP and dentistry access, invest in staff and introduce a ten-year health and care workforce plan.",
+      nhs: "Improve GP and dentistry access, train and recruit staff, and introduce a ten-year NHS staff retention plan.",
       housing: "Build 380,000 homes a year across the UK, including 150,000 social homes.",
       climate: "Reach net zero by 2045 at the latest and invest in renewables and home insulation.",
     },

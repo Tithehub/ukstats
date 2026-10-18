@@ -1,8 +1,9 @@
 # Roadmap
 
 ## Political party comparison
-- [ ] Build a UK party page separating recent polls, 2024 election rankings and dated manifesto positions, with primary sources
-- [ ] Verify comparison controls, unavailable polling and small-screen layout
+- [x] Build /parties with official 2024 seat/vote rankings, individual-poll comparisons and verified historical manifesto summaries
+- [x] Verify comparison controls, unavailable polling, URL restoration and small-screen layout; five tests pass
+- [ ] Complete SNP/Plaid policy summaries (blocked: full primary manifesto text could not be retrieved; links and explicit unavailable states retained)
 - [ ] Publish the party page (awaiting request to publish)
 
 ## X (Twitter) account
