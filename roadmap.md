@@ -146,3 +146,11 @@
 - [ ] Connect stats.solutions DNS (waiting on Marco at his provider)
 - [ ] Unset ukstats.co.uk as primary so both addresses serve (Marco, Project Settings)
 - [ ] Publish (awaiting "publish")
+
+## World-class UK + global plan (18 Oct 2026)
+- [x] Phase 1: publish waiting work
+- [ ] Phase 1: unset ukstats.co.uk as primary (Marco, in Domains settings) — blocks stats.solutions showing its own name
+- [ ] Phase 1: Search Console for both domains (needs Marco's Google account)
+- [ ] Phase 2: live speed under 1s; per-figure question pages; local area pages; release alerts
+- [ ] Phase 3: World Bank/IMF/OECD/UN sources; country pages to UK standard; world rankings
+- [ ] Phase 4: city/area sponsor targeting, local currency prices (stays paused under legal hold)
