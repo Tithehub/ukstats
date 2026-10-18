@@ -1,5 +1,9 @@
 # Roadmap
 
+## X (Twitter) account
+- [x] Add the site's X, Bluesky and Mastodon profile links to the footer (social-profiles module + tests)
+- [ ] Marco creates @ukstats on x.com, then verify the handle resolves and the footer link works (blocked on Marco)
+
 ## Temporary funding pause
 - [x] Add Marco's whole-site donation message and verify every crypto address, QR code and donation control is hidden (browser verified; both policy tests passed)
 - [x] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
