@@ -82,7 +82,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         // Each address lists only the pages it is the main address for.
         const brand = brandFromHost(new URL(request.url).host);
         const BASE_URL = SITES[brand].origin;
-        const mine = (e: SitemapEntry) => e.path === "/" || isGlobalPath(e.path) === (brand === "global");
+        // UK remains the primary address while the global domain redirects to it.
+        const mine = (e: SitemapEntry) => brand === "uk" || e.path === "/" || isGlobalPath(e.path);
         // Every recorded daily statement is a permanent, indexable page.
         const dayEntries: SitemapEntry[] = [];
         try {
@@ -123,7 +124,16 @@ export const Route = createFileRoute("/sitemap.xml")({
           // Keep the static sitemap if figures are briefly unavailable.
         }
 
-        const urls = [...entries, ...explained, ...dayEntries].filter(mine).map((e) =>
+        const worldEntries: SitemapEntry[] = [];
+        try {
+          const { loadWorld } = await import("@/lib/world.server");
+          const world = await loadWorld();
+          for (const country of world?.countries ?? []) {
+            worldEntries.push({ path: `/world/${country.iso3.toLowerCase()}`, changefreq: "weekly", priority: "0.7" });
+          }
+        } catch { /* retain the static sitemap if the world snapshot is unavailable */ }
+
+        const urls = [...entries, ...explained, ...dayEntries, ...worldEntries].filter(mine).map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,
