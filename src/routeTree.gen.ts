@@ -61,6 +61,8 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as WorldIndexRouteImport } from './routes/world.index'
+import { Route as WorldIsoRouteImport } from './routes/world.$iso'
 import { Route as CountryEmbedMetricIdRouteImport } from './routes/$country.embed.$metricId'
 import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.explained.$metricId'
 import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
@@ -332,6 +334,16 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
 } as any)
+const WorldIndexRoute = WorldIndexRouteImport.update({
+  id: '/world/',
+  path: '/world/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorldIsoRoute = WorldIsoRouteImport.update({
+  id: '/world/$iso',
+  path: '/world/$iso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountryEmbedMetricIdRoute = CountryEmbedMetricIdRouteImport.update({
   id: '/embed/$metricId',
   path: '/embed/$metricId',
@@ -438,8 +450,10 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
+  '/world/': typeof WorldIndexRoute
   '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
@@ -500,8 +514,10 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
   '/regions': typeof RegionsIndexRoute
+  '/world': typeof WorldIndexRoute
   '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
@@ -565,8 +581,10 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
+  '/world/': typeof WorldIndexRoute
   '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
@@ -631,8 +649,10 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/world/$iso'
     | '/$country/'
     | '/regions/'
+    | '/world/'
     | '/$country/embed/$metricId'
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
@@ -693,8 +713,10 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/world/$iso'
     | '/$country'
     | '/regions'
+    | '/world'
     | '/$country/embed/$metricId'
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
@@ -757,8 +779,10 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/world/$iso'
     | '/$country/'
     | '/regions/'
+    | '/world/'
     | '/$country/embed/$metricId'
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
@@ -816,6 +840,8 @@ export interface RootRouteChildren {
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  WorldIsoRoute: typeof WorldIsoRoute
+  WorldIndexRoute: typeof WorldIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1184,6 +1210,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/world/': {
+      id: '/world/'
+      path: '/world'
+      fullPath: '/world/'
+      preLoaderRoute: typeof WorldIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/world/$iso': {
+      id: '/world/$iso'
+      path: '/world/$iso'
+      fullPath: '/world/$iso'
+      preLoaderRoute: typeof WorldIsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$country/embed/$metricId': {
       id: '/$country/embed/$metricId'
       path: '/embed/$metricId'
@@ -1373,6 +1413,8 @@ const rootRouteChildren: RootRouteChildren = {
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  WorldIsoRoute: WorldIsoRoute,
+  WorldIndexRoute: WorldIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
