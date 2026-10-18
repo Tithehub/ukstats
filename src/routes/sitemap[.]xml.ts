@@ -37,6 +37,7 @@ const entries: SitemapEntry[] = [
   { path: "/online-speech", changefreq: "weekly", priority: "0.6" },
   { path: "/gold", changefreq: "weekly", priority: "0.7" },
   { path: "/small-boats", changefreq: "weekly", priority: "0.8" },
+  { path: "/world", changefreq: "weekly", priority: "0.8" },
   { path: "/sources", changefreq: "monthly", priority: "0.6" },
   { path: "/global", changefreq: "monthly", priority: "0.6" },
   ...COUNTRIES.map((c) => ({ path: `/${c.code}`, changefreq: "daily" as const, priority: "0.7" })),

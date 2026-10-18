@@ -48,6 +48,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/maps", label: "Maps", icon: MapIcon },
       { to: "/small-boats", label: "Small boats since 2018", icon: Table2 },
       { to: "/safest-places", label: "City crime rankings", icon: MapIcon },
+      { to: "/world", label: "World rankings (200+ countries)", icon: Globe2 },
       { to: "/countries", label: "Countries", icon: MapIcon },
       { to: "/gold", label: "Gold reserves", icon: Banknote },
       { to: "/sources", label: "Official sources", icon: Table2 },

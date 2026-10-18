@@ -34,3 +34,4 @@
 - Brand comes from the request host via src/lib/site-host.ts (stats.solutions = world-first, everything else UK); canonicals for world/country paths use stats.solutions, sitemap and robots are generated per host — one codebase serves both domains.
 
 - Subdirectories may have their own AGENTS.md (e.g. src/components/sponsor/); read it before changing files there.
+- World rankings (/world, /world/$iso) come only from World Bank WDI via src/lib/world.server.ts, cached as payload_cache "world-bank"; figures more than 3 years behind the newest are listed but unranked — keeps stale filings from skewing ranks.
