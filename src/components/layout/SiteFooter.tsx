@@ -67,6 +67,21 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
             <Github className="size-4" aria-hidden="true" />
             Open source on GitHub
           </a>
+          {SOCIAL_PROFILES.map((p) => {
+            const Icon = PROFILE_ICONS[p.key];
+            return (
+              <a
+                key={p.key}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+              >
+                <Icon className="size-4" aria-hidden="true" />
+                {p.label} <span className="font-mono text-[12px]">{p.handle}</span>
+              </a>
+            );
+          })}
         </div>
         {COLUMNS.map((c) => (
           <div key={c.name}>
