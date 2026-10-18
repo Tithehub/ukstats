@@ -11,7 +11,7 @@ const T = "World rankings for every country | UKStats";
 const D = "Population, GDP, GDP per person, inflation, government debt and homicide rates for over 200 countries, ranked from the World Bank's official figures, with the year of each figure.";
 
 export const Route = createFileRoute("/world/")({
-  validateSearch: (s: Record<string, unknown>) => ({ figure: typeof s.figure === "string" ? s.figure : undefined }),
+  validateSearch: (s: Record<string, unknown>) => ({ figure: typeof s['figure'] === "string" ? s['figure'] : undefined }),
   loader: ({ context }) => context.queryClient.ensureQueryData(worldQuery()),
   head: () => ({
     meta: [
