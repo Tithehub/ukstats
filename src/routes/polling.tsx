@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -39,7 +39,7 @@ const GE2024: { party: string; share: number }[] = [
   { party: "Conservative", share: 23.7 },
   { party: "Reform UK", share: 14.3 },
   { party: "Liberal Democrats", share: 12.2 },
-  { party: "Green Party", share: 6.7 },
+  { party: "Green Party", share: 6.4 },
   { party: "SNP", share: 2.5 },
   { party: "Plaid Cymru", share: 0.7 },
 ];
@@ -86,6 +86,7 @@ function PollingPage() {
         </p>
 
         <h2 className="mt-10 text-lg font-semibold">National voting intention</h2>
+        <p className="mt-3 text-sm"><Link to="/parties" search={{ view: "election" }} className="text-electric-soft underline">Compare party election rankings and manifesto positions →</Link></p>
         {polling.average.length ? (
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {polling.average.map((a) => (

@@ -13,7 +13,7 @@
 - Non-UK countries live under /$country (registry in src/lib/countries.ts, Eurostat parser in src/lib/eurostat.ts); UK register at "/" is untouched — keeps the proven UK pipeline isolated from new sources.
 - National (non-Eurostat) sources live in src/lib/national.server.ts with pure parsers in src/lib/national.ts — keeps network code server-only and parsers testable.
 - A national figure assembled from several regional feeds is all-or-nothing: if any region fails to answer, show no figure rather than a partial count — a shorter total would be read as the country's real number.
-- Publication dates are rendered by fmtDate in src/lib/uk-stats.ts, which pins Europe/London; never format a date with the visitor's own clock zone — server and browser must print the same day or React discards the server-rendered page.
+- Render publication dates via fmtDate (Europe/London), never the visitor's zone — prevents hydration mismatches.
 - Official-publisher directory lives in src/lib/agencies.data.ts (links checked before adding) and is read only through src/lib/agencies.ts; "live" status is derived from the country's current metric source hosts — so the directory never claims a feed we don't actually pull.
 - Gold reserves come only from the IMF IRFCL combined sector (S1XS1311); filings above an implausibility ceiling are shown as filed but never ranked — we flag source errors rather than correcting them.
 
@@ -35,3 +35,4 @@
 
 - Subdirectories may have their own AGENTS.md (e.g. src/components/sponsor/); read it before changing files there.
 - World rankings (/world, /world/$iso) come only from World Bank WDI via src/lib/world.server.ts, cached as payload_cache "world-bank"; figures more than 3 years behind the newest are listed but unranked — keeps stale filings from skewing ranks.
+- Party comparisons use sourced election records and dated manifesto summaries in party-comparison.data.ts; pure helpers preserve ties and show polls individually, excluding devolved-party shares from GB headline ranks — avoids treating promises or estimates as outcomes.

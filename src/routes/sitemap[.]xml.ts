@@ -23,6 +23,7 @@ const entries: SitemapEntry[] = [
   { path: "/tax-vs-welfare", changefreq: "weekly", priority: "0.8" },
   { path: "/foreign-aid", changefreq: "weekly", priority: "0.8" },
   { path: "/polling", changefreq: "daily", priority: "0.8" },
+  { path: "/parties", changefreq: "weekly", priority: "0.8" },
   { path: "/governments", changefreq: "weekly", priority: "0.8" },
   { path: "/widget", changefreq: "monthly", priority: "0.8" },
   { path: "/create", changefreq: "monthly", priority: "0.6" },
