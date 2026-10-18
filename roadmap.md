@@ -4,7 +4,7 @@
 - [x] Build /parties with official 2024 seat/vote rankings, individual-poll comparisons and verified historical manifesto summaries
 - [x] Verify comparison controls, unavailable polling, URL restoration and small-screen layout; five tests pass
 - [ ] Complete SNP/Plaid policy summaries (blocked: full primary manifesto text could not be retrieved; links and explicit unavailable states retained)
-- [ ] Publish the party page (awaiting request to publish)
+- [x] Party page published to ukstats.co.uk (18 Oct 2026)
 
 ## X (Twitter) account
 - [x] Add the site's X, Bluesky and Mastodon profile links to the footer (social-profiles module + tests)
@@ -15,12 +15,12 @@
 - [x] Block new checkout and hide donation options without deleting their setup; keep existing sponsor editing and subscription management
 - [x] Verify paused payment and donation pages (policy test passed; both pages checked in browser; build OK)
 - [x] Add the legal statement that donations and sponsorships are on hold until the full legal due diligence process is completed and the site stays completely free (policy test added; shown in the footer dedication on every page plus /support, /advertise, /sponsors and the sponsor dashboard)
-- [ ] Publish the funding pause (awaiting request to publish)
+- [x] Funding pause and legal statement published to ukstats.co.uk (18 Oct 2026)
 
 ## Restore Britain dedication and colours
 - [x] Add the uploaded logo and independent dedication to the shared footer, retaining donations and local-business sponsorship
 - [x] Apply the logo's navy palette to light and dark themes and verify layouts and links
-- [ ] Publish the dedication and colour changes (awaiting request to publish)
+- [x] Dedication and navy colours published to ukstats.co.uk (18 Oct 2026)
 
 ## Town and city crime rankings
 - [x] Add country selector and verified Canadian city-area lowest/highest ten lists from the official 2025 Crime Severity Index
@@ -34,7 +34,7 @@
 - [x] Simplify home and navigation around finding, comparing and using official figures
 - [x] Improve register search, small-screen controls and loading/error feedback
 - [x] Remove avoidable slow requests and verify main journeys at phone, tablet and desktop widths
-- [ ] Publish this usability/speed pass and measure live loading (awaiting request to publish)
+- [x] Usability/speed pass published to ukstats.co.uk (18 Oct 2026); re-measure live loading
 
 - [x] SEO: og:url/canonical, headings, sitemap.xml + robots.txt
 - [x] Remove the "Edit with Lovable" badge from the published site
@@ -137,7 +137,7 @@
 - [x] Sponsor system published to ukstats.co.uk (12 Oct 2026): banner, /sponsors and live paid plans verified on the live site, no test-mode note
 - [ ] Real-money end-to-end test: pay £5, approve on /agents, confirm the "Supported by" line appears
 - [x] Sponsor banner uploads: the sponsor picks a picture, checked from the file bytes (3 wide to 1 tall, at least 1536×512, jpg/png/webp, under 2MB) both in the browser and on the server; private picture folder with short-lived links; the banner keeps one true 3:1 shape at every screen size so nothing is cropped; your admin list shows the picture
-- [ ] Publish the sponsor banner upload work
+- [x] Sponsor banner upload work published to ukstats.co.uk (18 Oct 2026)
 - [ ] Real sponsor pictures going through the live approval flow (banner still shows the example estate agent)
 - [x] Home-page sponsor banner rotation fixed (12 Oct 2026): home now reads its data from the page itself instead of re-asking the server in the browser; live home verified rotating RAREITUP → Gold.live → XPRE → YachtFino → GoPharma every 8s with no errors
 
@@ -149,20 +149,21 @@
 - [x] "Embed this figure" button on every history page, linking to the embed builder
 - [x] Outreach drafts saved (Show HN post, awesome-public-datasets listing, daily social posts, newsletter pitches) — Marco sends these himself
 - [ ] Submit the sitemap in Google Search Console (needs Marco's Google account)
-- [ ] Publish everything waiting (slogan, dedication, safest places, funding pause, this work) when Marco says "publish"
+- [x] Everything waiting published to ukstats.co.uk (18 Oct 2026): slogan, dedication, safest places, funding pause, world rankings, small boats, speed fix
 
 ## stats.solutions global door
 - [x] Host-aware brand, world-first home, per-host sitemap/robots, world canonicals
 - [ ] Connect stats.solutions DNS (waiting on Marco at his provider)
 - [ ] Unset ukstats.co.uk as primary so both addresses serve (Marco, Project Settings)
-- [ ] Publish (awaiting "publish")
+- [x] Global-door code published (18 Oct 2026); stats.solutions still forwards until ukstats.co.uk is unset as primary
 
 ## World-class UK + global plan (18 Oct 2026)
 - [x] Phase 1: publish waiting work
 - [ ] Phase 1: unset ukstats.co.uk as primary (Marco, in Domains settings) — blocks stats.solutions showing its own name
 - [ ] Phase 1: Search Console for both domains (needs Marco's Google account)
 - [ ] Phase 2: live speed under 1s; per-figure question pages; local area pages; release alerts
-- [ ] Phase 3: World Bank/IMF/OECD/UN sources; country pages to UK standard; world rankings
+- [x] Phase 3 (part): World Bank world rankings live at /world with a page per country (18 Oct 2026)
+- [ ] Phase 3: IMF/OECD/UN sources; country pages raised to UK standard
 - [ ] Phase 4: city/area sponsor targeting, local currency prices (stays paused under legal hold)
 
 ## Small boats depth (vs Small Boat Watch)
@@ -170,3 +171,10 @@
 - [x] Totals under each Prime Minister (official figures only, no cost estimates)
 - [x] Phone "add to home screen" prompt
 - [ ] Daily small boats email alert — waiting on an email sender address being set up
+
+## World rankings (18 Oct 2026)
+- [x] Six World Bank figures (population, GDP, GDP per person, inflation, government debt, homicide) ranked across 200+ countries at /world
+- [x] A page per country at /world/XX with every figure, its rank, year and source links; UK points to the register
+- [x] Filings more than three years behind the newest are listed but never ranked; no figure is estimated
+- [x] Published to ukstats.co.uk (18 Oct 2026)
+- [ ] Re-check live /world loading and confirm Search Console sees the new pages
