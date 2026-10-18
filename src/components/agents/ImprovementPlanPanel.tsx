@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, ClipboardCopy, X } from "lucide-react";
 import { getLatestPlan, setPlanTaskStatus } from "@/lib/agents.functions";
 import { buildRequest } from "@/lib/agents/planner";
-import { fmtDate } from "@/lib/format";
+import { fmtDate } from "@/lib/uk-stats";
 
 export function ImprovementPlanPanel() {
   const qc = useQueryClient();
