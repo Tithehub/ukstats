@@ -154,3 +154,9 @@
 - [ ] Phase 2: live speed under 1s; per-figure question pages; local area pages; release alerts
 - [ ] Phase 3: World Bank/IMF/OECD/UN sources; country pages to UK standard; world rankings
 - [ ] Phase 4: city/area sponsor targeting, local currency prices (stays paused under legal hold)
+
+## Small boats depth (vs Small Boat Watch)
+- [x] Every day since 2018 at /small-boats, with chart, yearly totals and CSV
+- [x] Totals under each Prime Minister (official figures only, no cost estimates)
+- [x] Phone "add to home screen" prompt
+- [ ] Daily small boats email alert — waiting on an email sender address being set up

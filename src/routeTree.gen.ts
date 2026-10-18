@@ -41,6 +41,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SafestPlacesRouteImport } from './routes/safest-places'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SmallBoatsRouteImport } from './routes/small-boats'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SponsorDashboardRouteImport } from './routes/sponsor-dashboard'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
@@ -231,6 +232,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SmallBoatsRoute = SmallBoatsRouteImport.update({
+  id: '/small-boats',
+  path: '/small-boats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SourcesRoute = SourcesRouteImport.update({
   id: '/sources',
   path: '/sources',
@@ -414,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/small-boats': typeof SmallBoatsRoute
   '/sources': typeof SourcesRoute
   '/sponsor-dashboard': typeof SponsorDashboardRoute
   '/sponsors': typeof SponsorsRoute
@@ -475,6 +482,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/small-boats': typeof SmallBoatsRoute
   '/sources': typeof SourcesRoute
   '/sponsor-dashboard': typeof SponsorDashboardRoute
   '/sponsors': typeof SponsorsRoute
@@ -539,6 +547,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/small-boats': typeof SmallBoatsRoute
   '/sources': typeof SourcesRoute
   '/sponsor-dashboard': typeof SponsorDashboardRoute
   '/sponsors': typeof SponsorsRoute
@@ -604,6 +613,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/safest-places'
     | '/sitemap.xml'
+    | '/small-boats'
     | '/sources'
     | '/sponsor-dashboard'
     | '/sponsors'
@@ -665,6 +675,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/safest-places'
     | '/sitemap.xml'
+    | '/small-boats'
     | '/sources'
     | '/sponsor-dashboard'
     | '/sponsors'
@@ -728,6 +739,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/safest-places'
     | '/sitemap.xml'
+    | '/small-boats'
     | '/sources'
     | '/sponsor-dashboard'
     | '/sponsors'
@@ -792,6 +804,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SafestPlacesRoute: typeof SafestPlacesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SmallBoatsRoute: typeof SmallBoatsRoute
   SourcesRoute: typeof SourcesRoute
   SponsorDashboardRoute: typeof SponsorDashboardRoute
   SponsorsRoute: typeof SponsorsRoute
@@ -1029,6 +1042,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/small-boats': {
+      id: '/small-boats'
+      path: '/small-boats'
+      fullPath: '/small-boats'
+      preLoaderRoute: typeof SmallBoatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sources': {
@@ -1341,6 +1361,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SafestPlacesRoute: SafestPlacesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SmallBoatsRoute: SmallBoatsRoute,
   SourcesRoute: SourcesRoute,
   SponsorDashboardRoute: SponsorDashboardRoute,
   SponsorsRoute: SponsorsRoute,

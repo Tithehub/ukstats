@@ -205,6 +205,7 @@ function UkHome() {
         <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">
           <Link to="/daily" className="inline-flex min-h-11 items-center">Latest releases →</Link>
           <Link to="/safest-places" search={{ country: 'uk' }} className="inline-flex min-h-11 items-center">Safest places →</Link>
+          <Link to="/small-boats" className="inline-flex min-h-11 items-center">Small boats since 2018 →</Link>
           <Link to="/compare-countries" search={{ metric: 'hicp' }} className="inline-flex min-h-11 items-center">Compare countries →</Link>
           <Link to="/widget" className="inline-flex min-h-11 items-center">Embed a figure →</Link>
         </nav>

@@ -46,6 +46,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/", label: "Home", icon: Home },
       { to: "/register", label: "UK statistics", icon: Table2 },
       { to: "/maps", label: "Maps", icon: MapIcon },
+      { to: "/small-boats", label: "Small boats since 2018", icon: Table2 },
       { to: "/safest-places", label: "City crime rankings", icon: MapIcon },
       { to: "/countries", label: "Countries", icon: MapIcon },
       { to: "/gold", label: "Gold reserves", icon: Banknote },
