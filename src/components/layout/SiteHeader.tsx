@@ -181,6 +181,15 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               Sign in
             </Link>
           )}
+          <a
+            href="https://x.com/ukstatsglobal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={btn("ghost", "sm", "max-md:hidden")}
+            aria-label="Follow us on X @ukstatsglobal"
+          >
+            Follow on X
+          </a>
           <Link to="/widget" className={btn("secondary", "sm", "max-xl:hidden")}>
             <LayoutGrid className="size-4" aria-hidden="true" />
             Embed figures
