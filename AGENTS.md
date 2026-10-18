@@ -25,8 +25,8 @@
 
 
 - Server functions must use method "POST", never "GET": GET server-function responses hang forever on the live edge runtime (POST reaches the handler fine), which left the home page frozen pre-hydration.
-- Read the stored official UK payload before launching publisher collection and serve lastGood during refresh; this keeps a cold request from starving its own cache lookup and repeat visitors from waiting on a refresh.
-- Shared request-pool helpers hold slots through response-body consumption; Eurostat uses four slots to leave headroom for national feeds and failed or unused responses are cancelled to avoid stalled connections.
+- Read the stored payload (payload_cache: uk-stats, country-<code>) before collecting from publishers and serve lastGood during refresh; cold requests never wait on publishers when a snapshot exists.
+- Request-pool helpers hold slots through body consumption (Eurostat: four slots); cancel failed or unused responses.
 - Register search and category filters live in URL search parameters and use the shared stat-search matcher; this keeps results shareable and browser Back restores the selection.
 - Use PageFeedback for shared loading and recoverable data errors and keep automatic link preloading disabled; this gives explicit feedback without fetching large data collections for incidental pointer movement.
 - Router dehydrate/hydrate serializes the successful Query cache per request; data pages must not re-download loader results before their controls can become interactive.
@@ -34,4 +34,3 @@
 - Funding availability and the legal hold statement live in src/lib/funding-policy.ts and render via FundingLegalNotice.tsx, so one flag pauses or resumes both; retain checkout and subscription setup so the pause is reversible.
 - City crime ranks use city-crime pure parsers and a POST server wrapper with official-source adapters; latest-year missing/suppressed cells block rankings, national/provincial totals and overlapping subareas are excluded, and unavailable countries never substitute regional or perception data.
 - Brand comes from the request host via src/lib/site-host.ts (stats.solutions = world-first, everything else UK); canonicals for world/country paths use stats.solutions, sitemap and robots are generated per host — one codebase serves both domains.
-- Country payloads are stored in payload_cache as country-<code> and served instantly while a refresh runs; a cold server never waits on Eurostat when a stored official snapshot exists.
