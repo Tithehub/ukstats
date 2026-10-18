@@ -1,7 +1,7 @@
 // The site's core rule: posts carry official statistics only. Weather-model and
 // warning-feed cards stay on the site (labelled as such) but must never be posted.
 import { describe, expect, it } from "vitest";
-import { countryFigureOfDay, figureOfDay } from "./marketing";
+import { countryFigureOfDay, figureOfDay, releaseDay } from "./marketing";
 import type { CountryPayload } from "../countries";
 import type { Metric } from "../uk-stats";
 
@@ -42,6 +42,13 @@ const payload = {
 } as unknown as CountryPayload;
 
 describe("marketing picks official figures only", () => {
+  it("never drafts a weather model as an upcoming official release", () => {
+    const now = Date.parse("2026-10-18T06:00:00Z");
+    const due = { ...weather, nextDue: "2026-10-19T06:00:00Z" } as unknown as Metric;
+    expect(releaseDay([due], now)).toEqual([]);
+    const published = { ...official, nextDue: due.nextDue } as unknown as Metric;
+    expect(releaseDay([published], now)).toHaveLength(2);
+  });
   it("drafts the Eurostat figure, never the weather model", () => {
     const posts = countryFigureOfDay(payload, new Date("2026-10-11T12:00:00Z"));
     expect(posts.length).toBeGreaterThan(0);

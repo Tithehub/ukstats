@@ -42,7 +42,7 @@ export function figureOfDay(metrics: Metric[], date = new Date()): DraftPost[] {
 export function releaseDay(metrics: Metric[], now = Date.now()): DraftPost[] {
   const out: DraftPost[] = [];
   for (const m of metrics) {
-    if (m.status !== "ok" || !m.value || !m.nextDue) continue;
+    if (m.status !== "ok" || !m.value || !m.nextDue || !isOfficial(m)) continue;
     const due = Date.parse(m.nextDue);
     if (Number.isNaN(due) || due < now || due - now > 36 * 3600_000) continue;
     const when = new Date(due).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Europe/London" });
