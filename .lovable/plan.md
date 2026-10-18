@@ -1,22 +1,30 @@
-# Keep the agents improving the site overnight
+# A ready-to-approve improvement plan every morning
 
-## The honest answer
-The agents can work every night, but they can't change the site's code or publish anything. Only our chats can do that. What they can do is find problems, check every figure and draft improvements. Each morning you get a short list of ready-to-approve items, and one "build these" message to me turns them into real changes.
+## What you'll get
+Every night the agent team writes one full **Improvement Plan** and waits. Nothing on the site changes. When you wake up, open /agents and you'll see:
 
-## What gets added
-1. **Nightly ideas list ("Next improvements")**: every night the Chief of Staff reads the findings, feed failures, visitor stats and search gaps, and writes the top 5 improvements, ranked by impact. Each idea gets a one-line reason and the evidence behind it, such as "/maps had 12 visits and 90% left straight away".
-2. **New-source scout**: checks the official publishers we already list (World Bank, ONS, Eurostat, national offices) for figures we don't show yet. It suggests them with the exact official link and never makes up a value.
-3. **World rankings checker**: each night it checks all 20 world figures for stale years, missing countries and sudden jumps, and flags anything odd.
-4. **One-click hand-off**: a "Copy build request" button on /agents puts the approved ideas into one message you paste to me in the morning.
-5. **Confirm the schedule**: make sure the 02:00 UK run fires every night, and show an alert on /agents if a night is missed.
+1. **Summary**: what the agents found overnight, in plain English.
+2. **Ranked tasks (up to 10)**: each one shows what to build, why it matters, the evidence behind it, how big the job is (small, medium or large) and how we'll know it worked.
+3. **Approve / Skip on each task**, plus **Approve all**.
+4. **"Copy build request" button**: it turns the approved tasks into one message. Paste that to me in chat and I build them.
 
-## What stays the same
-- No figure is ever invented, changed or estimated by an agent.
-- Nothing posts to socials or goes live without your click.
-- AI use stays small and is charged to your workspace credits. The team stops itself if credits run out.
+## Where the ideas come from
+- Overnight findings from the six agents: broken feeds, revised figures, stale dates, site problems.
+- Visitor numbers: which pages people leave straight away, and where they come from.
+- Gaps against our own roadmap, such as world indicators, country pages, email alerts and local search.
+- Official figures we list a source for but don't yet show.
+
+## Rules the plan must follow
+- It never proposes inventing, estimating or changing a figure.
+- It never proposes auto-posting, paid placements next to figures, or turning donations back on while the legal hold is in place.
+- Tasks that need something from you, such as your Google account or an email sender, are marked "Needs you".
+- If AI credits run out, there's no plan that night and /agents tells you why.
 
 ## Technical details
-- New steps go in src/lib/agents/engine.server.ts: `improvementPlanner` (AI, strict JSON schema, input = findings + analytics summary + feed status), `sourceScout` (deterministic: compares the publisher catalogues with the metrics we already have), and `worldAuditor` (deterministic: checks the payload_cache "world-bank" data for lag and outliers).
-- Results are written to agent_findings with the new kinds "idea" and "source-suggestion". They show in a new "Next improvements" section on /agents with Approve/Dismiss buttons. The "Copy build request" button builds the message from the approved ideas.
-- Check the schedule with supabase--list_http_schedules. Add a missed-run finding when the last agent_runs entry is more than 26 hours old.
-- Tests check that the planner output never contains a numeric figure that isn't already in the payload, and that source suggestions always include an official URL.
+- New table `improvement_plans` (run_id, summary, tasks jsonb, created_at). Each task has: title, why, evidence, size, success_check, needs_user, status (pending/approved/skipped). RLS is admin-only via has_role, with grants.
+- New final step `plannerAgent` in src/lib/agents/engine.server.ts, run after the Chief of Staff. Its input is that night's findings, the open roadmap.md items and a 30-day analytics summary. It uses aiJson with a strict schema (default model) and has a cap of 10 tasks. A rule filter drops any task that breaks the no-fabrication, funding-hold or auto-posting rules.
+- New server functions in agents.functions.ts (POST, admin-checked): getLatestPlan and setTaskStatus.
+- New ImprovementPlanPanel at the top of /agents, with per-task Approve/Skip, Approve all and Copy build request (clipboard).
+- Keeps the existing 02:00 UK nightly schedule; this is checked with list_http_schedules.
+- Tests: the filter rejects banned tasks, the plan is capped at 10 tasks, and the copied text includes only approved tasks.
+- I run the team once after building, so a first plan is waiting for you.
