@@ -53,7 +53,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
           </p>
           <a
             href="/feed.xml"
-            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+            className="mt-3 flex w-fit min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
           >
             <Rss className="size-4" aria-hidden="true" />
             New figures feed
@@ -62,7 +62,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
             href="https://github.com/Tithehub/ukstats"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+            className="mt-1 flex w-fit min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
           >
             <Github className="size-4" aria-hidden="true" />
             Open source on GitHub
@@ -75,7 +75,7 @@ export function SiteFooter({ fetchedAt }: { fetchedAt?: string | number | null }
                 href={p.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-flex min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
+                className="mt-1 flex w-fit min-h-9 items-center gap-1.5 rounded-md text-[13px] text-night-muted hover:text-electric-soft"
               >
                 <Icon className="size-4" aria-hidden="true" />
                 {p.label} <span className="font-mono text-[12px]">{p.handle}</span>
