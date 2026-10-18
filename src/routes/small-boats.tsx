@@ -93,7 +93,7 @@ function SmallBoatsPage() {
               <Table head={["Prime Minister", "Days", "People", "Boats", "People a day"]}>
                 {derived.pms.map((r) => (
                   <tr key={r.name}>
-                    <td className="px-3 py-2"><a href={r.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{r.name}</a>{r.partial && <span className="block text-xs text-night-muted">Counted {r.partial}</span>}</td>
+                    <td className="px-3 py-2"><a href={r.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{r.name}</a>{r.partial && <span className="block text-xs text-night-muted">Counted {r.partial.replace(/\d{4}-\d{2}-\d{2}/g, day)}</span>}</td>
                     <td className="px-3 py-2 text-right font-mono">{n(r.days)}</td>
                     <td className="px-3 py-2 text-right font-mono">{n(r.arrivals)}</td>
                     <td className="px-3 py-2 text-right font-mono">{n(r.boats)}</td>
