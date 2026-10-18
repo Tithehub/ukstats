@@ -11,6 +11,7 @@ import { LaunchKit, MarketingPanel } from "@/components/agents/MarketingPanel";
 import { DomainsPanel } from "@/components/agents/DomainsPanel";
 import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
 import { ImprovementPlanPanel } from "@/components/agents/ImprovementPlanPanel";
+import { MorningReviewPanel } from "@/components/agents/MorningReviewPanel";
 
 export const Route = createFileRoute("/agents")({
   head: () => ({
@@ -69,6 +70,7 @@ function AgentsPage() {
         </div>
         {err ? <p className="mt-3 text-overdue">{err}</p> : null}
         <ImprovementPlanPanel />
+        <MorningReviewPanel />
         {latest?.pause_reason ? <p className="mt-3 text-ageing">AI agents paused: {latest.pause_reason}</p> : null}
 
         <section className="mt-8 rounded-xl border border-night-line bg-night-panel p-5">
