@@ -1,6 +1,9 @@
 // Browser-safe World Bank (World Development Indicators) helpers.
 // Values are exactly as the World Bank publishes them; nothing is estimated here.
 
+export const WORLD_CATEGORIES = ["Economy", "People", "Jobs", "Health & safety", "Energy"] as const;
+export type WorldCategory = (typeof WORLD_CATEGORIES)[number];
+
 export interface WorldIndicator {
   id: string;
   slug: string;
@@ -9,15 +12,32 @@ export interface WorldIndicator {
   /** true = a higher value ranks first. */
   higherFirst: boolean;
   note: string;
+  category: WorldCategory;
 }
 
+const I = (category: WorldCategory, id: string, slug: string, label: string, unit: WorldIndicator["unit"], note: string): WorldIndicator => ({ id, slug, label, unit, higherFirst: true, note, category });
+
 export const WORLD_INDICATORS: WorldIndicator[] = [
-  { id: "SP.POP.TOTL", slug: "population", label: "Population", unit: "people", higherFirst: true, note: "Total population, mid-year." },
-  { id: "NY.GDP.MKTP.CD", slug: "gdp", label: "GDP (US$)", unit: "usd", higherFirst: true, note: "Gross domestic product, current US dollars." },
-  { id: "NY.GDP.PCAP.CD", slug: "gdp-per-person", label: "GDP per person (US$)", unit: "usd", higherFirst: true, note: "GDP divided by mid-year population, current US dollars." },
-  { id: "FP.CPI.TOTL.ZG", slug: "inflation", label: "Inflation", unit: "pct", higherFirst: true, note: "Consumer prices, annual % change." },
-  { id: "GC.DOD.TOTL.GD.ZS", slug: "government-debt", label: "Government debt (% of GDP)", unit: "pct", higherFirst: true, note: "Central government debt, total, % of GDP." },
-  { id: "VC.IHR.PSRC.P5", slug: "homicide", label: "Homicide rate", unit: "rate", higherFirst: true, note: "Intentional homicides per 100,000 people (UNODC)." },
+  I("People", "SP.POP.TOTL", "population", "Population", "people", "Total population, mid-year."),
+  I("Economy", "NY.GDP.MKTP.CD", "gdp", "GDP (US$)", "usd", "Gross domestic product, current US dollars."),
+  I("Economy", "NY.GDP.PCAP.CD", "gdp-per-person", "GDP per person (US$)", "usd", "GDP divided by mid-year population, current US dollars."),
+  I("Economy", "NY.GDP.MKTP.KD.ZG", "gdp-growth", "Economic growth", "pct", "GDP growth, annual %, constant prices."),
+  I("Economy", "FP.CPI.TOTL.ZG", "inflation", "Inflation", "pct", "Consumer prices, annual % change."),
+  I("Economy", "GC.DOD.TOTL.GD.ZS", "government-debt", "Government debt (% of GDP)", "pct", "Central government debt, total, % of GDP."),
+  I("Economy", "GC.TAX.TOTL.GD.ZS", "tax-revenue", "Tax revenue (% of GDP)", "pct", "Tax revenue collected by central government, % of GDP."),
+  I("People", "SP.POP.GROW", "population-growth", "Population growth", "pct", "Population growth, annual %."),
+  I("People", "SP.DYN.LE00.IN", "life-expectancy", "Life expectancy (years)", "rate", "Life expectancy at birth, total, years."),
+  I("People", "SP.DYN.TFRT.IN", "fertility", "Fertility rate", "rate", "Births per woman."),
+  I("People", "SP.URB.TOTL.IN.ZS", "urban", "Urban population (%)", "pct", "Share of people living in urban areas."),
+  I("Jobs", "SL.UEM.TOTL.ZS", "unemployment", "Unemployment", "pct", "Unemployment, % of labour force (ILO modelled estimate, as published by the World Bank)."),
+  I("Jobs", "SL.UEM.1524.ZS", "youth-unemployment", "Youth unemployment (15–24)", "pct", "Unemployment, % of labour force aged 15–24 (ILO modelled estimate)."),
+  I("Jobs", "SL.TLF.CACT.ZS", "labour-participation", "Labour force participation", "pct", "% of people aged 15+ in work or looking for work (ILO modelled estimate)."),
+  I("Health & safety", "VC.IHR.PSRC.P5", "homicide", "Homicide rate", "rate", "Intentional homicides per 100,000 people (UNODC)."),
+  I("Health & safety", "SP.DYN.IMRT.IN", "infant-mortality", "Infant mortality", "rate", "Deaths before age one per 1,000 live births."),
+  I("Health & safety", "SH.XPD.CHEX.GD.ZS", "health-spending", "Health spending (% of GDP)", "pct", "Current health expenditure, % of GDP."),
+  I("Health & safety", "SE.XPD.TOTL.GD.ZS", "education-spending", "Education spending (% of GDP)", "pct", "Government expenditure on education, % of GDP."),
+  I("Energy", "EN.GHG.CO2.PC.CE.AR5", "co2-per-person", "CO₂ per person (tonnes)", "rate", "CO₂ emissions excluding land use, tonnes per person."),
+  I("Energy", "EG.FEC.RNEW.ZS", "renewable-energy", "Renewable energy (%)", "pct", "Renewables share of final energy consumption."),
 ];
 
 export const WORLD_SOURCE = { name: "World Bank — World Development Indicators", url: "https://data.worldbank.org" };
