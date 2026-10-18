@@ -56,6 +56,7 @@ import { Route as CountryCalendarRouteImport } from './routes/$country.calendar'
 import { Route as CountrySafestPlacesRouteImport } from './routes/$country.safest-places'
 import { Route as CountrySourcesRouteImport } from './routes/$country.sources'
 import { Route as CountryStatusRouteImport } from './routes/$country.status'
+import { Route as AnswersQuestionRouteImport } from './routes/answers.$question'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
@@ -311,6 +312,11 @@ const CountryStatusRoute = CountryStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => CountryRoute,
 } as any)
+const AnswersQuestionRoute = AnswersQuestionRouteImport.update({
+  id: '/answers/$question',
+  path: '/answers/$question',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DailyDateRoute = DailyDateRouteImport.update({
   id: '/$date',
   path: '/$date',
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
+  '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -524,6 +531,7 @@ export interface FileRoutesByTo {
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
+  '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -593,6 +601,7 @@ export interface FileRoutesById {
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
+  '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -663,6 +672,7 @@ export interface FileRouteTypes {
     | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
+    | '/answers/$question'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -729,6 +739,7 @@ export interface FileRouteTypes {
     | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
+    | '/answers/$question'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -797,6 +808,7 @@ export interface FileRouteTypes {
     | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
+    | '/answers/$question'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -862,6 +874,7 @@ export interface RootRouteChildren {
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
   WorldCompareRoute: typeof WorldCompareRoute
+  AnswersQuestionRoute: typeof AnswersQuestionRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -1201,6 +1214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryStatusRouteImport
       parentRoute: typeof CountryRoute
     }
+    '/answers/$question': {
+      id: '/answers/$question'
+      path: '/answers/$question'
+      fullPath: '/answers/$question'
+      preLoaderRoute: typeof AnswersQuestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/daily/$date': {
       id: '/daily/$date'
       path: '/$date'
@@ -1451,6 +1471,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
   WorldCompareRoute: WorldCompareRoute,
+  AnswersQuestionRoute: AnswersQuestionRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
