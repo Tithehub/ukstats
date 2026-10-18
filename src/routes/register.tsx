@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { matchesMetric } from '@/lib/stat-search';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
+import { ANSWER_TOPICS } from '@/lib/answer-topics';
 
 
 const statsQuery = queryOptions<StatsPayload>({

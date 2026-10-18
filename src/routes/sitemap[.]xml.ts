@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { ANSWER_TOPICS } from "@/lib/answer-topics";
 
 
 interface SitemapEntry {
@@ -39,6 +40,8 @@ const entries: SitemapEntry[] = [
   { path: "/gold", changefreq: "weekly", priority: "0.7" },
   { path: "/small-boats", changefreq: "weekly", priority: "0.8" },
   { path: "/world", changefreq: "weekly", priority: "0.8" },
+  { path: "/world-compare", changefreq: "weekly", priority: "0.8" },
+  ...ANSWER_TOPICS.map(topic => ({ path: `/answers/${topic.slug}`, changefreq: "weekly" as const, priority: "0.7" })),
   { path: "/sources", changefreq: "monthly", priority: "0.6" },
   { path: "/global", changefreq: "monthly", priority: "0.6" },
   ...COUNTRIES.map((c) => ({ path: `/${c.code}`, changefreq: "daily" as const, priority: "0.7" })),
