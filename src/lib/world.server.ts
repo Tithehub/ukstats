@@ -21,13 +21,14 @@ async function collect(): Promise<WorldPayload> {
   const keep = new Set(countries.map((c) => c.iso3));
   const values: WorldPayload["values"] = {};
   const updated: WorldPayload["updated"] = {};
-  await Promise.all(
-    WORLD_INDICATORS.map(async (ind) => {
+  // Leave two of the six outbound slots free; consume bodies before each batch ends.
+  for (let offset = 0; offset < WORLD_INDICATORS.length; offset += 4) {
+    await Promise.all(WORLD_INDICATORS.slice(offset, offset + 4).map(async (ind) => {
       const p = parseIndicator(await get(`${API}/country/all/indicator/${ind.id}?format=json&mrnev=1&per_page=400`), keep);
       values[ind.id] = p.values;
       updated[ind.id] = p.updated;
-    }),
-  );
+    }));
+  }
   return { countries, values, updated, fetchedAt: new Date().toISOString() };
 }
 

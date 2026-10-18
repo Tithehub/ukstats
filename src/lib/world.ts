@@ -102,4 +102,8 @@ export function fmtWorld(v: number, unit: WorldIndicator["unit"]): string {
   return `${pre}${Math.round(v).toLocaleString("en-GB")}`;
 }
 
-export const indicatorBySlug = (s: string | undefined) => WORLD_INDICATORS.find((i) => i.slug === s) ?? WORLD_INDICATORS[0]!;
+export const indicatorBySlug = (s: string | undefined): WorldIndicator => {
+  const indicator = WORLD_INDICATORS.find(i => i.slug === s) ?? WORLD_INDICATORS[0];
+  if (!indicator) throw new Error("World indicator registry is empty");
+  return indicator;
+};
