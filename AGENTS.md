@@ -30,7 +30,7 @@
 - Brand comes from the request host via src/lib/site-host.ts (stats.solutions = world-first, everything else UK); canonicals for world/country paths use stats.solutions, sitemap and robots are generated per host — one codebase serves both domains.
 
 - Subdirectories may have their own AGENTS.md (e.g. src/components/sponsor/); read it before changing files there.
-- World rankings (/world, /world/$iso) come only from World Bank WDI via src/lib/world.server.ts, cached as payload_cache "world-bank"; figures more than 3 years behind the newest are listed but unranked — keeps stale filings from skewing ranks.
+- World rankings use only World Bank WDI, cached as payload_cache "world-bank-v2"; figures more than 3 years behind the newest are unranked — keeps stale filings from skewing ranks.
 - Party comparisons use sourced election records and dated manifesto summaries in party-comparison.data.ts; pure helpers preserve ties and show polls individually, excluding devolved-party shares from GB headline ranks — avoids treating promises or estimates as outcomes.
 - World comparisons reuse the cached WDI payload and flag missing, stale and different-year filings; answer topics require reader/search evidence and reuse register values — avoids new figures or false equivalence.
 - UKHSA checks use the verified dashboard URL with two bounded attempts, never colour words in prose; last verified non-publication decisions survive workbook outages with their original dates — avoids assumed alerts and false outage classifications.
