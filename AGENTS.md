@@ -9,7 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Overnight agent team lives in src/lib/agents/ (server-only), triggered by /api/public/agents-tick via pg_cron; agents write only findings/drafts/revisions, never figures — keeps the no-fabrication rule enforceable.
+- Overnight agent team lives in src/lib/agents/ (server-only), triggered by /api/public/agents-tick via pg_cron; agents write only findings/drafts/revisions, never figures — keeps the no-fabrication rule enforceable. Details in src/lib/agents/AGENTS.md.
 - Non-UK countries live under /$country (registry in src/lib/countries.ts, Eurostat parser in src/lib/eurostat.ts); UK register at "/" is untouched — keeps the proven UK pipeline isolated from new sources.
 - National (non-Eurostat) sources live in src/lib/national.server.ts with pure parsers in src/lib/national.ts — keeps network code server-only and parsers testable.
 - A national figure assembled from several regional feeds is all-or-nothing: if any region fails to answer, show no figure rather than a partial count — a shorter total would be read as the country's real number.
@@ -20,7 +20,6 @@
 - Sponsors render only via SponsorStrip/SponsorBanner — the banner sits under the hero on the home page and in the footer zone on every other page — and /sponsors; region = page country code via regionFromPath, matched against the sponsor's chosen regions (groups expand in src/lib/sponsor-regions.ts; old single region column is a fallback) in footer/hub pages, never on figure cards, embeds, widgets or share images — keeps paid placement away from the numbers.
 - Independent dedications render through RestoreDedication at the bottom of SiteFooter, separate from sponsor records and never in embeds, widgets or share images — keeps attribution distinct from paid placements and statistics.
 - The home page's sponsor banner comes from the route loader via getSponsorBannerBoard (src/lib/banner.functions.ts) and is rendered with the page, never only by the page's interactive layer — that layer can fail to start on the live home page, and a sponsor's banner must show regardless.
-
 
 - Server functions must use method "POST", never "GET": GET server-function responses hang forever on the live edge runtime (POST reaches the handler fine), which left the home page frozen pre-hydration.
 - Read the stored payload (payload_cache: uk-stats, country-<code>) before collecting from publishers and serve lastGood during refresh; cold requests never wait on publishers when a snapshot exists.
