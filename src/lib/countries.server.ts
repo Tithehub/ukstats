@@ -109,7 +109,13 @@ export async function loadCountryStats(code: string): Promise<CountryPayload | n
   let good = lastGoodCountry.get(code) ?? null;
   if (!good) {
     good = await readPersistedCountry(code);
-    if (good) lastGoodCountry.set(code, good);
+    if (good) {
+      lastGoodCountry.set(code, good);
+      if (Date.now() - Date.parse(good.fetchedAt) < TTL) {
+        countryCache.set(code, { at: Date.parse(good.fetchedAt), data: Promise.resolve(good) });
+        return good;
+      }
+    }
   }
   const pending = refreshCountry(code);
   return good ?? pending;
