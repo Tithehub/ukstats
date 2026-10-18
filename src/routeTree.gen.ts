@@ -50,6 +50,7 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
+import { Route as WorldCompareRouteImport } from './routes/world-compare'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as CountryCalendarRouteImport } from './routes/$country.calendar'
 import { Route as CountrySafestPlacesRouteImport } from './routes/$country.safest-places'
@@ -280,6 +281,11 @@ const WidgetRoute = WidgetRouteImport.update({
   path: '/widget',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorldCompareRoute = WorldCompareRouteImport.update({
+  id: '/world-compare',
+  path: '/world-compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountryIndexRoute = CountryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -447,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
@@ -512,6 +519,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
@@ -580,6 +588,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
@@ -649,6 +658,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/world-compare'
     | '/$country/calendar'
     | '/$country/safest-places'
     | '/$country/sources'
@@ -714,6 +724,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/world-compare'
     | '/$country/calendar'
     | '/$country/safest-places'
     | '/$country/sources'
@@ -781,6 +792,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/world-compare'
     | '/$country/calendar'
     | '/$country/safest-places'
     | '/$country/sources'
@@ -849,6 +861,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
+  WorldCompareRoute: typeof WorldCompareRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -1146,6 +1159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WidgetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/world-compare': {
+      id: '/world-compare'
+      path: '/world-compare'
+      fullPath: '/world-compare'
+      preLoaderRoute: typeof WorldCompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$country/': {
       id: '/$country/'
       path: '/'
@@ -1430,6 +1450,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
+  WorldCompareRoute: WorldCompareRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
