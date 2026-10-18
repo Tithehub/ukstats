@@ -11,7 +11,7 @@ export interface SocialProfile {
 }
 
 export const SOCIAL_PROFILES: SocialProfile[] = [
-  { key: "x", label: "X", handle: "@ukstats", url: "https://x.com/ukstats" },
+  { key: "x", label: "X", handle: "@ukstatsglobal", url: "https://x.com/ukstatsglobal" },
   { key: "bluesky", label: "Bluesky", handle: "@ukstats.bsky.social", url: "https://bsky.app/profile/ukstats.bsky.social" },
   { key: "mastodon", label: "Mastodon", handle: "@ukstats@mastodon.social", url: "https://mastodon.social/@ukstats" },
 ];
