@@ -82,4 +82,4 @@ export function fmtWorld(v: number, unit: WorldIndicator["unit"]): string {
   return `${pre}${Math.round(v).toLocaleString("en-GB")}`;
 }
 
-export const indicatorBySlug = (s: string | undefined) => WORLD_INDICATORS.find((i) => i.slug === s) ?? WORLD_INDICATORS[0];
+export const indicatorBySlug = (s: string | undefined) => WORLD_INDICATORS.find((i) => i.slug === s) ?? WORLD_INDICATORS[0]!;
