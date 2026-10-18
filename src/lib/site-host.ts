@@ -10,7 +10,7 @@ export const SITES: Record<Brand, { origin: string; name: string; tagline: strin
 
 /** Which brand a request host belongs to. Unknown hosts (preview, lovable.app) are UK. */
 export function brandFromHost(host: string | null | undefined): Brand {
-  const h = (host ?? "").toLowerCase().split(":")[0];
+  const h = (host ?? "").toLowerCase().split(":")[0] ?? "";
   return h === "stats.solutions" || h.endsWith(".stats.solutions") ? "global" : "uk";
 }
 
@@ -19,7 +19,7 @@ const COUNTRY_CODES = new Set(COUNTRIES.map((c) => c.code));
 
 /** World and non-UK country pages belong to stats.solutions; everything else to ukstats.co.uk. */
 export function isGlobalPath(path: string): boolean {
-  const first = path.split(/[?#]/)[0].split("/").filter(Boolean)[0] ?? "";
+  const first = (path.split(/[?#]/)[0] ?? "").split("/").filter(Boolean)[0] ?? "";
   return GLOBAL_ROOTS.has(first) || COUNTRY_CODES.has(first);
 }
 
