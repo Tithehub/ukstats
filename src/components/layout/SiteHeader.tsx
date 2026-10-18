@@ -65,6 +65,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
       { to: "/foreign-aid", label: "Foreign aid", icon: Plane },
       { to: "/polling", label: "Polling", icon: Vote },
+      { to: "/parties", label: "Political party comparison", icon: Vote },
       { to: "/governments", label: "Governments", icon: LayoutGrid },
     ],
   },

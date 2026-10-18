@@ -1,5 +1,11 @@
 # Roadmap
 
+## Political party comparison
+- [x] Build /parties with official 2024 seat/vote rankings, individual-poll comparisons and verified historical manifesto summaries
+- [x] Verify comparison controls, unavailable polling, URL restoration and small-screen layout; five tests pass
+- [ ] Complete SNP/Plaid policy summaries (blocked: full primary manifesto text could not be retrieved; links and explicit unavailable states retained)
+- [ ] Publish the party page (awaiting request to publish)
+
 ## X (Twitter) account
 - [x] Add the site's X, Bluesky and Mastodon profile links to the footer (social-profiles module + tests)
 - [ ] Marco creates @ukstats on x.com, then verify the handle resolves and the footer link works (blocked on Marco)
