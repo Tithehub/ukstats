@@ -36,3 +36,5 @@
 - Subdirectories may have their own AGENTS.md (e.g. src/components/sponsor/); read it before changing files there.
 - World rankings (/world, /world/$iso) come only from World Bank WDI via src/lib/world.server.ts, cached as payload_cache "world-bank"; figures more than 3 years behind the newest are listed but unranked — keeps stale filings from skewing ranks.
 - Party comparisons use sourced election records and dated manifesto summaries in party-comparison.data.ts; pure helpers preserve ties and show polls individually, excluding devolved-party shares from GB headline ranks — avoids treating promises or estimates as outcomes.
+
+- Nightly improvement plans (improvement_plans, plannerAgent, rules in src/lib/agents/planner.ts) only propose work; a rule filter drops fabrication, auto-posting and funding-hold tasks — owner approves, then pastes the build request to chat.
