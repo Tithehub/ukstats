@@ -40,7 +40,7 @@ export function cleanPlan(raw: Omit<PlanTask, "status">[]): PlanTask[] {
   return raw
     .filter(isAllowedTask)
     .slice(0, MAX_TASKS)
-    .map((t) => ({ ...t, needs_user: t.needs_user?.trim() ? t.needs_user : null, status: "pending" as const }));
+    .map((t) => ({ ...t, title: t.title.replace(/^\s*\d+[.)]\s*/, ""), needs_user: t.needs_user?.trim() ? t.needs_user : null, status: "pending" as const }));
 }
 
 export function buildRequest(tasks: PlanTask[]): string {
