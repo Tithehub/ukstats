@@ -30,6 +30,7 @@ import { useAuth } from "@/lib/useAuth";
 import { btn, iconBtn } from "@/lib/ui";
 import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from '@/components/ui/button';
+import { currentBrand } from "@/lib/brand-host";
 
 interface NavItem {
   to: string;
@@ -89,6 +90,7 @@ const PRIMARY: NavItem[] = [
 ];
 
 export function Wordmark() {
+  const global = currentBrand() === "global";
   return (
     <Link to="/" className="flex shrink-0 items-baseline gap-0.5 text-lg font-semibold tracking-tight text-night-fg">
       <span className="mr-1.5 inline-flex items-end gap-[2px]" aria-hidden="true">
@@ -96,7 +98,7 @@ export function Wordmark() {
         <span className="block h-4 w-1 rounded-[1px] bg-electric" />
         <span className="block h-3 w-1 rounded-[1px] bg-electric-soft" />
       </span>
-      UK<span className="text-electric">Stats</span>
+      {global ? <>Stats<span className="text-electric">.Solutions</span></> : <>UK<span className="text-electric">Stats</span></>}
     </Link>
   );
 }
