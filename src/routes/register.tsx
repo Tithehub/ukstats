@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { matchesMetric } from '@/lib/stat-search';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
+import { ANSWER_TOPICS } from '@/lib/answer-topics';
 
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -164,6 +165,7 @@ function Dashboard() {
             <div><h1 className="text-3xl font-semibold">UK statistics</h1><p className="mt-2 text-sm text-night-muted">Official figures, with their sources and publication dates.</p></div>
             <div className="relative w-full sm:max-w-md"><Search aria-hidden="true" className="absolute left-3 top-3.5 size-4 text-muted-foreground" /><Input type="search" aria-label="Search UK statistics" placeholder="Search debt, inflation, crime…" value={q} onChange={e => void navigate({ search: prev => ({ ...prev, q: e.target.value || undefined }), replace: true, resetScroll: false })} className="min-h-11 pl-10" /></div>
           </div>
+          <nav aria-label="Official answers" className="flex flex-wrap gap-x-5 gap-y-3 pb-4 text-sm">{ANSWER_TOPICS.map(topic => <Link key={topic.slug} to="/answers/$question" params={{ question: topic.slug }} className="text-electric-soft underline">{topic.title}</Link>)}</nav>
           <details className="border-t border-night-line/50">
           <summary className="min-h-11 cursor-pointer py-3 text-sm text-night-muted">Public sector net debt · {debt?.value ?? 'Unavailable'}</summary>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 py-4">

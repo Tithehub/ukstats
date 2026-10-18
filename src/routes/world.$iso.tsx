@@ -16,7 +16,7 @@ export const Route = createFileRoute("/world/$iso")({
   head: ({ loaderData, params }) => {
     const n = loaderData?.name ?? "Country";
     const t = `${n} in numbers — official figures | UKStats`;
-    const d = `${n}'s population, GDP, GDP per person, inflation, government debt and homicide rate from the World Bank, with its world rank and the year of each figure.`;
+    const d = `${n}'s 20 economy, population, jobs, health and energy indicators from the World Bank, with world ranks, reporting years and official sources.`;
     return {
       meta: [
         { title: t },
@@ -52,10 +52,11 @@ function CountryProfile() {
           <>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight">{c.name}</h1>
             <p className="mt-1 text-night-muted">{c.region}{c.income && ` · ${c.income}`}{c.capital && ` · Capital: ${c.capital}`}</p>
+            <Link to="/world-compare" search={{ countries: `${c.iso3},${c.iso3 === "GBR" ? "USA" : "GBR"}` }} className="mt-3 inline-block text-sm text-electric-soft underline">Compare with another country →</Link>
             {(full || c.iso2 === "GB") && (
               <p className="mt-3 text-sm">
                 Full live page:{" "}
-                {c.iso2 === "GB" ? <Link to="/register" className="text-electric-soft underline">UK statistics</Link> : <Link to="/$country" params={{ country: full!.code }} className="text-electric-soft underline">{c.name}</Link>}
+                {c.iso2 === "GB" ? <Link to="/register" className="text-electric-soft underline">UK statistics</Link> : full ? <Link to="/$country" params={{ country: full.code }} className="text-electric-soft underline">{c.name}</Link> : null}
               </p>
             )}
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

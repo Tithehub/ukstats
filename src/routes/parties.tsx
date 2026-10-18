@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, type ReactNode } from "react";
 import { ArrowUpRight, Vote, BarChart3, FileText } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -22,8 +23,10 @@ export const Route = createFileRoute("/parties")({
   validateSearch: (search: Record<string, unknown>): { view: ComparisonView } => ({
     view: search["view"] === "polls" || search["view"] === "policies" ? search["view"] : "election",
   }),
-  loader: async ({ context }) => {
+  loaderDeps: ({ search }) => ({ view: search.view }),
+  loader: async ({ context, deps }) => {
     const now = Date.now();
+    if (deps.view !== "polls") return { polling: null, now };
     try { return { polling: await context.queryClient.ensureQueryData(pollingQuery), now }; }
     catch { return { polling: null, now }; }
   },
@@ -46,8 +49,11 @@ function SourceLink({ href, children }: { href: string; children: ReactNode }) {
 }
 
 function PartiesPage() {
-  const { polling, now } = Route.useLoaderData();
+  const { polling: loadedPolling, now } = Route.useLoaderData();
   const { view } = Route.useSearch();
+  const fetchPolling = useServerFn(getPolling);
+  const pollingResult = useQuery({ ...pollingQuery, queryFn: () => fetchPolling(), enabled: view === "polls", ...(loadedPolling ? { initialData: loadedPolling } : {}) });
+  const polling = pollingResult.data ?? loadedPolling;
   const navigate = Route.useNavigate();
   const [order, setOrder] = useState<"seats" | "votes">("seats");
   const [topic, setTopic] = useState<PartyTopic>("immigration");

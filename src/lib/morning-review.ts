@@ -1,0 +1,17 @@
+/** Editorial checks, not owner approval; no draft statuses or figures are modified. */
+export const COVERAGE_PRIORITIES = [
+  { title: "National population — Australia, Canada, United States", url: "https://www.abs.gov.au/statistics/people/population", detail: "Already present in the annual World Bank profiles, but missing from the faster national registers. Assess ABS, Statistics Canada and US Census national estimates. Match resident population definitions and reference dates before connecting series." },
+  { title: "National accounts — quarterly GDP", url: "https://www.bea.gov/data/gdp/gross-domestic-product", detail: "US BEA, ABS and Statistics Canada are the appropriate publishers. Annual World Bank GDP already exists. Quarterly growth, annualised growth and nominal totals must remain separate; exact machine-readable series mapping is still required." },
+  { title: "Australia cash rate target", url: "https://www.rba.gov.au/statistics/cash-rate/", detail: "The official public page responds, but the existing automated table download is blocked. Verify a stable official download and effective-date rules before replacing the no-feed notice." },
+  { title: "Canada asylum claims", url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/refugees/asylum-claims/processed-claims.html", detail: "The official IRCC publication responds. Validate table structure, monthly revisions and coverage. Claims are not border encounters, arrivals or migration totals." },
+  { title: "Australia crime and housing definitions", url: "https://www.abs.gov.au/statistics", detail: "Select precise national measures and verify downloadable official series. Offenders are not offences; housing starts are not house prices. Do not rank these against UK measures without matched definitions." },
+] as const;
+
+export const DRAFT_REVIEW = [
+  { title: "Average weekly earnings explainer", result: "Source link responds; the draft matches the stored ONS series description (total pay, seasonally adjusted, excluding arrears). Awaiting your individual approval. Original page content was not independently re-verified in this pass." },
+  { title: "Public sector current receipts explainer", result: "Source link responds; cash terms, calendar-year total and monthly revisions match the stored series description. Awaiting your individual approval. Original methodology was not independently re-verified in this pass." },
+  { title: "Clothing and footwear — two social drafts", result: "Source link responds; 0.2%, August 2026 agrees with the saved official snapshot. Re-check freshness before posting. Awaiting your individual decisions; nothing sent." },
+  { title: "Poland health spending — two social drafts", result: "Eurostat source link responds. The 6.1% value and 2024 reference still need an independent source-cell check before approval; do not post yet." },
+  { title: "GDP upcoming release — two social drafts", result: "Source link responds; +0.4%, Q2 2026 agrees with the snapshot. The claimed 19 October release date still needs publisher-calendar verification; do not post yet." },
+  { title: "Weather-model releases — four social drafts", result: "Not suitable: these are model outputs, not official statistics. The upcoming-release generator now excludes them. Existing drafts remain unchanged pending your rejection decision." },
+] as const;

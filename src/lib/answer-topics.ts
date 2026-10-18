@@ -1,0 +1,6 @@
+/** Topics evidenced in the owner's Search Console report, 18 Sep–17 Oct 2026. */
+export const ANSWER_TOPICS = [
+  { slug: "uk-inflation-rate", metricId: "uk-cpi", title: "What is the UK inflation rate?", evidence: "cpi rate; annual cpi rate; annual inflation rate", limitation: "This is the published annual CPI rate for the stated month, not a real-time price measure or CPIH. Individual households face different changes in costs." },
+  { slug: "council-tax-change", metricId: "uk-council-tax-rate", title: "How much has council tax changed?", evidence: "council tax data uk; council tax history", limitation: "This CPIH council tax and rates series measures annual change. It is not an individual council's bill, band or local charge; check your council for those." },
+  { slug: "royal-air-force-personnel", metricId: "uk-forces-raf", title: "How many personnel are in the Royal Air Force?", evidence: "air force; air force uk", limitation: "The published all-service personnel measure includes reserves. It is not the number of aircraft, deployable personnel or regular personnel alone." },
+] as const;

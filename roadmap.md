@@ -1,5 +1,19 @@
 # Roadmap
 
+## Approved morning improvements
+- [x] Replace the DNS-failed UKHSA address with the verified official dashboard; two bounded checks, tested no-assumed-level fallback
+- [ ] Connect a documented UKHSA current-alert feed (blocked: no verified official alert API specification)
+- [x] Retain last verified religion/ethnicity non-publication during outages, with original publication dates; three tests passed
+- [x] Prepare the official-source country coverage shortlist, available to admins on /agents
+- [ ] Check and submit the sitemap through the connected Google account (subject to verified property access)
+- [x] Review ten latest social drafts and two latest explainers; source links checked and editorial decisions presented on /agents
+- [ ] Marco records individual decisions on the draft queue (blocked: owner approval, plus source-cell/calendar checks for Poland/GDP drafts)
+- [x] Build three answer pages from actual Search Console queries: inflation, council tax change and RAF personnel; real figures verified in browser
+- [x] Add /world-compare for two/three countries with dates, sources and missing/stale/different-year flags; URL restoration and phone layout verified
+- [x] Measure six main pages; avoid unnecessary polling fetch on election/policy views (parties first load 10.294s → 0.403s locally, repeat 0.293s)
+- [ ] Establish under-one-second repeat visits for every public page (blocked: comprehensive production measurement not established; sampled pages only)
+- [ ] Verify and request publishing to ukstats.co.uk
+
 ## Political party comparison
 - [x] Build /parties with official 2024 seat/vote rankings, individual-poll comparisons and verified historical manifesto summaries
 - [x] Verify comparison controls, unavailable polling, URL restoration and small-screen layout; five tests pass

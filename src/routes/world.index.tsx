@@ -42,6 +42,7 @@ function WorldPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-10">
         <h1 className="text-4xl font-semibold tracking-tight">World rankings</h1>
+        <Button asChild variant="outline" className="mt-4"><Link to="/world-compare" search={{ countries: "GBR,FRA,USA" }}>Compare two or three countries</Link></Button>
         <p className="mt-2 max-w-2xl text-night-muted">{D}</p>
         <p className="mt-2 text-sm">
           Source: <a href={WORLD_SOURCE.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{WORLD_SOURCE.name}</a>

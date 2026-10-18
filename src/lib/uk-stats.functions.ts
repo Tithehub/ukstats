@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { HistoryPayload, HistoryPoint, Metric, StatsPayload } from "./uk-stats";
+import { checkHealthAlertSource, UKHSA_ALERT_URL } from "./health-alerts";
+import { retainUnpublishedCharacteristics } from "./unpublished-characteristics";
 
 const UA = { "user-agent": "uk-national-data-register/1.0 (+aggregator)" };
 
@@ -1463,60 +1465,9 @@ async function floodWarnings(): Promise<Metric> {
   }
 }
 
-/** UKHSA weather-health alerts — green / yellow / amber / red. */
+/** Check the verified replacement service; never scrape prose into an alert level. */
 async function healthAlerts(): Promise<Metric> {
-  const steps = [
-    { label: "Green", tone: "green" as const },
-    { label: "Yellow", tone: "yellow" as const },
-    { label: "Amber", tone: "amber" as const },
-    { label: "Red", tone: "red" as const },
-  ];
-  const base: Metric = {
-    id: "uk-health-alerts",
-    category: "National alerts",
-    title: "Weather-health alert level",
-    source: "UKHSA / Met Office",
-    sourceUrl: "https://weather-health-alerts.service.gov.uk/",
-    value: null,
-    sub: "Heat and cold health alerting system, England",
-    period: null,
-    asOf: null,
-    nextDue: null,
-    cadence: "Issued through the alerting season, reviewed daily",
-    change: null,
-    spark: [],
-    status: "unavailable",
-    note: null,
-    scale: { kind: "ukhsa", authority: "UKHSA · green / yellow / amber / red", steps, current: null },
-  };
-  try {
-    const html = await getText("https://weather-health-alerts.service.gov.uk/");
-    const text = stripTags(html).replace(/\s+/g, " ");
-    const hit = /\b(red|amber|yellow|green)\b[^.]{0,40}(heat|cold)[- ]health alert/i.exec(text);
-    if (!hit) {
-      return {
-        ...base,
-        note: "No alert level could be read from the UKHSA alerting service. Check the official service directly — no level is assumed here.",
-      };
-    }
-    const colour = hit[1]!.toLowerCase();
-    const idx = steps.findIndex((s) => s.label.toLowerCase() === colour);
-    return {
-      ...base,
-      value: steps[idx]!.label,
-      sub: `${hit[2]!.toLowerCase()}-health alert, as published by UKHSA`,
-      period: "Current",
-      asOf: new Date().toISOString(),
-      status: "ok",
-      note: "Levels are set jointly by UKHSA and the Met Office. Green means no alert is in force; alerts are regional, and the highest level in force is shown.",
-      scale: { ...base.scale!, current: idx < 0 ? null : idx },
-    };
-  } catch (e) {
-    return {
-      ...base,
-      note: `Source unreachable: ${(e as Error).message}. No level is assumed — check the official UKHSA service.`,
-    };
-  }
+  return checkHealthAlertSource(() => getText(UKHSA_ALERT_URL, 3_000));
 }
 
 /** Defra Daily Air Quality Index (DAQI) — official 1-10 bandings. */
@@ -2029,12 +1980,12 @@ async function smallBoatDemographics(): Promise<Metric[]> {
       sourceUrl: tableUrl,
       value: null,
       emptyLabel: "Not published",
-      sub: `Not collected or published by the Home Office`,
+      sub: `Not published in the checked Home Office tables`,
       period: null,
       asOf: published,
       nextDue,
       status: "unavailable",
-      note: `Checked against the current Home Office release "Illegal entry routes to the UK summary tables" (${period}), which publishes nationality, age group and sex only. No ${what} is collected or released for detected irregular arrivals, so no figure is shown here rather than an estimate. This check runs on every refresh and the card will populate if the Home Office starts publishing it.`,
+      note: `Checked against the current Home Office release "Illegal entry routes to the UK summary tables" (${period}), which publishes nationality, age group and sex only. These tables do not publish ${what} for detected irregular arrivals. Nationality is not used to infer it. Any future figure requires verification against an official publication.`,
       covers: `${period}, small boat arrivals only`,
     });
 
@@ -2580,6 +2531,7 @@ export const getUkStats = createServerFn({ method: "POST" }).handler(async (): P
       .then((d) => {
         // Keep the last good payload for instant stale-while-revalidate serving.
         if (d.metrics.length) {
+          d.metrics = retainUnpublishedCharacteristics(d.metrics, lastGood?.metrics ?? []);
           lastGood = d;
           persistPayload(d);
         }

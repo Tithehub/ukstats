@@ -50,11 +50,13 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
 import { Route as WidgetRouteImport } from './routes/widget'
+import { Route as WorldCompareRouteImport } from './routes/world-compare'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as CountryCalendarRouteImport } from './routes/$country.calendar'
 import { Route as CountrySafestPlacesRouteImport } from './routes/$country.safest-places'
 import { Route as CountrySourcesRouteImport } from './routes/$country.sources'
 import { Route as CountryStatusRouteImport } from './routes/$country.status'
+import { Route as AnswersQuestionRouteImport } from './routes/answers.$question'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
@@ -280,6 +282,11 @@ const WidgetRoute = WidgetRouteImport.update({
   path: '/widget',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorldCompareRoute = WorldCompareRouteImport.update({
+  id: '/world-compare',
+  path: '/world-compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountryIndexRoute = CountryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -304,6 +311,11 @@ const CountryStatusRoute = CountryStatusRouteImport.update({
   id: '/status',
   path: '/status',
   getParentRoute: () => CountryRoute,
+} as any)
+const AnswersQuestionRoute = AnswersQuestionRouteImport.update({
+  id: '/answers/$question',
+  path: '/answers/$question',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DailyDateRoute = DailyDateRouteImport.update({
   id: '/$date',
@@ -447,10 +459,12 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
+  '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -512,10 +526,12 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
+  '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -580,10 +596,12 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
   '/widget': typeof WidgetRoute
+  '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
   '/$country/safest-places': typeof CountrySafestPlacesRoute
   '/$country/sources': typeof CountrySourcesRoute
   '/$country/status': typeof CountryStatusRoute
+  '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
@@ -649,10 +667,12 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/world-compare'
     | '/$country/calendar'
     | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
+    | '/answers/$question'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -714,10 +734,12 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/world-compare'
     | '/$country/calendar'
     | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
+    | '/answers/$question'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -781,10 +803,12 @@ export interface FileRouteTypes {
     | '/support'
     | '/tax-vs-welfare'
     | '/widget'
+    | '/world-compare'
     | '/$country/calendar'
     | '/$country/safest-places'
     | '/$country/sources'
     | '/$country/status'
+    | '/answers/$question'
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
@@ -849,6 +873,8 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
   WidgetRoute: typeof WidgetRoute
+  WorldCompareRoute: typeof WorldCompareRoute
+  AnswersQuestionRoute: typeof AnswersQuestionRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -1146,6 +1172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WidgetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/world-compare': {
+      id: '/world-compare'
+      path: '/world-compare'
+      fullPath: '/world-compare'
+      preLoaderRoute: typeof WorldCompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$country/': {
       id: '/$country/'
       path: '/'
@@ -1180,6 +1213,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$country/status'
       preLoaderRoute: typeof CountryStatusRouteImport
       parentRoute: typeof CountryRoute
+    }
+    '/answers/$question': {
+      id: '/answers/$question'
+      path: '/answers/$question'
+      fullPath: '/answers/$question'
+      preLoaderRoute: typeof AnswersQuestionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/daily/$date': {
       id: '/daily/$date'
@@ -1430,6 +1470,8 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TaxVsWelfareRoute: TaxVsWelfareRoute,
   WidgetRoute: WidgetRoute,
+  WorldCompareRoute: WorldCompareRoute,
+  AnswersQuestionRoute: AnswersQuestionRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
