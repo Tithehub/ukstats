@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
+import { Button } from "@/components/ui/button";
 import { getPolling, getPartyRegister } from "@/lib/uk-stats.functions";
 import { fmtDate } from "@/lib/uk-stats";
+import { RESTORE_BRITAIN_JOIN_URL } from "@/lib/brand";
 
 export const Route = createFileRoute("/polling")({
   head: () => ({
@@ -84,6 +87,32 @@ function PollingPage() {
           Commission&rsquo;s live register. Nothing is modelled, weighted or smoothed here: the average is a plain
           unweighted mean of the most recent release from each pollster within {polling.windowDays} days.
         </p>
+
+        <section
+          aria-labelledby="restore-signup-title"
+          className="mt-8 rounded-lg border border-dedication-foreground/20 bg-dedication p-5 text-dedication-foreground sm:flex sm:items-center sm:justify-between sm:gap-6"
+        >
+          <div className="min-w-0">
+            <h2 id="restore-signup-title" className="text-base font-semibold">
+              Built for Restore Britain
+            </h2>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-dedication-muted">
+              UKStats was built on their behalf and donated to them. Joining is handled entirely on their own
+              website — nothing on this page collects your details.
+            </p>
+          </div>
+          <div className="mt-4 shrink-0 sm:mt-0">
+            <Button asChild size="lg" variant="dedication">
+              <a href={RESTORE_BRITAIN_JOIN_URL} target="_blank" rel="noreferrer noopener">
+                Sign up to Restore Britain
+                <ArrowRight aria-hidden="true" />
+              </a>
+            </Button>
+            <p className="mt-2 font-mono text-[11px] text-dedication-muted">
+              Opens restorebritain.org.uk in a new tab
+            </p>
+          </div>
+        </section>
 
         <h2 className="mt-10 text-lg font-semibold">National voting intention</h2>
         <p className="mt-3 text-sm"><Link to="/parties" search={{ view: "election" }} className="text-electric-soft underline">Compare party election rankings and manifesto positions →</Link></p>
