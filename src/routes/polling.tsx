@@ -4,6 +4,8 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
+import { getPolling, getPartyRegister } from "@/lib/uk-stats.functions";
+import { fmtDate } from "@/lib/uk-stats";
 
 export const Route = createFileRoute("/polling")({
   head: () => ({
