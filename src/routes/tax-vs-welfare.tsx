@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -130,6 +131,7 @@ function TaxVsWelfarePage() {
           Public sector total current receipts — or income tax alone — against public sector net social benefits paid,
           in cash terms, for every year the ONS publishes. No figure is adjusted, deflated or estimated here.
         </p>
+        <RestoreSignupCta />
 
         <div
           role="group"

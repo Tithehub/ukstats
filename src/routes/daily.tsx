@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useMemo, useState } from "react";
 import { CalendarDays, FileText, Search, Rss } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -97,6 +98,7 @@ function DailyArchivePage() {
           </a>
           <ShareRow path="/daily" title="UKStats daily statement — the UK's numbers, day by day" />
         </div>
+        <RestoreSignupCta />
       </header>
 
       {latest ? (

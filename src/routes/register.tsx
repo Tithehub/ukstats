@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
@@ -357,6 +358,7 @@ function Dashboard() {
             ))}
           </div>
         </section>
+        <RestoreSignupCta />
       </main>
 
       <div className="mx-auto max-w-[1440px] px-4 pb-8 sm:px-6">

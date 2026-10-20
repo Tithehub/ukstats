@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -44,6 +45,7 @@ function WorldPage() {
         <h1 className="text-4xl font-semibold tracking-tight">World rankings</h1>
         <Button asChild variant="outline" className="mt-4"><Link to="/world-compare" search={{ countries: "GBR,FRA,USA" }}>Compare two or three countries</Link></Button>
         <p className="mt-2 max-w-2xl text-night-muted">{D}</p>
+        <RestoreSignupCta />
         <p className="mt-2 text-sm">
           Source: <a href={WORLD_SOURCE.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{WORLD_SOURCE.name}</a>
           {data?.updated[ind.id] && <> · last updated by the World Bank {data.updated[ind.id]}</>}

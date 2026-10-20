@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Download } from "lucide-react";
@@ -65,6 +66,7 @@ function SmallBoatsPage() {
         </p>
         <ShareRow className="mt-4" path="/small-boats" title="Small boat crossings, every day since 2018" sourceUrl={SMALL_BOATS_SOURCE.url} sourceLabel="Home Office source" />
         <InstallPrompt className="mt-4" />
+        <RestoreSignupCta />
 
         {!data || !derived ? (
           <div className="mt-8 rounded-md border border-night-line bg-night-panel p-6">

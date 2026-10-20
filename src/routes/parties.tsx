@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, type ReactNode } from "react";
@@ -70,6 +71,7 @@ function PartiesPage() {
       <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">UK political parties</h1>
       <p className="mt-3 max-w-3xl text-night-muted">Who won seats, who won votes, and what each party promised. Election results are official records; polls measure voting intention; manifestos are proposals, not delivery scores.</p>
       <p className="mt-3 text-xs text-night-muted">Seven main parties in Great Britain. SNP stands in Scotland; Plaid Cymru in Wales. Northern Ireland parties and other parties are in the <SourceLink href={ELECTION_SOURCE}>full Parliament results</SourceLink>.</p>
+      <RestoreSignupCta />
       <Tabs value={view} onValueChange={value => void navigate({ search: { view: value === "polls" || value === "policies" ? value : "election" } })} className="mt-8">
         <TabsList aria-label="Party comparison" className="grid h-auto w-full grid-cols-3 gap-1 sm:inline-flex sm:w-auto">
           <TabsTrigger value="election" className="min-h-11 gap-2"><Vote className="hidden size-4 sm:block" />2024 result</TabsTrigger>

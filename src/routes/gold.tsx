@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -34,6 +35,7 @@ function GoldPage() {
           Source: <a href={GOLD_SOURCE.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{GOLD_SOURCE.name}</a>. {GOLD_SOURCE.indicator}, converted at 32,150.7466 troy ounces per tonne. Updated monthly by the IMF as countries file.
         </p>
         <ShareRow className="mt-4" path="/gold" title="Which countries hold the most gold? Official reserves" sourceUrl={GOLD_SOURCE.url} sourceLabel="IMF source" />
+        <RestoreSignupCta />
         {!t ? (
           <div className="mt-8 rounded-md border border-night-line bg-night-panel p-6">
             <p className="font-semibold">No live feed</p>
