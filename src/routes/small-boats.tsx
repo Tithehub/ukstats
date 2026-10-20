@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Download } from "lucide-react";

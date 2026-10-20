@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
