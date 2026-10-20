@@ -130,6 +130,7 @@ function TaxVsWelfarePage() {
           Public sector total current receipts — or income tax alone — against public sector net social benefits paid,
           in cash terms, for every year the ONS publishes. No figure is adjusted, deflated or estimated here.
         </p>
+        <RestoreSignupCta />
 
         <div
           role="group"

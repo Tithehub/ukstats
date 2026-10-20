@@ -97,6 +97,7 @@ function DailyArchivePage() {
           </a>
           <ShareRow path="/daily" title="UKStats daily statement — the UK's numbers, day by day" />
         </div>
+        <RestoreSignupCta />
       </header>
 
       {latest ? (

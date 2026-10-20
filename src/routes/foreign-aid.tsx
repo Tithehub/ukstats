@@ -93,6 +93,7 @@ function ForeignAidPage() {
           the public record. These are the UK government&rsquo;s own returns as published — nothing here is deflated,
           spliced or estimated.
         </p>
+        <RestoreSignupCta />
 
         {!chart ? (
           <p className="mt-8 rounded-lg border border-night-line/70 bg-night-panel p-6 font-mono text-[13px] text-overdue">

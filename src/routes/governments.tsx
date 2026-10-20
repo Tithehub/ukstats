@@ -65,6 +65,7 @@ function GovernmentsPage() {
           from the Office for National Statistics. Where a series is not published for a date, the nearest published
           period on or before it is shown and labelled — nothing is interpolated.
         </p>
+        <RestoreSignupCta />
 
         <div className="mt-6 inline-flex rounded-md border border-night-line/70 bg-night-panel p-1 font-mono text-[12px]">
           {(

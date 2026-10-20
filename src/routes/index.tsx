@@ -17,6 +17,7 @@ import { Search, ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 import { SLOGAN } from "@/lib/brand";
+import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { currentBrand } from "@/lib/brand-host";
 import { GlobalHome } from "@/components/home/GlobalHome";
 
@@ -200,6 +201,8 @@ function UkHome() {
         <div className="mt-4">
           <SponsorBanner variant="hero" initialRows={sponsors} />
         </div>
+
+        <RestoreSignupCta className="mt-5" />
 
         <div className="mt-6"><VitalSigns metrics={metrics} /></div>
         <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">
