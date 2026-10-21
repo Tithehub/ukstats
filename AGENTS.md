@@ -34,3 +34,4 @@
 - Party comparisons use sourced election records and dated manifesto summaries in party-comparison.data.ts; pure helpers preserve ties and show polls individually, excluding devolved-party shares from GB headline ranks — avoids treating promises or estimates as outcomes.
 - World comparisons reuse the cached WDI payload and flag missing, stale and different-year filings; answer topics require reader/search evidence and reuse register values — avoids new figures or false equivalence.
 - UKHSA checks use the verified dashboard URL with two bounded attempts, never colour words in prose; last verified non-publication decisions survive workbook outages with their original dates — avoids assumed alerts and false outage classifications.
+- Maps and tax/welfare loaders use shared Query options; the router reuses recent loader results for one minute — avoids repeated network work while preserving published source dates.

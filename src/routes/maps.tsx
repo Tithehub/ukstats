@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { getMapLayers, getStreetCrime, type StreetCrime } from "@/lib/uk-stats.functions";
 import { fmtDate } from "@/lib/uk-stats";
+import { mapLayersQuery } from "@/lib/uk-page-queries";
 
 const StatsMap = lazy(() => import("@/components/maps/StatsMap"));
 
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/maps")({
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/maps" }],
   }),
-  loader: () => getMapLayers(),
+  loader: ({ context }) => context.queryClient.ensureQueryData(mapLayersQuery()),
   component: MapsPage,
 });
 

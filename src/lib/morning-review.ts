@@ -1,4 +1,4 @@
-/** Editorial checks, not owner approval; no draft statuses or figures are modified. */
+/** Source-verification record; actual decisions are stored in the admin draft queue. */
 export const COVERAGE_PRIORITIES = [
   { title: "National population — Australia, Canada, United States", url: "https://www.abs.gov.au/statistics/people/population", detail: "Already present in the annual World Bank profiles, but missing from the faster national registers. Assess ABS, Statistics Canada and US Census national estimates. Match resident population definitions and reference dates before connecting series." },
   { title: "National accounts — quarterly GDP", url: "https://www.bea.gov/data/gdp/gross-domestic-product", detail: "US BEA, ABS and Statistics Canada are the appropriate publishers. Annual World Bank GDP already exists. Quarterly growth, annualised growth and nominal totals must remain separate; exact machine-readable series mapping is still required." },
@@ -8,10 +8,10 @@ export const COVERAGE_PRIORITIES = [
 ] as const;
 
 export const DRAFT_REVIEW = [
-  { title: "Average weekly earnings explainer", result: "Source link responds; the draft matches the stored ONS series description (total pay, seasonally adjusted, excluding arrears). Awaiting your individual approval. Original page content was not independently re-verified in this pass." },
-  { title: "Public sector current receipts explainer", result: "Source link responds; cash terms, calendar-year total and monthly revisions match the stored series description. Awaiting your individual approval. Original methodology was not independently re-verified in this pass." },
-  { title: "Clothing and footwear — two social drafts", result: "Source link responds; 0.2%, August 2026 agrees with the saved official snapshot. Re-check freshness before posting. Awaiting your individual decisions; nothing sent." },
-  { title: "Poland health spending — two social drafts", result: "Eurostat source link responds. The 6.1% value and 2024 reference still need an independent source-cell check before approval; do not post yet." },
-  { title: "GDP upcoming release — two social drafts", result: "Source link responds; +0.4%, Q2 2026 agrees with the snapshot. The claimed 19 October release date still needs publisher-calendar verification; do not post yet." },
-  { title: "Weather-model releases — four social drafts", result: "Not suitable: these are model outputs, not official statistics. The upcoming-release generator now excludes them. Existing drafts remain unchanged pending your rejection decision." },
+  { title: "Average weekly earnings explainer", result: "Verified against the live ONS KAB9 description on 21 October: whole-economy total pay, seasonally adjusted, excluding arrears. Suitable for approval." },
+  { title: "Public sector current receipts explainer", result: "Verified against ONS ANBT on 21 October: current-price, non-seasonally-adjusted receipts; the publisher supplies annual calendar-year totals and monthly revisions. Suitable for approval." },
+  { title: "Clothing and footwear — two social drafts", result: "Live ONS D7GA confirms 0.2% for August 2026 on 21 October. Suitable for approval, but check for the scheduled 21 October release before manually posting." },
+  { title: "Poland health spending — two social drafts", result: "Independent Eurostat gov_10a_exp cell verified on 21 October: PL, S13, GF07, TE, PC_GDP, 2024 = 6.1%. Suitable for approval; general-government expenditure on health, not total health spending. Nothing posted." },
+  { title: "GDP upcoming release — two social drafts", result: "Reject: the claimed 19 October release is now past and was not verified. ONS IHYQ confirms the figure but not that release date; a valid figure does not validate the announcement." },
+  { title: "Weather-model releases — four social drafts", result: "Reject: these are weather-model outputs, not official statistics. The generator already excludes them. Nothing posted." },
 ] as const;

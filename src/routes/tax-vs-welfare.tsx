@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { getTaxVsWelfare } from "@/lib/uk-stats.functions";
 import { fmtDate } from "@/lib/uk-stats";
+import { taxWelfareQuery } from "@/lib/uk-page-queries";
 
 export const Route = createFileRoute("/tax-vs-welfare")({
   head: () => ({
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/tax-vs-welfare")({
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/tax-vs-welfare" }],
   }),
-  loader: () => getTaxVsWelfare(),
+  loader: ({ context }) => context.queryClient.ensureQueryData(taxWelfareQuery()),
   component: TaxVsWelfarePage,
 });
 
