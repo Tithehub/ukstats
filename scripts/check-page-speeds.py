@@ -23,8 +23,12 @@ async def usable(page):
     toggle = page.get_by_role('button', name=re.compile('Switch to .* theme')).first
     if await toggle.count():
         old = await toggle.get_attribute('aria-label')
-        await toggle.click(timeout=15000)
-        await page.wait_for_function("old => [...document.querySelectorAll('button')].some(b => /^Switch to .* theme$/.test(b.getAttribute('aria-label') || '') && b.getAttribute('aria-label') !== old)", arg=old, timeout=15000)
+        deadline = time.perf_counter() + 15
+        while time.perf_counter() < deadline:
+            await toggle.click(timeout=15000)
+            await page.wait_for_timeout(100)
+            if await toggle.get_attribute('aria-label') != old: break
+        else: raise RuntimeError('Theme control did not respond within 15 seconds')
     else:
         await page.locator('body').wait_for(state='visible')
         await page.wait_for_function('document.body.innerText.trim().length > 10', timeout=15000)
@@ -60,6 +64,7 @@ async def main():
             except Exception as e: item['error']=type(e).__name__+': '+str(e).split('\n')[0]
             item['runtime_errors']=errors; page.remove_listener('pageerror',error)
             results.append(item); print(json.dumps(item),flush=True)
+            output=Path(args.output); output.parent.mkdir(parents=True,exist_ok=True); output.write_text(json.dumps({'origin':args.origin,'scope':'All static public content routes and representative dynamic families, not every parameter. Repeat measures browser Back, not a global speed guarantee.','rows':results},indent=2))
         await browser.close()
     output=Path(args.output); output.parent.mkdir(parents=True,exist_ok=True); output.write_text(json.dumps({'origin':args.origin,'scope':'All static public content routes and one representative per dynamic family; not every parameter value. Repeat = browser Back, includes cache restore; not a global speed guarantee.','rows':results},indent=2))
 
