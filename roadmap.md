@@ -1,5 +1,11 @@
 # Roadmap
 
+## Pending agent tasks — 21 October 2026
+- [ ] Record requested draft decisions after official-source verification; social posting stays manual
+- [ ] Verify and connect an official current health-alert feed, or retain an explicit unavailable state if none is verifiable
+- [ ] Run repeatable site-wide public-page speed checks and address measured delays
+- [ ] Run tests, a fresh security scan and request publication to ukstats.co.uk
+
 ## Approved morning improvements
 - [x] Replace the DNS-failed UKHSA address with the verified official dashboard; two bounded checks, tested no-assumed-level fallback
 - [ ] Connect a documented UKHSA current-alert feed (blocked: no verified official alert API specification)
