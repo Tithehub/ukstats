@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { HistoryPayload, HistoryPoint, Metric, StatsPayload } from "./uk-stats";
-import { checkHealthAlertSource, UKHSA_ALERT_URL } from "./health-alerts";
+import { checkVerifiedHealthAlerts } from "./health-alerts";
 import { retainUnpublishedCharacteristics } from "./unpublished-characteristics";
 
 const UA = { "user-agent": "uk-national-data-register/1.0 (+aggregator)" };
@@ -1465,9 +1465,9 @@ async function floodWarnings(): Promise<Metric> {
   }
 }
 
-/** Check the verified replacement service; never scrape prose into an alert level. */
+/** Read the official structured proxy; never scrape prose or rank expired records. */
 async function healthAlerts(): Promise<Metric> {
-  return checkHealthAlertSource(() => getText(UKHSA_ALERT_URL, 3_000));
+  return checkVerifiedHealthAlerts((url) => getText(url, 3_000));
 }
 
 /** Defra Daily Air Quality Index (DAQI) — official 1-10 bandings. */
