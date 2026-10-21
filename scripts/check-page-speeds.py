@@ -15,7 +15,7 @@ def paths():
         if not match: continue
         path = match[1].rstrip('/') or '/'
         if '$' not in path and path not in PRIVATE: out.add(path)
-    out.update(['/fr','/fr/calendar','/fr/sources','/fr/status','/fr/history/population','/fr/explained/population','/fr/embed/population','/ca/safest-places','/world/GBR','/history/uk-cpi','/explained/uk-cpi','/embed/uk-cpi','/answers/uk-inflation','/regions/london'])
+    out.update(['/fr','/fr/calendar','/fr/sources','/fr/status','/fr/history/population','/fr/explained/population','/fr/embed/population','/ca/safest-places','/world/GBR','/history/uk-cpi','/explained/uk-cpi','/embed/uk-cpi','/answers/uk-inflation-rate','/regions/london'])
     return sorted(out)
 
 async def usable(page):
