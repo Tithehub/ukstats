@@ -8,10 +8,10 @@ export const COVERAGE_PRIORITIES = [
 ] as const;
 
 export const DRAFT_REVIEW = [
-  { title: "Average weekly earnings explainer", result: "Verified against the live ONS KAB9 description on 21 October: whole-economy total pay, seasonally adjusted, excluding arrears. Suitable for approval." },
-  { title: "Public sector current receipts explainer", result: "Verified against ONS ANBT on 21 October: current-price, non-seasonally-adjusted receipts; the publisher supplies annual calendar-year totals and monthly revisions. Suitable for approval." },
-  { title: "Clothing and footwear — two social drafts", result: "Live ONS D7GA confirms 0.2% for August 2026 on 21 October. Suitable for approval, but check for the scheduled 21 October release before manually posting." },
-  { title: "Poland health spending — two social drafts", result: "Independent Eurostat gov_10a_exp cell verified on 21 October: PL, S13, GF07, TE, PC_GDP, 2024 = 6.1%. Suitable for approval; general-government expenditure on health, not total health spending. Nothing posted." },
+  { title: "Average weekly earnings explainer", result: "Approved and read back on its public page on 21 October. Verified against live ONS KAB9: whole-economy total pay, seasonally adjusted, excluding arrears." },
+  { title: "Public sector current receipts explainer", result: "Approved and read back on its public page on 21 October. Verified against ONS ANBT: current-price, non-seasonally-adjusted receipts, annual calendar-year totals and monthly revisions." },
+  { title: "Clothing and footwear — two social drafts", result: "Approved, not posted. Live ONS D7GA confirms 0.2% for August 2026 on 21 October; check for the scheduled 21 October release before manually posting." },
+  { title: "Poland health spending — two social drafts", result: "Approved, not posted. Eurostat gov_10a_exp cell independently verified on 21 October: PL, S13, GF07, TE, PC_GDP, 2024 = 6.1%. General-government expenditure on health, not total health spending." },
   { title: "GDP upcoming release — two social drafts", result: "Reject: the claimed 19 October release is now past and was not verified. ONS IHYQ confirms the figure but not that release date; a valid figure does not validate the announcement." },
   { title: "Weather-model releases — four social drafts", result: "Reject: these are weather-model outputs, not official statistics. The generator already excludes them. Nothing posted." },
 ] as const;
