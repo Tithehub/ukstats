@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 export function MorningReviewPanel() {
   return <section className="mt-8 border-t border-night-line pt-6">
     <h2 className="text-xl font-semibold">Approved work: source and draft review</h2>
-    <p className="mt-2 text-sm text-night-muted">Reviewed 18 October 2026. These are editorial findings, not your individual draft approvals.</p>
+    <p className="mt-2 text-sm text-night-muted">Sources rechecked 21 October 2026. Draft decisions are recorded separately in the queue; social posting remains manual.</p>
     <h3 className="mt-6 font-semibold">Country coverage priorities</h3>
     <ol className="mt-3 divide-y divide-night-line">{COVERAGE_PRIORITIES.map((item, index) => <li key={item.title} className="py-4"><a href={item.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{index + 1}. {item.title}</a><p className="mt-2 text-sm text-night-muted">{item.detail}</p></li>)}</ol>
     <h3 className="mt-6 font-semibold">Ten social drafts and two latest explainers</h3>

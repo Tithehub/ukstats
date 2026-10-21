@@ -1,19 +1,20 @@
 # Roadmap
 
 ## Pending agent tasks — 21 October 2026
-- [ ] Record requested draft decisions after official-source verification; social posting stays manual
-- [ ] Verify and connect an official current health-alert feed, or retain an explicit unavailable state if none is verifiable
-- [ ] Run repeatable site-wide public-page speed checks and address measured delays
-- [ ] Run tests, a fresh security scan and request publication to ukstats.co.uk
+- [x] Two verified explainers approved and read back publicly; four sourced social drafts approved (not posted), six weather/expired-release drafts rejected; other existing drafts retained outside this review
+- [x] Connect documented UKHSA heat/cold proxy; strict current validity, nine regions, two attempts per URL, stale filings unavailable with original dates (live October checks found August/February records)
+- [x] Repeatable scripts/check-page-speeds.py audits 45 public pages/families; maps/tax Query reuse and recent loader cache; local repeat home 302ms, maps 316ms, tax 489ms, gold 388ms, world 449ms. Register 1386ms remains above target; audit measures controls, not completion of every image/map request
+- [x] All 146 tests passed; fresh basic security checks found no issues (not deep code analysis); widget hydration mismatch discovered by audit corrected
+- [ ] Publish and verify on ukstats.co.uk
 
 ## Approved morning improvements
 - [x] Replace the DNS-failed UKHSA address with the verified official dashboard; two bounded checks, tested no-assumed-level fallback
-- [ ] Connect a documented UKHSA current-alert feed (blocked: no verified official alert API specification)
+- [x] Connect documented official UKHSA dashboard proxy; current level remains unavailable until publisher provides complete fresh, unexpired regional filings
 - [x] Retain last verified religion/ethnicity non-publication during outages, with original publication dates; three tests passed
 - [x] Prepare the official-source country coverage shortlist, available to admins on /agents
 - [x] Verified the live same-origin sitemap (3,504 URLs, 217 world profiles, three answers and comparison) and submitted to Google's verified UKStats owner property; HTTP 204
 - [x] Review ten latest social drafts and two latest explainers; source links checked and editorial decisions presented on /agents
-- [ ] Marco records individual decisions on the draft queue (blocked: owner approval, plus source-cell/calendar checks for Poland/GDP drafts)
+- [x] Requested decisions recorded after independent source checks: two explainers and four social approvals, six rejected; no social posting
 - [x] Build three answer pages from actual Search Console queries: inflation, council tax change and RAF personnel; real figures verified in browser
 - [x] Add /world-compare for two/three countries with dates, sources and missing/stale/different-year flags; URL restoration and phone layout verified
 - [x] Measure six main pages; avoid unnecessary polling fetch on election/policy views (parties first load 10.294s → 0.403s locally, repeat 0.293s)

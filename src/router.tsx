@@ -13,6 +13,8 @@ export const getRouter = () => {
     hydrate: (state) => { hydrate(queryClient, JSON.parse(state.queryState)); },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // Avoid replaying direct loaders when returning to a page just visited.
+    defaultStaleTime: 60_000,
     defaultPendingComponent: PageLoading,
     defaultPendingMs: 250,
     defaultPendingMinMs: 200,

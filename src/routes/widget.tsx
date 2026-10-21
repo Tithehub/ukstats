@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, type StatsPayload } from "@/lib/uk-stats";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -45,7 +45,8 @@ type Mode = "board" | "metrics";
 
 function WidgetBuilder() {
   const { data } = useSuspenseQuery(statsQuery);
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const [origin, setOrigin] = useState("https://ukstats.co.uk");
+  useEffect(() => { setOrigin(window.location.origin); }, []);
 
   const [mode, setMode] = useState<Mode>("board");
   const [selected, setSelected] = useState<string[]>(() =>
