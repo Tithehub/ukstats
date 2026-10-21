@@ -24,7 +24,7 @@ async def usable(page):
     if await toggle.count():
         old = await toggle.get_attribute('aria-label')
         await toggle.click(timeout=15000)
-        await page.wait_for_function("old => [...document.querySelectorAll('button')].some(b => /^Switch to .* theme$/.test(b.getAttribute('aria-label') || '') && b.getAttribute('aria-label') !== old)", old, timeout=15000)
+        await page.wait_for_function("old => [...document.querySelectorAll('button')].some(b => /^Switch to .* theme$/.test(b.getAttribute('aria-label') || '') && b.getAttribute('aria-label') !== old)", arg=old, timeout=15000)
     else:
         await page.locator('body').wait_for(state='visible')
         await page.wait_for_function('document.body.innerText.trim().length > 10', timeout=15000)
@@ -46,7 +46,12 @@ async def main():
                 item['final_path']=page.url.removeprefix(args.origin)
                 item['title']=await page.title()
                 # In-app back navigation exercises retained router/query results.
-                await page.goto(args.origin+'/press',wait_until='domcontentloaded',timeout=35000); await usable(page)
+                press = page.locator('a[href="/press"]').first
+                if await press.count():
+                    await press.click(); await page.wait_for_url(args.origin+'/press',timeout=35000)
+                else:
+                    await page.goto(args.origin+'/press',wait_until='domcontentloaded',timeout=35000)
+                await usable(page)
                 t=time.perf_counter(); await page.go_back(wait_until='domcontentloaded',timeout=35000); await usable(page)
                 item['repeat_usable_ms']=round((time.perf_counter()-t)*1000)
                 item['repeat_under_1s']=item['repeat_usable_ms']<1000

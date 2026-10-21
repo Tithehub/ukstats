@@ -24,7 +24,7 @@ export function healthAlertMetric(records: unknown, now = new Date()): Metric {
   return { ...base, value: LEVELS[highest] ?? null, period: "Current — England", status: "ok",
     sub: "Highest verified regional heat/cold health alert; England only",
     note: "Official UKHSA structured regional records. All nine regions have a filing refreshed within 24 hours and an unexpired validity period. No UK-wide level is implied.",
-    scale: base.scale ? { ...base.scale, current: highest } : undefined };
+    scale: base.scale ? { ...base.scale, current: highest } : null };
 }
 
 /** Official dashboard proxy documented in UKHSA's frontend api-route-handlers.md. */
