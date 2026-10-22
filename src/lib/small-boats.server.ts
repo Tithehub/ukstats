@@ -69,9 +69,9 @@ function refresh(): Promise<SmallBoatsPayload> {
 
 /** Last good official series, served instantly; refreshed in the background when stale. */
 export async function loadSmallBoats(): Promise<SmallBoatsPayload> {
-  if (mem && Date.now() - mem.at < TTL) return mem.data;
+  if (mem && mem.data?.days && Date.now() - mem.at < TTL) return mem.data;
   const good = mem?.data ?? (await readStored());
-  if (good && Date.now() - Date.parse(good.fetchedAt) < TTL) {
+  if (good && good.days && Date.now() - Date.parse(good.fetchedAt) < TTL) {
     mem = { at: Date.parse(good.fetchedAt), data: good };
     return good;
   }
