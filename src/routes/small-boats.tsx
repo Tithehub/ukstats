@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -10,7 +10,9 @@ import { ShareRow } from "@/components/ShareRow";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { Button } from "@/components/ui/button";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
-import { SMALL_BOATS_SOURCE, monthlyTotals, pmTotals, toCsv, yearlyTotals } from "@/lib/small-boats";
+import { SMALL_BOATS_SOURCE, compareLatest, monthlyTotals, pmTotals, yearlyTotals, type DayRow } from "@/lib/small-boats";
+
+const LAST7_PAGE = "https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats/migrants-detected-crossing-the-english-channel-in-small-boats-last-7-days";
 
 const T = "Small boat crossings, every day since 2018 | UKStats";
 const D = "Every day of official Home Office small boat arrival figures since 1 January 2018, with yearly totals, totals under each Prime Minister and a free CSV download.";
@@ -39,15 +41,17 @@ const n = (v: number) => v.toLocaleString("en-GB", { maximumFractionDigits: 0 })
 
 function SmallBoatsPage() {
   const { data } = useSuspenseQuery(smallBoatsQuery());
+  const [shown, setShown] = useState(30);
   const derived = useMemo(() => {
     if (!data) return null;
-    const s = data.series;
-    return { months: monthlyTotals(s), years: yearlyTotals(s), pms: pmTotals(s), recent: s.slice(-30).reverse(), total: s.reduce((a, d) => a + d.arrivals, 0), first: s[0]!.date, last: s[s.length - 1]!.date };
+    const s: DayRow[] = data.days?.length ? data.days : data.series;
+    const provisional = s.filter((d) => d.provisional).length;
+    return { months: monthlyTotals(s), years: yearlyTotals(s), pms: pmTotals(s), all: [...s].reverse(), cmp: compareLatest(s), provisional, seriesLast: data.series[data.series.length - 1]!.date, total: s.reduce((a, d) => a + d.arrivals, 0), first: s[0]!.date, last: s[s.length - 1]!.date };
   }, [data]);
 
   const download = () => {
     if (!data) return;
-    const url = URL.createObjectURL(new Blob([toCsv(data.series)], { type: "text/csv" }));
+    const url = URL.createObjectURL(new Blob(["date,migrants_arrived,boats_arrived,source\n" + (data.days?.length ? data.days : data.series).map((d: DayRow) => `${d.date},${d.arrivals},${d.boats},${d.provisional ? "last_7_days_provisional" : "time_series"}`).join("\n") + "\n"], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = "uk-small-boat-arrivals-daily.csv";
@@ -62,7 +66,7 @@ function SmallBoatsPage() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Small boat crossings, every day since 2018</h1>
         <p className="mt-2 max-w-2xl text-night-muted">{D}</p>
         <p className="mt-3 text-sm">
-          Source: <a href={data?.fileUrl ?? SMALL_BOATS_SOURCE.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{SMALL_BOATS_SOURCE.name}</a>. Provisional UK and French operational data, subject to revision by the Home Office. Updated weekly; daily figures for the latest week are on the main register.
+          Source: <a href={data?.fileUrl ?? SMALL_BOATS_SOURCE.url} target="_blank" rel="noreferrer" className="text-electric-soft underline">{SMALL_BOATS_SOURCE.name}</a>. Provisional UK and French operational data, subject to revision by the Home Office. The time series is updated weekly; days after it come from the Home Office <a href={LAST7_PAGE} target="_blank" rel="noreferrer" className="text-electric-soft underline">last 7 days</a> page, published daily, and are marked provisional.
         </p>
         <ShareRow className="mt-4" path="/small-boats" title="Small boat crossings, every day since 2018" sourceUrl={SMALL_BOATS_SOURCE.url} sourceLabel="Home Office source" />
         <InstallPrompt className="mt-4" />
@@ -79,9 +83,28 @@ function SmallBoatsPage() {
           <>
             <section className="mt-8 grid gap-3 sm:grid-cols-3">
               <Stat label="People arrived since 1 Jan 2018" value={n(derived.total)} />
-              <Stat label="Latest day in the series" value={day(derived.last)} />
+              <Stat label="Latest published day" value={day(derived.last)} />
               <Stat label="Published by the Home Office" value={data.published ? day(data.published.slice(0, 10)) : "Not stated"} />
             </section>
+
+            {derived.provisional > 0 && (
+              <p className="mt-3 font-mono text-[11px] text-night-muted">
+                Includes {derived.provisional} provisional day{derived.provisional === 1 ? "" : "s"} after {day(derived.seriesLast)} from the daily last 7 days page{data.recentPublished ? `, published ${day(data.recentPublished.slice(0, 10))}` : ""}.
+              </p>
+            )}
+
+            {derived.cmp && (
+              <section className="mt-8">
+                <h2 className="text-lg font-semibold">How the latest day compares</h2>
+                <p className="mt-1 text-sm text-night-muted">Plain arithmetic on the published daily figures. An average is left blank if any day in its window is missing.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-4">
+                  <Stat label={`People on ${day(derived.cmp.latest.date)}`} value={n(derived.cmp.latest.arrivals)} />
+                  <Stat label="Daily average, previous 7 days" value={derived.cmp.avg7 === null ? "Not available" : derived.cmp.avg7.toLocaleString("en-GB", { maximumFractionDigits: 1 })} />
+                  <Stat label="Daily average, previous 30 days" value={derived.cmp.avg30 === null ? "Not available" : derived.cmp.avg30.toLocaleString("en-GB", { maximumFractionDigits: 1 })} />
+                  <Stat label={`Last 7 days vs ${day(derived.cmp.sameWeekFrom)} – ${day(derived.cmp.sameWeekTo)}`} value={`${n(derived.cmp.last7)} vs ${derived.cmp.sameWeekLastYear === null ? "n/a" : n(derived.cmp.sameWeekLastYear)}`} />
+                </div>
+              </section>
+            )}
 
             <section className="mt-8 rounded-md border border-night-line bg-night-panel p-4">
               <h2 className="mb-3 text-lg font-semibold">People arriving each month</h2>
@@ -121,18 +144,24 @@ function SmallBoatsPage() {
 
             <section className="mt-8">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-semibold">Last 30 days in the series</h2>
+                <h2 className="text-lg font-semibold">Day by day</h2>
                 <Button variant="outline" size="sm" onClick={download}><Download className="mr-1 h-4 w-4" />Download every day (CSV)</Button>
               </div>
               <Table head={["Date", "People", "Boats"]}>
-                {derived.recent.map((d) => (
+                {derived.all.slice(0, shown).map((d) => (
                   <tr key={d.date}>
-                    <td className="px-3 py-2">{day(d.date)}</td>
+                    <td className="px-3 py-2">{day(d.date)}{d.provisional && <span className="ml-2 font-mono text-[10px] uppercase text-night-muted">provisional</span>}</td>
                     <td className="px-3 py-2 text-right font-mono">{n(d.arrivals)}</td>
                     <td className="px-3 py-2 text-right font-mono">{n(d.boats)}</td>
                   </tr>
                 ))}
               </Table>
+              {shown < derived.all.length && (
+                <div className="mt-3 flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShown((v) => v + 90)}>Show 90 more days</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShown(derived.all.length)}>Show every day since 2018</Button>
+                </div>
+              )}
             </section>
           </>
         )}

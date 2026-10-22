@@ -191,6 +191,7 @@
 - [x] Every day since 2018 at /small-boats, with chart, yearly totals and CSV
 - [x] Totals under each Prime Minister (official figures only, no cost estimates)
 - [x] Phone "add to home screen" prompt
+- [x] Daily last-7-days figures merged (provisional), day-by-day list, latest-day comparison (22 Oct 2026)
 - [ ] Daily small boats email alert — waiting on an email sender address being set up
 
 ## World rankings (18 Oct 2026)

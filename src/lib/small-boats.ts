@@ -91,3 +91,72 @@ export function yearlyTotals(series: BoatDay[]): { year: string; arrivals: numbe
 export function toCsv(series: BoatDay[]): string {
   return "date,migrants_arrived,boats_arrived\n" + series.map((d) => `${d.date},${d.arrivals},${d.boats}`).join("\n") + "\n";
 }
+
+export type DayRow = BoatDay & { provisional?: boolean };
+
+const MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+
+/** Parse the GOV.UK "last 7 days" table body. Rows with a non-numeric figure are rejected outright. */
+export function parseLast7DaysHtml(body: string): BoatDay[] {
+  const out: BoatDay[] = [];
+  for (const r of body.matchAll(/<tr>([\s\S]*?)<\/tr>/g)) {
+    const cells = [...r[1]!.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g)].map((c) => c[1]!.replace(/<[^>]+>/g, "").replace(/\u00a0/g, " ").trim());
+    const m = /^(\d{1,2}) ([A-Za-z]+) (\d{4})$/.exec(cells[0] ?? "");
+    if (!m) continue;
+    const mi = MONTH_NAMES.indexOf(m[2]!.toLowerCase());
+    if (mi < 0) continue;
+    const arrivals = Number((cells[1] ?? "").replace(/,/g, ""));
+    const boats = Number((cells[2] ?? "").replace(/,/g, ""));
+    if (!/^\d[\d,]*$/.test(cells[1] ?? "") || !/^\d[\d,]*$/.test(cells[2] ?? "")) throw new Error(`Missing figure for ${cells[0]}`);
+    out.push({ date: `${m[3]}-${String(mi + 1).padStart(2, "0")}-${m[1]!.padStart(2, "0")}`, arrivals, boats });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/**
+ * Append last-7-days rows after the time series. The time series wins on any overlapping date.
+ * Recent rows are only added if they continue the series without a gap; otherwise none are added.
+ */
+export function mergeRecent(series: BoatDay[], recent: BoatDay[]): DayRow[] {
+  if (!series.length) return [];
+  const last = series[series.length - 1]!.date;
+  const extra = recent.filter((d) => d.date > last);
+  let prev = last;
+  for (const d of extra) {
+    if (addDay(prev) !== d.date) return [...series];
+    prev = d.date;
+  }
+  return [...series, ...extra.map((d) => ({ ...d, provisional: true }))];
+}
+
+const addDays = (iso: string, n: number) => new Date(Date.parse(iso + "T00:00:00Z") + n * DAY).toISOString().slice(0, 10);
+const sumRange = (s: BoatDay[], from: string, to: string) => {
+  const days = s.filter((d) => d.date >= from && d.date <= to);
+  return { days: days.length, arrivals: days.reduce((a, d) => a + d.arrivals, 0) };
+};
+
+export type LatestComparison = {
+  latest: BoatDay;
+  avg7: number | null;
+  avg30: number | null;
+  last7: number;
+  sameWeekLastYear: number | null;
+  sameWeekFrom: string;
+  sameWeekTo: string;
+};
+
+/** Latest day vs the 7 and 30 days before it, and the last 7 days vs the same 7 days a year earlier. Null where days are missing. */
+export function compareLatest(s: BoatDay[]): LatestComparison | null {
+  if (!s.length) return null;
+  const latest = s[s.length - 1]!;
+  const avg = (n: number) => {
+    const r = sumRange(s, addDays(latest.date, -n), addDays(latest.date, -1));
+    return r.days === n ? r.arrivals / n : null;
+  };
+  const last7 = sumRange(s, addDays(latest.date, -6), latest.date);
+  const y = Number(latest.date.slice(0, 4)) - 1;
+  const lyEnd = `${y}${latest.date.slice(4)}` === `${y}-02-29` ? `${y}-02-28` : `${y}${latest.date.slice(4)}`;
+  const lyStart = addDays(lyEnd, -6);
+  const ly = sumRange(s, lyStart, lyEnd);
+  return { latest, avg7: avg(7), avg30: avg(30), last7: last7.arrivals, sameWeekLastYear: ly.days === 7 ? ly.arrivals : null, sameWeekFrom: lyStart, sameWeekTo: lyEnd };
+}
