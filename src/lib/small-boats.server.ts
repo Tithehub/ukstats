@@ -3,6 +3,7 @@ import { mergeRecent, parseLast7DaysHtml, parseSmallBoatsXml, type BoatDay, type
 
 export type SmallBoatsPayload = { series: BoatDay[]; days?: DayRow[]; recentPublished?: string | null; fileUrl: string; published: string | null; fetchedAt: string } | null;
 
+const API = "https://www.gov.uk/api/content/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats";
 const LAST7 = API + "/migrants-detected-crossing-the-english-channel-in-small-boats-last-7-days";
 export const LAST7_PAGE = "https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats/migrants-detected-crossing-the-english-channel-in-small-boats-last-7-days";
 
@@ -18,7 +19,6 @@ async function recent(): Promise<{ rows: BoatDay[]; published: string | null } |
   }
 }
 
-const API = "https://www.gov.uk/api/content/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats";
 const TTL = 3600_000;
 let mem: { at: number; data: SmallBoatsPayload } | null = null;
 
