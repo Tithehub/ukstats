@@ -5,7 +5,7 @@
 - [x] Connect documented UKHSA heat/cold proxy; strict current validity, nine regions, two attempts per URL, stale filings unavailable with original dates (live October checks found August/February records)
 - [x] Repeatable scripts/check-page-speeds.py audits 45 public pages/families; maps/tax Query reuse and recent loader cache; local repeat home 302ms, maps 316ms, tax 489ms, gold 388ms, world 449ms. Register 1386ms remains above target; audit measures controls, not completion of every image/map request
 - [x] All 146 tests passed; fresh basic security checks found no issues (not deep code analysis); widget hydration mismatch discovered by audit corrected
-- [ ] Publish and verify on ukstats.co.uk
+- [x] Published; live audit checked 45 pages/families: repeat home 246ms, maps 297ms, tax 268ms, world 315ms; widget hydration error absent. Register 1453ms and France population history timeout remain limitations, not a site-wide sub-second guarantee
 
 ## Approved morning improvements
 - [x] Replace the DNS-failed UKHSA address with the verified official dashboard; two bounded checks, tested no-assumed-level fallback
