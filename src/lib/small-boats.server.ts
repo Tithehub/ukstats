@@ -1,13 +1,29 @@
 import { unzipSync, strFromU8 } from "fflate";
-import { parseSmallBoatsXml, type BoatDay } from "./small-boats";
+import { mergeRecent, parseLast7DaysHtml, parseSmallBoatsXml, type BoatDay, type DayRow } from "./small-boats";
 
-export type SmallBoatsPayload = { series: BoatDay[]; fileUrl: string; published: string | null; fetchedAt: string } | null;
+export type SmallBoatsPayload = { series: BoatDay[]; days?: DayRow[]; recentPublished?: string | null; fileUrl: string; published: string | null; fetchedAt: string } | null;
+
+const LAST7 = API + "/migrants-detected-crossing-the-english-channel-in-small-boats-last-7-days";
+export const LAST7_PAGE = "https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats/migrants-detected-crossing-the-english-channel-in-small-boats-last-7-days";
+
+/** Daily last-7-days figures; null if unreadable, so the page falls back to the weekly series alone. */
+async function recent(): Promise<{ rows: BoatDay[]; published: string | null } | null> {
+  try {
+    const r = await fetch(LAST7, { signal: AbortSignal.timeout(15_000) });
+    if (!r.ok) return null;
+    const j = (await r.json()) as { public_updated_at?: string; details?: { body?: string } };
+    return { rows: parseLast7DaysHtml(j.details?.body ?? ""), published: j.public_updated_at ?? null };
+  } catch {
+    return null;
+  }
+}
 
 const API = "https://www.gov.uk/api/content/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats";
-const TTL = 3 * 3600_000;
+const TTL = 3600_000;
 let mem: { at: number; data: SmallBoatsPayload } | null = null;
 
 async function collect(): Promise<SmallBoatsPayload> {
+  const recentP = recent();
   const meta = (await (await fetch(API, { signal: AbortSignal.timeout(15_000) })).json()) as {
     public_updated_at?: string;
     details?: { attachments?: { url?: string; content_type?: string }[] };
@@ -19,7 +35,9 @@ async function collect(): Promise<SmallBoatsPayload> {
   const files = unzipSync(new Uint8Array(await res.arrayBuffer()), { filter: (f) => f.name === "content.xml" });
   const xml = files["content.xml"];
   if (!xml) throw new Error("Spreadsheet has no content");
-  return { series: parseSmallBoatsXml(strFromU8(xml)), fileUrl: att.url, published: meta.public_updated_at ?? null, fetchedAt: new Date().toISOString() };
+  const series = parseSmallBoatsXml(strFromU8(xml));
+  const rec = await recentP;
+  return { series, days: rec ? mergeRecent(series, rec.rows) : series, recentPublished: rec?.published ?? null, fileUrl: att.url, published: meta.public_updated_at ?? null, fetchedAt: new Date().toISOString() };
 }
 
 async function readStored(): Promise<SmallBoatsPayload> {

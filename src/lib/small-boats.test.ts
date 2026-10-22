@@ -56,11 +56,11 @@ describe("last 7 days merge", () => {
 describe("compareLatest", () => {
   const days = (from: string, n: number, v: number) => Array.from({ length: n }, (_, i) => ({ date: new Date(Date.parse(from + "T00:00:00Z") + i * 86_400_000).toISOString().slice(0, 10), arrivals: v, boats: 1 }));
   it("averages the 7 and 30 days before the latest day and the same week last year", () => {
-    const s = [...days("2025-10-01", 30, 10), ...days("2025-10-31", 365 - 30, 2), ...days("2026-09-01", 50, 4)];
+    const s = [...days("2025-10-01", 30, 10), ...days("2025-10-31", 365 - 30, 2), ...days("2026-10-01", 20, 4)];
     const c = compareLatest(s)!;
     expect(c.latest.date).toBe("2026-10-20");
     expect(c.avg7).toBe(4);
-    expect(c.avg30).toBe(4);
+    expect(c.avg30).toBeCloseTo(98 / 30);
     expect(c.last7).toBe(28);
     expect(c.sameWeekFrom).toBe("2025-10-14");
     expect(c.sameWeekLastYear).toBe(70);
