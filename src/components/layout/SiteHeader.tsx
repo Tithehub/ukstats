@@ -67,6 +67,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/polling", label: "Polling", icon: Vote },
       { to: "/parties", label: "Political party comparison", icon: Vote },
       { to: "/governments", label: "Governments", icon: LayoutGrid },
+      { to: "/restore-britain", label: "Restore Britain videos & stories", icon: FileText },
     ],
   },
   {
