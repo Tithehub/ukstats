@@ -16,6 +16,7 @@ import { Search } from 'lucide-react';
 import { matchesMetric } from '@/lib/stat-search';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import { ANSWER_TOPICS } from '@/lib/answer-topics';
+import { UkTopicNav } from '@/components/UkTopicNav';
 
 
 const statsQuery = queryOptions<StatsPayload>({
@@ -167,6 +168,7 @@ function Dashboard() {
             <div className="relative w-full sm:max-w-md"><Search aria-hidden="true" className="absolute left-3 top-3.5 size-4 text-muted-foreground" /><Input type="search" aria-label="Search UK statistics" placeholder="Search debt, inflation, crime…" value={q} onChange={e => void navigate({ search: prev => ({ ...prev, q: e.target.value || undefined }), replace: true, resetScroll: false })} className="min-h-11 pl-10" /></div>
           </div>
           <nav aria-label="Official answers" className="flex flex-wrap gap-x-5 gap-y-3 pb-4 text-sm">{ANSWER_TOPICS.map(topic => <Link key={topic.slug} to="/answers/$question" params={{ question: topic.slug }} className="text-electric-soft underline">{topic.title}</Link>)}</nav>
+          <UkTopicNav />
           <details className="border-t border-night-line/50">
           <summary className="min-h-11 cursor-pointer py-3 text-sm text-night-muted">Public sector net debt · {debt?.value ?? 'Unavailable'}</summary>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 py-4">
@@ -333,15 +335,13 @@ function Dashboard() {
               <div>
                 <p className="font-medium text-night-fg">Direct source feeds</p>
                 <p className="mt-1 text-pretty">
-                  Values are pulled at request time from the issuing bodies — ONS, Home Office, HM Land Registry,
-                  Police.uk and Open-Meteo — and never modelled, interpolated or rounded by this service.
+                  Official statistics retain their issuing body's source and reference period. Stored snapshots keep the last successfully read figures available during refreshes. Weather-model outputs are not official statistics and must be read separately.
                 </p>
               </div>
               <div>
                 <p className="font-medium text-night-fg">Age is always stated</p>
                 <p className="mt-1 text-pretty">
-                  Each card carries an explicit "as of" date and the publisher's next scheduled release. Where a body
-                  publishes only spreadsheets, the card shows no number at all — it tracks the publication instead.
+                  Each card carries an explicit "as of" date and the publisher's next scheduled release when announced. Where a source cannot be read reliably, its publication link remains visible without an invented figure.
                 </p>
               </div>
             </div>

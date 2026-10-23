@@ -1,5 +1,11 @@
 # Roadmap
 
+## Boats-first evidence upgrade — 23 October 2026
+- [x] Add comparable year-to-date totals, year filters and explicit publication/check dates to small boats
+- [x] Add a dated, sourced Small Boat Watch product comparison without unsupported superiority claims; iPhone and Android acknowledged, native alerts remain their advantage
+- [x] Bring topic shortcuts to home/register and reliable sharing across pages; correct register snapshot/provenance wording
+- [x] Fifteen focused tests passed; browser verified real figures, year filtering, daily CSV, clipboard and home-to-category journey without runtime errors; desktop/phone layouts checked; preview only
+
 ## Pending agent tasks — 21 October 2026
 - [x] Two verified explainers approved and read back publicly; four sourced social drafts approved (not posted), six weather/expired-release drafts rejected; other existing drafts retained outside this review
 - [x] Connect documented UKHSA heat/cold proxy; strict current validity, nine regions, two attempts per URL, stale filings unavailable with original dates (live October checks found August/February records)

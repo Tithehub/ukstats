@@ -35,3 +35,5 @@
 - World comparisons reuse the cached WDI payload and flag missing, stale and different-year filings; answer topics require reader/search evidence and reuse register values — avoids new figures or false equivalence.
 - UKHSA uses its documented dashboard alerts proxy: two attempts per URL, complete nine-region coverage, refresh within 24h and valid periods; never prose or expired records. Non-publication decisions retain original dates during outages — avoids assumed alerts.
 - Maps and tax/welfare loaders use shared Query options; the router reuses recent loader results for one minute — avoids repeated network work while preserving published source dates.
+- Small-boats year comparisons use completeBoatWindow/compareBoatYears; equal calendar cutoffs require unique complete daily coverage, and product comparisons cite dated public listings — avoids partial totals and unsupported competitor claims.
+- UkTopicNav is shared by the UK home and register; ShareRow reports clipboard success only after the write resolves — keeps topic journeys and sharing feedback consistent.
