@@ -1,5 +1,9 @@
 # Roadmap
 
+## Restore Britain media — 23 October 2026
+- [ ] Verify the official YouTube channel and story sources; add a separate page with original thumbnails and source links
+- [ ] Add navigation and check desktop/phone viewing; state any archive coverage limitations
+
 ## Boats-first evidence upgrade — 23 October 2026
 - [x] Add comparable year-to-date totals, year filters and explicit publication/check dates to small boats
 - [x] Add a dated, sourced Small Boat Watch product comparison without unsupported superiority claims; iPhone and Android acknowledged, native alerts remain their advantage
