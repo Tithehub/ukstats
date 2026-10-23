@@ -11,9 +11,9 @@ import { fmtDate } from '@/lib/uk-stats';
 type Kind = 'all' | RestoreMediaItem['kind'];
 export const Route = createFileRoute('/restore-britain')({
   validateSearch: (search: Record<string, unknown>): { kind: Kind; q: string; page: number } => ({
-    kind: search.kind === 'video' || search.kind === 'short' || search.kind === 'story' ? search.kind : 'all',
-    q: typeof search.q === 'string' ? search.q.slice(0, 200) : '',
-    page: Math.max(1, Math.floor(Number(search.page) || 1)),
+    kind: search['kind'] === 'video' || search['kind'] === 'short' || search['kind'] === 'story' ? search['kind'] : 'all',
+    q: typeof search['q'] === 'string' ? search['q'].slice(0, 200) : '',
+    page: Math.max(1, Math.floor(Number(search['page']) || 1)),
   }),
   head: () => ({ meta: [
     { title: 'Restore Britain — official videos & stories | UKStats' },

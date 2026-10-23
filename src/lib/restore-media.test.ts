@@ -9,7 +9,7 @@ describe('Restore Britain official archive', () => {
       const url = new URL(item.url);
       expect(url.protocol).toBe('https:');
       expect(url.hostname).toBe(item.kind === 'story' ? 'www.restorebritain.org.uk' : 'www.youtube.com');
-      if (item.kind !== 'story') expect(url.searchParams.get('v')).toBe(item.id);
+      if (item.kind !== 'story') expect(url.searchParams.get('v') ?? url.pathname.split('/').at(-1)).toBe(item.id);
     }
     expect(new Set(RESTORE_MEDIA.map(item => item.id)).size).toBe(293);
   });
