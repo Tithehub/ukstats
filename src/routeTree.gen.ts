@@ -39,6 +39,7 @@ import { Route as PressRouteImport } from './routes/press'
 import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RestoreBritainRouteImport } from './routes/restore-britain'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SafestPlacesRouteImport } from './routes/safest-places'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -225,6 +226,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestoreBritainRoute = RestoreBritainRouteImport.update({
+  id: '/restore-britain',
+  path: '/restore-britain',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -448,6 +454,7 @@ export interface FileRoutesByFullPath {
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -515,6 +522,7 @@ export interface FileRoutesByTo {
   '/press': typeof PressRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -585,6 +593,7 @@ export interface FileRoutesById {
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -656,6 +665,7 @@ export interface FileRouteTypes {
     | '/regions'
     | '/register'
     | '/reset-password'
+    | '/restore-britain'
     | '/robots.txt'
     | '/safest-places'
     | '/sitemap.xml'
@@ -723,6 +733,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/register'
     | '/reset-password'
+    | '/restore-britain'
     | '/robots.txt'
     | '/safest-places'
     | '/sitemap.xml'
@@ -792,6 +803,7 @@ export interface FileRouteTypes {
     | '/regions'
     | '/register'
     | '/reset-password'
+    | '/restore-britain'
     | '/robots.txt'
     | '/safest-places'
     | '/sitemap.xml'
@@ -862,6 +874,7 @@ export interface RootRouteChildren {
   RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RestoreBritainRoute: typeof RestoreBritainRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SafestPlacesRoute: typeof SafestPlacesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1093,6 +1106,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restore-britain': {
+      id: '/restore-britain'
+      path: '/restore-britain'
+      fullPath: '/restore-britain'
+      preLoaderRoute: typeof RestoreBritainRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -1459,6 +1479,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RestoreBritainRoute: RestoreBritainRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SafestPlacesRoute: SafestPlacesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

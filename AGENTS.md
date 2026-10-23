@@ -37,3 +37,4 @@
 - Maps and tax/welfare loaders use shared Query options; the router reuses recent loader results for one minute — avoids repeated network work while preserving published source dates.
 - Small-boats year comparisons use completeBoatWindow/compareBoatYears; equal calendar cutoffs require unique complete daily coverage, and product comparisons cite dated public listings — avoids partial totals and unsupported competitor claims.
 - UkTopicNav is shared by the UK home and register; ShareRow reports clipboard success only after the write resolves — keeps topic journeys and sharing feedback consistent.
+- Restore Britain media uses a dated verified-channel/publisher snapshot with CDN-hosted original thumbnails, separate from statistical feeds; preserve unknown dates and archive limits rather than infer metadata.

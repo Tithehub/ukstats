@@ -1,5 +1,9 @@
 # Roadmap
 
+## Restore Britain media — 23 October 2026
+- [x] Verified official channel from Restore Britain's homepage; /restore-britain includes all 125 Videos, 154 Shorts and 14 policy-story index entries retrieved on 23 October, with CDN-hosted original thumbnails and publisher links
+- [x] Menu and sitemap added; source/filter tests passed; desktop/phone thumbnail rendering, search, pagination and menu verified without page errors; dated snapshot explicitly excludes future/private/deleted entries; preview only
+
 ## Boats-first evidence upgrade — 23 October 2026
 - [x] Add comparable year-to-date totals, year filters and explicit publication/check dates to small boats
 - [x] Add a dated, sourced Small Boat Watch product comparison without unsupported superiority claims; iPhone and Android acknowledged, native alerts remain their advantage
