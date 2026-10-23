@@ -20,6 +20,7 @@ import { SLOGAN } from "@/lib/brand";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { currentBrand } from "@/lib/brand-host";
 import { GlobalHome } from "@/components/home/GlobalHome";
+import { UkTopicNav } from "@/components/UkTopicNav";
 
 const GT = "Stats Solutions — official statistics from around the world";
 const GD = "Live official figures for over 30 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
@@ -203,6 +204,8 @@ function UkHome() {
         </div>
 
         <RestoreSignupCta className="mt-5" />
+
+        <div className="mt-5"><UkTopicNav /></div>
 
         <div className="mt-6"><VitalSigns metrics={metrics} /></div>
         <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">

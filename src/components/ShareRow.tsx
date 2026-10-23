@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Check, ExternalLink, Link2, Share2 } from "lucide-react";
 import { SHARE_TARGETS, SITE_ORIGIN, absoluteUrl } from "@/lib/share";
 import { btn } from "@/lib/ui";
+import { Button } from "@/components/ui/button";
 
 /** Share the current page, plus a direct link to the official source. */
 export function ShareRow({
@@ -18,6 +19,7 @@ export function ShareRow({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   // Render the canonical URL first so SSR and hydration agree, then switch to
   // the origin the visitor is actually on.
   const [url, setUrl] = useState(`${SITE_ORIGIN}${path}`);
@@ -43,18 +45,25 @@ export function ShareRow({
           <span className="sr-only sm:not-sr-only">{t.label}</span>
         </a>
       ))}
-      <button
+      <Button
         type="button"
-        onClick={() => {
-          void navigator.clipboard?.writeText(url);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1800);
+        variant="outline"
+        size="sm"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setCopyError(false);
+            setTimeout(() => setCopied(false), 1800);
+          } catch {
+            setCopyError(true);
+          }
         }}
-        className={btn("toggle", "sm")}
       >
         {copied ? <Check className="size-4" aria-hidden="true" /> : <Link2 className="size-4" aria-hidden="true" />}
         {copied ? "Link copied" : "Copy link"}
-      </button>
+      </Button>
+      {copyError && <span role="alert" className="break-all text-xs text-night-muted">Couldn’t copy. Page link: {url}</span>}
       {sourceUrl ? (
         <a
           href={sourceUrl}
