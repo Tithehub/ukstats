@@ -49,7 +49,7 @@ function RestoreMediaPage() {
         <div className="flex flex-wrap gap-1" role="group" aria-label="Media type">
           {([['all', 'All'], ['video', 'Videos'], ['short', 'Shorts'], ['story', 'Stories']] as const).map(([value, label]) => <Button key={value} variant={kind === value ? 'secondary' : 'ghost'} aria-pressed={kind === value} onClick={() => void navigate({ search: { kind: value, q, page: 1 }, replace: false })}>{label}</Button>)}
         </div>
-        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-night-line bg-night-panel px-3">
+        <label className="flex w-full min-w-[220px] flex-1 items-center gap-2 rounded-md border border-night-line bg-night-panel px-3">
           <Search className="size-4 shrink-0 text-night-muted" />
           <input aria-label="Search videos and stories" value={q} onChange={e => void navigate({ search: { kind, q: e.target.value, page: 1 }, replace: true })} placeholder="Search videos and stories" className="min-h-11 min-w-0 w-full bg-transparent text-sm outline-none" />
         </label>
