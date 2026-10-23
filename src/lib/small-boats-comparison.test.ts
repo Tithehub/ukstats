@@ -15,8 +15,8 @@ describe("comparable published boat windows", () => {
     expect(completeBoatWindow(rows(2026, 15).slice(1), "2026-01-01", "2026-01-03")).toBeNull();
   });
   it("withholds a window with duplicate dates even when its row count matches", () => {
-    const sample = rows(2026, 15);
-    expect(completeBoatWindow([sample[0], sample[0], sample[2]], "2026-01-01", "2026-01-03")).toBeNull();
+    const duplicate = { date: "2026-01-01", arrivals: 15, boats: 1 };
+    expect(completeBoatWindow([duplicate, duplicate, { ...duplicate, date: "2026-01-03" }], "2026-01-01", "2026-01-03")).toBeNull();
   });
   it("does not calculate a percentage against zero", () => {
     expect(compareBoatYears([...rows(2025, 0), ...rows(2026, 15)])?.percent).toBeNull();
