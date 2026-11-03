@@ -21,7 +21,12 @@ function IconRow({ icon: Icon, c, children }: { icon: typeof Flag; c: string; ch
 
 /** One panel listing every colour and icon the globe can draw, always agreeing with the WebGL values. */
 export function GlobeKey({ onClose }: { onClose: () => void }) {
-  return <div id="globe-key" role="dialog" aria-label="Globe key — colours and icons" onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return <div id="globe-key" role="dialog" aria-label="Globe key — colours and icons"
     className="z-40 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[55dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[70%] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
     <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Key — colours &amp; icons</h2><Button variant="ghost" size="icon" aria-label="Close key" onClick={onClose}><X className="size-4" /></Button></div>
 
