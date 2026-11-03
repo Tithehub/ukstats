@@ -36,17 +36,17 @@ export interface GlobeProps {
   /** Selected plane: recent trail (solid) and direction ahead (dashed). */
   planePaths?: { pts: [number, number][]; ahead: boolean; color: string }[];
   /** Small-boat icons in the Channel (one per boat; positions illustrative). */
-  boats?: { id: string; lat: number; lng: number; label: string }[];
+  boats?: { id: string; lat: number; lng: number; label: string; color?: string }[];
   /** Migration arrows: origin country name to a country name or a fixed point. */
   flows?: GlobeFlow[];
 }
 
 export interface GlobeFlow { id: string; from: string; to: string; toLat?: number | undefined; toLng?: number | undefined; color: string; stroke: number; label: string }
 
-function makeBoat(): THREE.Object3D {
+function makeBoat(color = "#f05a28"): THREE.Object3D {
   const g = new THREE.Group();
   const hull = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.6), new THREE.MeshStandardMaterial({ color: "#2b2f36", flatShading: true }));
-  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.8, 8), new THREE.MeshStandardMaterial({ color: "#f05a28", emissive: "#f05a28", emissiveIntensity: 0.5, flatShading: true }));
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.8, 8), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, flatShading: true }));
   tube.rotation.z = Math.PI / 2; tube.position.y = 0.25;
   const people = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.4), new THREE.MeshStandardMaterial({ color: "#ffb020", emissive: "#ffb020", emissiveIntensity: 0.4, flatShading: true }));
   people.position.y = 0.5;
@@ -260,7 +260,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         objectAltitude={0.035}
         objectFacesSurfaces
         objectLabel={(m) => (m as GlobeMarker).label}
-        objectThreeObject={(m) => { const x = m as GlobeMarker & { boat?: boolean }; const o = icons.current.get(x.id) ?? (x.boat ? makeBoat() : makeIcon(x.kind, !!x.research)); icons.current.set(x.id, o); return o; }}
+        objectThreeObject={(m) => { const x = m as GlobeMarker & { boat?: boolean }; const o = icons.current.get(x.id) ?? (x.boat ? makeBoat((x as { color?: string }).color) : makeIcon(x.kind, !!x.research)); icons.current.set(x.id, o); return o; }}
         onObjectClick={(m) => { if (!(m as { boat?: boolean }).boat) onMarker?.((m as GlobeMarker).id); }}
         arcsData={arcs}
         arcStartLat={(a) => (a as { sLat: number }).sLat}
