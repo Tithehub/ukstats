@@ -37,10 +37,10 @@ describe("migration flows", () => {
 import { boatHistory, BOAT_COLOR } from "./migration-flows";
 describe("boatHistory", () => {
   const days = [{ date: "2026-07-01", boats: 3 }, { date: "2026-08-01", boats: 2 }, { date: "2026-10-30", boats: 4 }];
-  it("keeps only days within 90 days of the latest, one icon per boat", () => {
+  it("keeps only days within 7 days of the latest, one icon per boat", () => {
     const h = boatHistory(days);
-    expect(h).toHaveLength(6);
-    expect(h.filter((b) => b.date === "2026-07-01")).toHaveLength(0);
+    expect(h).toHaveLength(4);
+    expect(h.filter((b) => b.date === "2026-08-01")).toHaveLength(0);
   });
   it("shows every boat in the same green boat colour, no age gradient", () => {
     const h = boatHistory(days);
