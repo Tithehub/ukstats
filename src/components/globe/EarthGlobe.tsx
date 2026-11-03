@@ -59,7 +59,7 @@ function makeBoat(color = "#f05a28"): THREE.Object3D {
   // Point the bow north-west, towards Kent.
   g.rotation.z = (3 * Math.PI) / 4;
   const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.45);
-  wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
+  wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2, boat: true };
   return wrap;
 }
 
@@ -152,7 +152,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     let raf = 0;
     const tick = (t: number) => {
       for (const o of icons.current.values()) {
-        const d = o.userData as { spin: THREE.Object3D; phase: number };
+        const d = o.userData as { spin: THREE.Object3D; phase: number; boat?: boolean };
+        if (d.boat) { d.spin.rotation.x = Math.sin(t / 500 + d.phase) * 0.12; continue; }
         d.spin.rotation.y = t / 900 + d.phase; d.spin.rotation.x = Math.PI / 2;
         d.spin.position.z = 0.4 + Math.sin(t / 400 + d.phase) * 0.4;
       }
