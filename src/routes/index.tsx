@@ -63,7 +63,7 @@ const sponsorBoardQuery = queryOptions<SponsorBannerRow[]>({
 
 export const Route = createFileRoute("/")({
   // Optional globe settings, so a home-page globe view is shareable.
-  validateSearch: (s: Record<string, unknown>): { c?: string; ind?: string } => ({
+  validateSearch: (s: Record<string, unknown>): { c?: string | undefined; ind?: string | undefined } => ({
     c: typeof s["c"] === "string" ? s["c"].slice(0, 80) : undefined,
     ind: WORLD_INDICATORS.some((i) => i.slug === s["ind"]) ? String(s["ind"]) : undefined,
   }),
