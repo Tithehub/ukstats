@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import { feature } from "topojson-client";
 import topo from "world-atlas/countries-110m.json";
@@ -29,6 +29,24 @@ export interface GlobeProps {
   /** Live-feed pins (news videos, not official) — drawn as a separate label layer. */
   feedPins?: { key: string; lat: number; lng: number; count: number; live: boolean; label: string }[];
   onFeedPin?: (key: string) => void;
+  /** Aircraft positions, drawn as one particle layer per colour. */
+  planes?: GlobePlane[];
+  onPlane?: (id: string) => void;
+  /** Selected plane: recent trail (solid) and direction ahead (dashed). */
+  planePaths?: { pts: [number, number][]; ahead: boolean; color: string }[];
+}
+
+export interface GlobePlane { id: string; lat: number; lng: number; status: "green" | "amber" | "red"; label: string }
+// Plain WebGL colours mirroring the fresh / ageing / overdue tokens.
+const PLANE_C = { green: "#3fcf7a", amber: "#f0a020", red: "#ff4a3a" } as const;
+let planeTex: string | null = null;
+/** Small white plane silhouette, tinted per layer. */
+function planeTexture() {
+  if (planeTex) return planeTex;
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const x = c.getContext("2d")!; x.fillStyle = "#fff"; x.beginPath();
+  x.moveTo(32, 4); x.lineTo(37, 26); x.lineTo(60, 38); x.lineTo(60, 44); x.lineTo(37, 37); x.lineTo(36, 52); x.lineTo(44, 58); x.lineTo(44, 62); x.lineTo(32, 58); x.lineTo(20, 62); x.lineTo(20, 58); x.lineTo(28, 52); x.lineTo(27, 37); x.lineTo(4, 44); x.lineTo(4, 38); x.lineTo(27, 26); x.closePath(); x.fill();
+  return (planeTex = c.toDataURL());
 }
 
 // Plain WebGL colours mirroring the overdue (riot) and ageing (protest) tokens.
@@ -80,7 +98,7 @@ function centre(key: string): { lat: number; lng: number } | null {
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [] }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -109,6 +127,15 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const colors = COLORS;
+  const planeSets = useMemo(() => (["green", "amber", "red"] as const).map((st) => Object.assign(planes.filter((p) => p.status === st), { st })), [planes]);
+  const [planeSize, setPlaneSize] = useState(1);
+  // Phones: shrink plane icons if the frame rate drops while many planes are shown.
+  useEffect(() => {
+    if (!planes.length) return;
+    let n = 0, raf = 0; const t0 = performance.now();
+    const f = () => { n++; if (performance.now() - t0 < 2000) raf = requestAnimationFrame(f); else if (n < 50) setPlaneSize(0.6); };
+    raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf);
+  }, [planes.length > 0]);
 
   useEffect(() => {
     const el = wrap.current;
@@ -209,6 +236,26 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         labelResolution={2}
         labelLabel={(p) => (p as { label: string }).label}
         onLabelClick={(p) => onFeedPin?.((p as { key: string }).key)}
+        particlesData={planes.length ? planeSets : []}
+        particleLat={(p) => (p as GlobePlane).lat}
+        particleLng={(p) => (p as GlobePlane).lng}
+        particleAltitude={0.015}
+        particlesColor={(set) => PLANE_C[(set as { st: GlobePlane["status"] }).st]}
+        particlesSize={(set) => ((set as { st: string }).st === "green" ? 0.9 : 1.6) * planeSize}
+        particlesSizeAttenuation={false}
+        particlesTexture={planes.length ? planeTexture() : undefined}
+        particleLabel={(p) => (p as GlobePlane).label}
+        onParticleClick={(p) => onPlane?.((p as GlobePlane).id)}
+        pathsData={planePaths}
+        pathPoints={(d) => (d as { pts: [number, number][] }).pts}
+        pathPointLat={(p) => (p as [number, number])[0]}
+        pathPointLng={(p) => (p as [number, number])[1]}
+        pathPointAlt={0.016}
+        pathColor={(d) => (d as { color: string }).color}
+        pathStroke={2}
+        pathDashLength={(d) => ((d as { ahead: boolean }).ahead ? 0.05 : 1)}
+        pathDashGap={(d) => ((d as { ahead: boolean }).ahead ? 0.03 : 0)}
+        pathTransitionDuration={0}
       />
     </div>
   );
