@@ -1,6 +1,6 @@
 import { FCDO_INDEX, STATE_DEPT_FEED, parseAcled, parseFcdo, parseStateDept, type AcledEvent, type UnrestPayload } from "./unrest";
 
-const TTL = 3600_000;
+const TTL = 15 * 60_000;
 const ID = "unrest-v1";
 let mem: UnrestPayload | null = null;
 

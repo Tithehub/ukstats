@@ -102,3 +102,53 @@ export function unrestHotspots(warnings: OfficialWarning[], now: Date, maxDays =
   }
   return out;
 }
+
+// ---- Markers: where an official warning's own words mention riots or protests ----
+
+export type UnrestKind = "riot" | "protest";
+const RIOT = /\b(riots?|rioting|civil disorder|violent clashes|looting|coup|martial law)\b/i;
+const PROTEST = /\b(demonstrations?|protests?|unrest|strikes?|curfews?|marches)\b/i;
+
+/** riot / protest / null, from the publisher's own wording only. */
+export function classifyUnrest(text: string): UnrestKind | null {
+  if (RIOT.test(text)) return "riot";
+  if (PROTEST.test(text)) return "protest";
+  return null;
+}
+
+export type Place = [country: string, name: string, lat: number, lng: number, capital: 0 | 1];
+
+export interface UnrestMarker {
+  id: string; kind: UnrestKind; key: string; country: string;
+  place: string; lat: number; lng: number;
+  /** True when the advice names no place and the marker sits on the capital. */
+  unspecified: boolean;
+  warning: OfficialWarning;
+}
+
+const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Places named in the text for that country; else the capital, flagged unspecified. */
+export function extractPlaces(text: string, key: string, places: Place[]): { name: string; lat: number; lng: number; unspecified: boolean }[] {
+  const mine = places.filter((p) => countryKey(p[0]) === key);
+  const named = mine.filter((p) => new RegExp(`\\b${esc(p[1])}\\b`, "i").test(text));
+  if (named.length) return named.map((p) => ({ name: p[1], lat: p[2], lng: p[3], unspecified: false }));
+  const cap = mine.find((p) => p[4] === 1) ?? mine[0];
+  return cap ? [{ name: cap[1], lat: cap[2], lng: cap[3], unspecified: true }] : [];
+}
+
+/** Markers for warnings updated within the window whose own words mention riots or protests. */
+export function unrestMarkers(warnings: OfficialWarning[], now: Date, places: Place[], maxDays = 30): UnrestMarker[] {
+  const out: UnrestMarker[] = [];
+  for (const w of warnings) {
+    if (!w.updated) continue;
+    const t = Date.parse(w.updated);
+    if (!Number.isFinite(t) || now.getTime() - t > maxDays * 86_400_000) continue;
+    const kind = classifyUnrest(w.text);
+    if (!kind) continue;
+    for (const p of extractPlaces(w.text, w.key, places)) {
+      out.push({ id: `${w.source}|${w.key}|${p.name}`, kind, key: w.key, country: w.country, place: p.name, lat: p.lat, lng: p.lng, unspecified: p.unspecified, warning: w });
+    }
+  }
+  return out.sort((a, b) => Date.parse(b.warning.updated!) - Date.parse(a.warning.updated!));
+}
