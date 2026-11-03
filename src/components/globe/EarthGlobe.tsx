@@ -20,6 +20,23 @@ const FEATURES = (feature(topo as any, (topo as any).objects.countries) as unkno
 // WebGL needs plain colours; these mirror the site's overdue and highlight tokens.
 const COLORS = { hot: "rgba(214,72,52,0.85)", sel: "#f2f6ff" };
 
+/** Rough centre of a country's largest outline, for camera moves. */
+function centre(key: string): { lat: number; lng: number } | null {
+  const f = FEATURES.find((x) => countryKey(x.properties.name) === key);
+  if (!f) return null;
+  const g = f.geometry as { type: string; coordinates: any };
+  const polys: number[][][][] = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+  let ring: number[][] = [];
+  for (const p of polys) if ((p[0]?.length ?? 0) > ring.length) ring = p[0]!;
+  if (!ring.length) return null;
+  const lng = ring.reduce((s, c) => s + c[0]!, 0) / ring.length;
+  const lat = ring.reduce((s, c) => s + c[1]!, 0) / ring.length;
+  return { lat, lng };
+}
+
+/** Plain country names and keys, for the search box and no-3D fallback. */
+export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
+
 export default function EarthGlobe({ shade, hotspots, events, selected, onSelect }: GlobeProps) {
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const wrap = useRef<HTMLDivElement>(null);
@@ -37,12 +54,25 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   useEffect(() => {
     const g = ref.current;
     if (!g) return;
-    g.pointOfView({ lat: 50, lng: 10, altitude: 1.9 }, 0);
+    const start = selected ? centre(selected) : null;
+    g.pointOfView(start ? { ...start, altitude: 1.6 } : { lat: 50, lng: 10, altitude: 1.9 }, 0);
     const c = g.controls();
-    c.autoRotate = true;
+    c.autoRotate = !start;
     c.autoRotateSpeed = 0.25;
     wrap.current?.setAttribute("data-scene-ready", "true");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fly to a country picked from search or the side panel.
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    const g = ref.current;
+    const p = selected ? centre(selected) : null;
+    if (!g || !p) return;
+    g.controls().autoRotate = false;
+    g.pointOfView({ ...p, altitude: 1.6 }, 900);
+  }, [selected]);
 
   const cap = (f: object) => {
     const k = countryKey((f as Feat).properties.name);
