@@ -194,7 +194,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const live = sel ? LIVE_SOURCES[sel] : undefined;
   const selName = wb?.name ?? warnings[0]?.country ?? sel;
   const dests = sel ? countryDestinations(wb?.iso2 ?? (sel === "united kingdom" ? "GB" : ""), wb?.iso3 ?? null, selName ?? "") : [];
-  const [onAir, setOnAir] = useState(false);
+  const [onAir, setOnAir] = useState(true);
   const order = useMemo(() => buildRunningOrder(names.map((c) => countryKey(c.name)), unrest?.warnings ?? []), [names, unrest]);
   const goNext = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
   const goPrev = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY, -1); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
@@ -261,7 +261,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   </div>;
 
   return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
-    <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
+    <section data-gl={String(gl)} aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
