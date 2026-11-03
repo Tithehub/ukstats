@@ -26,6 +26,8 @@ async function acled(): Promise<UnrestPayload["acled"]> {
     return { connected: true, events };
   } catch (e) {
     console.error("ACLED", e);
+    // 403: the login works but the account has not been granted data access.
+    if (String(e).includes(" 403")) return { connected: false, events: [], error: "ACLED account has no data access yet" };
     return { connected: true, events: [], error: "ACLED did not answer" };
   }
 }

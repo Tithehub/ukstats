@@ -144,7 +144,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         </label>
         {ind && <p className="mt-1 text-night-muted">Brighter = higher rank. Grey = no figure within {MAX_LAG_YEARS} years of the newest. Source: {WORLD_SOURCE.name}.</p>}
         <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={s.official} onChange={(e) => onChange({ official: e.target.checked })} /> <span><b className="text-overdue">Red</b>: official warnings mentioning unrest (30 days)</span></label>
-        <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={s.acled} onChange={(e) => onChange({ acled: e.target.checked })} /> <span><b className="text-ageing">Dots</b>: ACLED research — {unrest?.acled.connected ? `${events.length} events, 30 days` : "Not connected"}</span></label>
+        <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={s.acled} onChange={(e) => onChange({ acled: e.target.checked })} /> <span><b className="text-ageing">Dots</b>: ACLED research — {unrest?.acled.connected ? (unrest.acled.error ?? `${events.length} events, 30 days`) : (unrest?.acled.error ?? "Not connected")}</span></label>
         <div className="mt-2 flex gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
           <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
