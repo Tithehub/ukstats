@@ -3,7 +3,10 @@ import Globe, { type GlobeMethods } from "react-globe.gl";
 import { feature } from "topojson-client";
 import topo from "world-atlas/countries-110m.json";
 import earth from "@/assets/earth-blue-marble.jpg";
-import { countryKey, type AcledEvent } from "@/lib/unrest";
+import * as THREE from "three";
+import { countryKey, type AcledEvent, type UnrestKind } from "@/lib/unrest";
+
+export interface GlobeMarker { id: string; kind: UnrestKind; lat: number; lng: number; label: string; research?: boolean }
 
 export interface GlobeProps {
   /** countryKey -> 0..1 shade, or undefined when no comparable figure. */
@@ -12,6 +15,36 @@ export interface GlobeProps {
   events: AcledEvent[];
   selected: string | null;
   onSelect: (key: string, name: string) => void;
+  markers?: GlobeMarker[];
+  onMarker?: (id: string) => void;
+  /** Camera target when a marker is picked. */
+  focus?: { lat: number; lng: number } | null;
+}
+
+// Plain WebGL colours mirroring the overdue (riot) and ageing (protest) tokens.
+const KIND = { riot: { c: "#e0452f", ring: "rgba(224,69,47," }, protest: { c: "#f0a020", ring: "rgba(240,160,32," } } as const;
+
+function makeIcon(kind: UnrestKind, research: boolean): THREE.Object3D {
+  const col = new THREE.Color(KIND[kind].c);
+  const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: research ? 0.3 : 0.8, flatShading: true, transparent: research, opacity: research ? 0.6 : 1 });
+  const g = new THREE.Group();
+  if (kind === "riot") {
+    const outer = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.6, 6), mat); outer.position.y = 1.3;
+    const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 0), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ffb020", emissiveIntensity: 1, flatShading: true }));
+    inner.position.y = 0.6;
+    g.add(outer, inner);
+  } else {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.4, 6), new THREE.MeshStandardMaterial({ color: "#dcd6c8", flatShading: true }));
+    pole.position.y = 1.2;
+    const board = new THREE.Mesh(new THREE.BoxGeometry(2, 1.3, 0.2), mat); board.position.y = 2.4;
+    g.add(pole, board);
+  }
+  // Stand the icon up off the globe surface (globe objects face +z outward).
+  g.rotation.x = Math.PI / 2;
+  const wrap = new THREE.Group(); wrap.add(g);
+  wrap.scale.setScalar(research ? 1.1 : 2.2);
+  wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
+  return wrap;
 }
 
 type Feat = { properties: { name: string }; geometry: unknown };
@@ -37,7 +70,31 @@ function centre(key: string): { lat: number; lng: number } | null {
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus }: GlobeProps) {
+  const icons = useRef(new Map<string, THREE.Object3D>());
+  const [still, setStill] = useState(false);
+  useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
+  // One animation loop for every icon: gentle bob and turn.
+  useEffect(() => {
+    if (still) return;
+    let raf = 0;
+    const tick = (t: number) => {
+      for (const o of icons.current.values()) {
+        const d = o.userData as { spin: THREE.Object3D; phase: number };
+        d.spin.rotation.y = t / 900 + d.phase; d.spin.rotation.x = Math.PI / 2;
+        d.spin.position.z = 0.4 + Math.sin(t / 400 + d.phase) * 0.4;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [still]);
+  useEffect(() => {
+    if (!focus) return;
+    const g = ref.current; if (!g) return;
+    g.controls().autoRotate = false;
+    g.pointOfView({ ...focus, altitude: 0.9 }, 900);
+  }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
@@ -109,6 +166,21 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pointAltitude={0.02}
         pointRadius={0.25}
         pointLabel={(e) => { const x = e as AcledEvent; return `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+        objectsData={markers}
+        objectLat={(m) => (m as GlobeMarker).lat}
+        objectLng={(m) => (m as GlobeMarker).lng}
+        objectAltitude={0.035}
+        objectFacesSurfaces
+        objectLabel={(m) => (m as GlobeMarker).label}
+        objectThreeObject={(m) => { const x = m as GlobeMarker; const o = icons.current.get(x.id) ?? makeIcon(x.kind, !!x.research); icons.current.set(x.id, o); return o; }}
+        onObjectClick={(m) => onMarker?.((m as GlobeMarker).id)}
+        ringsData={markers.filter((m) => !m.research)}
+        ringLat={(m) => (m as GlobeMarker).lat}
+        ringLng={(m) => (m as GlobeMarker).lng}
+        ringColor={(m: object) => { const r = KIND[(m as GlobeMarker).kind].ring; return (t: number) => `${r}${1 - t})`; }}
+        ringMaxRadius={(m) => ((m as GlobeMarker).kind === "riot" ? 3.5 : 2.5)}
+        ringPropagationSpeed={2}
+        ringRepeatPeriod={still ? 0 : 1400}
       />
     </div>
   );

@@ -6,14 +6,23 @@ import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
 import { WORLD_INDICATORS, WORLD_SOURCE, MAX_LAG_YEARS, fmtWorld, rankIndicator } from "@/lib/world";
-import { countryKey, unrestHotspots, warningAge, type OfficialWarning } from "@/lib/unrest";
+import { countryKey, unrestHotspots, unrestMarkers, warningAge, type OfficialWarning, type UnrestMarker } from "@/lib/unrest";
+import { UNREST_PLACES } from "@/lib/unrest-places.data";
+import type { GlobeMarker } from "@/components/globe/EarthGlobe";
 import { GLOBAL_NEWS, LIVE_SOURCES, LIVE_SOURCES_CHECKED } from "@/lib/live-sources.data";
 import { countryDestinations, type Destination } from "@/lib/globe-destinations";
 import { fmtDate } from "@/lib/uk-stats";
 
 const EarthGlobe = lazy(() => import("@/components/globe/EarthGlobe"));
 
-export type GlobeState = { ind: string; official: boolean; acled: boolean; c: string };
+export type GlobeState = { ind: string; official: boolean; acled: boolean; c: string; riots?: boolean | undefined; protests?: boolean | undefined; m?: string | undefined };
+
+/** Date and time in UK time, for official publication stamps. */
+function fmtStamp(iso: string | null) {
+  if (!iso) return "time not stated";
+  const t = new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
+  return `${fmtDate(iso)}, ${t} UK time`;
+}
 
 const AGE_CLS = { fresh: "text-fresh", ageing: "text-ageing", overdue: "text-overdue", unknown: "text-night-muted" } as const;
 const LINK = "inline-flex min-h-10 items-center justify-between gap-2 rounded border border-night-line px-3 py-2 text-sm hover:bg-night";
@@ -69,6 +78,17 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const hot = useMemo(() => (unrest && s.official ? unrestHotspots(unrest.warnings, new Date()) : new Map<string, OfficialWarning[]>()), [unrest, s.official]);
   const hotKeys = useMemo(() => new Set(hot.keys()), [hot]);
   const events = s.acled && unrest?.acled.connected ? unrest.acled.events : [];
+  const showRiots = s.riots !== false, showProtests = s.protests !== false;
+  const official = useMemo(() => (unrest && s.official ? unrestMarkers(unrest.warnings, new Date(), UNREST_PLACES) : []), [unrest, s.official]);
+  const visible = official.filter((m) => (m.kind === "riot" ? showRiots : showProtests));
+  const research: GlobeMarker[] = events.flatMap((e) => {
+    const k: "riot" | "protest" | null = /riot/i.test(e.type) ? "riot" : /protest/i.test(e.type) ? "protest" : null;
+    if (!k || (k === "riot" ? !showRiots : !showProtests)) return [];
+    return [{ id: `acled|${e.id}`, kind: k, lat: e.lat, lng: e.lng, label: `${e.subType || e.type} — ${e.location}, ${e.date} (ACLED research, not official)`, research: true }];
+  }).slice(0, 150);
+  const markers: GlobeMarker[] = [...visible.map((m) => ({ id: m.id, kind: m.kind, lat: m.lat, lng: m.lng, label: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.place}, ${m.country} (${m.warning.source})` })), ...research];
+  const marker: UnrestMarker | undefined = s.m ? official.find((m) => m.id === s.m) : undefined;
+  const pick = (m: UnrestMarker) => onChange({ c: m.key, m: m.id });
 
   const sel = s.c || null;
   const wb = sel ? byKey.get(sel) : undefined;
@@ -89,13 +109,22 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const loading = <div className="grid h-full place-items-center text-sm text-night-muted">Loading globe…</div>;
   const height = compact ? "h-[52vh] min-h-[340px] max-h-[620px]" : "h-[60vh] min-h-[380px] lg:h-auto";
 
-  return <div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "overflow-hidden rounded-lg border border-night-line" : "flex-1"}`}>
+  const ticker = <div aria-label="Latest official riot and protest warnings" className="flex items-center gap-2 overflow-x-auto border-b border-night-line bg-night-panel px-3 py-2 text-xs">
+    <span className="shrink-0 font-mono uppercase text-overdue"><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />Official warnings</span>
+    {!unrest ? <span className="text-night-muted">Checking official feeds…</span> : !s.official ? <span className="text-night-muted">Official layer switched off.</span> : official.length === 0 ? <span className="text-night-muted">No riot or protest wording in official advice in the last 30 days.</span> :
+      official.slice(0, 12).map((m) => <button key={m.id} onClick={() => pick(m)} className={`shrink-0 rounded border px-2 py-1 hover:bg-night ${m.id === s.m ? "border-electric" : "border-night-line"}`}>
+        <b className={m.kind === "riot" ? "text-overdue" : "text-ageing"}>{m.kind === "riot" ? "Riot" : "Protest"}</b> {m.place}{m.unspecified ? "*" : ""}, {m.country} · <span className="text-night-muted">{m.warning.source} {fmtStamp(m.warning.updated)}</span>
+      </button>)}
+    {unrest && <span className="shrink-0 text-night-muted">· checked {fmtStamp(unrest.fetchedAt)}</span>}
+  </div>;
+
+  return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
     <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={shade} hotspots={hotKeys} events={events} selected={sel} onSelect={(k) => onChange({ c: k })} />}
+        {gl && <EarthGlobe shade={shade} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : null} />}
       </Suspense></ClientOnly>}
       <div className="absolute left-3 top-3 max-w-[92%] rounded-md border border-night-line bg-night-panel/90 p-3 text-xs backdrop-blur sm:max-w-sm">
         {compact ? <h2 className="text-base font-semibold">Explore the world — click any country</h2> : <h1 className="text-base font-semibold">World globe</h1>}
@@ -116,6 +145,10 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         {ind && <p className="mt-1 text-night-muted">Brighter = higher rank. Grey = no figure within {MAX_LAG_YEARS} years of the newest. Source: {WORLD_SOURCE.name}.</p>}
         <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={s.official} onChange={(e) => onChange({ official: e.target.checked })} /> <span><b className="text-overdue">Red</b>: official warnings mentioning unrest (30 days)</span></label>
         <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={s.acled} onChange={(e) => onChange({ acled: e.target.checked })} /> <span><b className="text-ageing">Dots</b>: ACLED research — {unrest?.acled.connected ? `${events.length} events, 30 days` : "Not connected"}</span></label>
+        <div className="mt-2 flex gap-3">
+          <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
+          <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
+        </div>
         {compact && <Link to="/globe" search={s} className="mt-2 inline-flex items-center gap-1 text-electric-soft underline"><Maximize2 className="size-3" />Open full-screen globe</Link>}
       </div>
     </section>
@@ -127,8 +160,14 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       {sel ? <div className="mt-3">
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-2xl font-semibold">{selName}</h2>
-          <Button variant="ghost" size="icon" aria-label="Close country" onClick={() => onChange({ c: "" })}><X className="size-4" /></Button>
+          <Button variant="ghost" size="icon" aria-label="Close country" onClick={() => onChange({ c: "", m: undefined })}><X className="size-4" /></Button>
         </div>
+        {marker && marker.key === sel && <div className={`mt-3 rounded border p-3 ${marker.kind === "riot" ? "border-overdue/60" : "border-ageing/60"}`}>
+          <p className={`font-mono text-[11px] uppercase ${marker.kind === "riot" ? "text-overdue" : "text-ageing"}`}>{marker.kind === "riot" ? "Riot" : "Protest"} warning · {marker.place}{marker.unspecified ? " (country-wide advice — location not specified)" : ""}</p>
+          <p className="mt-1 text-sm">“{marker.warning.text}”</p>
+          <p className={`mt-1 font-mono text-[11px] ${AGE_CLS[warningAge(marker.warning.updated, new Date())]}`}>{marker.warning.source} · published {fmtStamp(marker.warning.updated)} · {warningAge(marker.warning.updated, new Date())}</p>
+          <a href={marker.warning.url} target="_blank" rel="noreferrer noopener" className="mt-1 inline-flex items-center gap-1 text-xs underline">Read the official advice <ExternalLink className="size-3" /></a>
+        </div>}
         {dests.length > 0 && <nav aria-label={`Pages for ${selName}`} className="mt-3 grid gap-1.5">{dests.map((d) => <DestLink key={d.kind + d.label} d={d} />)}</nav>}
         {wb ? <>
           <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -140,7 +179,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <h3 className="mt-5 font-semibold">Official government warnings</h3>
         {warnings.length ? <ul className="mt-2 space-y-2">{warnings.map((w) => <WarningRow key={w.source + w.url} w={w} />)}</ul> : <p className="mt-1 text-sm text-night-muted">No UK or US travel advice found for this country.</p>}
 
-        <h3 className="mt-5 font-semibold">Official live sources</h3>
+        <h3 className="mt-5 font-semibold">Official news and broadcasts</h3>
         {live?.official.length ? <ul className="mt-1 space-y-1 text-sm">{live.official.map((l) => <li key={l.url}><a className="underline" href={l.url} target="_blank" rel="noreferrer noopener">{l.label}</a></li>)}</ul> : <p className="mt-1 text-sm text-night-muted">Not yet verified for this country.</p>}
 
         <h3 className="mt-5 font-semibold">News coverage <span className="text-xs font-normal text-night-muted">(not official)</span></h3>
@@ -156,5 +195,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="mt-4 text-[11px] text-night-muted">Governments publish travel advice, not live riot maps. ACLED is an independent research body, not a government source.</p>
       </div>}
     </aside>
+  </div>
+  <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
   </div>;
 }
