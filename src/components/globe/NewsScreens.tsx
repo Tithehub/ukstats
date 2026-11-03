@@ -78,7 +78,7 @@ export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
             <button aria-label="Minimise screen" className={WBTN} onClick={() => update(s.id, { min: true })}><Minus className="size-3.5" /></button>
             <button aria-label="Close screen" className={WBTN} onClick={() => setList((l) => l.filter((x) => x.id !== s.id))}><X className="size-3.5" /></button></span>, true)}
         </div>
-        <span aria-hidden="true" onPointerDown={(e) => { e.stopPropagation(); drag(e, s, "size"); }} className="absolute bottom-0 right-0 size-4 cursor-se-resize rounded-br-md bg-[linear-gradient(135deg,transparent_50%,hsl(var(--night-line,0_0%_50%))_50%)]" style={{ background: "linear-gradient(135deg, transparent 50%, var(--color-electric) 50%)" }} />
+        <span aria-hidden="true" onPointerDown={(e) => { e.stopPropagation(); drag(e, s, "size"); }} className="absolute bottom-0 right-0 size-4 cursor-se-resize rounded-br-md" style={{ background: "linear-gradient(135deg, transparent 50%, var(--color-electric) 50%)" }} />
       </div>)}
       {list.some((s) => s.min) && <div className="pointer-events-auto absolute bottom-14 right-3 flex flex-wrap justify-end gap-1">
         {list.filter((s) => s.min).map((s) => <button key={s.id} onClick={() => { update(s.id, { min: false }); setList((l) => bringToFront(l, s.id)); }} className={CTRL}><Square className="size-3" />{bulletinFor(s.country).name}</button>)}

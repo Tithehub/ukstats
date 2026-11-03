@@ -18,6 +18,7 @@ import { videoFeedQuery } from "@/lib/video-feed.functions";
 import { feedPins as feedPinMap, type FeedAge } from "@/lib/video-feed";
 import { LiveFeed } from "@/components/globe/LiveFeed";
 import { BroadcastPanel } from "@/components/globe/BroadcastPanel";
+import { NewsScreens, type BulletinData } from "@/components/globe/NewsScreens";
 import { GlobeShare } from "@/components/globe/GlobeShare";
 import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
@@ -201,6 +202,14 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const goPrev = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY, -1); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
   const bulletinStats = wb ? WORLD_INDICATORS.slice(0, 6).flatMap((i) => { const v = world?.values[i.id]?.[wb.iso3]; return v ? [{ label: i.label, value: `${fmtWorld(v.value, i.unit)} (${v.year})` }] : []; }) : [];
   const countryVideos = sel && feed?.connected ? feed.items.filter((v) => v.country === sel) : [];
+  const bulletinFor = useCallback((k: string): BulletinData => {
+    const b = byKey.get(k); const ws = (unrest?.warnings ?? []).filter((w) => w.key === k);
+    return { name: b?.name ?? ws[0]?.country ?? k, statSource: b ? WORLD_SOURCE : null, warnings: ws,
+      stats: b ? WORLD_INDICATORS.slice(0, 6).flatMap((i) => { const v = world?.values[i.id]?.[b.iso3]; return v ? [{ label: i.label, value: `${fmtWorld(v.value, i.unit)} (${v.year})` }] : []; }) : [],
+      videos: feed?.connected ? feed.items.filter((v) => v.country === k) : [] };
+  }, [byKey, unrest, world, feed]);
+  const stepCountry = useCallback((k: string, dir: 1 | -1) => nextInOrder(order, k, dir), [order]);
+  const screenCountries = useMemo(() => names.map((c) => ({ key: countryKey(c.name), name: c.name })), [names]);
   const areaAdvice = useMemo(() => {
     const m = new Map<string, AreaAdvice>();
     for (const w of unrest?.warnings ?? []) if (w.source === "US State Dept" && w.level) m.set(w.key, { ...m.get(w.key), us: w.level });
@@ -316,6 +325,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           : s.layer === "us" ? <ul>{[1, 2, 3, 4].map((l) => <li key={l}><Swatch c={US_LEVEL_COLOURS[l]!} />Level {l}</li>)}<li className="text-night-muted">US State Dept</li></ul>
           : <ul>{(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => <li key={a} className="truncate"><Swatch c={UK_ALERT_COLOURS[a]} />{FCDO_ALERT_LABEL[a].replace("FCDO advises against ", "Against ")}</li>)}<li className="text-night-muted">UK FCDO</li></ul>}
       </div>}
+      {gl && !compact && <NewsScreens countries={screenCountries} bulletinFor={bulletinFor} step={stepCountry} defaultCountry={UK_KEY} />}
       {gl && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs">
         <button onClick={nextWarning} disabled={!listed.length} aria-label="Next warning" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next warning</span></button>
         <button onClick={nextCountry} aria-label="Next country" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next country</span></button>
