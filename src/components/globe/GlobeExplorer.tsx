@@ -1,6 +1,6 @@
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
@@ -17,6 +17,9 @@ import { fmtDate } from "@/lib/uk-stats";
 import { videoFeedQuery } from "@/lib/video-feed.functions";
 import { feedPins as feedPinMap, type FeedAge } from "@/lib/video-feed";
 import { LiveFeed } from "@/components/globe/LiveFeed";
+import { BroadcastPanel } from "@/components/globe/BroadcastPanel";
+import { GlobeShare } from "@/components/globe/GlobeShare";
+import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 
 const EarthGlobe = lazy(() => import("@/components/globe/EarthGlobe"));
 
@@ -183,6 +186,14 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const live = sel ? LIVE_SOURCES[sel] : undefined;
   const selName = wb?.name ?? warnings[0]?.country ?? sel;
   const dests = sel ? countryDestinations(wb?.iso2 ?? (sel === "united kingdom" ? "GB" : ""), wb?.iso3 ?? null, selName ?? "") : [];
+  const [onAir, setOnAir] = useState(true);
+  const order = useMemo(() => buildRunningOrder(names.map((c) => countryKey(c.name)), unrest?.warnings ?? []), [names, unrest]);
+  const goNext = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
+  const goPrev = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY, -1); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
+  const bulletinStats = wb ? WORLD_INDICATORS.slice(0, 6).flatMap((i) => { const v = world?.values[i.id]?.[wb.iso3]; return v ? [{ label: i.label, value: `${fmtWorld(v.value, i.unit)} (${v.year})` }] : []; }) : [];
+  const countryVideos = sel && feed?.connected ? feed.items.filter((v) => v.country === sel) : [];
+  const headlines = [...official.slice(0, 8).map((m) => ({ id: m.id, text: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.country} (${m.warning.source}, ${fmtStamp(m.warning.updated)})`, go: () => pick(m) })),
+    ...(feed?.connected ? feed.items.slice(0, 8).map((v) => ({ id: v.id, text: `${v.channel}: ${v.title}`, go: () => onChange({ c: v.country, m: undefined }) })) : [])];
   const hotList = [...hot.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   const find = (e: React.FormEvent) => {
@@ -226,6 +237,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           <datalist id="globe-country-names">{names.map((c) => <option key={c.iso3} value={c.name} />)}</datalist>
         </form>
           <button type="button" onClick={() => setLayersOpen((o) => !o)} aria-expanded={layersOpen} aria-controls="globe-layers" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Layers className="size-3.5" />Layers</button>
+          <GlobeShare title={`${selName ? `${selName} — ` : ""}live globe | UKStats`} />
         </div>
       </div>
       {layersOpen && <div id="globe-layers" role="dialog" aria-label="Globe layers" onKeyDown={(e) => { if (e.key === "Escape") setLayersOpen(false); }} className="z-40 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[55dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[70%] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
@@ -271,6 +283,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
 
+      {sel && !onAir && <button onClick={() => setOnAir(true)} className="mt-2 inline-flex items-center gap-1 rounded border border-electric/50 px-2 py-1 text-xs hover:bg-night"><Play className="size-3" />Start live broadcast</button>}
+      {sel && onAir && <div className="mt-3"><BroadcastPanel name={selName ?? sel} stats={bulletinStats} statSource={wb ? WORLD_SOURCE : null} warnings={warnings} videos={countryVideos} onNextCountry={goNext} onPrevCountry={goPrev} onStop={() => setOnAir(false)} /></div>}
       {sel ? <div className="mt-3">
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-2xl font-semibold">{selName}</h2>
@@ -336,6 +350,10 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </>}</div>}
     </aside>
   </div>
+  {headlines.length > 0 && <div aria-label="Breaking: latest official warnings and news headlines" className="flex items-center gap-2 overflow-x-auto border-t border-night-line bg-night px-3 py-1.5 text-xs">
+    <span className="shrink-0 font-mono uppercase text-overdue">Latest</span>
+    {headlines.map((h) => <button key={h.id} onClick={h.go} className="max-w-[22rem] shrink-0 truncate rounded px-2 py-0.5 text-left hover:bg-night-panel">{h.text}</button>)}
+  </div>}
   <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
   </div>;
 }

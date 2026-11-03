@@ -125,7 +125,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     g.pointOfView(start ? { ...start, altitude: 1.6 } : { lat: 50, lng: 10, altitude: 1.9 }, 0);
     const c = g.controls();
     c.autoRotate = !start;
-    c.autoRotateSpeed = 0.25;
+    c.autoRotateSpeed = 0.75;
     wrap.current?.setAttribute("data-scene-ready", "true");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
