@@ -65,6 +65,7 @@ import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
+import { Route as GlobeStudioRouteImport } from './routes/globe_.studio'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
@@ -362,6 +363,11 @@ const GlobeBroadcastRoute = GlobeBroadcastRouteImport.update({
   path: '/globe/broadcast',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GlobeStudioRoute = GlobeStudioRouteImport.update({
+  id: '/globe_/studio',
+  path: '/globe/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryMetricIdRoute = HistoryMetricIdRouteImport.update({
   id: '/history/$metricId',
   path: '/history/$metricId',
@@ -503,6 +509,7 @@ export interface FileRoutesByFullPath {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
+  '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -575,6 +582,7 @@ export interface FileRoutesByTo {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
+  '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -650,6 +658,7 @@ export interface FileRoutesById {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
+  '/globe_/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -726,6 +735,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe/broadcast'
+    | '/globe/studio'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -798,6 +808,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe/broadcast'
+    | '/globe/studio'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -872,6 +883,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe_/broadcast'
+    | '/globe_/studio'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -942,6 +954,7 @@ export interface RootRouteChildren {
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
+  GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
   WorldIsoRoute: typeof WorldIsoRoute
@@ -1342,6 +1355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GlobeBroadcastRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/globe_/studio': {
+      id: '/globe_/studio'
+      path: '/globe/studio'
+      fullPath: '/globe/studio'
+      preLoaderRoute: typeof GlobeStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history/$metricId': {
       id: '/history/$metricId'
       path: '/history/$metricId'
@@ -1579,6 +1599,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
+  GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
   WorldIsoRoute: WorldIsoRoute,
