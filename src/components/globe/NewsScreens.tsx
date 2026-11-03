@@ -32,7 +32,8 @@ export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
   }, []);
 
   const update = (id: string, p: Partial<NewsScreen>) => setList((l) => l.map((s) => (s.id === id ? { ...s, ...p } : s)));
-  const add = () => setList((l) => { if (!canAdd(l)) return l; const { w, h } = size(); const c = l.length ? (step(l[l.length - 1]!.country, 1) ?? defaultCountry) : defaultCountry; return [...l, newScreen(l, c, w, h, `s${Date.now().toString(36)}`)]; });
+  const add = () => setList((l) => { if (!canAdd(l)) return l; const { w, h } = size(); const used = new Set(l.map((x) => x.country)); let c = defaultCountry;
+    for (let i = 0; i < 300 && used.has(c); i++) { const n = step(c, 1) ?? countries[i]?.key; if (!n) break; c = n; } return [...l, newScreen(l, c, w, h, `s${Date.now().toString(36)}`)]; });
 
   /** Pointer drag for move ("move") or bottom-right resize ("size"). */
   const drag = (e: React.PointerEvent, s: NewsScreen, mode: "move" | "size") => {
