@@ -19,16 +19,16 @@ export function PreparednessBanner({ className = '' }: { className?: string }) {
           <h2 className="mt-3 max-w-md text-2xl font-semibold leading-tight sm:text-3xl">Is your household prepared for 72 hours?</h2>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-dedication-muted">The UK Government’s Be Ready campaign encourages being ready for three days. Free checklist, proposed equipment kits and official advice from six governments — all in one place.</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild variant="dedication"><Link to="/preparedness">Explore preparedness<ArrowRight /></Link></Button>
+            <Button asChild variant="dedication"><Link to="/preparedness" search={{ region: "all", q: "" }}>Explore preparedness<ArrowRight /></Link></Button>
             <Button asChild variant="dedicationOutline"><a href="https://beready.campaign.gov.uk/be-ready-for-emergencies/" target="_blank" rel="noopener noreferrer">Official Be Ready guidance<ExternalLink /></a></Button>
           </div>
           <p className="mt-4 text-xs text-dedication-muted">Independent UKStats guidance based on official sources, checked {fmtDate(PREPAREDNESS_CHECKED)}. Not a warning of an imminent emergency.</p>
         </div>
         <nav aria-label="Preparedness sections" className="grid gap-2 text-sm">
-          <Link to="/preparedness" hash="preparedness-kits" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
+          <Link to="/preparedness" search={{ region: "all", q: "" }} hash="preparedness-kits" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
             <PackageCheck className="size-4 shrink-0" aria-hidden="true" />Proposed equipment kits — from £59.99, provisional
           </Link>
-          <Link to="/preparedness" hash="household-checklist" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
+          <Link to="/preparedness" search={{ region: "all", q: "" }} hash="household-checklist" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
             <ClipboardCheck className="size-4 shrink-0" aria-hidden="true" />Free household checklist — check what you already own
           </Link>
           <Link to="/preparedness" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
