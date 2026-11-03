@@ -270,7 +270,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
     {feed?.connected && <button onClick={() => onChange({ feed: "live" })} className="shrink-0 rounded border border-electric/60 px-2 py-1 font-mono uppercase text-electric-soft hover:bg-night">{feed.items.filter((i) => i.live).length ? `● ${feed.items.filter((i) => i.live).length} live now` : "Live feed"}</button>}
   </div>;
 
-  return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
+  return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}><div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-b border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
+    <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">Latest</span>
+    {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
+      : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
+  </div>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
     <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
@@ -425,11 +429,6 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="mt-4 text-[11px] text-night-muted">Governments publish travel advice, not live riot maps. ACLED is an independent research body, not a government source.</p>
       </>}</div>}
     </aside>
-  </div>
-  <div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-t border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
-    <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">Latest</span>
-    {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
-      : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
   </div>
   <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
   </div>;
