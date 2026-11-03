@@ -1,42 +1,29 @@
-# Live video feed on the globe
+# Live interactive globe news feed
 
-A "Live feed" layer and panel showing the newest videos from the verified channels already on the globe, with their real YouTube thumbnails. Each video is pinned to its channel's country and clearly labelled. Public live streaming is on hold, like the funding pause.
+Turn the globe into a live news desk: it refreshes itself and shows the newest videos and live broadcasts from the verified channels already listed, next to the official warnings. Public live streaming from visitors is left out for now.
 
-## What visitors get
-1. **Feed panel.** A scrolling list of the newest videos. Each card shows:
-   - the YouTube thumbnail and title
-   - the channel name and avatar
-   - the publish time (UK time) and how long ago
-   - a label: **Official** (government), **MSM** or **ALT / Independent**
-   - a "LIVE" badge when the channel is broadcasting right now
-2. **Filters.** Official, MSM and ALT/Independent can each be switched on or off, and visitors can narrow the feed to one country, the last hour or today. These choices stay in the web address so a view can be shared.
-3. **Globe markers.** Small glowing pins sit on countries with videos from the last 6 hours; live broadcasts get a pulsing pin. Clicking a pin opens that country's videos. These pins are styled differently from the official warning markers so the two are never confused.
-4. **Watching.** Clicking a card plays the video inside the page in YouTube's privacy-enhanced player (youtube-nocookie). Each card also has an "Open on YouTube" link.
-5. **Updates.** The feed refreshes itself every 5 minutes while the page is open, with a "checked at" time.
-6. **"Most relevant" ordering.** Live broadcasts come first, then newest first. Within the same hour, videos with more views come first, using YouTube's own view counts. The page explains this ordering. No AI picks or rewrites headlines.
-7. **Legal notes on the page.**
-   - "MSM and ALT/Independent channels are not official sources; UKStats does not verify their claims."
-   - "Public live streaming is on hold pending legal review (Online Safety Act)."
+## What visitors will see
+- A **Live** tab beside the warnings list on the globe (home page and full-screen globe).
+- Feed cards: real YouTube thumbnail, the title exactly as the channel wrote it, channel name and picture, publish time (UK time) and how long ago, a label (Official / MSM / Alternative), and a red **LIVE** badge while a channel is broadcasting.
+- Order: live broadcasts first, then newest first.
+- Filters for kind, country and age (last hour, 6 hours, today). These stay in the web address so a view can be shared.
+- Glowing pins on countries with videos from the last 6 hours; live broadcasts pulse. Clicking a pin flies the globe there and opens that country's videos. These pins look different from the official riot/protest markers so the two can't be confused.
+- Clicking a card plays the video on the page in YouTube's privacy-enhanced player, with an "Open on YouTube" link.
+- The feed updates itself every 2 minutes while the page is open: new items slide in at the top and are briefly marked "New", with a "Last checked" time and a pause button.
+- Official warnings also update automatically every 5 minutes, without reloading the page.
+- Notes on the page: "MSM and Alternative channels are not official sources; UKStats does not verify their claims." and "Public live streaming is on hold pending legal review."
 
 ## Rules kept
-- Only the YouTube-verified channels already listed; nothing added automatically.
-- Official warnings and statistics stay separate. News videos never create warning markers or change any figure.
-- Video titles are shown exactly as the channels publish them.
+- Only the YouTube-verified channels already in the list. Nothing gets added automatically.
+- News videos never create warning markers or change any figure.
+- No AI picks, ranks or rewrites headlines.
 
-## One thing that may need you
-YouTube's free public video feeds wouldn't open from my test machine today (they returned "not found"). If they also fail from the live site, the reliable route is a free YouTube API key from Google. I'd ask you for that through a secure form, and nothing would show until it works.
+## One thing you may need to provide
+Earlier tests from my machine couldn't open YouTube's free public channel feeds. I'll try them first. If they fail, the reliable fix is a free YouTube API key from Google. I'd ask for it through a secure form, and the Live tab would say "Feed not connected yet" until it works. It would never show made-up items.
 
 ## Technical details
-- `src/lib/video-feed.ts`: pure parsers for the YouTube channel RSS (`feeds/videos.xml?channel_id=`), the Data API `playlistItems`/`videos` responses (live status, views), and the ranking and filter helpers, with tests.
-- `src/lib/video-feed.server.ts`:
-  - Fetches up to 20 channels per refresh, oldest-checked first, to keep edge subrequests bounded.
-  - Caches in `payload_cache` "video-feed-v1" and serves the last good copy.
-  - Refreshes after 5 minutes; keeps the last 48 hours.
-- `src/lib/video-feed.functions.ts`: a POST server function plus query options (refetch every 5 minutes).
-- `GlobeExplorer.tsx` / `EarthGlobe.tsx`:
-  - a "Live feed" toggle in Layers
-  - feed pins as a separate points layer
-  - a feed tab in the side panel and the phone sheet
-  - a lazily loaded nocookie player
-- Search parameters: `feed`, `fk` (kinds), `fc` (country), `fa` (age).
-- Add an AGENTS.md rule, then check in the browser on computer and phone sizes.
+- `src/lib/video-feed.ts`: pure parsers (RSS and YouTube Data API) plus ordering/filter helpers, with tests.
+- `src/lib/video-feed.server.ts`: polls channels in batches of up to 20 per refresh, live status via the API when a key is available, payload_cache "video-feed-v1", serves the last good copy, 2-minute TTL.
+- `src/lib/video-feed.functions.ts`: POST server function + queryOptions with refetchInterval 120s; the unrest query gets refetchInterval 300s.
+- GlobeExplorer: Live tab, separate points layer for feed pins, lazy nocookie iframe, search params feed/fk/fc/fa.
+- AGENTS.md rule for the feed's source boundary.
