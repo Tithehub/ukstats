@@ -40,9 +40,9 @@ function makeIcon(kind: UnrestKind, research: boolean): THREE.Object3D {
     g.add(pole, board);
   }
   // Stand the icon up off the globe surface (globe objects face +z outward).
-  g.rotation.x = Math.PI / 2;
+  g.rotation.x = -Math.PI / 2;
   const wrap = new THREE.Group(); wrap.add(g);
-  wrap.scale.setScalar(research ? 0.55 : 1);
+  wrap.scale.setScalar(research ? 0.9 : 1.6);
   wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
   return wrap;
 }
@@ -81,7 +81,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     const tick = (t: number) => {
       for (const o of icons.current.values()) {
         const d = o.userData as { spin: THREE.Object3D; phase: number };
-        d.spin.rotation.y = t / 900 + d.phase;
+        d.spin.rotation.y = t / 900 + d.phase; d.spin.rotation.x = -Math.PI / 2;
         d.spin.position.z = 0.4 + Math.sin(t / 400 + d.phase) * 0.4;
       }
       raf = requestAnimationFrame(tick);
