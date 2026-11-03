@@ -23,7 +23,7 @@ export interface GlobeProps {
   fill?: Map<string, string> | null;
   /** countryKey -> hover text (figure, rank, year or advice level). */
   labels?: Map<string, string> | null;
-  rotate?: boolean;
+  rotate?: boolean | undefined;
   /** Bump to fly back to the starting view. */
   resetKey?: number;
 }
