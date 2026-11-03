@@ -37,7 +37,7 @@ function DestLink({ d }: { d: Destination }) {
     case "uk-parties": return <Link to="/parties" search={{ view: "election" }} className={LINK}>{inner}</Link>;
     case "uk-polling": return <Link to="/polling" className={LINK}>{inner}</Link>;
     case "uk-preparedness": return <Link to="/preparedness" search={{ region: "all", q: "" }} className={LINK}>{inner}</Link>;
-    case "preparedness": return <Link to="/preparedness" search={{ region: "all", q: d.q }} hash="official-advice" className={LINK}>{inner}</Link>;
+    case "preparedness": return <Link to="/preparedness" search={{ region: "all", q: d.q }} className={LINK}>{inner}</Link>;
     case "country-stats": return <Link to="/$country" params={{ country: d.code }} className={LINK}>{inner}</Link>;
     case "safest": return <Link to="/safest-places" search={{ country: d.code }} className={LINK}>{inner}</Link>;
     case "world-profile": return <Link to="/world/$iso" params={{ iso: d.iso }} className={LINK}>{inner}</Link>;
