@@ -11,10 +11,14 @@ const SEG_LABEL: Record<SegmentKind, string> = { stats: "Main figures", warnings
 const KIND_T = { official: "Official", msm: "MSM", alt: "Alternative" } as const;
 
 /** Timed bulletin for one country: figures → official warnings → news, then hands over to the next country. */
-export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNextCountry, onPrevCountry, onStop }: {
+export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNextCountry, onPrevCountry, onStop, fill, header }: {
   name: string; stats: BulletinStat[]; statSource: { name: string; url: string } | null;
   warnings: OfficialWarning[]; videos: FeedItem[];
   onNextCountry: () => void; onPrevCountry: () => void; onStop: () => void;
+  /** Fill the parent's height (floating screens) instead of the fixed side-panel size. */
+  fill?: boolean;
+  /** Extra controls rendered at the end of the title bar (e.g. window buttons). */
+  header?: React.ReactNode;
 }) {
   const segs = buildSegments({ hasStats: stats.length > 0, warningCount: warnings.length, videoCount: videos.length });
   const [i, setI] = useState(0);
