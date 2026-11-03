@@ -12,11 +12,12 @@ const WBTN = "inline-flex size-6 items-center justify-center rounded hover:bg-ni
 const CTRL = "inline-flex min-h-9 items-center gap-1 rounded border border-night-line bg-night-panel/90 px-2 py-1 text-xs backdrop-blur hover:bg-night disabled:opacity-50";
 
 /** Floating, draggable, resizable news screens layered over the globe. Phones get a swipeable strip instead. */
-export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
+export function NewsScreens({ storageKey = STORAGE_KEY, countries, bulletinFor, step, defaultCountry }: {
   countries: { key: string; name: string }[];
   bulletinFor: (key: string) => BulletinData;
   step: (key: string, dir: 1 | -1) => string | null;
   defaultCountry: string;
+  storageKey?: string | undefined;
 }) {
   const area = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<NewsScreen[]>([]);
@@ -24,11 +25,11 @@ export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
   const [narrow, setNarrow] = useState(false);
   const size = () => { const r = area.current?.getBoundingClientRect(); return { w: r?.width ?? 1000, h: r?.height ?? 700 }; };
 
-  useEffect(() => { setList(parseStored(localStorage.getItem(STORAGE_KEY))); setLoaded(true); }, []);
-  useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }, [list, loaded]);
+  useEffect(() => { setList(parseStored(localStorage.getItem(storageKey))); setLoaded(true); }, []);
+  useEffect(() => { if (loaded) localStorage.setItem(storageKey, JSON.stringify(list)); }, [list, loaded]);
   useEffect(() => {
     const el = area.current; if (!el) return;
-    const ro = new ResizeObserver(() => { const { w, h } = size(); setNarrow(w < 640); setList((l) => l.map((s) => clampScreen(s, w, h))); });
+    const ro = new ResizeObserver(() => { const { w, h } = size(); setNarrow(w < 420); setList((l) => l.map((s) => clampScreen(s, w, h))); });
     ro.observe(el); return () => ro.disconnect();
   }, []);
 
@@ -74,7 +75,7 @@ export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
     </div> : <>
       {list.filter((s) => !s.min).map((s) => <div key={s.id} role="dialog" aria-label={`News screen: ${bulletinFor(s.country).name}`}
         onPointerDown={() => setList((l) => bringToFront(l, s.id))}
-        className="pointer-events-auto absolute touch-none" style={{ left: s.x, top: s.y, width: s.w, height: s.h, zIndex: s.z }}>
+        className="pointer-events-auto absolute touch-none select-none" style={{ left: s.x, top: s.y, width: s.w, height: s.h, zIndex: s.z }}>
         <div className="h-full cursor-move" onPointerDown={(e) => { if ((e.target as HTMLElement).closest("[data-drag-handle]")) drag(e, s, "move"); }}>
           {panel(s, <span className="flex cursor-default items-center gap-0.5">{picker(s)}
             <button aria-label="Minimise screen" className={WBTN} onClick={() => update(s.id, { min: true })}><Minus className="size-3.5" /></button>
