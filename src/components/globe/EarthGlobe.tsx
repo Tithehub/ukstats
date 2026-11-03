@@ -48,7 +48,9 @@ function makeBoat(color = "#f05a28"): THREE.Object3D {
   const hull = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.6), new THREE.MeshStandardMaterial({ color: "#2b2f36", flatShading: true }));
   const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.8, 8), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, flatShading: true }));
   tube.rotation.z = Math.PI / 2; tube.position.y = 0.25;
-  const people = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.4), new THREE.MeshStandardMaterial({ color: "#ffb020", emissive: "#ffb020", emissiveIntensity: 0.4, flatShading: true }));
+  // People ride inside the boat: tint them with the boat's colour too, so the
+  // whole icon reads as one boat (not a yellow block like the amber layers).
+  const people = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.4), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.3, flatShading: true }));
   people.position.y = 0.5;
   g.add(hull, tube, people);
   g.rotation.x = Math.PI / 2;
