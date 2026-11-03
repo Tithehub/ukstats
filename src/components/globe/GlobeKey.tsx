@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Flag, Flame, Plane, Rocket, Sailboat, Swords, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NO_FIGURE, UK_ALERT_COLOURS, US_LEVEL_COLOURS, shadeColour } from "@/lib/globe-legend";
