@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { CHAT_ENABLED } from "@/lib/chat-flag";
 import {
   Activity,
   Banknote,
