@@ -267,7 +267,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         arcStartLng={(a) => (a as { sLng: number }).sLng}
         arcEndLat={(a) => (a as { eLat: number }).eLat}
         arcEndLng={(a) => (a as { eLng: number }).eLng}
-        arcColor={(a) => { const c = (a as GlobeFlow).color; return [c + "33", c]; }}
+        arcColor={(a: object) => { const c = (a as GlobeFlow).color; return [c + "33", c]; }}
         arcStroke={(a) => (a as GlobeFlow).stroke}
         arcAltitudeAutoScale={0.4}
         arcDashLength={0.35}
