@@ -1,5 +1,10 @@
 # Roadmap
 
+## Non-commercial emergency supplier links — 3 November 2026
+- [x] Verified EVAQ8 individual/two-person kit pages and Countrywide evacuation starter bag; excluded blocked pages and out-of-stock deluxe kit
+- [x] Added separate clean supplier links with no earnings, endorsement or guarantees, dated contents and water shortfalls; UKStats purchasing stays paused
+- [x] Twelve focused tests passed; desktop/phone page, prominent notice, no horizontal overflow and external supplier opening verified without page errors; build OK; preview only
+
 ## Emergency Preparedness — Stage 1, 3 November 2026
 - [x] Add primary navigation and a reassuring preparedness homepage within the existing section
 - [x] Show independently verified official Be Ready guidance, provisional equipment packages and free checklist overview; retain international official-source advice
