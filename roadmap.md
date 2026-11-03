@@ -1,5 +1,10 @@
 # Roadmap
 
+## Non-commercial emergency supplier links — 3 November 2026
+- [ ] Verify direct supplier pages for emergency evacuation and supply kits
+- [ ] Add clearly separate supplier links with no earnings, endorsement or guarantees; keep UKStats purchasing paused
+- [ ] Test the non-affiliate link policy and verify the page on desktop and phone
+
 ## Emergency Preparedness — Stage 1, 3 November 2026
 - [x] Add primary navigation and a reassuring preparedness homepage within the existing section
 - [x] Show independently verified official Be Ready guidance, provisional equipment packages and free checklist overview; retain international official-source advice
