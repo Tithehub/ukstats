@@ -258,6 +258,16 @@
   }
 }
 
+/* Image overlay keeps preparedness copy legible without changing the site theme. */
+.preparedness-hero-wash {
+  background: linear-gradient(90deg, var(--dedication) 0%, color-mix(in oklab, var(--dedication) 95%, transparent) 28%, color-mix(in oklab, var(--dedication) 70%, transparent) 45%, transparent 72%);
+}
+@media (max-width: 639px) {
+  .preparedness-hero-wash {
+    background: color-mix(in oklab, var(--dedication) 89%, transparent);
+  }
+}
+
 @keyframes pulse-fresh {
   0%,
   100% {
