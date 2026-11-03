@@ -414,10 +414,10 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </>}</div>}
     </aside>
   </div>
-  <div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-t border-night-line bg-desk text-xs text-night-fg [contain:layout_paint]">
-    <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-night-fg">Latest</span>
-    {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-night-line px-3 hover:text-electric-soft">{h.text}</button>)}</div>)}</div></div>
-      : <span className="px-3 text-night-muted">Waiting for the official feeds…</span>}
+  <div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-t border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
+    <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">Latest</span>
+    {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
+      : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
   </div>
   <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
   </div>;
