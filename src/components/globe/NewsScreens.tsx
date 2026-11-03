@@ -17,7 +17,7 @@ export function NewsScreens({ storageKey = STORAGE_KEY, countries, bulletinFor, 
   bulletinFor: (key: string) => BulletinData;
   step: (key: string, dir: 1 | -1) => string | null;
   defaultCountry: string;
-  storageKey?: string;
+  storageKey?: string | undefined;
 }) {
   const area = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<NewsScreen[]>([]);
