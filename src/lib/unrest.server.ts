@@ -42,12 +42,20 @@ async function acled(): Promise<UnrestPayload["acled"]> {
     if (!tok.access_token) return { connected: false, events: [], error: "ACLED sign-in refused" };
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
     const q = new URLSearchParams({ _format: "json", event_type: "Riots:OR:event_type=Protests", event_date: since, event_date_where: ">=", limit: "3000", fields: "event_id_cnty|event_date|event_type|sub_event_type|country|location|latitude|longitude|actor1|fatalities|source" });
-    const events: AcledEvent[] = parseAcled(await json(`https://acleddata.com/api/acled/read?${q}`, { headers: { Authorization: `Bearer ${tok.access_token}` } }));
-    return { connected: true, events };
+    const auth = { headers: { Authorization: `Bearer ${tok.access_token}` } };
+    try {
+      return { connected: true, events: parseAcled(await json(`https://acleddata.com/api/acled/read?${q}`, auth)) };
+    } catch (e) {
+      if (!String(e).includes(" 403")) throw e;
+      // Refused: run ACLED's own documented example to tell "no access" from "our filters refused".
+      const probe = await fetch("https://acleddata.com/api/acled/read?limit=10", { ...auth, signal: AbortSignal.timeout(15_000) });
+      await probe.body?.cancel();
+      if (probe.status === 403) return { connected: false, events: [], error: "ACLED account has no data access yet" };
+      if (probe.ok) return { connected: true, events: [], error: "ACLED refused this request's filters" };
+      throw e;
+    }
   } catch (e) {
     console.error("ACLED", e);
-    // 403: the login works but the account has not been granted data access.
-    if (String(e).includes(" 403")) return { connected: false, events: [], error: "ACLED account has no data access yet" };
     return { connected: true, events: [], error: "ACLED did not answer" };
   }
 }
