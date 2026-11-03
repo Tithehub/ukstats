@@ -144,7 +144,7 @@ export function buildFlows(p: MigrationPayload): Flow[] {
   for (const r of p.frontex?.routes ?? []) {
     const e = ROUTE_ENTRY[r.route]!;
     for (const t of r.top) out.push({ source: "frontex", from: t.nationality, to: e.place, toLat: e.lat, toLng: e.lng, value: t.value,
-      label: `${t.nationality} → ${r.route}: ${fmt(t.value)} illegal border crossings detected, 12 months to ${p.frontex!.months.at(-1)} (Frontex)` });
+      label: `${t.nationality} → ${r.route}: ${fmt(t.value)} illegal border crossings detected, 12 months to ${(p.frontex!.months.at(-1) ?? "").replace(/^(\w)(\w\w)(\d+)$/, (_, a, b, y) => `${a}${b.toLowerCase()} ${y}`)} (Frontex)` });
   }
   for (const t of p.cbp?.top ?? []) out.push({ source: "cbp", from: t.citizenship, to: "US southwest border", toLat: US_SW_BORDER.lat, toLng: US_SW_BORDER.lng, value: t.value,
     label: `${t.citizenship} → US southwest border: ${fmt(t.value)} encounters in ${p.cbp!.period} (US CBP)` });
