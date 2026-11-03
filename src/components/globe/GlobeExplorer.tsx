@@ -22,6 +22,10 @@ import { NewsScreens, type BulletinData } from "@/components/globe/NewsScreens";
 import { GlobeShare } from "@/components/globe/GlobeShare";
 import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
+import { migrationFlowsQuery } from "@/lib/migration-flows.functions";
+import { smallBoatsQuery } from "@/lib/small-boats.functions";
+import { boatIcons, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flows";
+import { SMALL_BOATS_SOURCE } from "@/lib/small-boats";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 
 const loadEarthGlobe = () => import("@/components/globe/EarthGlobe");
@@ -39,10 +43,12 @@ export type GlobeState = {
   feed?: "live" | undefined; fk?: BroadcastKind | undefined; fa?: FeedAge | undefined;
   /** Flights layer on, and the selected aircraft (hex id). */
   fl?: boolean | undefined; fp?: string | undefined;
+  /** Migration layer: small boats in the Channel plus official irregular-migration and refugee arrows. */
+  mg?: boolean | undefined;
 };
 
 /** Shared search-param parsing for every page that hosts the globe. */
-export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp"> {
+export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg"> {
   const age = Number(s["age"]), fa = Number(s["fa"]);
   return {
     layer: s["layer"] === "us" || s["layer"] === "uk" ? s["layer"] : undefined,
@@ -52,6 +58,7 @@ export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "
     fk: s["fk"] === "official" || s["fk"] === "msm" || s["fk"] === "alt" ? s["fk"] : undefined,
     fa: fa === 1 || fa === 6 ? fa : undefined,
     fl: s["fl"] === true || s["fl"] === "1" || s["fl"] === "true" ? true : undefined,
+    mg: s["mg"] === true || s["mg"] === "1" || s["mg"] === "true" ? true : undefined,
     fp: typeof s["fp"] === "string" && /^[0-9a-z~]{4,8}$/i.test(s["fp"]) ? s["fp"] : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
   };
@@ -149,6 +156,13 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const [feedPaused, setFeedPaused] = useState(false);
   const { data: feed } = useQuery(videoFeedQuery(feedPaused));
   const { data: flights } = useQuery(flightsQuery(!!s.fl));
+  const { data: migration } = useQuery(migrationFlowsQuery(!!s.mg));
+  const { data: boatsData } = useQuery({ ...smallBoatsQuery(), enabled: !!s.mg });
+  const latestBoatDay = useMemo(() => { const d = boatsData?.days ?? boatsData?.series ?? []; return d.length ? d[d.length - 1]! : null; }, [boatsData]);
+  const boatYear = useMemo(() => { if (!latestBoatDay) return null; const y = latestBoatDay.date.slice(0, 4); return (boatsData?.days ?? boatsData?.series ?? []).filter((d) => d.date.startsWith(y)).reduce((a, d) => ({ arrivals: a.arrivals + d.arrivals, boats: a.boats + d.boats }), { arrivals: 0, boats: 0 }); }, [boatsData, latestBoatDay]);
+  const globeBoats = useMemo(() => s.mg && latestBoatDay ? boatIcons(latestBoatDay.boats).map((b, i) => ({ ...b, label: `Small boat ${i + 1} of ${latestBoatDay.boats} detected on ${fmtDate(latestBoatDay.date)} — ${latestBoatDay.arrivals.toLocaleString("en-GB")} people that day (Home Office). Position illustrative.` })) : [], [s.mg, latestBoatDay]);
+  const flowRows = useMemo(() => (s.mg && migration ? buildFlows(migration) : []), [s.mg, migration]);
+  const globeFlows = useMemo(() => { const max = Math.max(1, ...flowRows.map((f) => f.value)); const col = { frontex: "#f0a020", cbp: "#ff4a3a", unhcr: "#7fb2ff" } as const; return flowRows.map((f, i) => ({ id: `mf-${i}`, from: f.from, to: f.to, toLat: f.toLat, toLng: f.toLng, color: col[f.source], stroke: 0.15 + 0.85 * Math.sqrt(f.value / max), label: f.label })); }, [flowRows]);
   const [gl, setGl] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
   // Load the 3D module before switching it on, so the swap never suspends inside a pending navigation and leaves the globe blank.
@@ -281,7 +295,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
+        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
       <div className="absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80">
         <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur">
@@ -319,6 +333,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={s.acled} onChange={(e) => onChange({ acled: e.target.checked })} /> <span><b className="text-ageing">Dots</b>: ACLED research — {unrest?.acled.connected ? (unrest.acled.error ?? `${events.length} events, 30 days`) : (unrest?.acled.error ?? "Not connected")}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.fl} onChange={(e) => onChange({ fl: e.target.checked || undefined, fp: undefined })} /> <span><b>Flights</b>: live aircraft positions{s.fl && flights ? ` — ${flights.planes.length.toLocaleString("en-GB")} planes` : ""}
           {s.fl && <span className="mt-1 block text-night-muted"><Swatch c="#3fcf7a" />Green: normal <Swatch c="#f0a020" />Amber: radio failure, or over a Level 3 / FCDO lower warning country <Swatch c="#ff4a3a" />Red: emergency or hijack code, or over a Level 4 / FCDO "all travel" country. Colours use the country the plane is over now, not where it is going (the feed has no destinations).</span>}</span></label>
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.mg} onChange={(e) => onChange({ mg: e.target.checked || undefined })} /> <span><b>Migration</b>: small boats to the UK and irregular migration routes
+          {s.mg && <span className="mt-1 block text-night-muted"><Swatch c="#f05a28" />Boats: one per boat on the latest Home Office day <Swatch c="#f0a020" />EU illegal crossings (Frontex, 12 months) <Swatch c="#ff4a3a" />US southwest border encounters (CBP, latest month) <Swatch c="#7fb2ff" />Refugees and asylum seekers living abroad (UNHCR, yearly — not illegal crossings). Thicker = more people.</span>}</span></label>
         <div className="mt-2 flex gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
           <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
@@ -346,6 +362,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
 
       {s.fl && <p className="mt-1 font-mono text-[11px] text-night-muted"><PlaneIcon className="mr-1 inline size-3" />{!flights ? "Loading aircraft positions…" : flights.error && !flights.planes.length ? "Flight data unavailable" : `Aircraft positions from ${flights.source}${flights.partial ? " (busiest regions plus emergencies worldwide)" : ""} — not official government data`}{flights ? ` · checked ${fmtStamp(flights.fetchedAt)}` : ""}</p>}
+      {s.mg && <MigrationCard boats={latestBoatDay} year={boatYear} boatsPublished={boatsData?.recentPublished ?? boatsData?.published ?? null} m={migration} />}
       {plane && <div className={`mt-3 rounded border p-3 ${plane.status === "red" ? "border-overdue/60" : plane.status === "amber" ? "border-ageing/60" : "border-fresh/60"}`} aria-label="Selected aircraft">
         <div className="flex items-start justify-between gap-2"><p className={`font-mono text-[11px] uppercase ${plane.status === "red" ? "text-overdue" : plane.status === "amber" ? "text-ageing" : "text-fresh"}`}><PlaneIcon className="mr-1 inline size-3" />{plane.p[1] || plane.p[0]} · {plane.status}</p>
           <Button variant="ghost" size="icon" aria-label="Close aircraft" onClick={() => onChange({ fp: undefined })}><X className="size-4" /></Button></div>
@@ -435,3 +452,22 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
   </div>;
 }
+
+type BoatDayLite = { date: string; arrivals: number; boats: number };
+function MigrationCard({ boats, year, boatsPublished, m }: { boats: BoatDayLite | null; year: { arrivals: number; boats: number } | null; boatsPublished: string | null; m: import("@/lib/migration-flows").MigrationPayload | null | undefined }) {
+  const n = (v: number) => v.toLocaleString("en-GB");
+  const src = (k: keyof typeof MIGRATION_SOURCES, url?: string) => <a href={url ?? MIGRATION_SOURCES[k].url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-electric-soft underline">{MIGRATION_SOURCES[k].name}<ExternalLink className="size-3" /></a>;
+  return <div className="mt-3 space-y-2 rounded border border-night-line p-3 text-xs" aria-label="Migration figures">
+    <p className="font-mono text-[11px] uppercase text-night-muted">Small boats — France to UK</p>
+    {boats ? <p className="text-sm"><b>{n(boats.boats)}</b> boats, <b>{n(boats.arrivals)}</b> people on {fmtDate(boats.date)}{year ? <> · {boats.date.slice(0, 4)} so far: <b>{n(year.arrivals)}</b> people in {n(year.boats)} boats</> : null}.</p> : <p className="text-night-muted">Loading Home Office figures…</p>}
+    <p className="text-night-muted">The Home Office does not publish where each boat crossed, so icons are spread evenly across the Strait of Dover. {boatsPublished ? `Published ${fmtDate(boatsPublished)}. ` : ""}<a href={SMALL_BOATS_SOURCE.url} target="_blank" rel="noopener noreferrer" className="text-electric-soft underline">Home Office source</a> · <Link to="/small-boats" className="text-electric-soft underline">Full small-boats page</Link></p>
+    <p className="pt-1 font-mono text-[11px] uppercase text-night-muted">Worldwide</p>
+    {!m ? <p className="text-night-muted">Loading official migration files…</p> : <>
+      {m.frontex ? <div><p><b>{n(m.frontex.routes.reduce((s, r) => s + r.last12, 0))}</b> illegal border crossings into the EU detected in the 12 months to {fmtMonth(m.frontex.months.at(-1))}; largest route: {m.frontex.routes[0]?.route} ({n(m.frontex.routes[0]?.last12 ?? 0)}).</p><p className="text-night-muted">{src("frontex", m.frontex.fileUrl)}</p></div> : <p className="text-night-muted">EU figures unavailable right now.</p>}
+      {m.cbp ? <div><p><b>{n(m.cbp.total)}</b> encounters at the US southwest border in {m.cbp.period}.</p><p className="text-night-muted">{src("cbp", m.cbp.fileUrl)}</p></div> : <p className="text-night-muted">US border figures unavailable right now.</p>}
+      {m.unhcr ? <div><p>Largest refugee populations by home and host country, end of {m.unhcr.year}: {m.unhcr.pairs.slice(0, 3).map((p) => `${p.from} → ${p.to} (${n(p.value)})`).join("; ")}. These are people given or seeking protection, not illegal crossings.</p><p className="text-night-muted">{src("unhcr")}</p></div> : <p className="text-night-muted">UN refugee figures unavailable right now.</p>}
+      <p className="text-night-muted">No single official worldwide count of illegal migration exists; each publisher counts differently, so their figures are shown side by side and never added together. Route arrows end at approximate border points. Checked {fmtStamp(m.fetchedAt)}.</p>
+    </>}
+  </div>;
+}
+function fmtMonth(m: string | undefined) { return m ? `${m[0]}${m.slice(1, 3).toLowerCase()} ${m.slice(3)}` : ""; }

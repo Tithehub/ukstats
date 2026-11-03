@@ -5,6 +5,7 @@ import topo from "world-atlas/countries-110m.json";
 import earth from "@/assets/earth-blue-marble.jpg";
 import * as THREE from "three";
 import { countryKey, type AcledEvent, type UnrestKind } from "@/lib/unrest";
+import { mapName } from "@/lib/migration-flows";
 
 export interface GlobeMarker { id: string; kind: UnrestKind; lat: number; lng: number; label: string; research?: boolean }
 
@@ -34,6 +35,26 @@ export interface GlobeProps {
   onPlane?: (id: string) => void;
   /** Selected plane: recent trail (solid) and direction ahead (dashed). */
   planePaths?: { pts: [number, number][]; ahead: boolean; color: string }[];
+  /** Small-boat icons in the Channel (one per boat; positions illustrative). */
+  boats?: { id: string; lat: number; lng: number; label: string }[];
+  /** Migration arrows: origin country name to a country name or a fixed point. */
+  flows?: GlobeFlow[];
+}
+
+export interface GlobeFlow { id: string; from: string; to: string; toLat?: number | undefined; toLng?: number | undefined; color: string; stroke: number; label: string }
+
+function makeBoat(): THREE.Object3D {
+  const g = new THREE.Group();
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.6), new THREE.MeshStandardMaterial({ color: "#2b2f36", flatShading: true }));
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.8, 8), new THREE.MeshStandardMaterial({ color: "#f05a28", emissive: "#f05a28", emissiveIntensity: 0.5, flatShading: true }));
+  tube.rotation.z = Math.PI / 2; tube.position.y = 0.25;
+  const people = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.4), new THREE.MeshStandardMaterial({ color: "#ffb020", emissive: "#ffb020", emissiveIntensity: 0.4, flatShading: true }));
+  people.position.y = 0.5;
+  g.add(hull, tube, people);
+  g.rotation.x = Math.PI / 2;
+  const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.8);
+  wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
+  return wrap;
 }
 
 export interface GlobePlane { id: string; lat: number; lng: number; status: "green" | "amber" | "red"; label: string }
@@ -110,10 +131,12 @@ function centre(key: string): { lat: number; lng: number } | null {
   return { lat, lng };
 }
 
+function centreOf(name: string) { const n = mapName(name); return n ? centre(countryKey(n)) : null; }
+
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [] }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [] }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -142,6 +165,12 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const colors = COLORS;
+  const objects = useMemo(() => [...markers, ...boats.map((b) => ({ ...b, boat: true }))], [markers, boats]);
+  const arcs = useMemo(() => flows.flatMap((f) => {
+    const a = centreOf(f.from);
+    const b = f.toLat !== undefined && f.toLng !== undefined ? { lat: f.toLat, lng: f.toLng } : centreOf(f.to);
+    return a && b ? [{ ...f, sLat: a.lat, sLng: a.lng, eLat: b.lat, eLng: b.lng }] : [];
+  }), [flows]);
   const planeSets = useMemo(() => (["green", "amber", "red"] as const).map((st) => Object.assign(planes.filter((p) => p.status === st), { st })), [planes]);
   const [planeSize, setPlaneSize] = useState(1);
   // Phones: shrink plane icons if the frame rate drops while many planes are shown.
@@ -225,14 +254,26 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pointAltitude={0.02}
         pointRadius={0.25}
         pointLabel={(e) => { const x = e as AcledEvent; return `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
-        objectsData={markers}
+        objectsData={objects}
         objectLat={(m) => (m as GlobeMarker).lat}
         objectLng={(m) => (m as GlobeMarker).lng}
         objectAltitude={0.035}
         objectFacesSurfaces
         objectLabel={(m) => (m as GlobeMarker).label}
-        objectThreeObject={(m) => { const x = m as GlobeMarker; const o = icons.current.get(x.id) ?? makeIcon(x.kind, !!x.research); icons.current.set(x.id, o); return o; }}
-        onObjectClick={(m) => onMarker?.((m as GlobeMarker).id)}
+        objectThreeObject={(m) => { const x = m as GlobeMarker & { boat?: boolean }; const o = icons.current.get(x.id) ?? (x.boat ? makeBoat() : makeIcon(x.kind, !!x.research)); icons.current.set(x.id, o); return o; }}
+        onObjectClick={(m) => { if (!(m as { boat?: boolean }).boat) onMarker?.((m as GlobeMarker).id); }}
+        arcsData={arcs}
+        arcStartLat={(a) => (a as { sLat: number }).sLat}
+        arcStartLng={(a) => (a as { sLng: number }).sLng}
+        arcEndLat={(a) => (a as { eLat: number }).eLat}
+        arcEndLng={(a) => (a as { eLng: number }).eLng}
+        arcColor={(a: object) => { const c = (a as GlobeFlow).color; return [c + "33", c]; }}
+        arcStroke={(a) => (a as GlobeFlow).stroke}
+        arcAltitudeAutoScale={0.4}
+        arcDashLength={0.35}
+        arcDashGap={0.15}
+        arcDashAnimateTime={still ? 0 : 2600}
+        arcLabel={(a) => (a as GlobeFlow).label}
         ringsData={markers.filter((m) => !m.research)}
         ringLat={(m) => (m as GlobeMarker).lat}
         ringLng={(m) => (m as GlobeMarker).lng}
