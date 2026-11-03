@@ -12,11 +12,12 @@ const WBTN = "inline-flex size-6 items-center justify-center rounded hover:bg-ni
 const CTRL = "inline-flex min-h-9 items-center gap-1 rounded border border-night-line bg-night-panel/90 px-2 py-1 text-xs backdrop-blur hover:bg-night disabled:opacity-50";
 
 /** Floating, draggable, resizable news screens layered over the globe. Phones get a swipeable strip instead. */
-export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
+export function NewsScreens({ storageKey = STORAGE_KEY, countries, bulletinFor, step, defaultCountry }: {
   countries: { key: string; name: string }[];
   bulletinFor: (key: string) => BulletinData;
   step: (key: string, dir: 1 | -1) => string | null;
   defaultCountry: string;
+  storageKey?: string;
 }) {
   const area = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<NewsScreen[]>([]);
@@ -24,11 +25,11 @@ export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
   const [narrow, setNarrow] = useState(false);
   const size = () => { const r = area.current?.getBoundingClientRect(); return { w: r?.width ?? 1000, h: r?.height ?? 700 }; };
 
-  useEffect(() => { setList(parseStored(localStorage.getItem(STORAGE_KEY))); setLoaded(true); }, []);
-  useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }, [list, loaded]);
+  useEffect(() => { setList(parseStored(localStorage.getItem(storageKey))); setLoaded(true); }, []);
+  useEffect(() => { if (loaded) localStorage.setItem(storageKey, JSON.stringify(list)); }, [list, loaded]);
   useEffect(() => {
     const el = area.current; if (!el) return;
-    const ro = new ResizeObserver(() => { const { w, h } = size(); setNarrow(w < 640); setList((l) => l.map((s) => clampScreen(s, w, h))); });
+    const ro = new ResizeObserver(() => { const { w, h } = size(); setNarrow(w < 420); setList((l) => l.map((s) => clampScreen(s, w, h))); });
     ro.observe(el); return () => ro.disconnect();
   }, []);
 
