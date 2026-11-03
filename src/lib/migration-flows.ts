@@ -167,14 +167,9 @@ export function boatIcons(boats: number, max = 60): { id: string; lat: number; l
 
 export type HistoryBoat = { id: string; lat: number; lng: number; date: string; ageDays: number; color: string };
 
+export const BOAT_COLOR = "#3fcf7a";
+
 function hash01(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 10000) / 10000; }
-function mix(a: string, b: string, t: number): string { const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const x = p(a), y = p(b); return "#" + x.map((v, i) => Math.round(v + (y[i]! - v) * t).toString(16).padStart(2, "0")).join(""); }
-/** Colour by age: latest reported day is green, fading to amber then grey at the window edge. */
-export function boatAgeColor(ageDays: number, windowDays = 90): string {
-  if (ageDays <= 0) return "#3fcf7a";
-  const t = Math.min(1, ageDays / windowDays);
-  return t < 0.5 ? mix("#f0c020", "#f0a020", t * 2) : mix("#f0a020", "#6b7280", (t - 0.5) * 2);
-}
 /** One icon per boat for every Home Office day within `windowDays` of the latest day, newest first, capped at `max`. Positions across the Strait of Dover / southern North Sea are illustrative and deterministic. */
 export function boatHistory(days: { date: string; boats: number }[], windowDays = 90, max = 1200): HistoryBoat[] {
   if (!days.length) return [];
@@ -188,7 +183,7 @@ export function boatHistory(days: { date: string; boats: number }[], windowDays 
       const k = `${d.date}-${i}`, u = hash01(k + "u"), t = 0.15 + hash01(k + "t") * 0.7;
       // Coast from Boulogne (FR) to De Panne (BE) towards the Kent coast.
       const sLat = 50.72 + u * 0.4, sLng = 1.58 + u * 1.0, eLat = 51.0 + u * 0.35, eLng = 1.0 + u * 0.45;
-      out.push({ id: `boat-${k}`, lat: sLat + (eLat - sLat) * t, lng: sLng + (eLng - sLng) * t, date: d.date, ageDays: age, color: boatAgeColor(age, windowDays) });
+      out.push({ id: `boat-${k}`, lat: sLat + (eLat - sLat) * t, lng: sLng + (eLng - sLng) * t, date: d.date, ageDays: age, color: BOAT_COLOR });
     }
     if (out.length >= max) break;
   }

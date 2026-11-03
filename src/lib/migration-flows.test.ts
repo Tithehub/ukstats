@@ -34,7 +34,7 @@ describe("migration flows", () => {
   });
 });
 
-import { boatHistory, boatAgeColor } from "./migration-flows";
+import { boatHistory, BOAT_COLOR } from "./migration-flows";
 describe("boatHistory", () => {
   const days = [{ date: "2026-07-01", boats: 3 }, { date: "2026-08-01", boats: 2 }, { date: "2026-10-30", boats: 4 }];
   it("keeps only days within 90 days of the latest, one icon per boat", () => {
@@ -42,8 +42,10 @@ describe("boatHistory", () => {
     expect(h).toHaveLength(6);
     expect(h.filter((b) => b.date === "2026-07-01")).toHaveLength(0);
   });
-  it("colours the latest day green", () => {
-    expect(boatHistory(days).filter((b) => b.ageDays === 0).every((b) => b.color === "#3fcf7a")).toBe(true);
-    expect(boatAgeColor(60)).not.toBe("#3fcf7a");
+  it("shows every boat in the same green boat colour, no age gradient", () => {
+    const h = boatHistory(days);
+    expect(h.length).toBeGreaterThan(0);
+    expect(h.every((b) => b.color === BOAT_COLOR)).toBe(true);
+    expect(BOAT_COLOR).toBe("#3fcf7a");
   });
 });
