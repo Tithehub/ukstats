@@ -52,7 +52,7 @@ function makeBoat(): THREE.Object3D {
   people.position.y = 0.5;
   g.add(hull, tube, people);
   g.rotation.x = Math.PI / 2;
-  const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.45);
+  const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.8);
   wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
   return wrap;
 }
