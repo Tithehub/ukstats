@@ -360,7 +360,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="mt-2 text-[11px] text-night-muted">Solid line: recent track. Dashed line: direction of travel only, not a route.</p>
       </div>}
       {sel && !onAir && <button onClick={() => setOnAir(true)} className="mt-2 inline-flex items-center gap-1 rounded border border-electric/50 px-2 py-1 text-xs hover:bg-night"><Play className="size-3" />Start live broadcast</button>}
-      {sel && onAir && <div className="mt-3"><BroadcastPanel name={selName ?? sel} stats={bulletinStats} statSource={wb ? WORLD_SOURCE : null} warnings={warnings} videos={countryVideos} onNextCountry={goNext} onPrevCountry={goPrev} onStop={() => setOnAir(false)} /></div>}
+      {sel && onAir && <div className="mt-3"><BroadcastPanel name={selName ?? sel} stats={bulletinStats} statSource={wb ? WORLD_SOURCE : null} warnings={warnings} videos={countryVideos} channels={BROADCAST_CHANNELS[sel] ?? []} onNextCountry={goNext} onPrevCountry={goPrev} onStop={() => setOnAir(false)} /></div>}
       {sel ? <div className="mt-3">
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-2xl font-semibold">{selName}</h2>

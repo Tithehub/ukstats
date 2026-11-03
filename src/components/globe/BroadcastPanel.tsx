@@ -5,14 +5,16 @@ import { SEGMENT_MS, buildSegments, type SegmentKind } from "@/lib/globe-broadca
 import type { OfficialWarning } from "@/lib/unrest";
 import type { FeedItem } from "@/lib/video-feed";
 import { fmtTime } from "@/components/globe/LiveFeed";
+import type { BroadcastChannel } from "@/lib/broadcast-channels.data";
 import { fmtDate } from "@/lib/uk-stats";
 
 export type BulletinStat = { label: string; value: string };
 const SEG_LABEL: Record<SegmentKind, string> = { stats: "Main figures", warnings: "Official warnings", news: "Latest news (not official)" };
+const CH_KIND = { official: "Official — government", msm: "MSM · not official", alt: "Alternative · not official" } as const;
 const KIND_T = { official: "Official", msm: "MSM", alt: "Alternative" } as const;
 
 /** Timed bulletin for one country: figures → official warnings → news, then hands over to the next country. */
-export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNextCountry, onPrevCountry, onStop, fill, header }: {
+export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNextCountry, onPrevCountry, onStop, fill, header, channels }: {
   name: string; stats: BulletinStat[]; statSource: { name: string; url: string } | null;
   warnings: OfficialWarning[]; videos: FeedItem[];
   onNextCountry: () => void; onPrevCountry: () => void; onStop: () => void;
@@ -20,6 +22,8 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
   fill?: boolean;
   /** Extra controls rendered at the end of the title bar (e.g. window buttons). */
   header?: React.ReactNode;
+  /** Verified YouTube channels for this country, shown in a Channels tab. */
+  channels?: BroadcastChannel[];
 }) {
   const segs = buildSegments({ hasStats: stats.length > 0, warningCount: warnings.length, videoCount: videos.length });
   const [i, setI] = useState(0);
@@ -27,12 +31,13 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
   const [hover, setHover] = useState(false);
   const [playing, setPlaying] = useState<FeedItem | null>(null);
   const [progress, setProgress] = useState(0);
+  const [showCh, setShowCh] = useState(false);
   const elapsed = useRef(0);
   useEffect(() => { if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) setPaused(true); }, []);
-  useEffect(() => { setI(0); setPlaying(null); elapsed.current = 0; setProgress(0); }, [name]);
+  useEffect(() => { setI(0); setPlaying(null); setShowCh(false); elapsed.current = 0; setProgress(0); }, [name]);
   useEffect(() => { elapsed.current = 0; setProgress(0); }, [i]);
   const seg = segs[Math.min(i, segs.length - 1)]!;
-  const halted = paused || hover || !!playing;
+  const halted = paused || hover || !!playing || showCh;
 
   useEffect(() => {
     if (halted) return;
@@ -64,10 +69,15 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
       <span className="w-10 text-right font-mono text-[11px] tabular-nums text-desk-fg">{halted ? "—" : `${Math.max(0, remaining)}s`}</span>
       {header}
     </header>
-    <div role="tablist" aria-label="Bulletin sections" className="flex border-b border-night-line">{segs.map((k, n) => <button key={k} role="tab" aria-selected={n === i} onClick={() => setI(n)} className={`relative flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider ${n === i ? "text-night-fg" : "text-night-muted"}`}>
-      {TAB[k]}<span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-night-line"><span className="block h-full bg-electric" style={{ width: `${n < i ? 100 : n === i ? progress * 100 : 0}%` }} /></span></button>)}</div>
+    <div role="tablist" aria-label="Bulletin sections" className="flex border-b border-night-line">{segs.map((k, n) => <button key={k} role="tab" aria-selected={n === i} onClick={() => { setShowCh(false); setI(n); }} className={`relative flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider ${n === i && !showCh ? "text-night-fg" : "text-night-muted"}`}>
+      {TAB[k]}<span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-night-line"><span className="block h-full bg-electric" style={{ width: `${n < i ? 100 : n === i ? progress * 100 : 0}%` }} /></span></button>)}{channels && <button role="tab" aria-selected={showCh} onClick={() => setShowCh(true)} className={`relative flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider ${showCh ? "text-night-fg" : "text-night-muted"}`}>Channels ({channels.length})<span aria-hidden="true" className={`absolute inset-x-0 bottom-0 h-0.5 ${showCh ? "bg-electric" : "bg-night-line"}`} /></button>}</div>
 
     <div className={`${fill ? "min-h-0 flex-1 overflow-y-auto" : "h-[212px] overflow-hidden"} p-2.5`} aria-live="polite">
+      {showCh && channels ? (channels.length ? <ul className="space-y-1">{channels.map((c) => <li key={c.channelId}><a href={`https://www.youtube.com/channel/${c.channelId}`} target="_blank" rel="noreferrer noopener" className="flex items-center gap-2 rounded border border-night-line px-2 py-1 hover:bg-night-panel">
+        <img src={c.avatar} alt="" width={28} height={28} loading="lazy" referrerPolicy="no-referrer" className="size-7 shrink-0 rounded-full bg-night-panel" />
+        <span className="min-w-0 flex-1"><span className="block truncate text-xs">{c.name}</span><span className="block truncate font-mono text-[10px] text-night-muted">{CH_KIND[c.kind]}{c.state ? " · state-owned" : ""} · YouTube</span></span>
+        <ExternalLink className="size-3 shrink-0 text-night-muted" aria-hidden="true" /></a></li>)}<li className="text-[10px] text-night-muted">Only government channels are official sources.</li></ul>
+        : <p className="grid h-full place-items-center text-center text-xs text-night-muted">No verified broadcast channels listed for {name} yet.</p>) :
       <div key={`${name}-${seg}`} className="h-full animate-in fade-in slide-in-from-right-2 duration-300">
         {seg === "stats" && <><dl className="grid grid-cols-3 gap-1.5">{stats.slice(0, 6).map((s) => { const m = /^(.*) \((\d{4})\)$/.exec(s.value); return <div key={s.label} className="h-[78px] rounded border border-night-line bg-night-panel p-1.5"><dt className="line-clamp-2 text-[10px] leading-tight text-night-muted">{s.label}</dt><dd className="mt-1 truncate font-mono text-[15px] font-semibold tabular-nums">{m ? m[1] : s.value}</dd>{m && <dd className="font-mono text-[10px] text-night-muted">{m[2]}</dd>}</div>; })}</dl>
           {statSource && <p className="mt-1.5 truncate text-[10px] text-night-muted">Source: <a className="underline" href={statSource.url} target="_blank" rel="noreferrer noopener">{statSource.name}</a></p>}</>}
@@ -82,7 +92,7 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
           <span className="relative aspect-video h-full shrink-0 overflow-hidden rounded bg-night-panel"><img src={v.thumb} alt="" width={110} height={62} loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />{v.live && <span className="absolute left-0.5 top-0.5 rounded-sm bg-onair px-1 font-mono text-[9px] font-bold text-night-fg">LIVE</span>}</span>
           <span className="min-w-0 flex-1 text-xs"><span className="line-clamp-2 leading-snug">{v.title}</span><span className="block truncate font-mono text-[10px] text-night-muted">{KIND_T[v.kind]} · {v.channel} · {fmtTime(v.published)}</span></span>
         </button></li>)}</ul>}
-      </div>
+      </div>}
     </div>
 
     {playing && <div className="border-t border-night-line p-2"><div className="flex items-start justify-between gap-2"><p className="line-clamp-1 text-xs font-semibold">{playing.title}</p><button aria-label="Close video" onClick={() => setPlaying(null)} className="rounded p-1 hover:bg-night-panel"><X className="size-4" /></button></div>

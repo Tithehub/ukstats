@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { LayoutGrid, Minus, Plus, Square, X } from "lucide-react";
 import { BroadcastPanel, type BulletinStat } from "@/components/globe/BroadcastPanel";
+import { BROADCAST_CHANNELS } from "@/lib/broadcast-channels.data";
 import type { OfficialWarning } from "@/lib/unrest";
 import type { FeedItem } from "@/lib/video-feed";
 import { bringToFront, canAdd, clampScreen, newScreen, parseStored, tidy, MAX_SCREENS, STORAGE_KEY, type NewsScreen } from "@/lib/news-screens";
@@ -53,7 +54,7 @@ export function NewsScreens({ countries, bulletinFor, step, defaultCountry }: {
 
   const panel = (s: NewsScreen, winBtns: React.ReactNode, fill: boolean) => {
     const d = bulletinFor(s.country);
-    return <BroadcastPanel {...d} fill={fill} header={winBtns}
+    return <BroadcastPanel {...d} channels={BROADCAST_CHANNELS[s.country] ?? []} fill={fill} header={winBtns}
       onNextCountry={() => { const n = step(s.country, 1); if (n) update(s.id, { country: n }); }}
       onPrevCountry={() => { const n = step(s.country, -1); if (n) update(s.id, { country: n }); }}
       onStop={() => setList((l) => l.filter((x) => x.id !== s.id))} />;
