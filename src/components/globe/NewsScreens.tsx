@@ -75,7 +75,7 @@ export function NewsScreens({ storageKey = STORAGE_KEY, countries, bulletinFor, 
     </div> : <>
       {list.filter((s) => !s.min).map((s) => <div key={s.id} role="dialog" aria-label={`News screen: ${bulletinFor(s.country).name}`}
         onPointerDown={() => setList((l) => bringToFront(l, s.id))}
-        className="pointer-events-auto absolute touch-none" style={{ left: s.x, top: s.y, width: s.w, height: s.h, zIndex: s.z }}>
+        className="pointer-events-auto absolute touch-none select-none" style={{ left: s.x, top: s.y, width: s.w, height: s.h, zIndex: s.z }}>
         <div className="h-full cursor-move" onPointerDown={(e) => { if ((e.target as HTMLElement).closest("[data-drag-handle]")) drag(e, s, "move"); }}>
           {panel(s, <span className="flex cursor-default items-center gap-0.5">{picker(s)}
             <button aria-label="Minimise screen" className={WBTN} onClick={() => update(s.id, { min: true })}><Minus className="size-3.5" /></button>
