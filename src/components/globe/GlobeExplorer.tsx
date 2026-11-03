@@ -1,7 +1,7 @@
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown } from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -21,8 +21,6 @@ import { BroadcastPanel } from "@/components/globe/BroadcastPanel";
 import { GlobeShare } from "@/components/globe/GlobeShare";
 import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
-import { useRef } from "react";
-import { Plane as PlaneIcon } from "lucide-react";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 
 const EarthGlobe = lazy(() => import("@/components/globe/EarthGlobe"));
