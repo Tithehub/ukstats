@@ -251,7 +251,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pathPointLat={(p) => (p as [number, number])[0]}
         pathPointLng={(p) => (p as [number, number])[1]}
         pathPointAlt={0.016}
-        pathColor={(d) => (d as { color: string }).color}
+        pathColor={(d: object) => (d as { color: string }).color}
         pathStroke={2}
         pathDashLength={(d) => ((d as { ahead: boolean }).ahead ? 0.05 : 1)}
         pathDashGap={(d: object) => ((d as { ahead: boolean }).ahead ? 0.03 : 0)}
