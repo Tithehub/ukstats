@@ -52,11 +52,11 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
   const TAB = { stats: "Figures", warnings: "Warnings", news: "News" } as const;
 
   return <section aria-label={`Live bulletin: ${name}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} className="overflow-hidden rounded-md border border-night-line bg-night shadow-lg [contain:layout]">
-    <header className="flex h-9 items-center gap-2 bg-desk px-2">
-      <span className="rounded-sm bg-onair px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-night-fg">{halted ? "Paused" : "On air"}</span>
-      <h3 className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide">{name}</h3>
-      <span className="font-mono text-[11px] tabular-nums text-night-muted">{clock} UK</span>
-      <span className="w-10 text-right font-mono text-[11px] tabular-nums text-electric-soft">{halted ? "—" : `${Math.max(0, remaining)}s`}</span>
+    <header className="flex h-9 items-center gap-2 bg-desk px-2 text-desk-fg">
+      <span className="rounded-sm bg-onair px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">{halted ? "Paused" : "On air"}</span>
+      <h3 className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide text-desk-fg">{name}</h3>
+      <span className="font-mono text-[11px] tabular-nums text-desk-muted">{clock} UK</span>
+      <span className="w-10 text-right font-mono text-[11px] tabular-nums text-desk-fg">{halted ? "—" : `${Math.max(0, remaining)}s`}</span>
     </header>
     <div role="tablist" aria-label="Bulletin sections" className="flex border-b border-night-line">{segs.map((k, n) => <button key={k} role="tab" aria-selected={n === i} onClick={() => setI(n)} className={`relative flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider ${n === i ? "text-night-fg" : "text-night-muted"}`}>
       {TAB[k]}<span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-night-line"><span className="block h-full bg-electric" style={{ width: `${n < i ? 100 : n === i ? progress * 100 : 0}%` }} /></span></button>)}</div>
