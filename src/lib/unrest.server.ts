@@ -58,7 +58,9 @@ function refresh(): Promise<UnrestPayload> {
 /** Last good copy served at once; refreshed when older than an hour. */
 export async function loadUnrest(): Promise<UnrestPayload | null> {
   const good = mem ?? (await readStored());
-  if (good && Date.now() - Date.parse(good.fetchedAt) < TTL) { mem = good; return good; }
+  // A copy saved before the ACLED login existed is out of date once it does.
+  const acledNew = !!process.env["ACLED_EMAIL"] && good?.acled.connected === false;
+  if (good && !acledNew && Date.now() - Date.parse(good.fetchedAt) < TTL) { mem = good; return good; }
   const pending = refresh().catch(() => null);
   return good ?? pending;
 }
