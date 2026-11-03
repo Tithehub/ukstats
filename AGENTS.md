@@ -39,3 +39,4 @@
 - UkTopicNav is shared by the UK home and register; ShareRow reports clipboard success only after the write resolves — keeps topic journeys and sharing feedback consistent.
 - Restore Britain media uses a dated verified-channel/publisher snapshot with CDN-hosted original thumbnails, separate from statistical feeds; preserve unknown dates and archive limits rather than infer metadata.
 - Preparedness advice is a dated verbatim snapshot in src/lib/preparedness.data.ts, official government hosts only; unverified countries are omitted — avoids paraphrased or assumed advice.
+- The /globe unrest layer uses only UK FCDO and US State Dept advice (pure parsers in src/lib/unrest.ts, cached as payload_cache "unrest-v1") plus an optional ACLED layer labelled as research; a hotspot appears only when a publisher's own words mention unrest within 30 days — never inferred from news.
