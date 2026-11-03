@@ -213,6 +213,12 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           : s.layer === "us" ? <ul>{[1, 2, 3, 4].map((l) => <li key={l}><Swatch c={US_LEVEL_COLOURS[l]!} />Level {l}</li>)}<li className="text-night-muted">US State Dept</li></ul>
           : <ul>{(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => <li key={a} className="truncate"><Swatch c={UK_ALERT_COLOURS[a]} />{FCDO_ALERT_LABEL[a].replace("FCDO advises against ", "Against ")}</li>)}<li className="text-night-muted">UK FCDO</li></ul>}
       </div>}
+      {gl && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs">
+        <button onClick={nextWarning} disabled={!listed.length} aria-label="Next warning" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next warning</span></button>
+        <button onClick={nextCountry} aria-label="Next country" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next country</span></button>
+        <button onClick={() => setRotate((r) => !r)} aria-pressed={!!rotate} aria-label={rotate ? "Stop spin" : "Spin"} className={CTRL}>{rotate ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}<span className="max-sm:sr-only">{rotate ? "Stop spin" : "Spin"}</span></button>
+        <button onClick={() => { setResetKey((k) => k + 1); onChange({ c: "", m: undefined }); }} aria-label="Reset view" className={CTRL}><RotateCcw className="size-3.5" /><span className="max-sm:sr-only">Reset view</span></button>
+      </div>}
     </section>
 
     <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
