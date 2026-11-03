@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import { feature } from "topojson-client";
 import topo from "world-atlas/countries-110m.json";
@@ -17,16 +17,14 @@ export interface GlobeProps {
 type Feat = { properties: { name: string }; geometry: unknown };
 const FEATURES = (feature(topo as any, (topo as any).objects.countries) as unknown as { features: Feat[] }).features;
 
-function cssVar(name: string, fallback: string) {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || fallback;
-}
+// WebGL needs plain colours; these mirror the site's overdue and highlight tokens.
+const COLORS = { hot: "rgba(214,72,52,0.85)", sel: "#f2f6ff" };
 
 export default function EarthGlobe({ shade, hotspots, events, selected, onSelect }: GlobeProps) {
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
-  const colors = useMemo(() => ({ hot: cssVar("--overdue", "#d14343"), sel: cssVar("--electric", "#4ea1ff") }), []);
+  const colors = COLORS;
 
   useEffect(() => {
     const el = wrap.current;
@@ -49,7 +47,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const cap = (f: object) => {
     const k = countryKey((f as Feat).properties.name);
     if (k === selected) return colors.sel;
-    if (hotspots.has(k)) return colors.hot + "cc";
+    if (hotspots.has(k)) return colors.hot;
     if (!shade) return "rgba(255,255,255,0.04)";
     const s = shade.get(k);
     if (s === undefined) return "rgba(140,140,140,0.35)";
