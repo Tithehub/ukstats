@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { CHAT_ENABLED } from "@/lib/chat-flag";
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/chat")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  beforeLoad: () => { if (!CHAT_ENABLED) throw redirect({ to: "/" }); },
   component: ChatPage,
 });
 
