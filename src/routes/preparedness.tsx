@@ -8,6 +8,7 @@ import { filterPreparedness, PREPAREDNESS_REGIONS, type PreparednessRegion } fro
 import { fmtDate } from '@/lib/uk-stats';
 import { PREPAREDNESS_PRODUCTS } from '@/lib/preparedness-products';
 import { PreparednessKitCard } from '@/components/PreparednessKitCard';
+import { PreparednessSupplierLinks } from '@/components/PreparednessSupplierLinks';
 import householdImage from '@/assets/preparedness-household.jpg';
 import essentialImage from '@/assets/preparedness-essential.jpg';
 import householdKitImage from '@/assets/preparedness-household-kit.jpg';
@@ -30,9 +31,9 @@ export const Route = createFileRoute('/preparedness')({
   }),
   head: () => ({ meta: [
     { title: 'UK Emergency Preparedness — 72-hour household essentials | UKStats' },
-    { name: 'description', content: 'Prepare your household for three days with independent UKStats guidance, a free checklist overview and proposed equipment kits. Based on official UK Be Ready advice.' },
+    { name: 'description', content: 'Official UK Be Ready guidance, a free household checklist and direct non-affiliate emergency kit supplier links. UKStats earns no money and does not endorse the kits.' },
     { property: 'og:title', content: 'Emergency Preparedness | UKStats' },
-    { property: 'og:description', content: 'Be prepared. Stay informed. Look after your household. Practical essentials and direct links to official UK Government guidance.' },
+    { property: 'og:description', content: 'Practical preparation, official Be Ready guidance and direct emergency kit supplier links. No commission, paid placement or product endorsement.' },
     { property: 'og:type', content: 'website' },
     { name: 'twitter:card', content: 'summary_large_image' },
   ], links: [{ rel: 'canonical', href: 'https://ukstats.co.uk/preparedness' }] }),
@@ -54,7 +55,7 @@ function PreparednessPage() {
           <h1 className="mt-6 max-w-lg text-4xl font-semibold leading-tight sm:text-5xl">Is your household prepared for 72 hours?</h1>
           <p className="mt-5 max-w-md text-base leading-relaxed text-dedication-muted sm:text-lg">The UK Government’s Be Ready campaign encourages being ready for three days. Start with what you already have, make a simple plan and look after the people who depend on you.</p>
           <div className="mt-7 flex max-w-lg flex-wrap gap-3">
-            <Button asChild variant="dedication" size="lg"><a href="#preparedness-kits">Explore Preparedness Kits<ArrowRight /></a></Button>
+            <Button asChild variant="dedication" size="lg"><a href="#preparedness-kits">Find Emergency Kits<ArrowRight /></a></Button>
             <Button asChild variant="dedicationOutline" size="lg"><a href="#household-checklist"><ClipboardCheck />View the Free Checklist</a></Button>
           </div>
           <p className="mt-7 max-w-md text-sm font-medium">Be prepared. Stay informed. Look after your household.</p>
@@ -73,10 +74,11 @@ function PreparednessPage() {
           <p className="mt-4 text-xs leading-relaxed text-night-muted">This is an original UKStats summary of the Be Ready guidance, checked {fmtDate(PREPAREDNESS_CHECKED)}. UKStats is independent and is not affiliated with or endorsed by the UK Government. This is general preparedness advice, not a warning of an imminent emergency.</p>
         </div>
       </section>
-      <section id="preparedness-kits" className="border-y border-night-line bg-night-panel/40">
+      <PreparednessSupplierLinks />
+      <section id="proposed-kits" className="border-b border-night-line bg-night-panel/40">
         <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6">
           <p className="font-mono text-xs uppercase text-electric-soft">Equipment essentials</p>
-          <h2 className="mt-3 text-3xl font-semibold">A starting point for your household</h2>
+          <h2 className="mt-3 text-3xl font-semibold">UKStats proposed kits — not for sale</h2>
           <p className="mt-4 max-w-3xl leading-relaxed text-night-muted">Three proposed equipment packages, with clear contents and no claims of complete 72-hour self-sufficiency. Plan food, drinking water and personal needs separately.</p>
           <p className="mt-4 border-l-2 border-night-line pl-4 text-sm text-night-muted">Prices and contents are provisional. Purchasing is unavailable during the current legal hold and until supplier arrangements are confirmed.</p>
           <div className="mt-8 grid items-start gap-5 md:grid-cols-3">{PREPAREDNESS_PRODUCTS.map((p, i) => <PreparednessKitCard key={p.id} product={p} image={KIT_IMAGES[i] ?? essentialImage} />)}</div>
