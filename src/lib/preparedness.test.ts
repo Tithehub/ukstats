@@ -19,9 +19,10 @@ describe("preparedness advice", () => {
     }
   });
   it("lists the UK first with 3 days and 3 litres", () => {
-    expect(PREPAREDNESS[0].code).toBe("GB");
-    expect(PREPAREDNESS[0].days).toBe(3);
-    expect(PREPAREDNESS[0].waterLitresPerPersonPerDay).toBe(3);
+    const uk = PREPAREDNESS[0]!;
+    expect(uk.code).toBe("GB");
+    expect(uk.days).toBe(3);
+    expect(uk.waterLitresPerPersonPerDay).toBe(3);
   });
   it("filters by region and search", () => {
     expect(filterPreparedness("Europe", "").map(a => a.code)).toEqual(["SE", "FI"]);
