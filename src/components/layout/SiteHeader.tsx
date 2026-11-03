@@ -80,6 +80,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/my-pages", label: "My pages", icon: FileText },
       { to: "/outreach", label: "Outreach", icon: Bot },
       { to: "/connections", label: "Connect socials", icon: Plug },
+      { to: "/chat", label: "Live chat", icon: Bot },
       { to: "/support", label: "Support", icon: LifeBuoy },
       { to: "/sponsors", label: "Our sponsors", icon: LifeBuoy },
       { to: "/sponsor-dashboard", label: "My sponsorship", icon: FileText },

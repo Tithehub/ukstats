@@ -17,6 +17,7 @@ import { Route as ApiRouteImport } from './routes/api'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CompareCountriesRouteImport } from './routes/compare-countries'
 import { Route as ConnectionsRouteImport } from './routes/connections'
@@ -118,6 +119,11 @@ const AuthRoute = AuthRouteImport.update({
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -444,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
+  '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
   '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
@@ -515,6 +522,7 @@ export interface FileRoutesByTo {
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
+  '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
   '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
@@ -587,6 +595,7 @@ export interface FileRoutesById {
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
+  '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
   '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
@@ -661,6 +670,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/auth'
     | '/calendar'
+    | '/chat'
     | '/compare'
     | '/compare-countries'
     | '/connections'
@@ -732,6 +742,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/auth'
     | '/calendar'
+    | '/chat'
     | '/compare'
     | '/compare-countries'
     | '/connections'
@@ -803,6 +814,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/auth'
     | '/calendar'
+    | '/chat'
     | '/compare'
     | '/compare-countries'
     | '/connections'
@@ -876,6 +888,7 @@ export interface RootRouteChildren {
   ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   CalendarRoute: typeof CalendarRoute
+  ChatRoute: typeof ChatRoute
   CompareRoute: typeof CompareRoute
   CompareCountriesRoute: typeof CompareCountriesRoute
   ConnectionsRoute: typeof ConnectionsRoute
@@ -978,6 +991,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/calendar'
       preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -1497,6 +1517,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   CalendarRoute: CalendarRoute,
+  ChatRoute: ChatRoute,
   CompareRoute: CompareRoute,
   CompareCountriesRoute: CompareCountriesRoute,
   ConnectionsRoute: ConnectionsRoute,
