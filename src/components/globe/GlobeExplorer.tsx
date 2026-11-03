@@ -112,7 +112,7 @@ function BroadcastChannels({ k, limit }: { k: string; limit?: number }) {
       const rows = list.filter((c) => c.kind === kind).slice(0, limit);
       if (!rows.length) return null;
       const m = KIND_META[kind];
-      return <div key={kind}><p className={`flex items-center gap-1 font-mono text-[11px] uppercase ${m.cls}`}><m.Icon className="size-3.5" aria-hidden="true" />{m.label} <span className="normal-case text-night-muted">· {m.note}</span></p>
+      return <div key={kind}><p className={`flex flex-wrap items-center gap-x-1 font-mono text-[11px] uppercase ${m.cls}`}><m.Icon className="size-3.5" aria-hidden="true" />{m.label} <span className="normal-case text-night-muted">· {m.note}</span></p>
         <ul className="mt-1 space-y-1">{rows.map((c) => <ChannelRow key={c.channelId} c={c} />)}</ul></div>;
     })}
     <p className="text-[11px] text-night-muted">YouTube-verified channels; subscriber counts as reported by YouTube on {fmtDate(BROADCAST_CHECKED)}. Media channels are not official sources.</p>
