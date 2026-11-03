@@ -170,8 +170,8 @@ export type HistoryBoat = { id: string; lat: number; lng: number; date: string; 
 export const BOAT_COLOR = "#3fcf7a";
 
 function hash01(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 10000) / 10000; }
-/** One icon per boat for every Home Office day within `windowDays` of the latest day, newest first, capped at `max`. Positions across the Strait of Dover / southern North Sea are illustrative and deterministic. */
-export function boatHistory(days: { date: string; boats: number }[], windowDays = 90, max = 1200): HistoryBoat[] {
+/** One icon per boat for every Home Office day within `windowDays` (default 7) of the latest day, newest first, capped at `max`. Positions across the Strait of Dover / southern North Sea are illustrative and deterministic. */
+export function boatHistory(days: { date: string; boats: number }[], windowDays = 7, max = 1200): HistoryBoat[] {
   if (!days.length) return [];
   const last = days.reduce((m, d) => (d.date > m ? d.date : m), days[0]!.date);
   const lastMs = Date.parse(last + "T00:00:00Z");
