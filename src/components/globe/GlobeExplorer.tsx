@@ -24,7 +24,7 @@ import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
 import { migrationFlowsQuery } from "@/lib/migration-flows.functions";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
-import { boatIcons, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flows";
+import { boatHistory, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flows";
 import { SMALL_BOATS_SOURCE } from "@/lib/small-boats";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 
@@ -160,7 +160,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const { data: boatsData } = useQuery({ ...smallBoatsQuery(), enabled: !!s.mg });
   const latestBoatDay = useMemo(() => { const d = boatsData?.days ?? boatsData?.series ?? []; return d.length ? d[d.length - 1]! : null; }, [boatsData]);
   const boatYear = useMemo(() => { if (!latestBoatDay) return null; const y = latestBoatDay.date.slice(0, 4); return (boatsData?.days ?? boatsData?.series ?? []).filter((d) => d.date.startsWith(y)).reduce((a, d) => ({ arrivals: a.arrivals + d.arrivals, boats: a.boats + d.boats }), { arrivals: 0, boats: 0 }); }, [boatsData, latestBoatDay]);
-  const globeBoats = useMemo(() => s.mg && latestBoatDay ? boatIcons(latestBoatDay.boats).map((b, i) => ({ ...b, label: `Small boat ${i + 1} of ${latestBoatDay.boats} detected on ${fmtDate(latestBoatDay.date)} — ${latestBoatDay.arrivals.toLocaleString("en-GB")} people that day (Home Office). Position illustrative.` })) : [], [s.mg, latestBoatDay]);
+  const globeBoats = useMemo(() => { if (!s.mg) return []; const d = boatsData?.days ?? boatsData?.series ?? []; const byDay = new Map(d.map((x) => [x.date, x])); return boatHistory(d).map((b) => { const day = byDay.get(b.date)!; return { id: b.id, lat: b.lat, lng: b.lng, color: b.color, label: `Small boat detected crossing the Channel on ${fmtDate(b.date)}${b.ageDays === 0 ? " (latest day)" : ` — ${b.ageDays} days before the latest report`}: ${day.boats} boats, ${day.arrivals.toLocaleString("en-GB")} people that day (Home Office). Position illustrative.` }; }); }, [s.mg, boatsData]);
   const flowRows = useMemo(() => (s.mg && migration ? buildFlows(migration) : []), [s.mg, migration]);
   const globeFlows = useMemo(() => { const max = Math.max(1, ...flowRows.map((f) => f.value)); const col = { frontex: "#f0a020", cbp: "#ff4a3a", unhcr: "#7fb2ff" } as const; return flowRows.map((f, i) => ({ id: `mf-${i}`, from: f.from, to: f.to, toLat: f.toLat, toLng: f.toLng, color: col[f.source], stroke: 0.15 + 0.85 * Math.sqrt(f.value / max), label: f.label })); }, [flowRows]);
   const [gl, setGl] = useState<boolean | null>(null);
