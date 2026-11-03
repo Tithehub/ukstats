@@ -44,17 +44,21 @@ export interface GlobeProps {
 export interface GlobeFlow { id: string; from: string; to: string; toLat?: number | undefined; toLng?: number | undefined; color: string; stroke: number; label: string }
 
 function makeBoat(color = "#f05a28"): THREE.Object3D {
+  // A small dinghy seen from above: pointed bow, inflatable rim, a row of people.
   const g = new THREE.Group();
-  const hull = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.6), new THREE.MeshStandardMaterial({ color: "#2b2f36", flatShading: true }));
-  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.8, 8), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, flatShading: true }));
-  tube.rotation.z = Math.PI / 2; tube.position.y = 0.25;
-  // People ride inside the boat: tint them with the boat's colour too, so the
-  // whole icon reads as one boat (not a yellow block like the amber layers).
-  const people = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.4), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.3, flatShading: true }));
-  people.position.y = 0.5;
-  g.add(hull, tube, people);
-  g.rotation.x = Math.PI / 2;
-  const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.8);
+  const s = new THREE.Shape();
+  s.moveTo(-0.9, -0.32); s.lineTo(0.45, -0.32); s.quadraticCurveTo(1.0, -0.2, 1.15, 0); s.quadraticCurveTo(1.0, 0.2, 0.45, 0.32); s.lineTo(-0.9, 0.32); s.closePath();
+  const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: 0.22, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.55, flatShading: true }));
+  const inner = new THREE.Shape();
+  inner.moveTo(-0.75, -0.18); inner.lineTo(0.4, -0.18); inner.quadraticCurveTo(0.8, -0.1, 0.9, 0); inner.quadraticCurveTo(0.8, 0.1, 0.4, 0.18); inner.lineTo(-0.75, 0.18); inner.closePath();
+  const floor = new THREE.Mesh(new THREE.ExtrudeGeometry(inner, { depth: 0.24, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color: "#1b2330", flatShading: true }));
+  floor.position.z = 0.01;
+  g.add(rim, floor);
+  const head = new THREE.SphereGeometry(0.09, 6, 6), hm = new THREE.MeshStandardMaterial({ color: "#f2f4f7", emissive: "#f2f4f7", emissiveIntensity: 0.3 });
+  for (let i = 0; i < 4; i++) for (const y of [-0.08, 0.08]) { const p = new THREE.Mesh(head, hm); p.position.set(-0.55 + i * 0.3, y, 0.3); g.add(p); }
+  // Point the bow north-west, towards Kent.
+  g.rotation.z = (3 * Math.PI) / 4;
+  const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.45);
   wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
   return wrap;
 }
