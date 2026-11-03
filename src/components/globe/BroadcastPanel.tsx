@@ -54,7 +54,7 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
   return <section aria-label={`Live bulletin: ${name}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} className="overflow-hidden rounded-md border border-night-line bg-night shadow-lg [contain:layout]">
     <header className="flex h-9 items-center gap-2 bg-desk px-2 text-desk-fg">
       <span className="rounded-sm bg-onair px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">{halted ? "Paused" : "On air"}</span>
-      <h3 className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide">{name}</h3>
+      <h3 className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide text-desk-fg">{name}</h3>
       <span className="font-mono text-[11px] tabular-nums text-desk-muted">{clock} UK</span>
       <span className="w-10 text-right font-mono text-[11px] tabular-nums text-desk-fg">{halted ? "—" : `${Math.max(0, remaining)}s`}</span>
     </header>
