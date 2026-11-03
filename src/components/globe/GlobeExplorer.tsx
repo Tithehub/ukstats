@@ -1,7 +1,7 @@
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, X, ChevronDown } from "lucide-react";
+import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -112,8 +112,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   }, [s.layer, unrest]);
   const [rotate, setRotate] = useState<boolean | undefined>(undefined);
   const [resetKey, setResetKey] = useState(0);
-  const [sheetOpen, setSheetOpen] = useState(true);
-  useEffect(() => { setSheetOpen(true); }, [s.c]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);
+  useEffect(() => { setSheetOpen(false); }, [s.c]);
   const hot = useMemo(() => (unrest && s.official && !s.layer ? unrestHotspots(unrest.warnings, new Date()) : new Map<string, OfficialWarning[]>()), [unrest, s.official, s.layer]);
   const hotKeys = useMemo(() => new Set(hot.keys()), [hot]);
   const events = s.acled && unrest?.acled.connected ? unrest.acled.events : [];
@@ -168,9 +169,10 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
         {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : null} />}
       </Suspense></ClientOnly>}
-      <div className="absolute left-3 top-3 max-w-[92%] rounded-md border border-night-line bg-night-panel/90 p-3 text-xs backdrop-blur sm:max-w-sm">
-        {compact ? <h2 className="text-base font-semibold">Explore the world — click any country</h2> : <h1 className="text-base font-semibold">World globe</h1>}
-        <form onSubmit={find} role="search" className="mt-2 flex gap-1">
+      <div className="absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80">
+        <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur">
+        {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
+        <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1">
           <label htmlFor={compact ? "globe-q-home" : "globe-q"} className="sr-only">Find a country</label>
           <div className="relative flex-1"><Search aria-hidden="true" className="absolute left-2 top-2 size-3.5 text-night-muted" />
             <input id={compact ? "globe-q-home" : "globe-q"} list="globe-country-names" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a country…" className="w-full rounded border border-night-line bg-night py-1.5 pr-2 pl-7" />
@@ -178,8 +180,13 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           <Button type="submit" size="sm">Go</Button>
           <datalist id="globe-country-names">{names.map((c) => <option key={c.iso3} value={c.name} />)}</datalist>
         </form>
+          <button type="button" onClick={() => setLayersOpen((o) => !o)} aria-expanded={layersOpen} aria-controls="globe-layers" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Layers className="size-3.5" />Layers</button>
+        </div>
+      </div>
+      {layersOpen && <div id="globe-layers" role="dialog" aria-label="Globe layers" onKeyDown={(e) => { if (e.key === "Escape") setLayersOpen(false); }} className="z-30 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[55dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[70%] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
+        <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Layers</h2><Button variant="ghost" size="icon" aria-label="Close layers" onClick={() => setLayersOpen(false)}><X className="size-4" /></Button></div>
         <label className="mt-2 block">Colour by
-          <select value={s.layer ? `@${s.layer}` : s.ind} onChange={(e) => { const v = e.target.value; onChange(v === "@us" || v === "@uk" ? { layer: v.slice(1) as "us" | "uk" } : { layer: undefined, ind: v }); }} className="ml-2 max-w-[60%] rounded border border-night-line bg-night px-2 py-1">
+          <select value={s.layer ? `@${s.layer}` : s.ind} onChange={(e) => { const v = e.target.value; setLayersOpen(false); onChange(v === "@us" || v === "@uk" ? { layer: v.slice(1) as "us" | "uk" } : { layer: undefined, ind: v }); }} className="ml-2 max-w-[60%] rounded border border-night-line bg-night px-2 py-1">
             <option value="none">Nothing</option>
             <optgroup label="Travel advice level"><option value="@us">US State Dept level (1–4)</option><option value="@uk">UK FCDO advice against travel</option></optgroup>
             {WORLD_INDICATORS.map((i) => <option key={i.slug} value={i.slug}>{i.label}</option>)}
@@ -200,17 +207,16 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
         </div>
         {compact && <Link to="/globe" search={{ ...s, layer: s.layer, gov: s.gov, age: s.age, cmp: s.cmp }} className="mt-2 inline-flex items-center gap-1 text-electric-soft underline"><Maximize2 className="size-3" />Open full-screen globe</Link>}
-      </div>
-      {gl && <div aria-label="Globe controls" className="absolute bottom-3 left-3 flex flex-wrap gap-1 text-xs">
-        <button onClick={nextWarning} disabled={!listed.length} className={CTRL}><SkipForward className="size-3.5" />Next warning</button>
-        <button onClick={nextCountry} className={CTRL}><SkipForward className="size-3.5" />Next country</button>
-        <button onClick={() => setRotate((r) => !r)} aria-pressed={!!rotate} className={CTRL}>{rotate ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}{rotate ? "Stop spin" : "Spin"}</button>
-        <button onClick={() => { setResetKey((k) => k + 1); onChange({ c: "", m: undefined }); }} className={CTRL}><RotateCcw className="size-3.5" />Reset view</button>
+      </div>}
+      {(stat && ind || s.layer) && !layersOpen && <div aria-label="Colour key" className="absolute right-3 bottom-14 z-10 max-w-[60%] rounded-md border border-night-line bg-night-panel/90 p-2 text-[10px] backdrop-blur sm:bottom-3 sm:max-w-56">
+        {stat && ind ? <><p className="truncate font-semibold">{ind.label} · {stat.newest ?? "—"}</p><div className="mt-1 h-1.5 rounded" style={{ background: `linear-gradient(to right, ${shadeColour(0)}, ${shadeColour(0.5)}, ${shadeColour(1)})` }} /><div className="flex justify-between font-mono text-night-muted"><span>Low rank</span><span>Rank 1</span></div></>
+          : s.layer === "us" ? <ul>{[1, 2, 3, 4].map((l) => <li key={l}><Swatch c={US_LEVEL_COLOURS[l]!} />Level {l}</li>)}<li className="text-night-muted">US State Dept</li></ul>
+          : <ul>{(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => <li key={a} className="truncate"><Swatch c={UK_ALERT_COLOURS[a]} />{FCDO_ALERT_LABEL[a].replace("FCDO advises against ", "Against ")}</li>)}<li className="text-night-muted">UK FCDO</li></ul>}
       </div>}
     </section>
 
     <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
-      {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" />{sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
+      {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" /><b className="text-night-fg">{selName}</b> · {sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
 
