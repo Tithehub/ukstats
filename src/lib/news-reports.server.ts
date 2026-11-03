@@ -6,7 +6,7 @@ const TTL = 10 * 60_000;
 const ID = "news-reports-v1";
 let mem: { at: number; data: ReportsPayload } | null = null;
 
-const FEEDS: { name: string; url: string; official: boolean; html?: boolean }[] = [
+const FEEDS: { name: string; url: string; official: boolean; html?: boolean; google?: boolean }[] = [
   { name: "Police Scotland", url: "https://www.scotland.police.uk/what-s-happening/news/", official: true, html: true },
   { name: "BBC News", url: "https://feeds.bbci.co.uk/news/scotland/rss.xml", official: false },
   { name: "BBC News", url: "https://feeds.bbci.co.uk/news/uk/rss.xml", official: false },
@@ -14,6 +14,7 @@ const FEEDS: { name: string; url: string; official: boolean; html?: boolean }[] 
   { name: "The Guardian", url: "https://www.theguardian.com/uk/scotland/rss", official: false },
   { name: "The Guardian", url: "https://www.theguardian.com/world/europe-news/rss", official: false },
   { name: "Sky News", url: "https://feeds.skynews.com/feeds/rss/uk.xml", official: false },
+  ...["Glasgow protest", "Scotland protest", "UK protest", "Europe protest", "plane diverted bomb threat", "plane searched airport Europe"].map((q) => ({ name: "Google News", url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:3d&hl=en-GB&gl=GB&ceid=GB:en`, official: false, google: true })),
 ];
 
 async function one(f: (typeof FEEDS)[number]): Promise<RawItem[]> {
@@ -26,7 +27,13 @@ async function one(f: (typeof FEEDS)[number]): Promise<RawItem[]> {
 async function collect(): Promise<ReportsPayload> {
   const now = new Date();
   const res = await Promise.allSettled(FEEDS.map(one));
-  const lists = res.map((r, i) => (r.status === "fulfilled" ? toReports(r.value, FEEDS[i]!.name, FEEDS[i]!.official, UNREST_PLACES, now) : []));
+  const lists = res.flatMap((r, i) => {
+    if (r.status !== "fulfilled") return [];
+    const f = FEEDS[i]!;
+    if (!f.google) return [toReports(r.value, f.name, f.official, UNREST_PLACES, now)];
+    // Google News headlines end " - Publisher": credit the original publisher.
+    return r.value.map((x) => { const m = x.title.match(/^(.*) - ([^-]+)$/); return toReports([{ ...x, title: m ? m[1]!.trim() : x.title, summary: "" }], m ? `${m[2]!.trim()} (via Google News)` : f.name, false, UNREST_PLACES, now); });
+  });
   const ok = new Map<string, boolean>();
   res.forEach((r, i) => ok.set(FEEDS[i]!.name, (ok.get(FEEDS[i]!.name) ?? false) || r.status === "fulfilled"));
   return { items: mergeReports(lists).slice(0, 150), sources: [...ok].map(([name, o]) => ({ name, ok: o })), fetchedAt: now.toISOString() };
