@@ -486,7 +486,7 @@ function ReportsCard({ data, onPlace }: { data: import("@/lib/news-reports").Rep
   if (!data) return <p className="mt-3 text-xs text-night-muted">Loading news and police reports…</p>;
   const group = (k: ReportItem["kind"][], title: string) => { const xs = data.items.filter((r) => k.includes(r.kind)); return <div><p className="pt-1 font-mono text-[11px] uppercase text-night-muted">{title} · {xs.length}</p>
     {xs.length ? <ul className="mt-1 space-y-1.5">{xs.slice(0, 25).map((r) => <li key={r.id}><a href={r.link} target="_blank" rel="noopener noreferrer" className="text-electric-soft underline">{r.title}</a>
-      <p className="font-mono text-[10px] text-night-muted">{r.official ? "Police notice" : "News report"} · {r.publisher} · {fmtDate(r.published)} {fmtStamp(r.published)}{r.place && <> · <button type="button" className="underline" onClick={() => onPlace(r)}>{r.place}</button></>}</p></li>)}</ul>
+      <p className="font-mono text-[10px] text-night-muted">{r.official ? "Police notice" : "News report"} · {r.publisher} · {fmtStamp(r.published)}{r.place && <> · <button type="button" className="underline" onClick={() => onPlace(r)}>{r.place}</button></>}</p></li>)}</ul>
       : <p className="text-night-muted">None in the last 3 days.</p>}</div>; };
   return <div className="mt-3 space-y-2 rounded border border-night-line p-3 text-xs" aria-label="News and police reports">
     {group(["protest", "riot"], "Protests & disorder")}
