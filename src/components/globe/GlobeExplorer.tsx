@@ -22,6 +22,8 @@ import { NewsScreens, type BulletinData } from "@/components/globe/NewsScreens";
 import { GlobeShare } from "@/components/globe/GlobeShare";
 import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
+import { newsReportsQuery } from "@/lib/news-reports.functions";
+import type { ReportItem } from "@/lib/news-reports";
 import { migrationFlowsQuery } from "@/lib/migration-flows.functions";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatHistory, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flows";
@@ -45,10 +47,12 @@ export type GlobeState = {
   fl?: boolean | undefined; fp?: string | undefined;
   /** Migration layer: small boats in the Channel plus official irregular-migration and refugee arrows. */
   mg?: boolean | undefined;
+  /** News & police reports layer: protests, riots and plane incidents (headlines verbatim, labelled as media). */
+  nw?: boolean | undefined;
 };
 
 /** Shared search-param parsing for every page that hosts the globe. */
-export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg"> {
+export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg" | "nw"> {
   const age = Number(s["age"]), fa = Number(s["fa"]);
   return {
     layer: s["layer"] === "us" || s["layer"] === "uk" ? s["layer"] : undefined,
@@ -59,6 +63,7 @@ export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "
     fa: fa === 1 || fa === 6 ? fa : undefined,
     fl: s["fl"] === true || s["fl"] === "1" || s["fl"] === "true" ? true : undefined,
     mg: s["mg"] === true || s["mg"] === "1" || s["mg"] === "true" ? true : undefined,
+    nw: s["nw"] === true || s["nw"] === "1" || s["nw"] === "true" ? true : undefined,
     fp: typeof s["fp"] === "string" && /^[0-9a-z~]{4,8}$/i.test(s["fp"]) ? s["fp"] : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
   };
@@ -157,6 +162,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const { data: feed } = useQuery(videoFeedQuery(feedPaused));
   const { data: flights } = useQuery(flightsQuery(!!s.fl));
   const { data: migration } = useQuery(migrationFlowsQuery(!!s.mg));
+  const { data: reports } = useQuery(newsReportsQuery(!!s.nw));
   const { data: boatsData } = useQuery({ ...smallBoatsQuery(), enabled: !!s.mg });
   const latestBoatDay = useMemo(() => { const d = boatsData?.days ?? boatsData?.series ?? []; return d.length ? d[d.length - 1]! : null; }, [boatsData]);
   const boatYear = useMemo(() => { if (!latestBoatDay) return null; const y = latestBoatDay.date.slice(0, 4); return (boatsData?.days ?? boatsData?.series ?? []).filter((d) => d.date.startsWith(y)).reduce((a, d) => ({ arrivals: a.arrivals + d.arrivals, boats: a.boats + d.boats }), { arrivals: 0, boats: 0 }); }, [boatsData, latestBoatDay]);
@@ -196,7 +202,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
     if (!k || !shows(k)) return [];
     return [{ id: `acled|${e.id}`, kind: k, lat: e.lat, lng: e.lng, label: `${e.subType || e.type} — ${e.location}, ${e.date} (ACLED research, not official)`, research: true }];
   }).slice(0, 150);
-  const markers: GlobeMarker[] = [...visible.map((m) => ({ id: m.id, kind: m.kind, lat: m.lat, lng: m.lng, label: `${KIND_LABEL[m.kind]} warning — ${m.place}, ${m.country} (${m.warning.source})` })), ...research];
+  const markers: GlobeMarker[] = [...visible.map((m) => ({ id: m.id, kind: m.kind, lat: m.lat, lng: m.lng, label: `${KIND_LABEL[m.kind]} warning — ${m.place}, ${m.country} (${m.warning.source})` })), ...research,
+    ...(s.nw ? (reports?.items ?? []).flatMap((r): GlobeMarker[] => r.lat !== null && r.lng !== null && r.kind !== "aviation" && shows(r.kind) ? [{ id: `news|${r.id}`, kind: r.kind, lat: r.lat, lng: r.lng, label: `${r.title} — ${r.publisher}, ${fmtStamp(r.published)} (${r.official ? "police notice" : "news report, not official"})`, research: true }] : []) : [])];
   const listed = filterWarningMarkers(official, { gov: s.gov ?? "all", riots: showRiots, protests: showProtests, military: showMil, days: s.age ?? 30 }, new Date());
   const nextWarning = () => { if (!listed.length) return; const i = listed.findIndex((m) => m.id === s.m); pick(listed[(i + 1) % listed.length]!); };
   const nextCountry = () => { if (!names.length) return; const i = names.findIndex((c) => countryKey(c.name) === s.c); onChange({ c: countryKey(names[(i + 1) % names.length]!.name), m: undefined }); };
@@ -335,6 +342,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           {s.fl && <span className="mt-1 block text-night-muted"><Swatch c="#3fcf7a" />Green: normal <Swatch c="#f0a020" />Amber: radio failure, or over a Level 3 / FCDO lower warning country <Swatch c="#ff4a3a" />Red: emergency or hijack code, or over a Level 4 / FCDO "all travel" country. Colours use the country the plane is over now, not where it is going (the feed has no destinations).</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.mg} onChange={(e) => onChange({ mg: e.target.checked || undefined })} /> <span><b>Migration</b>: small boats to the UK and irregular migration routes
           {s.mg && <span className="mt-1 block text-night-muted"><Swatch c="#f05a28" />Boats: one per boat on the latest Home Office day <Swatch c="#f0a020" />EU illegal crossings (Frontex, 12 months) <Swatch c="#ff4a3a" />US southwest border encounters (CBP, latest month) <Swatch c="#7fb2ff" />Refugees and asylum seekers living abroad (UNHCR, yearly — not illegal crossings). Thicker = more people.</span>}</span></label>
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.nw} onChange={(e) => onChange({ nw: e.target.checked || undefined })} /> <span><b>News &amp; police reports</b>: protests, riots and planes diverted, grounded or searched{s.nw && reports ? ` — ${reports.items.length} in 3 days` : ""}
+          {s.nw && <span className="mt-1 block text-night-muted">Headlines from BBC, Guardian, Sky News and other publishers found through Google News, plus Police Scotland notices, shown word for word. News reports are not official warnings.</span>}</span></label>
         <div className="mt-2 flex gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
           <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
@@ -362,6 +371,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
 
       {s.fl && <p className="mt-1 font-mono text-[11px] text-night-muted"><PlaneIcon className="mr-1 inline size-3" />{!flights ? "Loading aircraft positions…" : flights.error && !flights.planes.length ? "Flight data unavailable" : `Aircraft positions from ${flights.source}${flights.partial ? " (busiest regions plus emergencies worldwide)" : ""} — not official government data`}{flights ? ` · checked ${fmtStamp(flights.fetchedAt)}` : ""}</p>}
+      {s.nw && <ReportsCard data={reports} onPlace={(r) => r.place && onChange({ c: countryKey(r.place.split(", ").pop()!), m: undefined })} />}
       {s.mg && <MigrationCard boats={latestBoatDay} year={boatYear} boatsPublished={boatsData?.recentPublished ?? boatsData?.published ?? null} m={migration} />}
       {plane && <div className={`mt-3 rounded border p-3 ${plane.status === "red" ? "border-overdue/60" : plane.status === "amber" ? "border-ageing/60" : "border-fresh/60"}`} aria-label="Selected aircraft">
         <div className="flex items-start justify-between gap-2"><p className={`font-mono text-[11px] uppercase ${plane.status === "red" ? "text-overdue" : plane.status === "amber" ? "text-ageing" : "text-fresh"}`}><PlaneIcon className="mr-1 inline size-3" />{plane.p[1] || plane.p[0]} · {plane.status}</p>
@@ -471,3 +481,16 @@ function MigrationCard({ boats, year, boatsPublished, m }: { boats: BoatDayLite 
   </div>;
 }
 function fmtMonth(m: string | undefined) { return m ? `${m[0]}${m.slice(1, 3).toLowerCase()} ${m.slice(3)}` : ""; }
+
+function ReportsCard({ data, onPlace }: { data: import("@/lib/news-reports").ReportsPayload | null | undefined; onPlace: (r: ReportItem) => void }) {
+  if (!data) return <p className="mt-3 text-xs text-night-muted">Loading news and police reports…</p>;
+  const group = (k: ReportItem["kind"][], title: string) => { const xs = data.items.filter((r) => k.includes(r.kind)); return <div><p className="pt-1 font-mono text-[11px] uppercase text-night-muted">{title} · {xs.length}</p>
+    {xs.length ? <ul className="mt-1 space-y-1.5">{xs.slice(0, 25).map((r) => <li key={r.id}><a href={r.link} target="_blank" rel="noopener noreferrer" className="text-electric-soft underline">{r.title}</a>
+      <p className="font-mono text-[10px] text-night-muted">{r.official ? "Police notice" : "News report"} · {r.publisher} · {fmtStamp(r.published)}{r.place && <> · <button type="button" className="underline" onClick={() => onPlace(r)}>{r.place}</button></>}</p></li>)}</ul>
+      : <p className="text-night-muted">None in the last 3 days.</p>}</div>; };
+  return <div className="mt-3 space-y-2 rounded border border-night-line p-3 text-xs" aria-label="News and police reports">
+    {group(["protest", "riot"], "Protests & disorder")}
+    {group(["aviation"], "Planes diverted, grounded or searched")}
+    <p className="text-night-muted">Headlines are copied word for word from each publisher and link to the original. They are news, not government warnings, and are not checked by UKStats. Sources: {data.sources.map((x) => `${x.name}${x.ok ? "" : " (unavailable)"}`).join(", ")}. Checked {fmtStamp(data.fetchedAt)}. Emergency and radio-failure planes are shown in red and amber on the Flights layer.</p>
+  </div>;
+}
