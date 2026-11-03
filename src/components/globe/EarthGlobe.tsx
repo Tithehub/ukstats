@@ -241,7 +241,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         particleLng={(p) => (p as GlobePlane).lng}
         particleAltitude={0.015}
         particlesColor={(set) => PLANE_C[(set as { st: GlobePlane["status"] }).st]}
-        particlesSize={(set) => ((set as { st: string }).st === "green" ? 0.9 : 1.6) * planeSize}
+        particlesSize={(set) => ((set as { st: string }).st === "green" ? 7 : 12) * planeSize}
         particlesSizeAttenuation={false}
         {...(planes.length ? { particlesTexture: planeTexture() } : {})}
         particleLabel={(p) => (p as GlobePlane).label}
