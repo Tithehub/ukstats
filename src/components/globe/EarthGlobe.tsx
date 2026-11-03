@@ -93,7 +93,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     if (!focus) return;
     const g = ref.current; if (!g) return;
     g.controls().autoRotate = false;
-    g.pointOfView({ ...focus, altitude: 1.2 }, 900);
+    g.pointOfView({ ...focus, altitude: 0.9 }, 900);
   }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const wrap = useRef<HTMLDivElement>(null);
@@ -169,7 +169,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         objectsData={markers}
         objectLat={(m) => (m as GlobeMarker).lat}
         objectLng={(m) => (m as GlobeMarker).lng}
-        objectAltitude={0.012}
+        objectAltitude={0.035}
         objectFacesSurfaces
         objectLabel={(m) => (m as GlobeMarker).label}
         objectThreeObject={(m) => { const x = m as GlobeMarker; const o = icons.current.get(x.id) ?? makeIcon(x.kind, !!x.research); icons.current.set(x.id, o); return o; }}
