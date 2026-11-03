@@ -1,3 +1,4 @@
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { SEGMENT_MS, buildSegments, type SegmentKind } from "@/lib/globe-broadcast";
@@ -55,17 +56,18 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
   const clock = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
   const TAB = { stats: "Figures", warnings: "Warnings", news: "News" } as const;
 
-  return <section aria-label={`Live bulletin: ${name}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} className="overflow-hidden rounded-md border border-night-line bg-night shadow-lg [contain:layout]">
-    <header className="flex h-9 items-center gap-2 bg-desk px-2 text-desk-fg">
+  return <section aria-label={`Live bulletin: ${name}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} className={`overflow-hidden rounded-md border border-night-line bg-night shadow-lg [contain:layout] ${fill ? "flex h-full flex-col" : ""}`}>
+    <header data-drag-handle className="flex h-9 shrink-0 items-center gap-2 bg-desk px-2 text-desk-fg">
       <span className="rounded-sm bg-onair px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">{halted ? "Paused" : "On air"}</span>
       <h3 className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide text-desk-fg">{name}</h3>
       <span className="font-mono text-[11px] tabular-nums text-desk-muted">{clock} UK</span>
       <span className="w-10 text-right font-mono text-[11px] tabular-nums text-desk-fg">{halted ? "—" : `${Math.max(0, remaining)}s`}</span>
+      {header}
     </header>
     <div role="tablist" aria-label="Bulletin sections" className="flex border-b border-night-line">{segs.map((k, n) => <button key={k} role="tab" aria-selected={n === i} onClick={() => setI(n)} className={`relative flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider ${n === i ? "text-night-fg" : "text-night-muted"}`}>
       {TAB[k]}<span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-night-line"><span className="block h-full bg-electric" style={{ width: `${n < i ? 100 : n === i ? progress * 100 : 0}%` }} /></span></button>)}</div>
 
-    <div className="h-[212px] overflow-hidden p-2.5" aria-live="polite">
+    <div className={`${fill ? "min-h-0 flex-1 overflow-y-auto" : "h-[212px] overflow-hidden"} p-2.5`} aria-live="polite">
       <div key={`${name}-${seg}`} className="h-full animate-in fade-in slide-in-from-right-2 duration-300">
         {seg === "stats" && <><dl className="grid grid-cols-3 gap-1.5">{stats.slice(0, 6).map((s) => { const m = /^(.*) \((\d{4})\)$/.exec(s.value); return <div key={s.label} className="h-[78px] rounded border border-night-line bg-night-panel p-1.5"><dt className="line-clamp-2 text-[10px] leading-tight text-night-muted">{s.label}</dt><dd className="mt-1 truncate font-mono text-[15px] font-semibold tabular-nums">{m ? m[1] : s.value}</dd>{m && <dd className="font-mono text-[10px] text-night-muted">{m[2]}</dd>}</div>; })}</dl>
           {statSource && <p className="mt-1.5 truncate text-[10px] text-night-muted">Source: <a className="underline" href={statSource.url} target="_blank" rel="noreferrer noopener">{statSource.name}</a></p>}</>}
