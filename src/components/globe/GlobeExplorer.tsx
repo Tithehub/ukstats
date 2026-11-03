@@ -14,6 +14,9 @@ import { GLOBAL_NEWS, LIVE_SOURCES, LIVE_SOURCES_CHECKED } from "@/lib/live-sour
 import { BROADCAST_CHANNELS, BROADCAST_CHECKED, type BroadcastChannel, type BroadcastKind } from "@/lib/broadcast-channels.data";
 import { countryDestinations, type Destination } from "@/lib/globe-destinations";
 import { fmtDate } from "@/lib/uk-stats";
+import { videoFeedQuery } from "@/lib/video-feed.functions";
+import { feedPins as feedPinMap, type FeedAge } from "@/lib/video-feed";
+import { LiveFeed } from "@/components/globe/LiveFeed";
 
 const EarthGlobe = lazy(() => import("@/components/globe/EarthGlobe"));
 
@@ -25,15 +28,20 @@ export type GlobeState = {
   gov?: "FCDO" | "US" | undefined; age?: 1 | 7 | undefined;
   /** iso3 of the first country picked for comparison. */
   cmp?: string | undefined;
+  /** Side-panel tab ("live" = live video feed) and its filters. */
+  feed?: "live" | undefined; fk?: BroadcastKind | undefined; fa?: FeedAge | undefined;
 };
 
 /** Shared search-param parsing for every page that hosts the globe. */
-export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp"> {
-  const age = Number(s["age"]);
+export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa"> {
+  const age = Number(s["age"]), fa = Number(s["fa"]);
   return {
     layer: s["layer"] === "us" || s["layer"] === "uk" ? s["layer"] : undefined,
     gov: s["gov"] === "FCDO" || s["gov"] === "US" ? s["gov"] : undefined,
     age: age === 1 || age === 7 ? age : undefined,
+    feed: s["feed"] === "live" ? "live" : undefined,
+    fk: s["fk"] === "official" || s["fk"] === "msm" || s["fk"] === "alt" ? s["fk"] : undefined,
+    fa: fa === 1 || fa === 6 ? fa : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
   };
 }
@@ -126,7 +134,9 @@ function hasWebGL() {
 /** The globe plus its control panel, shared by the home page and /globe. */
 export function GlobeExplorer({ state: s, onChange, compact = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean }) {
   const { data: world } = useQuery(worldQuery());
-  const { data: unrest } = useQuery(unrestQuery());
+  const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
+  const [feedPaused, setFeedPaused] = useState(false);
+  const { data: feed } = useQuery(videoFeedQuery(feedPaused));
   const [gl, setGl] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
   useEffect(() => { setGl(hasWebGL()); }, []);
@@ -162,6 +172,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const listed = filterWarningMarkers(official, { gov: s.gov ?? "all", riots: showRiots, protests: showProtests, days: s.age ?? 30 }, new Date());
   const nextWarning = () => { if (!listed.length) return; const i = listed.findIndex((m) => m.id === s.m); pick(listed[(i + 1) % listed.length]!); };
   const nextCountry = () => { if (!names.length) return; const i = names.findIndex((c) => countryKey(c.name) === s.c); onChange({ c: countryKey(names[(i + 1) % names.length]!.name), m: undefined }); };
+  const capitals = useMemo(() => { const m = new Map<string, [number, number]>(); for (const p of UNREST_PLACES) if (p[4]) m.set(countryKey(p[0]), [p[2], p[3]]); return m; }, []);
+  const pins = useMemo(() => feed ? [...feedPinMap(feed.items, new Date()).entries()].flatMap(([k, p]) => { const c = capitals.get(k); return c ? [{ key: k, lat: c[0] - 1.5, lng: c[1] + 1.5, ...p, label: `${p.live ? "Live broadcast · " : ""}${p.count} news video${p.count === 1 ? "" : "s"} in 6h — ${k} (media, not official)` }] : []; }) : [], [feed, capitals]);
   const marker: UnrestMarker | undefined = s.m ? official.find((m) => m.id === s.m) : undefined;
   const pick = (m: UnrestMarker) => onChange({ c: m.key, m: m.id });
 
@@ -191,6 +203,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <b className={m.kind === "riot" ? "text-overdue" : "text-ageing"}>{m.kind === "riot" ? "Riot" : "Protest"}</b> {m.place}{m.unspecified ? "*" : ""}, {m.country} · <span className="text-night-muted">{m.warning.source} {fmtStamp(m.warning.updated)}</span>
       </button>)}
     {unrest && <span className="shrink-0 text-night-muted">· checked {fmtStamp(unrest.fetchedAt)}</span>}
+    {feed?.connected && <button onClick={() => onChange({ feed: "live" })} className="shrink-0 rounded border border-electric/60 px-2 py-1 font-mono uppercase text-electric-soft hover:bg-night">{feed.items.filter((i) => i.live).length ? `● ${feed.items.filter((i) => i.live).length} live now` : "Live feed"}</button>}
   </div>;
 
   return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
@@ -199,7 +212,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : null} />}
+        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : null} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
       <div className="absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80">
         <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur">
@@ -287,6 +300,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <h3 className="mt-5 font-semibold">Official government warnings</h3>
         {warnings.length ? <ul className="mt-2 space-y-2">{warnings.map((w) => <WarningRow key={w.source + w.url} w={w} />)}</ul> : <p className="mt-1 text-sm text-night-muted">No UK or US travel advice found for this country.</p>}
 
+        <h3 className="mt-5 font-semibold">Latest videos <span className="text-xs font-normal text-night-muted">(media, not official)</span></h3>
+        <div className="mt-1"><LiveFeed feed={feed} country={sel} countryName={selName ?? undefined} paused={feedPaused} /></div>
         <h3 className="mt-5 font-semibold">Broadcast channels</h3>
         <BroadcastChannels k={sel} />
         <h3 className="mt-5 font-semibold">Official ministry and police links</h3>
@@ -296,6 +311,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <ul className="mt-1 space-y-1 text-sm">{[...(live?.news ?? []), ...GLOBAL_NEWS].map((l) => <li key={l.url}><a className="underline" href={l.url} target="_blank" rel="noreferrer noopener">{l.label}</a></li>)}</ul>
         <p className="mt-2 text-[11px] text-night-muted">Links checked {fmtDate(LIVE_SOURCES_CHECKED)}.</p>
       </div> : <div className="mt-3">
+        <div role="tablist" aria-label="Panel" className="mb-3 grid grid-cols-2 gap-1 text-sm">
+          <button role="tab" aria-selected={s.feed !== "live"} onClick={() => onChange({ feed: undefined })} className={`rounded border px-2 py-1.5 ${s.feed !== "live" ? "border-electric bg-night" : "border-night-line"}`}>Warnings</button>
+          <button role="tab" aria-selected={s.feed === "live"} onClick={() => onChange({ feed: "live" })} className={`rounded border px-2 py-1.5 ${s.feed === "live" ? "border-electric bg-night" : "border-night-line"}`}><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />Live</button>
+        </div>
+        {s.feed === "live" ? <LiveFeed feed={feed} kind={s.fk} hours={s.fa} paused={feedPaused} onPause={() => setFeedPaused((p) => !p)} onFilter={(p) => onChange(p)} onCountry={(k) => onChange({ c: k, m: undefined })} /> : <>
         <h2 className="text-lg font-semibold">Click a country to open its pages</h2>
         <p className="mt-1 text-xs text-night-muted">Each country shows its key figures and buttons to every UKStats page we have for it.</p>
         <button className="mt-3 w-full rounded border border-electric/50 px-3 py-2 text-left text-sm hover:bg-night" onClick={() => onChange({ c: "united kingdom" })}><b>United Kingdom</b> <span className="text-xs text-night-muted">· all UK statistics, small boats, crime, parties…</span></button>
@@ -313,7 +333,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="mt-1 text-xs text-night-muted">Where the UK Foreign Office or US State Department mentioned protests, riots, strikes, curfews or a coup in their latest update within 30 days, quoted in their own words.</p>
         {hotList.length ? <ul className="mt-3 space-y-1 text-sm">{hotList.map(([k, ws]) => <li key={k}><button className="w-full rounded border border-night-line px-3 py-2 text-left hover:bg-night" onClick={() => onChange({ c: k })}><b>{ws[0]!.country}</b> <span className="text-xs text-night-muted">· {ws.map((w) => w.source).join(", ")} · {fmtDate(ws[0]!.updated)}</span></button></li>)}</ul> : <p className="mt-3 text-sm text-night-muted">{!unrest ? "Waiting for the official feeds." : s.official ? "None in the last 30 days." : "Official layer is switched off."}</p>}
         <p className="mt-4 text-[11px] text-night-muted">Governments publish travel advice, not live riot maps. ACLED is an independent research body, not a government source.</p>
-      </div>}
+      </>}</div>}
     </aside>
   </div>
   <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
