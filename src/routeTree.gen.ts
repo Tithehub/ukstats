@@ -64,6 +64,7 @@ import { Route as AnswersQuestionRouteImport } from './routes/answers.$question'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
+import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
@@ -356,6 +357,11 @@ const ExplainedMetricIdRoute = ExplainedMetricIdRouteImport.update({
   path: '/explained/$metricId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GlobeBroadcastRoute = GlobeBroadcastRouteImport.update({
+  id: '/globe_/broadcast',
+  path: '/globe/broadcast',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryMetricIdRoute = HistoryMetricIdRouteImport.update({
   id: '/history/$metricId',
   path: '/history/$metricId',
@@ -496,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
+  '/globe/broadcast': typeof GlobeBroadcastRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -567,6 +574,7 @@ export interface FileRoutesByTo {
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
+  '/globe/broadcast': typeof GlobeBroadcastRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -641,6 +649,7 @@ export interface FileRoutesById {
   '/daily/$date': typeof DailyDateRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
+  '/globe_/broadcast': typeof GlobeBroadcastRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
@@ -716,6 +725,7 @@ export interface FileRouteTypes {
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
+    | '/globe/broadcast'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -787,6 +797,7 @@ export interface FileRouteTypes {
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
+    | '/globe/broadcast'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -860,6 +871,7 @@ export interface FileRouteTypes {
     | '/daily/$date'
     | '/embed/$metric'
     | '/explained/$metricId'
+    | '/globe_/broadcast'
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
@@ -929,6 +941,7 @@ export interface RootRouteChildren {
   AnswersQuestionRoute: typeof AnswersQuestionRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
+  GlobeBroadcastRoute: typeof GlobeBroadcastRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
   WorldIsoRoute: typeof WorldIsoRoute
@@ -1322,6 +1335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExplainedMetricIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/globe_/broadcast': {
+      id: '/globe_/broadcast'
+      path: '/globe/broadcast'
+      fullPath: '/globe/broadcast'
+      preLoaderRoute: typeof GlobeBroadcastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history/$metricId': {
       id: '/history/$metricId'
       path: '/history/$metricId'
@@ -1558,6 +1578,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnswersQuestionRoute: AnswersQuestionRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
+  GlobeBroadcastRoute: GlobeBroadcastRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
   WorldIsoRoute: WorldIsoRoute,
