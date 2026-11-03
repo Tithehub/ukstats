@@ -77,7 +77,7 @@ function centre(key: string): { lat: number; lng: number } | null {
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate = false, resetKey = 0 }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0 }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -127,7 +127,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { const c = ref.current?.controls(); if (c) c.autoRotate = rotate && !still; }, [rotate, still]);
+  useEffect(() => { if (rotate === undefined) return; const c = ref.current?.controls(); if (c) c.autoRotate = rotate && !still; }, [rotate, still]);
   useEffect(() => {
     if (!resetKey) return;
     ref.current?.pointOfView({ lat: 50, lng: 10, altitude: 1.9 }, 900);
