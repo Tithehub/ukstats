@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ExternalLink, Search, Droplets, CalendarDays, ArrowRight, Check, ShieldCheck, ClipboardCheck, Heart, Flashlight, FileText, House } from 'lucide-react';
+import { ExternalLink, Search, Droplets, CalendarDays, ArrowRight, Check, ShieldCheck, ClipboardCheck, Heart, Flashlight, FileText, House, Users } from 'lucide-react';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,8 @@ const CHECKLIST_GROUPS = [
   { name: 'Health & hygiene', icon: Heart, items: ['First-aid kit', 'Essential medication', 'Hand sanitiser', 'Wet wipes', 'Basic toiletries'] },
   { name: 'Warmth & shelter', icon: House, items: ['Blankets', 'Warm clothing', 'Sleeping bags where appropriate'] },
   { name: 'Documents & money', icon: FileText, items: ['Identification and document copies', 'Emergency contact numbers', 'Cash and payment cards', 'Medication information'] },
-  { name: 'Your household', icon: UsersIcon, items: ['Baby supplies', 'Pet supplies', 'Disability or accessibility requirements', 'Other essential personal requirements'] },
+  { name: 'Your household', icon: Users, items: ['Baby supplies', 'Pet supplies', 'Disability or accessibility requirements', 'Other essential personal requirements'] },
 ];
-
-function UsersIcon(props: React.ComponentProps<typeof House>) { return <House {...props} />; }
 
 export const Route = createFileRoute('/preparedness')({
   validateSearch: (s: Record<string, unknown>): { region: PreparednessRegion; q: string } => ({
