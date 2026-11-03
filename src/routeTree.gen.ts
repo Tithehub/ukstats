@@ -35,6 +35,7 @@ import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PartiesRouteImport } from './routes/parties'
 import { Route as PollingRouteImport } from './routes/polling'
+import { Route as PreparednessRouteImport } from './routes/preparedness'
 import { Route as PressRouteImport } from './routes/press'
 import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -206,6 +207,11 @@ const PartiesRoute = PartiesRouteImport.update({
 const PollingRoute = PollingRouteImport.update({
   id: '/polling',
   path: '/polling',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreparednessRoute = PreparednessRouteImport.update({
+  id: '/preparedness',
+  path: '/preparedness',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PressRoute = PressRouteImport.update({
@@ -450,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
   '/polling': typeof PollingRoute
+  '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -519,6 +526,7 @@ export interface FileRoutesByTo {
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
   '/polling': typeof PollingRoute
+  '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -589,6 +597,7 @@ export interface FileRoutesById {
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
   '/polling': typeof PollingRoute
+  '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -661,6 +670,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/parties'
     | '/polling'
+    | '/preparedness'
     | '/press'
     | '/regions'
     | '/register'
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/parties'
     | '/polling'
+    | '/preparedness'
     | '/press'
     | '/register'
     | '/reset-password'
@@ -799,6 +810,7 @@ export interface FileRouteTypes {
     | '/outreach'
     | '/parties'
     | '/polling'
+    | '/preparedness'
     | '/press'
     | '/regions'
     | '/register'
@@ -870,6 +882,7 @@ export interface RootRouteChildren {
   OutreachRoute: typeof OutreachRoute
   PartiesRoute: typeof PartiesRoute
   PollingRoute: typeof PollingRoute
+  PreparednessRoute: typeof PreparednessRoute
   PressRoute: typeof PressRoute
   RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
@@ -1078,6 +1091,13 @@ declare module '@tanstack/react-router' {
       path: '/polling'
       fullPath: '/polling'
       preLoaderRoute: typeof PollingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preparedness': {
+      id: '/preparedness'
+      path: '/preparedness'
+      fullPath: '/preparedness'
+      preLoaderRoute: typeof PreparednessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/press': {
@@ -1475,6 +1495,7 @@ const rootRouteChildren: RootRouteChildren = {
   OutreachRoute: OutreachRoute,
   PartiesRoute: PartiesRoute,
   PollingRoute: PollingRoute,
+  PreparednessRoute: PreparednessRoute,
   PressRoute: PressRoute,
   RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
