@@ -1,7 +1,7 @@
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, X, ChevronDown } from "lucide-react";
+import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -11,6 +11,7 @@ import { statLayer, shadeColour, NO_FIGURE, UK_ALERT_COLOURS, US_LEVEL_COLOURS }
 import { UNREST_PLACES } from "@/lib/unrest-places.data";
 import type { GlobeMarker } from "@/components/globe/EarthGlobe";
 import { GLOBAL_NEWS, LIVE_SOURCES, LIVE_SOURCES_CHECKED } from "@/lib/live-sources.data";
+import { BROADCAST_CHANNELS, BROADCAST_CHECKED, type BroadcastChannel, type BroadcastKind } from "@/lib/broadcast-channels.data";
 import { countryDestinations, type Destination } from "@/lib/globe-destinations";
 import { fmtDate } from "@/lib/uk-stats";
 
@@ -85,6 +86,37 @@ function AdviceLevels({ warnings, k, fcdo }: { warnings: OfficialWarning[]; k: s
     {a.uk && <li><Swatch c={UK_ALERT_COLOURS[a.uk.status]} /><a className="underline" href={a.uk.url} target="_blank" rel="noreferrer noopener">{a.uk.label}</a> <span className="text-night-muted">· UK FCDO, updated {fmtDate(a.uk.updated)}</span></li>}
     {a.us && <li><Swatch c={US_LEVEL_COLOURS[a.us.level]!} /><a className="underline" href={a.us.url} target="_blank" rel="noreferrer noopener">{a.us.label}</a> <span className="text-night-muted">· US State Dept, updated {fmtDate(a.us.updated)}</span></li>}
   </ul>;
+}
+
+const KIND_META: Record<BroadcastKind, { label: string; note: string; Icon: typeof Tv; cls: string }> = {
+  official: { label: "Official — government", note: "Government bodies' own channels", Icon: Landmark, cls: "text-fresh" },
+  msm: { label: "MSM — mainstream media", note: "Not official", Icon: Tv, cls: "text-electric-soft" },
+  alt: { label: "Alternative media", note: "Not official; independent outlets", Icon: Radio, cls: "text-ageing" },
+};
+const fmtSubs = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}m` : `${Math.round(n / 1e3)}k`);
+
+function ChannelRow({ c }: { c: BroadcastChannel }) {
+  return <li><a href={`https://www.youtube.com/channel/${c.channelId}`} target="_blank" rel="noreferrer noopener" className="flex min-h-11 items-center gap-2 rounded border border-night-line px-2 py-1.5 hover:bg-night">
+    <img src={c.avatar} alt="" width={32} height={32} loading="lazy" referrerPolicy="no-referrer" className="size-8 shrink-0 rounded-full bg-night" />
+    <span className="min-w-0 flex-1"><span className="block truncate text-sm">{c.name}</span><span className="block truncate font-mono text-[10px] text-night-muted">YouTube {c.handle} · {fmtSubs(c.subscribers)} subscribers{c.state ? " · state-owned" : ""}</span></span>
+    <ExternalLink className="size-3 shrink-0 text-night-muted" aria-hidden="true" />
+  </a></li>;
+}
+
+/** Verified YouTube channels for one country, grouped and labelled so only government channels read as official. */
+function BroadcastChannels({ k, limit }: { k: string; limit?: number }) {
+  const list = BROADCAST_CHANNELS[k];
+  if (!list?.length) return <p className="mt-1 text-sm text-night-muted">No verified broadcast channels listed for this country yet.</p>;
+  return <div className="mt-2 space-y-3">
+    {(["official", "msm", "alt"] as const).map((kind) => {
+      const rows = list.filter((c) => c.kind === kind).slice(0, limit);
+      if (!rows.length) return null;
+      const m = KIND_META[kind];
+      return <div key={kind}><p className={`flex items-center gap-1 font-mono text-[11px] uppercase ${m.cls}`}><m.Icon className="size-3.5" aria-hidden="true" />{m.label} <span className="normal-case text-night-muted">· {m.note}</span></p>
+        <ul className="mt-1 space-y-1">{rows.map((c) => <ChannelRow key={c.channelId} c={c} />)}</ul></div>;
+    })}
+    <p className="text-[11px] text-night-muted">YouTube-verified channels; subscriber counts as reported by YouTube on {fmtDate(BROADCAST_CHECKED)}. Media channels are not official sources.</p>
+  </div>;
 }
 
 function hasWebGL() {
@@ -236,6 +268,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           <p className="mt-1 text-sm">“{marker.warning.text}”</p>
           <p className={`mt-1 font-mono text-[11px] ${AGE_CLS[warningAge(marker.warning.updated, new Date())]}`}>{marker.warning.source} · published {fmtStamp(marker.warning.updated)} · {warningAge(marker.warning.updated, new Date())}</p>
           <a href={marker.warning.url} target="_blank" rel="noreferrer noopener" className="mt-1 inline-flex items-center gap-1 text-xs underline">Read the official advice <ExternalLink className="size-3" /></a>
+          {BROADCAST_CHANNELS[marker.key]?.length ? <><p className="mt-3 text-xs font-semibold">Watch live coverage</p><BroadcastChannels k={marker.key} limit={1} /></> : null}
         </div>}
         {stat && ind && <p className="mt-2 font-mono text-xs">{(() => { const r = stat.rank.get(sel); return r ? `${ind.label}: ${r.value} · rank ${r.rank} of ${r.of} (${r.year})` : `${ind.label}: no rankable figure`; })()}</p>}
         <AdviceLevels warnings={unrest?.warnings ?? []} k={sel} fcdo={unrest?.fcdoAlerts} />
@@ -254,7 +287,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <h3 className="mt-5 font-semibold">Official government warnings</h3>
         {warnings.length ? <ul className="mt-2 space-y-2">{warnings.map((w) => <WarningRow key={w.source + w.url} w={w} />)}</ul> : <p className="mt-1 text-sm text-night-muted">No UK or US travel advice found for this country.</p>}
 
-        <h3 className="mt-5 font-semibold">Official news and broadcasts</h3>
+        <h3 className="mt-5 font-semibold">Broadcast channels</h3>
+        <BroadcastChannels k={sel} />
+        <h3 className="mt-5 font-semibold">Official ministry and police links</h3>
         {live?.official.length ? <ul className="mt-1 space-y-1 text-sm">{live.official.map((l) => <li key={l.url}><a className="underline" href={l.url} target="_blank" rel="noreferrer noopener">{l.label}</a></li>)}</ul> : <p className="mt-1 text-sm text-night-muted">Not yet verified for this country.</p>}
 
         <h3 className="mt-5 font-semibold">News coverage <span className="text-xs font-normal text-night-muted">(not official)</span></h3>
