@@ -26,6 +26,9 @@ export interface GlobeProps {
   rotate?: boolean | undefined;
   /** Bump to fly back to the starting view. */
   resetKey?: number;
+  /** Live-feed pins (news videos, not official) — drawn as a separate label layer. */
+  feedPins?: { key: string; lat: number; lng: number; count: number; live: boolean; label: string }[];
+  onFeedPin?: (key: string) => void;
 }
 
 // Plain WebGL colours mirroring the overdue (riot) and ageing (protest) tokens.
@@ -77,7 +80,7 @@ function centre(key: string): { lat: number; lng: number } | null {
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0 }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -195,6 +198,17 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         ringMaxRadius={(m) => ((m as GlobeMarker).kind === "riot" ? 3.5 : 2.5)}
         ringPropagationSpeed={2}
         ringRepeatPeriod={still ? 0 : 1400}
+        labelsData={feedPins}
+        labelLat={(p) => (p as { lat: number }).lat}
+        labelLng={(p) => (p as { lng: number }).lng}
+        labelText={(p) => { const x = p as { count: number; live: boolean }; return x.live ? "LIVE" : String(x.count); }}
+        labelSize={0.9}
+        labelDotRadius={(p) => ((p as { live: boolean }).live ? 0.9 : 0.6)}
+        labelColor={(p) => ((p as { live: boolean }).live ? "rgba(255,70,90,0.95)" : "rgba(80,230,255,0.9)")}
+        labelAltitude={0.012}
+        labelResolution={2}
+        labelLabel={(p) => (p as { label: string }).label}
+        onLabelClick={(p) => onFeedPin?.((p as { key: string }).key)}
       />
     </div>
   );
