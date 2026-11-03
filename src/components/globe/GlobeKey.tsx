@@ -14,7 +14,6 @@ function Swatch({ c, kind }: { c: string; kind?: string }) {
     : <span aria-hidden="true" className="mr-1.5 inline-block size-2.5 shrink-0 rounded-sm align-middle" style={{ background: c }} />;
 }
 
-function Row({ children }: { children: React.ReactNode }) { return <li className="flex items-start gap-1"><span className="mt-0.5 flex shrink-0 items-center">{null}</span>{children}</li>; }
 function IconRow({ icon: Icon, c, children }: { icon: typeof Flag; c: string; children: React.ReactNode }) {
   return <li className="flex items-start gap-1.5"><Icon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" style={{ color: c }} /><span>{children}</span></li>;
 }
