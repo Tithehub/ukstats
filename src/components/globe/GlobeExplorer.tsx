@@ -150,6 +150,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const [gl, setGl] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
   useEffect(() => { const g = hasWebGL(); console.warn("GLDBG", g); setGl(g); }, []);
+  if (typeof window !== "undefined") console.warn("RENDERDBG", gl);
 
   const ind = WORLD_INDICATORS.find((i) => i.slug === s.ind) ?? null;
   const byKey = useMemo(() => new Map((world?.countries ?? []).map((c) => [countryKey(c.name), c])), [world]);
