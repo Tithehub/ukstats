@@ -14,6 +14,9 @@ export const Route = createFileRoute("/globe")({
     official: s["official"] !== false && s["official"] !== "false",
     acled: s["acled"] !== false && s["acled"] !== "false",
     c: typeof s["c"] === "string" ? s["c"].slice(0, 80) : "",
+    riots: s["riots"] === false || s["riots"] === "false" ? false : undefined,
+    protests: s["protests"] === false || s["protests"] === "false" ? false : undefined,
+    m: typeof s["m"] === "string" ? s["m"].slice(0, 200) : undefined,
   }),
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(worldQuery()), context.queryClient.ensureQueryData(unrestQuery())]),
   head: () => ({ meta: [

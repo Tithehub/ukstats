@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { CATEGORIES, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { VitalSigns } from "@/components/VitalSigns";
@@ -149,10 +149,11 @@ function Home() {
 function HomeGlobe() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true };
+  const [layers, setLayers] = useState<{ riots?: boolean; protests?: boolean; m?: string | undefined }>({});
+  const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true, ...layers };
   return <section aria-label="World globe" className="mt-5">
     <a href="#home-figures" className="mb-2 inline-flex min-h-11 items-center text-sm text-electric-soft underline sm:hidden">Skip the globe — go to UK figures</a>
-    <GlobeExplorer compact state={state} onChange={(p) => void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false })} />
+    <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false }); }} />
   </section>;
 }
 
