@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
+import { GlobeExplorer, parseGlobeExtras, type GlobeState } from "@/components/globe/GlobeExplorer";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
 import { WORLD_INDICATORS } from "@/lib/world";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/globe")({
     riots: s["riots"] === false || s["riots"] === "false" ? false : undefined,
     protests: s["protests"] === false || s["protests"] === "false" ? false : undefined,
     m: typeof s["m"] === "string" ? s["m"].slice(0, 200) : undefined,
+    ...parseGlobeExtras(s),
   }),
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(worldQuery()), context.queryClient.ensureQueryData(unrestQuery())]),
   head: () => ({ meta: [

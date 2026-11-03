@@ -19,6 +19,13 @@ export interface GlobeProps {
   onMarker?: (id: string) => void;
   /** Camera target when a marker is picked. */
   focus?: { lat: number; lng: number } | null;
+  /** countryKey -> ready colour; overrides shade (advice layers and indicator layers). */
+  fill?: Map<string, string> | null;
+  /** countryKey -> hover text (figure, rank, year or advice level). */
+  labels?: Map<string, string> | null;
+  rotate?: boolean | undefined;
+  /** Bump to fly back to the starting view. */
+  resetKey?: number;
 }
 
 // Plain WebGL colours mirroring the overdue (riot) and ageing (protest) tokens.
@@ -70,7 +77,7 @@ function centre(key: string): { lat: number; lng: number } | null {
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0 }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -120,6 +127,12 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => { if (rotate === undefined) return; const c = ref.current?.controls(); if (c) c.autoRotate = rotate && !still; }, [rotate, still]);
+  useEffect(() => {
+    if (!resetKey) return;
+    ref.current?.pointOfView({ lat: 50, lng: 10, altitude: 1.9 }, 900);
+  }, [resetKey]);
+
   // Fly to a country picked from search or the side panel.
   const first = useRef(true);
   useEffect(() => {
@@ -135,6 +148,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     const k = countryKey((f as Feat).properties.name);
     if (k === selected) return colors.sel;
     if (hotspots.has(k)) return colors.hot;
+    if (fill) return fill.get(k) ?? "rgba(140,140,140,0.35)";
     if (!shade) return "rgba(255,255,255,0.04)";
     const s = shade.get(k);
     if (s === undefined) return "rgba(140,140,140,0.35)";
@@ -142,7 +156,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   };
 
   return (
-    <div ref={wrap} className="h-full w-full" onPointerDown={() => { const c = ref.current?.controls(); if (c) c.autoRotate = false; }}>
+    <div ref={wrap} className="h-full w-full" onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
       <Globe
         ref={ref}
         width={size.w}
@@ -156,7 +170,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonCapColor={cap}
         polygonSideColor={() => "rgba(0,0,0,0.25)"}
         polygonStrokeColor={() => "rgba(255,255,255,0.35)"}
-        polygonLabel={(f) => (f as Feat).properties.name}
+        polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
         onPolygonClick={(f) => { const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
         pointsData={events}

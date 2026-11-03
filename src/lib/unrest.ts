@@ -26,6 +26,8 @@ export interface UnrestPayload {
   fcdoOk: boolean;
   stateOk: boolean;
   acled: { connected: boolean; events: AcledEvent[]; error?: string };
+  /** FCDO per-country alert status, checked a batch at a time; absent keys are not yet checked. */
+  fcdoAlerts?: Record<string, FcdoAlertEntry>;
   fetchedAt: string;
 }
 
@@ -151,4 +153,54 @@ export function unrestMarkers(warnings: OfficialWarning[], now: Date, places: Pl
     }
   }
   return out.sort((a, b) => Date.parse(b.warning.updated!) - Date.parse(a.warning.updated!));
+}
+
+// ---- Travel advice levels, in each government's own terms (never merged) ----
+
+export type FcdoAlert = "all" | "all-but-essential" | "parts-all" | "parts-essential" | "none";
+export interface FcdoAlertEntry { status: FcdoAlert; updated: string | null; url: string; checked: string }
+
+/** FCDO country page -> its own alert status, most severe first; null when the page carries no status field. */
+export function parseFcdoAlert(json: unknown): FcdoAlert | null {
+  const a = (json as { details?: { alert_status?: unknown } })?.details?.alert_status;
+  if (!Array.isArray(a)) return null;
+  const s = new Set(a.map(String));
+  if (s.has("avoid_all_travel_to_whole_country")) return "all";
+  if (s.has("avoid_all_but_essential_travel_to_whole_country")) return "all-but-essential";
+  if (s.has("avoid_all_travel_to_parts")) return "parts-all";
+  if (s.has("avoid_all_but_essential_travel_to_parts")) return "parts-essential";
+  return "none";
+}
+
+export const FCDO_ALERT_LABEL: Record<FcdoAlert, string> = {
+  all: "FCDO advises against all travel",
+  "all-but-essential": "FCDO advises against all but essential travel",
+  "parts-all": "FCDO advises against all travel to parts",
+  "parts-essential": "FCDO advises against all but essential travel to parts",
+  none: "No FCDO advice against travel",
+};
+
+export const US_LEVEL_LABEL: Record<number, string> = {
+  1: "Level 1: Exercise normal precautions", 2: "Level 2: Exercise increased caution",
+  3: "Level 3: Reconsider travel", 4: "Level 4: Do not travel",
+};
+
+/** Each government's own level for one country, side by side; null where that government has none on file. */
+export function travelAdviceLevel(warnings: OfficialWarning[], key: string, fcdo: Record<string, FcdoAlertEntry> | undefined) {
+  const us = warnings.find((w) => w.key === key && w.source === "US State Dept" && w.level);
+  return {
+    us: us ? { level: us.level!, label: US_LEVEL_LABEL[us.level!]!, updated: us.updated, url: us.url } : null,
+    uk: fcdo?.[key] ? { ...fcdo[key]!, label: FCDO_ALERT_LABEL[fcdo[key]!.status] } : null,
+  };
+}
+
+/** Warnings feeding the list: by government, marker kind and age in days. */
+export function filterWarningMarkers(markers: UnrestMarker[], f: { gov: "all" | "FCDO" | "US"; riots: boolean; protests: boolean; days: number }, now: Date): UnrestMarker[] {
+  return markers.filter((m) => {
+    if (f.gov === "FCDO" && m.warning.source !== "FCDO") return false;
+    if (f.gov === "US" && m.warning.source !== "US State Dept") return false;
+    if (m.kind === "riot" ? !f.riots : !f.protests) return false;
+    const t = Date.parse(m.warning.updated ?? "");
+    return Number.isFinite(t) && now.getTime() - t <= f.days * 86_400_000;
+  });
 }

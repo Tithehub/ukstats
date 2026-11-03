@@ -1,4 +1,24 @@
-import { FCDO_INDEX, STATE_DEPT_FEED, parseAcled, parseFcdo, parseStateDept, type AcledEvent, type UnrestPayload } from "./unrest";
+import { FCDO_INDEX, STATE_DEPT_FEED, parseAcled, parseFcdo, parseFcdoAlert, parseStateDept, type AcledEvent, type FcdoAlertEntry, type OfficialWarning, type UnrestPayload } from "./unrest";
+
+/** FCDO country pages checked per refresh: keeps each run well inside edge subrequest limits; the full set cycles in about 90 minutes. */
+const ALERT_BATCH = 40;
+
+async function fcdoAlerts(warnings: OfficialWarning[], prev: Record<string, FcdoAlertEntry> | undefined): Promise<Record<string, FcdoAlertEntry>> {
+  const out: Record<string, FcdoAlertEntry> = { ...(prev ?? {}) };
+  const todo = warnings.filter((w) => w.source === "FCDO").sort((a, b) => (out[a.key]?.checked ?? "").localeCompare(out[b.key]?.checked ?? "")).slice(0, ALERT_BATCH);
+  let i = 0;
+  const worker = async () => {
+    while (i < todo.length) {
+      const w = todo[i++]!;
+      try {
+        const st = parseFcdoAlert(await json(w.url.replace("https://www.gov.uk/", "https://www.gov.uk/api/content/")));
+        if (st) out[w.key] = { status: st, updated: w.updated, url: w.url, checked: new Date().toISOString() };
+      } catch { /* keep the last checked status; unanswered pages stay unchecked */ }
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, worker));
+  return out;
+}
 
 const TTL = 15 * 60_000;
 const ID = "unrest-v1";
@@ -32,10 +52,11 @@ async function acled(): Promise<UnrestPayload["acled"]> {
   }
 }
 
-async function collect(): Promise<UnrestPayload> {
+async function collect(prev: UnrestPayload | null): Promise<UnrestPayload> {
   const [f, s, a] = await Promise.all([json(FCDO_INDEX).then(parseFcdo).catch(() => null), json(STATE_DEPT_FEED).then(parseStateDept).catch(() => null), acled()]);
   if (!f && !s) throw new Error("No official warning feed answered");
-  return { warnings: [...(f ?? []), ...(s ?? [])], fcdoOk: !!f, stateOk: !!s, acled: a, fetchedAt: new Date().toISOString() };
+  const alerts = f ? await fcdoAlerts(f, prev?.fcdoAlerts) : prev?.fcdoAlerts;
+  return { warnings: [...(f ?? []), ...(s ?? [])], fcdoOk: !!f, stateOk: !!s, acled: a, ...(alerts ? { fcdoAlerts: alerts } : {}), fetchedAt: new Date().toISOString() };
 }
 
 async function readStored(): Promise<UnrestPayload | null> {
@@ -47,8 +68,8 @@ async function readStored(): Promise<UnrestPayload | null> {
   } catch { return null; }
 }
 
-function refresh(): Promise<UnrestPayload> {
-  return collect().then((d) => {
+function refresh(prev: UnrestPayload | null): Promise<UnrestPayload> {
+  return collect(prev).then((d) => {
     mem = d;
     import("@/integrations/supabase/client.server")
       .then(({ supabaseAdmin }) => (supabaseAdmin.from as (t: string) => any)("payload_cache").upsert({ id: ID, data: d, updated_at: d.fetchedAt }))
@@ -61,8 +82,8 @@ function refresh(): Promise<UnrestPayload> {
 export async function loadUnrest(): Promise<UnrestPayload | null> {
   const good = mem ?? (await readStored());
   // A copy saved before the ACLED login existed is out of date once it does.
-  const acledNew = !!process.env["ACLED_EMAIL"] && good?.acled.connected === false;
+  const acledNew = !!process.env["ACLED_EMAIL"] && good?.acled.connected === false && !good.acled.error;
   if (good && !acledNew && Date.now() - Date.parse(good.fetchedAt) < TTL) { mem = good; return good; }
-  const pending = refresh().catch(() => null);
+  const pending = refresh(good).catch(() => null);
   return good ?? pending;
 }
