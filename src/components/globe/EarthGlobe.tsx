@@ -1,0 +1,87 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import Globe, { type GlobeMethods } from "react-globe.gl";
+import { feature } from "topojson-client";
+import topo from "world-atlas/countries-110m.json";
+import earth from "@/assets/earth-blue-marble.jpg";
+import { countryKey, type AcledEvent } from "@/lib/unrest";
+
+export interface GlobeProps {
+  /** countryKey -> 0..1 shade, or undefined when no comparable figure. */
+  shade: Map<string, number> | null;
+  hotspots: Set<string>;
+  events: AcledEvent[];
+  selected: string | null;
+  onSelect: (key: string, name: string) => void;
+}
+
+type Feat = { properties: { name: string }; geometry: unknown };
+const FEATURES = (feature(topo as any, (topo as any).objects.countries) as unknown as { features: Feat[] }).features;
+
+function cssVar(name: string, fallback: string) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect }: GlobeProps) {
+  const ref = useRef<GlobeMethods | undefined>(undefined);
+  const wrap = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 800, h: 600 });
+  const colors = useMemo(() => ({ hot: cssVar("--overdue", "#d14343"), sel: cssVar("--electric", "#4ea1ff") }), []);
+
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => e && setSize({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const g = ref.current;
+    if (!g) return;
+    g.pointOfView({ lat: 50, lng: 10, altitude: 1.9 }, 0);
+    const c = g.controls();
+    c.autoRotate = true;
+    c.autoRotateSpeed = 0.25;
+    wrap.current?.setAttribute("data-scene-ready", "true");
+  }, []);
+
+  const cap = (f: object) => {
+    const k = countryKey((f as Feat).properties.name);
+    if (k === selected) return colors.sel;
+    if (hotspots.has(k)) return colors.hot + "cc";
+    if (!shade) return "rgba(255,255,255,0.04)";
+    const s = shade.get(k);
+    if (s === undefined) return "rgba(140,140,140,0.35)";
+    return `rgba(${Math.round(30 + 200 * s)}, ${Math.round(110 + 80 * s)}, ${Math.round(220 - 150 * s)}, 0.75)`;
+  };
+
+  return (
+    <div ref={wrap} className="h-full w-full" onPointerDown={() => { const c = ref.current?.controls(); if (c) c.autoRotate = false; }}>
+      <Globe
+        ref={ref}
+        width={size.w}
+        height={size.h}
+        backgroundColor="rgba(0,0,0,0)"
+        globeImageUrl={earth}
+        showAtmosphere
+        atmosphereColor="#7fb2ff"
+        polygonsData={FEATURES}
+        polygonAltitude={(f) => (countryKey((f as Feat).properties.name) === selected ? 0.03 : 0.008)}
+        polygonCapColor={cap}
+        polygonSideColor={() => "rgba(0,0,0,0.25)"}
+        polygonStrokeColor={() => "rgba(255,255,255,0.35)"}
+        polygonLabel={(f) => (f as Feat).properties.name}
+        onPolygonClick={(f) => { const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
+        polygonsTransitionDuration={200}
+        pointsData={events}
+        pointLat={(e) => (e as AcledEvent).lat}
+        pointLng={(e) => (e as AcledEvent).lng}
+        pointColor={() => "#ffb020"}
+        pointAltitude={0.02}
+        pointRadius={0.25}
+        pointLabel={(e) => { const x = e as AcledEvent; return `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+      />
+    </div>
+  );
+}
