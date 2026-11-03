@@ -19,6 +19,10 @@ import { feedPins as feedPinMap, type FeedAge } from "@/lib/video-feed";
 import { LiveFeed } from "@/components/globe/LiveFeed";
 import { BroadcastPanel } from "@/components/globe/BroadcastPanel";
 import { GlobeShare } from "@/components/globe/GlobeShare";
+import { flightsQuery } from "@/lib/flights.functions";
+import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
+import { useRef } from "react";
+import { Plane as PlaneIcon } from "lucide-react";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 
 const EarthGlobe = lazy(() => import("@/components/globe/EarthGlobe"));
@@ -33,10 +37,12 @@ export type GlobeState = {
   cmp?: string | undefined;
   /** Side-panel tab ("live" = live video feed) and its filters. */
   feed?: "live" | undefined; fk?: BroadcastKind | undefined; fa?: FeedAge | undefined;
+  /** Flights layer on, and the selected aircraft (hex id). */
+  fl?: boolean | undefined; fp?: string | undefined;
 };
 
 /** Shared search-param parsing for every page that hosts the globe. */
-export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa"> {
+export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp"> {
   const age = Number(s["age"]), fa = Number(s["fa"]);
   return {
     layer: s["layer"] === "us" || s["layer"] === "uk" ? s["layer"] : undefined,
@@ -45,6 +51,8 @@ export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "
     feed: s["feed"] === "live" ? "live" : undefined,
     fk: s["fk"] === "official" || s["fk"] === "msm" || s["fk"] === "alt" ? s["fk"] : undefined,
     fa: fa === 1 || fa === 6 ? fa : undefined,
+    fl: s["fl"] === true || s["fl"] === "1" || s["fl"] === "true" ? true : undefined,
+    fp: typeof s["fp"] === "string" && /^[0-9a-z~]{4,8}$/i.test(s["fp"]) ? s["fp"] : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
   };
 }
@@ -140,6 +148,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
   const [feedPaused, setFeedPaused] = useState(false);
   const { data: feed } = useQuery(videoFeedQuery(feedPaused));
+  const { data: flights } = useQuery(flightsQuery(!!s.fl));
   const [gl, setGl] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
   useEffect(() => { setGl(hasWebGL()); }, []);
@@ -193,7 +202,42 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const bulletinStats = wb ? WORLD_INDICATORS.slice(0, 6).flatMap((i) => { const v = world?.values[i.id]?.[wb.iso3]; return v ? [{ label: i.label, value: `${fmtWorld(v.value, i.unit)} (${v.year})` }] : []; }) : [];
   const countryVideos = sel && feed?.connected ? feed.items.filter((v) => v.country === sel) : [];
   const headlines = [...official.slice(0, 8).map((m) => ({ id: m.id, text: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.country} (${m.warning.source}, ${fmtStamp(m.warning.updated)})`, go: () => pick(m) })),
+    ...emergencies.slice(0, 6).map((r) => ({ id: `fl-${r.p[0]}`, text: `Aircraft ${SQUAWK_MEANING[r.p[7]!]} — ${r.p[1] || r.p[0]}${r.p[8] ? `, over ${r.p[8].replace(/\b\w/g, (x) => x.toUpperCase())}` : ""} (${fmtStamp(new Date(r.p[10] * 1000).toISOString())})`, go: () => onChange({ fp: r.p[0] }) })),
     ...(feed?.connected ? feed.items.slice(0, 8).map((v) => ({ id: v.id, text: `${v.channel}: ${v.title}`, go: () => onChange({ c: v.country, m: undefined }) })) : [])];
+  const areaAdvice = useMemo(() => {
+    const m = new Map<string, AreaAdvice>();
+    for (const w of unrest?.warnings ?? []) if (w.source === "US State Dept" && w.level) m.set(w.key, { ...m.get(w.key), us: w.level });
+    for (const [k, a] of Object.entries(unrest?.fcdoAlerts ?? {})) m.set(k, { ...m.get(k), uk: a.status });
+    return m;
+  }, [unrest]);
+  const trails = useRef(new Map<string, [number, number][]>());
+  const planeRows = useMemo(() => {
+    if (!s.fl || !flights?.planes.length) return [];
+    const t = trails.current, seen = new Set<string>();
+    const rows = flights.planes.map((p) => {
+      seen.add(p[0]);
+      const tr = t.get(p[0]) ?? []; const last = tr[tr.length - 1];
+      if (!last || last[0] !== p[2] || last[1] !== p[3]) { tr.push([p[2], p[3]]); if (tr.length > 15) tr.shift(); t.set(p[0], tr); }
+      const st = flightStatus(p[7], p[8] ? areaAdvice.get(p[8]) : undefined);
+      return { p, ...st };
+    });
+    for (const k of t.keys()) if (!seen.has(k)) t.delete(k);
+    return rows;
+  }, [s.fl, flights, areaAdvice]);
+  const globePlanes = useMemo(() => planeRows.map(({ p, status }) => ({ id: p[0], lat: p[2], lng: p[3], status, label: `${p[1] || p[0]} · ${status === "red" ? "Red" : status === "amber" ? "Amber" : "Green"}${p[7] && SQUAWK_MEANING[p[7]] ? ` · ${SQUAWK_MEANING[p[7]]}` : ""}` })), [planeRows]);
+  const plane = s.fp ? planeRows.find((r) => r.p[0] === s.fp) ?? null : null;
+  const planePaths = useMemo(() => {
+    if (!plane) return [];
+    const c = plane.status === "red" ? "#ff4a3a" : plane.status === "amber" ? "#f0a020" : "#3fcf7a";
+    const [, , lat, lng, , gs, tr] = plane.p;
+    const out: { pts: [number, number][]; ahead: boolean; color: string }[] = [];
+    const trail = trails.current.get(plane.p[0]) ?? [];
+    if (trail.length > 1) out.push({ pts: trail, ahead: false, color: c });
+    if (tr !== null) out.push({ pts: [[lat, lng], projectAhead(lat, lng, tr, Math.max(150, (gs ?? 400) * 1.852 * 0.5))], ahead: true, color: c });
+    return out;
+  }, [plane]);
+  const emergencies = planeRows.filter((r) => r.p[7] && SQUAWK_MEANING[r.p[7]]);
+  const planeAdvice = plane?.p[8] ? travelAdviceLevel(unrest?.warnings ?? [], plane.p[8], unrest?.fcdoAlerts) : null;
   const hotList = [...hot.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   const find = (e: React.FormEvent) => {
@@ -207,7 +251,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const loading = <div className="grid h-full place-items-center text-sm text-night-muted">Loading globe…</div>;
   const height = compact ? "h-[52vh] min-h-[340px] max-h-[620px]" : "h-[60vh] min-h-[380px] lg:h-auto";
 
-  const ticker = <div aria-label="Latest official riot and protest warnings" className="flex items-center gap-2 overflow-x-auto border-b border-night-line bg-night-panel px-3 py-2 text-xs">
+  const ticker = <div aria-label="Latest official riot and protest warnings" className="flex items-center gap-2 overflow-x-auto border-b border-night-line bg-night-panel px-3 py-2 text-xs text-night-fg">
     <span className="shrink-0 font-mono uppercase text-overdue"><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />Official warnings</span>
     {!unrest ? <span className="text-night-muted">Checking official feeds…</span> : !s.official ? <span className="text-night-muted">Official layer switched off.</span> : official.length === 0 ? <span className="text-night-muted">No riot or protest wording in official advice in the last 30 days.</span> :
       official.slice(0, 12).map((m) => <button key={m.id} onClick={() => pick(m)} className={`shrink-0 rounded border px-2 py-1 hover:bg-night ${m.id === s.m ? "border-electric" : "border-night-line"}`}>
@@ -223,7 +267,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : null} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
+        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
       <div className="absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80">
         <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur">
@@ -259,6 +303,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         {s.layer && <p className="mt-1 text-night-muted">The two governments use different scales, so they are never merged.</p>}
         <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={s.official} onChange={(e) => onChange({ official: e.target.checked })} /> <span><b className="text-overdue">Red</b>: official warnings mentioning unrest (30 days)</span></label>
         <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={s.acled} onChange={(e) => onChange({ acled: e.target.checked })} /> <span><b className="text-ageing">Dots</b>: ACLED research — {unrest?.acled.connected ? (unrest.acled.error ?? `${events.length} events, 30 days`) : (unrest?.acled.error ?? "Not connected")}</span></label>
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.fl} onChange={(e) => onChange({ fl: e.target.checked || undefined, fp: undefined })} /> <span><b>Flights</b>: live aircraft positions{s.fl && flights ? ` — ${flights.planes.length.toLocaleString("en-GB")} planes` : ""}
+          {s.fl && <span className="mt-1 block text-night-muted"><Swatch c="#3fcf7a" />Green: normal <Swatch c="#f0a020" />Amber: radio failure, or over a Level 3 / FCDO lower warning country <Swatch c="#ff4a3a" />Red: emergency or hijack code, or over a Level 4 / FCDO "all travel" country. Colours use the country the plane is over now, not where it is going (the feed has no destinations).</span>}</span></label>
         <div className="mt-2 flex gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
           <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
@@ -283,6 +329,26 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
 
+      {s.fl && <p className="mt-1 font-mono text-[11px] text-night-muted"><PlaneIcon className="mr-1 inline size-3" />{!flights ? "Loading aircraft positions…" : flights.error && !flights.planes.length ? "Flight data unavailable" : `Aircraft positions from ${flights.source}${flights.partial ? " (busiest regions plus emergencies worldwide)" : ""} — not official government data`}{flights ? ` · checked ${fmtStamp(flights.fetchedAt)}` : ""}</p>}
+      {plane && <div className={`mt-3 rounded border p-3 ${plane.status === "red" ? "border-overdue/60" : plane.status === "amber" ? "border-ageing/60" : "border-fresh/60"}`} aria-label="Selected aircraft">
+        <div className="flex items-start justify-between gap-2"><p className={`font-mono text-[11px] uppercase ${plane.status === "red" ? "text-overdue" : plane.status === "amber" ? "text-ageing" : "text-fresh"}`}><PlaneIcon className="mr-1 inline size-3" />{plane.p[1] || plane.p[0]} · {plane.status}</p>
+          <Button variant="ghost" size="icon" aria-label="Close aircraft" onClick={() => onChange({ fp: undefined })}><X className="size-4" /></Button></div>
+        <p className="text-sm">{plane.reason}.</p>
+        <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 font-mono text-[11px]">
+          <dt className="text-night-muted">Registration</dt><dd>{plane.p[9] || "not stated"}</dd>
+          <dt className="text-night-muted">Altitude</dt><dd>{plane.p[4] === null ? "not stated" : `${plane.p[4].toLocaleString("en-GB")} ft`}</dd>
+          <dt className="text-night-muted">Speed</dt><dd>{plane.p[5] === null ? "not stated" : `${plane.p[5]} kt`}</dd>
+          <dt className="text-night-muted">Heading</dt><dd>{plane.p[6] === null ? "not stated" : `${Math.round(plane.p[6])}°`}</dd>
+          <dt className="text-night-muted">Squawk</dt><dd>{plane.p[7] ?? "not stated"}</dd>
+          <dt className="text-night-muted">Over</dt><dd className="capitalize">{plane.p[8] ?? "sea / unknown"}</dd>
+          <dt className="text-night-muted">Position time</dt><dd>{fmtStamp(new Date(plane.p[10] * 1000).toISOString())}</dd>
+        </dl>
+        {planeAdvice && (planeAdvice.uk || planeAdvice.us) && <ul className="mt-2 space-y-0.5 text-xs">
+          {planeAdvice.uk && <li><a className="underline" href={planeAdvice.uk.url} target="_blank" rel="noreferrer noopener">{planeAdvice.uk.label}</a> <span className="text-night-muted">· UK FCDO</span></li>}
+          {planeAdvice.us && <li><a className="underline" href={planeAdvice.us.url} target="_blank" rel="noreferrer noopener">{planeAdvice.us.label}</a> <span className="text-night-muted">· US State Dept</span></li>}
+        </ul>}
+        <p className="mt-2 text-[11px] text-night-muted">Solid line: recent track. Dashed line: direction of travel only, not a route.</p>
+      </div>}
       {sel && !onAir && <button onClick={() => setOnAir(true)} className="mt-2 inline-flex items-center gap-1 rounded border border-electric/50 px-2 py-1 text-xs hover:bg-night"><Play className="size-3" />Start live broadcast</button>}
       {sel && onAir && <div className="mt-3"><BroadcastPanel name={selName ?? sel} stats={bulletinStats} statSource={wb ? WORLD_SOURCE : null} warnings={warnings} videos={countryVideos} onNextCountry={goNext} onPrevCountry={goPrev} onStop={() => setOnAir(false)} /></div>}
       {sel ? <div className="mt-3">
@@ -350,7 +416,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </>}</div>}
     </aside>
   </div>
-  <div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-t border-night-line bg-desk text-xs [contain:layout_paint]">
+  <div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-t border-night-line bg-desk text-xs text-night-fg [contain:layout_paint]">
     <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-night-fg">Latest</span>
     {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-night-line px-3 hover:text-electric-soft">{h.text}</button>)}</div>)}</div></div>
       : <span className="px-3 text-night-muted">Waiting for the official feeds…</span>}
