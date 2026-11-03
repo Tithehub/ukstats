@@ -89,6 +89,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
 
 /** The few links that stay on the desktop bar; everything else lives in the menu. */
 const PRIMARY: NavItem[] = [
+  { to: "/globe", label: "Globe", icon: Globe2 },
   { to: "/register", label: "UK statistics", icon: Table2 },
   { to: "/countries", label: "World", icon: Globe2 },
   { to: "/maps", label: "Maps", icon: MapIcon },

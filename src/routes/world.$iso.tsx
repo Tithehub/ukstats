@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { countryKey } from "@/lib/unrest";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -53,6 +54,7 @@ function CountryProfile() {
             <h1 className="mt-3 text-4xl font-semibold tracking-tight">{c.name}</h1>
             <p className="mt-1 text-night-muted">{c.region}{c.income && ` · ${c.income}`}{c.capital && ` · Capital: ${c.capital}`}</p>
             <Link to="/world-compare" search={{ countries: `${c.iso3},${c.iso3 === "GBR" ? "USA" : "GBR"}` }} className="mt-3 inline-block text-sm text-electric-soft underline">Compare with another country →</Link>
+            <Link to="/globe" search={{ ind: "none", official: true, acled: true, c: countryKey(c.name) }} className="mt-3 ml-4 inline-block text-sm text-electric-soft underline">View on globe →</Link>
             {(full || c.iso2 === "GB") && (
               <p className="mt-3 text-sm">
                 Full live page:{" "}

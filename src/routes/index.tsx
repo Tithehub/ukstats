@@ -22,6 +22,8 @@ import { PreparednessBanner } from "@/components/PreparednessBanner";
 import { currentBrand } from "@/lib/brand-host";
 import { GlobalHome } from "@/components/home/GlobalHome";
 import { UkTopicNav } from "@/components/UkTopicNav";
+import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
+import { WORLD_INDICATORS } from "@/lib/world";
 
 const GT = "Stats Solutions — official statistics from around the world";
 const GD = "Live official figures for over 30 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
@@ -60,6 +62,11 @@ const sponsorBoardQuery = queryOptions<SponsorBannerRow[]>({
 });
 
 export const Route = createFileRoute("/")({
+  // Optional globe settings, so a home-page globe view is shareable.
+  validateSearch: (s: Record<string, unknown>): { c?: string | undefined; ind?: string | undefined } => ({
+    c: typeof s["c"] === "string" ? s["c"].slice(0, 80) : undefined,
+    ind: WORLD_INDICATORS.some((i) => i.slug === s["ind"]) ? String(s["ind"]) : undefined,
+  }),
   // Return the data itself: the loader's return travels with the page, so the
   // browser never has to ask for it again just to become interactive.
   loader: async ({ context }) => {
@@ -139,6 +146,16 @@ function Home() {
   return currentBrand() === "global" ? <GlobalHome /> : <UkHome />;
 }
 
+function HomeGlobe() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true };
+  return <section aria-label="World globe" className="mt-5">
+    <a href="#home-figures" className="mb-2 inline-flex min-h-11 items-center text-sm text-electric-soft underline sm:hidden">Skip the globe — go to UK figures</a>
+    <GlobeExplorer compact state={state} onChange={(p) => void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false })} />
+  </section>;
+}
+
 function UkHome() {
   const { stats: data, sponsors } = Route.useLoaderData();
   const metrics = data.metrics;
@@ -199,6 +216,8 @@ function UkHome() {
           </div>
         </section>
 
+        <HomeGlobe />
+
         {/* Sponsor banner — sits under the hero for visibility, always labelled, never beside individual figures. */}
         <div className="mt-4">
           <SponsorBanner variant="hero" initialRows={sponsors} />
@@ -210,7 +229,7 @@ function UkHome() {
 
         <div className="mt-5"><UkTopicNav /></div>
 
-        <div className="mt-6"><VitalSigns metrics={metrics} /></div>
+        <div id="home-figures" className="mt-6 scroll-mt-20"><VitalSigns metrics={metrics} /></div>
         <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">
           <Link to="/daily" className="inline-flex min-h-11 items-center">Latest releases →</Link>
           <Link to="/safest-places" search={{ country: 'uk' }} className="inline-flex min-h-11 items-center">Safest places →</Link>
