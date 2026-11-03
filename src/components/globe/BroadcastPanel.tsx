@@ -46,42 +46,49 @@ export function BroadcastPanel({ name, stats, statSource, warnings, videos, onNe
   }, [halted, i, segs.length, onNextCountry]);
 
   const remaining = Math.ceil(((segs.length - i) * SEGMENT_MS - elapsed.current) / 1000);
-  const BTN = "inline-flex size-8 items-center justify-center rounded border border-night-line hover:bg-night";
+  const BTN = "inline-flex size-8 shrink-0 items-center justify-center rounded border border-night-line hover:bg-night";
 
-  return <section aria-label={`Live bulletin: ${name}`} aria-live="polite" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} className="rounded-md border border-electric/50 bg-night p-3">
-    <div className="flex items-center justify-between gap-2">
-      <p className="font-mono text-[11px] uppercase text-overdue"><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />On air · {name}</p>
-      <span className="font-mono text-[11px] text-night-muted">{halted ? "Paused" : `Next country in ${Math.max(0, remaining)}s`}</span>
+  const clock = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
+  const TAB = { stats: "Figures", warnings: "Warnings", news: "News" } as const;
+
+  return <section aria-label={`Live bulletin: ${name}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} className="overflow-hidden rounded-md border border-night-line bg-night shadow-lg [contain:layout]">
+    <header className="flex h-9 items-center gap-2 bg-desk px-2">
+      <span className="rounded-sm bg-onair px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-night-fg">{halted ? "Paused" : "On air"}</span>
+      <h3 className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide">{name}</h3>
+      <span className="font-mono text-[11px] tabular-nums text-night-muted">{clock} UK</span>
+      <span className="w-10 text-right font-mono text-[11px] tabular-nums text-electric-soft">{halted ? "—" : `${Math.max(0, remaining)}s`}</span>
+    </header>
+    <div role="tablist" aria-label="Bulletin sections" className="flex border-b border-night-line">{segs.map((k, n) => <button key={k} role="tab" aria-selected={n === i} onClick={() => setI(n)} className={`relative flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider ${n === i ? "text-night-fg" : "text-night-muted"}`}>
+      {TAB[k]}<span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-night-line"><span className="block h-full bg-electric" style={{ width: `${n < i ? 100 : n === i ? progress * 100 : 0}%` }} /></span></button>)}</div>
+
+    <div className="h-[212px] overflow-hidden p-2.5" aria-live="polite">
+      <div key={`${name}-${seg}`} className="h-full animate-in fade-in slide-in-from-right-2 duration-300">
+        {seg === "stats" && <><dl className="grid grid-cols-3 gap-1.5">{stats.slice(0, 6).map((s) => { const m = /^(.*) \((\d{4})\)$/.exec(s.value); return <div key={s.label} className="h-[78px] rounded border border-night-line bg-night-panel p-1.5"><dt className="line-clamp-2 text-[10px] leading-tight text-night-muted">{s.label}</dt><dd className="mt-1 truncate font-mono text-[15px] font-semibold tabular-nums">{m ? m[1] : s.value}</dd>{m && <dd className="font-mono text-[10px] text-night-muted">{m[2]}</dd>}</div>; })}</dl>
+          {statSource && <p className="mt-1.5 truncate text-[10px] text-night-muted">Source: <a className="underline" href={statSource.url} target="_blank" rel="noreferrer noopener">{statSource.name}</a></p>}</>}
+
+        {seg === "warnings" && (warnings[0] ? (() => { const w = warnings[0]!; return <article className="flex h-full flex-col rounded border-l-2 border-onair bg-night-panel p-2.5">
+          <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase text-night-muted"><span>{w.source}</span>{w.level && <span className="rounded-sm border border-ageing/60 px-1 text-ageing">Level {w.level}</span>}{warnings.length > 1 && <span>+{warnings.length - 1} more</span>}</p>
+          <p className="mt-1.5 line-clamp-4 text-[13px] leading-snug">“{w.text || "No change note published"}”</p>
+          <p className="mt-auto flex items-center justify-between pt-1 font-mono text-[10px] text-night-muted"><span>Updated {fmtDate(w.updated)}</span><a className="inline-flex items-center gap-1 underline" href={w.url} target="_blank" rel="noreferrer noopener">Official advice <ExternalLink className="size-3" /></a></p>
+        </article>; })() : <p className="grid h-full place-items-center text-center text-xs text-night-muted">No current UK or US government travel advice on file for {name}.</p>)}
+
+        {seg === "news" && <ul className="space-y-1.5">{videos.slice(0, 3).map((v) => <li key={v.id}><button onClick={() => setPlaying(v)} className="flex h-[62px] w-full gap-2 rounded text-left hover:bg-night-panel">
+          <span className="relative aspect-video h-full shrink-0 overflow-hidden rounded bg-night-panel"><img src={v.thumb} alt="" width={110} height={62} loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />{v.live && <span className="absolute left-0.5 top-0.5 rounded-sm bg-onair px-1 font-mono text-[9px] font-bold text-night-fg">LIVE</span>}</span>
+          <span className="min-w-0 flex-1 text-xs"><span className="line-clamp-2 leading-snug">{v.title}</span><span className="block truncate font-mono text-[10px] text-night-muted">{KIND_T[v.kind]} · {v.channel} · {fmtTime(v.published)}</span></span>
+        </button></li>)}</ul>}
+      </div>
     </div>
-    <div className="mt-2 flex gap-1" aria-hidden="true">{segs.map((k, n) => <div key={k} className="h-1 flex-1 overflow-hidden rounded bg-night-line"><div className="h-full bg-electric" style={{ width: `${n < i ? 100 : n === i ? progress * 100 : 0}%` }} /></div>)}</div>
-    <h3 className="mt-2 text-sm font-semibold">{SEG_LABEL[seg]}</h3>
 
-    {seg === "stats" && <><dl className="mt-1 grid grid-cols-2 gap-1.5 text-xs">{stats.map((s) => <div key={s.label} className="rounded border border-night-line p-1.5"><dt className="text-[10px] text-night-muted">{s.label}</dt><dd className="font-mono">{s.value}</dd></div>)}</dl>
-      {statSource && <p className="mt-1 text-[10px] text-night-muted">Source: <a className="underline" href={statSource.url} target="_blank" rel="noreferrer noopener">{statSource.name}</a></p>}</>}
+    {playing && <div className="border-t border-night-line p-2"><div className="flex items-start justify-between gap-2"><p className="line-clamp-1 text-xs font-semibold">{playing.title}</p><button aria-label="Close video" onClick={() => setPlaying(null)} className="rounded p-1 hover:bg-night-panel"><X className="size-4" /></button></div>
+      <div className="mt-1 aspect-video overflow-hidden rounded bg-night-panel"><iframe title={playing.title} src={`https://www.youtube-nocookie.com/embed/${playing.id}?autoplay=1&rel=0`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" className="size-full" /></div></div>}
 
-    {seg === "warnings" && (warnings.length ? <ul className="mt-1 space-y-1.5 text-xs">{warnings.slice(0, 2).map((w) => <li key={w.source + w.url}>
-      <p className="font-mono text-[10px] uppercase text-night-muted">{w.source}{w.level ? ` · Level ${w.level}` : ""} · updated {fmtDate(w.updated)}</p>
-      <p className="line-clamp-3">“{w.text || "No change note published"}”</p>
-      <a className="inline-flex items-center gap-1 underline" href={w.url} target="_blank" rel="noreferrer noopener">Official advice <ExternalLink className="size-3" /></a></li>)}</ul>
-      : <p className="mt-1 text-xs text-night-muted">No current UK or US government travel advice on file for {name}.</p>)}
-
-    {seg === "news" && <ul className="mt-1 space-y-1.5">{videos.slice(0, 3).map((v) => <li key={v.id} className="flex gap-2">
-      <img src={v.thumb} alt="" width={96} height={54} loading="lazy" referrerPolicy="no-referrer" className="h-[54px] w-[96px] shrink-0 rounded object-cover" />
-      <div className="min-w-0 flex-1 text-xs"><p className="line-clamp-2">{v.title}</p>
-        <p className="font-mono text-[10px] text-night-muted">{v.live ? "LIVE · " : ""}{KIND_T[v.kind]} · {v.channel} · {fmtTime(v.published)}</p>
-        <button onClick={() => setPlaying(v)} className="mt-0.5 inline-flex items-center gap-1 text-electric-soft underline"><Play className="size-3" />Watch here</button></div>
-    </li>)}</ul>}
-
-    {playing && <div className="mt-2"><div className="flex items-start justify-between gap-2"><p className="text-xs font-semibold">{playing.title}</p><button aria-label="Close video" onClick={() => setPlaying(null)} className="rounded p-1 hover:bg-night-panel"><X className="size-4" /></button></div>
-      <div className="mt-1 aspect-video overflow-hidden rounded"><iframe title={playing.title} src={`https://www.youtube-nocookie.com/embed/${playing.id}?autoplay=1&rel=0`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" className="size-full" /></div></div>}
-
-    <div className="mt-3 flex flex-wrap items-center gap-1" aria-label="Bulletin controls">
+    <div className="flex h-10 items-center gap-1 border-t border-night-line px-2" aria-label="Bulletin controls">
       <button className={BTN} aria-label="Previous country" onClick={onPrevCountry}><SkipBack className="size-3.5" /></button>
-      <button className={BTN} aria-label="Previous segment" disabled={i === 0} onClick={() => setI(Math.max(0, i - 1))}><ChevronLeft className="size-3.5" /></button>
+      <button className={BTN} aria-label="Previous section" disabled={i === 0} onClick={() => setI(Math.max(0, i - 1))}><ChevronLeft className="size-3.5" /></button>
       <button className={BTN} aria-label={paused ? "Play bulletin" : "Pause bulletin"} aria-pressed={paused} onClick={() => setPaused((p) => !p)}>{paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}</button>
-      <button className={BTN} aria-label="Next segment" onClick={() => (i + 1 < segs.length ? setI(i + 1) : onNextCountry())}><ChevronRight className="size-3.5" /></button>
+      <button className={BTN} aria-label="Next section" onClick={() => (i + 1 < segs.length ? setI(i + 1) : onNextCountry())}><ChevronRight className="size-3.5" /></button>
       <button className={BTN} aria-label="Next country" onClick={onNextCountry}><SkipForward className="size-3.5" /></button>
-      <button className="ml-auto rounded border border-night-line px-2 py-1 text-xs hover:bg-night" onClick={onStop}>Stop broadcast</button>
+      <button className="ml-auto h-8 rounded border border-night-line px-2 text-xs hover:bg-night-panel" onClick={onStop}>Stop<span className="max-sm:hidden"> broadcast</span></button>
     </div>
   </section>;
 }
