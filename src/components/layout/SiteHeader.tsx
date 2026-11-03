@@ -69,6 +69,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/governments", label: "Governments", icon: LayoutGrid },
       { to: "/restore-britain", label: "Restore Britain videos & stories", icon: FileText },
       { to: "/preparedness", label: "Be prepared — official advice", icon: FileText },
+      { to: "/globe", label: "World globe — unrest warnings", icon: LayoutGrid },
     ],
   },
   {
