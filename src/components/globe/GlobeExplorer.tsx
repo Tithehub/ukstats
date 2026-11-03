@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
 import { WORLD_INDICATORS, WORLD_SOURCE, MAX_LAG_YEARS, fmtWorld } from "@/lib/world";
-import { countryKey, filterWarningMarkers, travelAdviceLevel, unrestHotspots, unrestMarkers, warningAge, FCDO_ALERT_LABEL, US_LEVEL_LABEL, type FcdoAlert, type OfficialWarning, type UnrestMarker } from "@/lib/unrest";
+import { countryKey, filterWarningMarkers, travelAdviceLevel, unrestHotspots, unrestMarkers, warningAge, FCDO_ALERT_LABEL, US_LEVEL_LABEL, KIND_LABEL, isMilitary, type UnrestKind, type FcdoAlert, type OfficialWarning, type UnrestMarker } from "@/lib/unrest";
 import { statLayer, shadeColour, NO_FIGURE, UK_ALERT_COLOURS, US_LEVEL_COLOURS } from "@/lib/globe-legend";
 import { UNREST_PLACES } from "@/lib/unrest-places.data";
 import type { GlobeMarker } from "@/components/globe/EarthGlobe";
@@ -28,7 +28,7 @@ const loadEarthGlobe = () => import("@/components/globe/EarthGlobe");
 const EarthGlobe = lazy(loadEarthGlobe);
 
 export type GlobeState = {
-  ind: string; official: boolean; acled: boolean; c: string; riots?: boolean | undefined; protests?: boolean | undefined; m?: string | undefined;
+  ind: string; official: boolean; acled: boolean; c: string; riots?: boolean | undefined; protests?: boolean | undefined; mil?: boolean | undefined; m?: string | undefined;
   /** "us" / "uk" colour by that government's travel advice level instead of an indicator. */
   layer?: "us" | "uk" | undefined;
   /** Warning list filters. */
@@ -173,16 +173,17 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const hot = useMemo(() => (unrest && s.official && !s.layer ? unrestHotspots(unrest.warnings, new Date()) : new Map<string, OfficialWarning[]>()), [unrest, s.official, s.layer]);
   const hotKeys = useMemo(() => new Set(hot.keys()), [hot]);
   const events = s.acled && unrest?.acled.connected ? unrest.acled.events : [];
-  const showRiots = s.riots !== false, showProtests = s.protests !== false;
+  const showRiots = s.riots !== false, showProtests = s.protests !== false, showMil = s.mil !== false;
+  const shows = (k: UnrestKind) => (isMilitary(k) ? showMil : k === "riot" ? showRiots : showProtests);
   const official = useMemo(() => (unrest && s.official ? unrestMarkers(unrest.warnings, new Date(), UNREST_PLACES) : []), [unrest, s.official]);
-  const visible = official.filter((m) => (m.kind === "riot" ? showRiots : showProtests));
+  const visible = official.filter((m) => shows(m.kind));
   const research: GlobeMarker[] = events.flatMap((e) => {
-    const k: "riot" | "protest" | null = /riot/i.test(e.type) ? "riot" : /protest/i.test(e.type) ? "protest" : null;
-    if (!k || (k === "riot" ? !showRiots : !showProtests)) return [];
+    const k: UnrestKind | null = /explosion|remote violence|air|drone|shelling|missile/i.test(`${e.type} ${e.subType}`) ? "strike" : /battle/i.test(e.type) ? "war" : /riot/i.test(e.type) ? "riot" : /protest/i.test(e.type) ? "protest" : null;
+    if (!k || !shows(k)) return [];
     return [{ id: `acled|${e.id}`, kind: k, lat: e.lat, lng: e.lng, label: `${e.subType || e.type} — ${e.location}, ${e.date} (ACLED research, not official)`, research: true }];
   }).slice(0, 150);
-  const markers: GlobeMarker[] = [...visible.map((m) => ({ id: m.id, kind: m.kind, lat: m.lat, lng: m.lng, label: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.place}, ${m.country} (${m.warning.source})` })), ...research];
-  const listed = filterWarningMarkers(official, { gov: s.gov ?? "all", riots: showRiots, protests: showProtests, days: s.age ?? 30 }, new Date());
+  const markers: GlobeMarker[] = [...visible.map((m) => ({ id: m.id, kind: m.kind, lat: m.lat, lng: m.lng, label: `${KIND_LABEL[m.kind]} warning — ${m.place}, ${m.country} (${m.warning.source})` })), ...research];
+  const listed = filterWarningMarkers(official, { gov: s.gov ?? "all", riots: showRiots, protests: showProtests, military: showMil, days: s.age ?? 30 }, new Date());
   const nextWarning = () => { if (!listed.length) return; const i = listed.findIndex((m) => m.id === s.m); pick(listed[(i + 1) % listed.length]!); };
   const nextCountry = () => { if (!names.length) return; const i = names.findIndex((c) => countryKey(c.name) === s.c); onChange({ c: countryKey(names[(i + 1) % names.length]!.name), m: undefined }); };
   const capitals = useMemo(() => { const m = new Map<string, [number, number]>(); for (const p of UNREST_PLACES) if (p[4]) m.set(countryKey(p[0]), [p[2], p[3]]); return m; }, []);
@@ -244,7 +245,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   }, [plane]);
   const emergencies = planeRows.filter((r) => r.p[7] && SQUAWK_MEANING[r.p[7]]);
   const planeAdvice = plane?.p[8] ? travelAdviceLevel(unrest?.warnings ?? [], plane.p[8], unrest?.fcdoAlerts) : null;
-  const headlines = [...official.slice(0, 8).map((m) => ({ id: m.id, text: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.country} (${m.warning.source}, ${fmtStamp(m.warning.updated)})`, go: () => pick(m) })),
+  const headlines = [...official.slice(0, 8).map((m) => ({ id: m.id, text: `${KIND_LABEL[m.kind]} warning — ${m.country} (${m.warning.source}, ${fmtStamp(m.warning.updated)})`, go: () => pick(m) })),
     ...emergencies.slice(0, 6).map((r) => ({ id: `fl-${r.p[0]}`, text: `Aircraft ${SQUAWK_MEANING[r.p[7]!]} — ${r.p[1] || r.p[0]}${r.p[8] ? `, over ${r.p[8].replace(/\b\w/g, (x) => x.toUpperCase())}` : ""} (${fmtStamp(new Date(r.p[10] * 1000).toISOString())})`, go: () => onChange({ fp: r.p[0] }) })),
     ...(feed?.connected ? feed.items.slice(0, 8).map((v) => ({ id: v.id, text: `${v.channel}: ${v.title}`, go: () => onChange({ c: v.country, m: undefined }) })) : [])];
   const hotList = [...hot.entries()].sort((a, b) => a[0].localeCompare(b[0]));
@@ -264,7 +265,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
     <span className="shrink-0 font-mono uppercase text-overdue"><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />Official warnings</span>
     {!unrest ? <span className="text-night-muted">Checking official feeds…</span> : !s.official ? <span className="text-night-muted">Official layer switched off.</span> : official.length === 0 ? <span className="text-night-muted">No riot or protest wording in official advice in the last 30 days.</span> :
       official.slice(0, 12).map((m) => <button key={m.id} onClick={() => pick(m)} className={`shrink-0 rounded border px-2 py-1 hover:bg-night ${m.id === s.m ? "border-electric" : "border-night-line"}`}>
-        <b className={m.kind === "riot" ? "text-overdue" : "text-ageing"}>{m.kind === "riot" ? "Riot" : "Protest"}</b> {m.place}{m.unspecified ? "*" : ""}, {m.country} · <span className="text-night-muted">{m.warning.source} {fmtStamp(m.warning.updated)}</span>
+        <b className={m.kind === "protest" ? "text-ageing" : "text-overdue"}>{KIND_LABEL[m.kind]}</b> {m.place}{m.unspecified ? "*" : ""}, {m.country} · <span className="text-night-muted">{m.warning.source} {fmtStamp(m.warning.updated)}</span>
       </button>)}
     {unrest && <span className="shrink-0 text-night-muted">· checked {fmtStamp(unrest.fetchedAt)}</span>}
     {feed?.connected && <button onClick={() => onChange({ feed: "live" })} className="shrink-0 rounded border border-electric/60 px-2 py-1 font-mono uppercase text-electric-soft hover:bg-night">{feed.items.filter((i) => i.live).length ? `● ${feed.items.filter((i) => i.live).length} live now` : "Live feed"}</button>}
@@ -321,6 +322,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <div className="mt-2 flex gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
           <label className="flex items-center gap-1"><input type="checkbox" checked={showProtests} onChange={(e) => onChange({ protests: e.target.checked })} /> Protests</label>
+          <label className="flex items-center gap-1"><input type="checkbox" checked={showMil} onChange={(e) => onChange({ mil: e.target.checked })} /> Military strikes &amp; war zones</label>
         </div>
         {compact && <Link to="/globe" search={{ ...s, layer: s.layer, gov: s.gov, age: s.age, cmp: s.cmp }} className="mt-2 inline-flex items-center gap-1 text-electric-soft underline"><Maximize2 className="size-3" />Open full-screen globe</Link>}
       </div>}
@@ -370,8 +372,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           <h2 className="text-2xl font-semibold">{selName}</h2>
           <Button variant="ghost" size="icon" aria-label="Close country" onClick={() => onChange({ c: "", m: undefined })}><X className="size-4" /></Button>
         </div>
-        {marker && marker.key === sel && <div className={`mt-3 rounded border p-3 ${marker.kind === "riot" ? "border-overdue/60" : "border-ageing/60"}`}>
-          <p className={`font-mono text-[11px] uppercase ${marker.kind === "riot" ? "text-overdue" : "text-ageing"}`}>{marker.kind === "riot" ? "Riot" : "Protest"} warning · {marker.place}{marker.unspecified ? " (country-wide advice — location not specified)" : ""}</p>
+        {marker && marker.key === sel && <div className={`mt-3 rounded border p-3 ${marker.kind === "protest" ? "border-ageing/60" : "border-overdue/60"}`}>
+          <p className={`font-mono text-[11px] uppercase ${marker.kind === "protest" ? "text-ageing" : "text-overdue"}`}>{KIND_LABEL[marker.kind]} warning · {marker.place}{marker.unspecified ? " (country-wide advice — location not specified)" : ""}</p>
           <p className="mt-1 text-sm">“{marker.warning.text}”</p>
           <p className={`mt-1 font-mono text-[11px] ${AGE_CLS[warningAge(marker.warning.updated, new Date())]}`}>{marker.warning.source} · published {fmtStamp(marker.warning.updated)} · {warningAge(marker.warning.updated, new Date())}</p>
           <a href={marker.warning.url} target="_blank" rel="noreferrer noopener" className="mt-1 inline-flex items-center gap-1 text-xs underline">Read the official advice <ExternalLink className="size-3" /></a>
@@ -413,18 +415,18 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <h2 className="text-lg font-semibold">Click a country to open its pages</h2>
         <p className="mt-1 text-xs text-night-muted">Each country shows its key figures and buttons to every UKStats page we have for it.</p>
         <button className="mt-3 w-full rounded border border-electric/50 px-3 py-2 text-left text-sm hover:bg-night" onClick={() => onChange({ c: "united kingdom" })}><b>United Kingdom</b> <span className="text-xs text-night-muted">· all UK statistics, small boats, crime, parties…</span></button>
-        <h3 className="mt-5 font-semibold">Official riot and protest warnings</h3>
+        <h3 className="mt-5 font-semibold">Official conflict, riot and protest warnings</h3>
         <div className="mt-2 flex flex-wrap gap-1 text-xs" role="group" aria-label="Filter warnings">
           {([["all", "Both governments"], ["FCDO", "UK FCDO"], ["US", "US State Dept"]] as const).map(([v, l]) => <button key={v} aria-pressed={(s.gov ?? "all") === v} onClick={() => onChange({ gov: v === "all" ? undefined : v })} className={`rounded border px-2 py-1 ${(s.gov ?? "all") === v ? "border-electric" : "border-night-line"}`}>{l}</button>)}
           {([[1, "24h"], [7, "7 days"], [30, "30 days"]] as const).map(([v, l]) => <button key={v} aria-pressed={(s.age ?? 30) === v} onClick={() => onChange({ age: v === 30 ? undefined : v })} className={`rounded border px-2 py-1 ${(s.age ?? 30) === v ? "border-electric" : "border-night-line"}`}>{l}</button>)}
         </div>
         <p className="mt-1 text-[11px] text-night-muted">Riot/protest switches on the globe also filter this list.</p>
         {listed.length ? <ul className="mt-2 space-y-1 text-sm">{listed.map((m) => <li key={m.id}><button onClick={() => pick(m)} className="w-full rounded border border-night-line px-3 py-2 text-left hover:bg-night">
-          <b className={m.kind === "riot" ? "text-overdue" : "text-ageing"}>{m.kind === "riot" ? "Riot" : "Protest"}</b> · <b>{m.country}</b>{m.unspecified ? "" : ` — ${m.place}`}
+          <b className={m.kind === "protest" ? "text-ageing" : "text-overdue"}>{KIND_LABEL[m.kind]}</b> · <b>{m.country}</b>{m.unspecified ? "" : ` — ${m.place}`}
           <span className="block text-xs text-night-muted">{m.warning.source} · {fmtStamp(m.warning.updated)}</span></button></li>)}</ul>
           : <p className="mt-2 text-sm text-night-muted">{!unrest ? "Waiting for the official feeds." : !s.official ? "Official layer is switched off." : "No matching warnings in this period."}</p>}
         <h3 className="mt-5 font-semibold">Countries flagged for unrest</h3>
-        <p className="mt-1 text-xs text-night-muted">Where the UK Foreign Office or US State Department mentioned protests, riots, strikes, curfews or a coup in their latest update within 30 days, quoted in their own words.</p>
+        <p className="mt-1 text-xs text-night-muted">Where the UK Foreign Office or US State Department mentioned military strikes, armed conflict, protests, riots, strikes, curfews or a coup in their latest update within 30 days, quoted in their own words.</p>
         {hotList.length ? <ul className="mt-3 space-y-1 text-sm">{hotList.map(([k, ws]) => <li key={k}><button className="w-full rounded border border-night-line px-3 py-2 text-left hover:bg-night" onClick={() => onChange({ c: k })}><b>{ws[0]!.country}</b> <span className="text-xs text-night-muted">· {ws.map((w) => w.source).join(", ")} · {fmtDate(ws[0]!.updated)}</span></button></li>)}</ul> : <p className="mt-3 text-sm text-night-muted">{!unrest ? "Waiting for the official feeds." : s.official ? "None in the last 30 days." : "Official layer is switched off."}</p>}
         <p className="mt-4 text-[11px] text-night-muted">Governments publish travel advice, not live riot maps. ACLED is an independent research body, not a government source.</p>
       </>}</div>}

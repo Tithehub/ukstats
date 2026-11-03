@@ -202,11 +202,11 @@ export function travelAdviceLevel(warnings: OfficialWarning[], key: string, fcdo
 }
 
 /** Warnings feeding the list: by government, marker kind and age in days. */
-export function filterWarningMarkers(markers: UnrestMarker[], f: { gov: "all" | "FCDO" | "US"; riots: boolean; protests: boolean; days: number }, now: Date): UnrestMarker[] {
+export function filterWarningMarkers(markers: UnrestMarker[], f: { gov: "all" | "FCDO" | "US"; riots: boolean; protests: boolean; military?: boolean; days: number }, now: Date): UnrestMarker[] {
   return markers.filter((m) => {
     if (f.gov === "FCDO" && m.warning.source !== "FCDO") return false;
     if (f.gov === "US" && m.warning.source !== "US State Dept") return false;
-    if (m.kind === "riot" ? !f.riots : !f.protests) return false;
+    if (isMilitary(m.kind) ? f.military === false : m.kind === "riot" ? !f.riots : !f.protests) return false;
     const t = Date.parse(m.warning.updated ?? "");
     return Number.isFinite(t) && now.getTime() - t <= f.days * 86_400_000;
   });
