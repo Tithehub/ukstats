@@ -116,10 +116,10 @@ export function parseCbp(csv: string, fileUrl: string): CbpData | null {
   if ([fy, mo, reg, cit, cnt].some((i) => i < 0)) return null;
   const rows = lines.slice(1).map(csvLine).filter((r) => r[reg] === "Southwest Land Border");
   let best = -1, bestFy = 0, bestMo = "";
-  for (const r of rows) { const y = Number(r[fy]); const k = y * 12 + FY_ORDER.indexOf(r[mo]!); if (k > best) { best = k; bestFy = y; bestMo = r[mo]!; } }
+  for (const r of rows) { const y = parseInt(r[fy]!, 10); const k = y * 12 + FY_ORDER.indexOf(r[mo]!); if (k > best) { best = k; bestFy = y; bestMo = r[mo]!; } }
   if (best < 0) return null;
   const by = new Map<string, number>(); let total = 0;
-  for (const r of rows) if (Number(r[fy]) === bestFy && r[mo] === bestMo) { const n = Number(r[cnt]) || 0; total += n; by.set(r[cit]!, (by.get(r[cit]!) ?? 0) + n); }
+  for (const r of rows) if (parseInt(r[fy]!, 10) === bestFy && r[mo] === bestMo) { const n = Number(r[cnt]) || 0; total += n; by.set(r[cit]!, (by.get(r[cit]!) ?? 0) + n); }
   const calYear = FY_ORDER.indexOf(bestMo) < 3 ? bestFy - 1 : bestFy;
   return { period: `${bestMo[0]}${bestMo.slice(1).toLowerCase()} ${calYear}`, total, fileUrl,
     top: [...by].filter(([c]) => mapName(c)).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([citizenship, value]) => ({ citizenship, value })) };
