@@ -18,6 +18,7 @@ import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 import { SLOGAN } from "@/lib/brand";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
+import { PreparednessBanner } from "@/components/PreparednessBanner";
 import { currentBrand } from "@/lib/brand-host";
 import { GlobalHome } from "@/components/home/GlobalHome";
 import { UkTopicNav } from "@/components/UkTopicNav";
@@ -204,6 +205,8 @@ function UkHome() {
         </div>
 
         <RestoreSignupCta className="mt-5" />
+
+        <PreparednessBanner className="mt-5" />
 
         <div className="mt-5"><UkTopicNav /></div>
 
