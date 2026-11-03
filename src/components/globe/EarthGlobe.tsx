@@ -170,14 +170,14 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         objectLat={(m) => (m as GlobeMarker).lat}
         objectLng={(m) => (m as GlobeMarker).lng}
         objectAltitude={0.012}
-        objectFacesSurface
+        objectFacesSurfaces
         objectLabel={(m) => (m as GlobeMarker).label}
         objectThreeObject={(m) => { const x = m as GlobeMarker; const o = icons.current.get(x.id) ?? makeIcon(x.kind, !!x.research); icons.current.set(x.id, o); return o; }}
         onObjectClick={(m) => onMarker?.((m as GlobeMarker).id)}
         ringsData={markers.filter((m) => !m.research)}
         ringLat={(m) => (m as GlobeMarker).lat}
         ringLng={(m) => (m as GlobeMarker).lng}
-        ringColor={(m) => { const r = KIND[(m as GlobeMarker).kind].ring; return (t: number) => `${r}${1 - t})`; }}
+        ringColor={(m: object) => { const r = KIND[(m as GlobeMarker).kind].ring; return (t: number) => `${r}${1 - t})`; }}
         ringMaxRadius={(m) => ((m as GlobeMarker).kind === "riot" ? 3.5 : 2.5)}
         ringPropagationSpeed={2}
         ringRepeatPeriod={still ? 0 : 1400}

@@ -149,7 +149,7 @@ function Home() {
 function HomeGlobe() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const [layers, setLayers] = useState<{ riots?: boolean; protests?: boolean; m?: string | undefined }>({});
+  const [layers, setLayers] = useState<{ riots?: boolean | undefined; protests?: boolean | undefined; m?: string | undefined }>({});
   const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true, ...layers };
   return <section aria-label="World globe" className="mt-5">
     <a href="#home-figures" className="mb-2 inline-flex min-h-11 items-center text-sm text-electric-soft underline sm:hidden">Skip the globe — go to UK figures</a>

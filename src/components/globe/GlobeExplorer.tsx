@@ -82,7 +82,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const official = useMemo(() => (unrest && s.official ? unrestMarkers(unrest.warnings, new Date(), UNREST_PLACES) : []), [unrest, s.official]);
   const visible = official.filter((m) => (m.kind === "riot" ? showRiots : showProtests));
   const research: GlobeMarker[] = events.flatMap((e) => {
-    const k = /riot/i.test(e.type) ? "riot" : /protest/i.test(e.type) ? "protest" : null;
+    const k: "riot" | "protest" | null = /riot/i.test(e.type) ? "riot" : /protest/i.test(e.type) ? "protest" : null;
     if (!k || (k === "riot" ? !showRiots : !showProtests)) return [];
     return [{ id: `acled|${e.id}`, kind: k, lat: e.lat, lng: e.lng, label: `${e.subType || e.type} — ${e.location}, ${e.date} (ACLED research, not official)`, research: true }];
   }).slice(0, 150);
