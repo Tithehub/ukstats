@@ -31,10 +31,10 @@ export function PreparednessBanner({ className = '' }: { className?: string }) {
           <Link to="/preparedness" search={{ region: "all", q: "" }} hash="household-checklist" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
             <ClipboardCheck className="size-4 shrink-0" aria-hidden="true" />Free household checklist — check what you already own
           </Link>
-          <Link to="/preparedness" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
+          <Link to="/preparedness" search={{ region: "all", q: "" }} className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
             <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />Official UK advice — 3 litres of water per person per day
           </Link>
-          <Link to="/preparedness" className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
+          <Link to="/preparedness" search={{ region: "all", q: "" }} className="flex min-h-11 items-center gap-3 rounded-md border border-dedication-foreground/20 bg-dedication-foreground/5 px-4 py-2 hover:bg-dedication-foreground/10">
             <Globe2 className="size-4 shrink-0" aria-hidden="true" />Government advice by country — UK, US, Canada and more
           </Link>
         </nav>
