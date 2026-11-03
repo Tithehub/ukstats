@@ -33,3 +33,17 @@ describe("migration flows", () => {
     expect(boatIcons(500)).toHaveLength(60);
   });
 });
+
+import { boatHistory, boatAgeColor } from "./migration-flows";
+describe("boatHistory", () => {
+  const days = [{ date: "2026-07-01", boats: 3 }, { date: "2026-08-01", boats: 2 }, { date: "2026-10-30", boats: 4 }];
+  it("keeps only days within 90 days of the latest, one icon per boat", () => {
+    const h = boatHistory(days);
+    expect(h).toHaveLength(6);
+    expect(h.filter((b) => b.date === "2026-07-01")).toHaveLength(0);
+  });
+  it("colours the latest day green", () => {
+    expect(boatHistory(days).filter((b) => b.ageDays === 0).every((b) => b.color === "#3fcf7a")).toBe(true);
+    expect(boatAgeColor(60)).not.toBe("#3fcf7a");
+  });
+});
