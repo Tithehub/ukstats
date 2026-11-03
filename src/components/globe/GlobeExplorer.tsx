@@ -1,7 +1,7 @@
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ExternalLink, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon } from "lucide-react";
+import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -29,6 +29,7 @@ import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatHistory, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flows";
 import { SMALL_BOATS_SOURCE } from "@/lib/small-boats";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
+import { GlobeKey } from "@/components/globe/GlobeKey";
 
 const loadEarthGlobe = () => import("@/components/globe/EarthGlobe");
 const EarthGlobe = lazy(loadEarthGlobe);
@@ -189,6 +190,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const [resetKey, setResetKey] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
+  const [keyOpen, setKeyOpen] = useState(false);
   useEffect(() => { setSheetOpen(false); }, [s.c]);
   const hot = useMemo(() => (unrest && s.official && !s.layer ? unrestHotspots(unrest.warnings, new Date()) : new Map<string, OfficialWarning[]>()), [unrest, s.official, s.layer]);
   const hotKeys = useMemo(() => new Set(hot.keys()), [hot]);
@@ -315,7 +317,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           <Button type="submit" size="sm">Go</Button>
           <datalist id="globe-country-names">{names.map((c) => <option key={c.iso3} value={c.name} />)}</datalist>
         </form>
-          <button type="button" onClick={() => setLayersOpen((o) => !o)} aria-expanded={layersOpen} aria-controls="globe-layers" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Layers className="size-3.5" />Layers</button>
+          <button type="button" onClick={() => { setLayersOpen((o) => !o); setKeyOpen(false); }} aria-expanded={layersOpen} aria-controls="globe-layers" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Layers className="size-3.5" />Layers</button>
+          <button type="button" onClick={() => { setKeyOpen((o) => !o); setLayersOpen(false); }} aria-expanded={keyOpen} aria-controls="globe-key" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Info className="size-3.5" />Key</button>
           <GlobeShare title={`${selName ? `${selName} — ` : ""}live globe | UKStats`} />
         </div>
       </div>
@@ -351,6 +354,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         </div>
         {compact && <Link to="/globe" search={{ ...s, layer: s.layer, gov: s.gov, age: s.age, cmp: s.cmp }} className="mt-2 inline-flex items-center gap-1 text-electric-soft underline"><Maximize2 className="size-3" />Open full-screen globe</Link>}
       </div>}
+      {keyOpen && <GlobeKey onClose={() => setKeyOpen(false)} />}
       {(stat && ind || s.layer) && !layersOpen && <div aria-label="Colour key" className="absolute right-3 bottom-14 z-10 max-w-[60%] rounded-md border border-night-line bg-night-panel/90 p-2 text-[10px] backdrop-blur sm:top-3 sm:bottom-auto sm:max-w-56">
         {stat && ind ? <><p className="truncate font-semibold">{ind.label} · {stat.newest ?? "—"}</p><div className="mt-1 h-1.5 rounded" style={{ background: `linear-gradient(to right, ${shadeColour(0)}, ${shadeColour(0.5)}, ${shadeColour(1)})` }} /><div className="flex justify-between font-mono text-night-muted"><span>Low rank</span><span>Rank 1</span></div></>
           : s.layer === "us" ? <ul>{[1, 2, 3, 4].map((l) => <li key={l}><Swatch c={US_LEVEL_COLOURS[l]!} />Level {l}</li>)}<li className="text-night-muted">US State Dept</li></ul>
