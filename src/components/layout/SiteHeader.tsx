@@ -68,7 +68,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/parties", label: "Political party comparison", icon: Vote },
       { to: "/governments", label: "Governments", icon: LayoutGrid },
       { to: "/restore-britain", label: "Restore Britain videos & stories", icon: FileText },
-      { to: "/preparedness", label: "Be prepared — official advice", icon: FileText },
+      { to: "/preparedness", label: "Emergency Preparedness", icon: LifeBuoy },
       { to: "/globe", label: "World globe — unrest warnings", icon: LayoutGrid },
     ],
   },
@@ -93,6 +93,7 @@ const PRIMARY: NavItem[] = [
   { to: "/countries", label: "World", icon: Globe2 },
   { to: "/maps", label: "Maps", icon: MapIcon },
   { to: "/compare-countries", label: "Compare", icon: GitCompareArrows },
+  { to: "/preparedness", label: "Emergency Preparedness", icon: LifeBuoy },
 ];
 
 export function Wordmark() {
@@ -136,7 +137,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
       <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-4 py-2.5 sm:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-6">
           <Wordmark />
-          <nav aria-label="Primary" className="hidden items-center gap-1 font-mono text-[12px] lg:flex">
+          <nav aria-label="Primary" className="hidden items-center gap-1 font-mono text-[12px] xl:flex">
             {PRIMARY.map((n) => (
               <Link
                 key={n.to}

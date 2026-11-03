@@ -1,5 +1,11 @@
 # Roadmap
 
+## Emergency Preparedness — Stage 1, 3 November 2026
+- [ ] Add primary navigation and a reassuring preparedness homepage within the existing section
+- [ ] Show official Be Ready guidance, provisional equipment packages and free checklist overview; retain international official-source advice
+- [ ] Verify prices/exclusions, navigation, images and desktop/phone layout; preview only, no purchasing or supplier claims
+- Later stages in the brief are outside this Stage 1 request: full product pages, water calculator, interactive/PDF checklist, guide/FAQ pages and commerce integration.
+
 ## Restore Britain media — 23 October 2026
 - [x] Verified official channel from Restore Britain's homepage; /restore-britain includes all 125 Videos, 154 Shorts and 14 policy-story index entries retrieved on 23 October, with CDN-hosted original thumbnails and publisher links
 - [x] Menu and sitemap added; source/filter tests passed; desktop/phone thumbnail rendering, search, pagination and menu verified without page errors; dated snapshot explicitly excludes future/private/deleted entries; preview only
