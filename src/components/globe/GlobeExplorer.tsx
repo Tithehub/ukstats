@@ -194,7 +194,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const live = sel ? LIVE_SOURCES[sel] : undefined;
   const selName = wb?.name ?? warnings[0]?.country ?? sel;
   const dests = sel ? countryDestinations(wb?.iso2 ?? (sel === "united kingdom" ? "GB" : ""), wb?.iso3 ?? null, selName ?? "") : [];
-  const [onAir, setOnAir] = useState(true);
+  const [onAir, setOnAir] = useState(false);
   const order = useMemo(() => buildRunningOrder(names.map((c) => countryKey(c.name)), unrest?.warnings ?? []), [names, unrest]);
   const goNext = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
   const goPrev = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY, -1); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
