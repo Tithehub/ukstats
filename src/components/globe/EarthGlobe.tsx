@@ -50,13 +50,28 @@ function planeTexture(st: GlobePlane["status"]) {
 }
 
 // Plain WebGL colours mirroring the overdue (riot) and ageing (protest) tokens.
-const KIND = { riot: { c: "#e0452f", ring: "rgba(224,69,47," }, protest: { c: "#f0a020", ring: "rgba(240,160,32," } } as const;
+const KIND = { riot: { c: "#e0452f", ring: "rgba(224,69,47," }, protest: { c: "#f0a020", ring: "rgba(240,160,32," }, strike: { c: "#ff2a1a", ring: "rgba(255,42,26," }, war: { c: "#9a1b1b", ring: "rgba(190,30,30," } } as const;
 
 function makeIcon(kind: UnrestKind, research: boolean): THREE.Object3D {
   const col = new THREE.Color(KIND[kind].c);
   const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: research ? 0.3 : 0.8, flatShading: true, transparent: research, opacity: research ? 0.6 : 1 });
   const g = new THREE.Group();
-  if (kind === "riot") {
+  if (kind === "strike") {
+    // Missile diving onto a flash burst.
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 2, 8), new THREE.MeshStandardMaterial({ color: "#c9ccd2", flatShading: true }));
+    body.position.y = 2.4;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.6, 8), mat); tip.position.y = 1.1; tip.rotation.z = Math.PI;
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, 0.06), mat); fin.position.y = 3.3;
+    const burst = new THREE.Mesh(new THREE.IcosahedronGeometry(0.75, 0), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ff7a1a", emissiveIntensity: 1.2, flatShading: true }));
+    burst.position.y = 0.4;
+    g.add(body, tip, fin, burst);
+  } else if (kind === "war") {
+    // Crossed swords over a shield.
+    const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2, 6), mat); shield.rotation.x = Math.PI / 2; shield.position.y = 1.4;
+    const steel = new THREE.MeshStandardMaterial({ color: "#e6e8ec", metalness: 0.6, roughness: 0.3, flatShading: true });
+    for (const a of [0.7, -0.7]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.14, 3, 0.08), steel); b.position.set(0, 1.5, 0.15); b.rotation.z = a; g.add(b); }
+    g.add(shield);
+  } else if (kind === "riot") {
     const outer = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.6, 6), mat); outer.position.y = 1.3;
     const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 0), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ffb020", emissiveIntensity: 1, flatShading: true }));
     inner.position.y = 0.6;
@@ -222,7 +237,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         ringLat={(m) => (m as GlobeMarker).lat}
         ringLng={(m) => (m as GlobeMarker).lng}
         ringColor={(m: object) => { const r = KIND[(m as GlobeMarker).kind].ring; return (t: number) => `${r}${1 - t})`; }}
-        ringMaxRadius={(m) => ((m as GlobeMarker).kind === "riot" ? 3.5 : 2.5)}
+        ringMaxRadius={(m) => { const k = (m as GlobeMarker).kind; return k === "war" ? 5 : k === "strike" ? 4.5 : k === "riot" ? 3.5 : 2.5; }}
         ringPropagationSpeed={2}
         ringRepeatPeriod={still ? 0 : 1400}
         labelsData={feedPins}

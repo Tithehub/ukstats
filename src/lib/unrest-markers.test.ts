@@ -23,5 +23,7 @@ describe("unrest markers", () => {
   it("classifies wording", () => {
     expect(classifyUnrest("civil disorder")).toBe("riot");
     expect(classifyUnrest("strikes planned")).toBe("protest");
+    expect(classifyUnrest("risk of missile strikes and drone attacks")).toBe("strike");
+    expect(classifyUnrest("there is an ongoing armed conflict")).toBe("war");
   });
 });

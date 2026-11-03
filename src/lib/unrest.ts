@@ -107,16 +107,23 @@ export function unrestHotspots(warnings: OfficialWarning[], now: Date, maxDays =
 
 // ---- Markers: where an official warning's own words mention riots or protests ----
 
-export type UnrestKind = "riot" | "protest";
+export type UnrestKind = "riot" | "protest" | "strike" | "war";
+const STRIKE = /\b(air ?strikes?|airstrikes?|missile (?:strikes?|attacks?|fire)|missiles?|drone (?:strikes?|attacks?)|rocket (?:fire|attacks?)|rockets?|shelling|artillery|bombardment|military strikes?|aerial attacks?)\b/i;
+const WAR = /\b(armed conflict|active conflict|war|warzone|war zone|military (?:operations?|activity|action)|hostilities|invasion|fighting between|ongoing conflict|front ?line)\b/i;
 const RIOT = /\b(riots?|rioting|civil disorder|violent clashes|looting|coup|martial law)\b/i;
 const PROTEST = /\b(demonstrations?|protests?|unrest|strikes?|curfews?|marches)\b/i;
 
-/** riot / protest / null, from the publisher's own wording only. */
+/** Military strike / war zone / riot / protest / null, from the publisher's own wording only. Military wording wins so "missile strikes" is never read as an industrial strike. */
 export function classifyUnrest(text: string): UnrestKind | null {
+  if (STRIKE.test(text)) return "strike";
+  if (WAR.test(text)) return "war";
   if (RIOT.test(text)) return "riot";
   if (PROTEST.test(text)) return "protest";
   return null;
 }
+
+export const KIND_LABEL: Record<UnrestKind, string> = { riot: "Riot", protest: "Protest", strike: "Military strike", war: "Active conflict" };
+export const isMilitary = (k: UnrestKind) => k === "strike" || k === "war";
 
 export type Place = [country: string, name: string, lat: number, lng: number, capital: 0 | 1];
 
@@ -195,11 +202,11 @@ export function travelAdviceLevel(warnings: OfficialWarning[], key: string, fcdo
 }
 
 /** Warnings feeding the list: by government, marker kind and age in days. */
-export function filterWarningMarkers(markers: UnrestMarker[], f: { gov: "all" | "FCDO" | "US"; riots: boolean; protests: boolean; days: number }, now: Date): UnrestMarker[] {
+export function filterWarningMarkers(markers: UnrestMarker[], f: { gov: "all" | "FCDO" | "US"; riots: boolean; protests: boolean; military?: boolean; days: number }, now: Date): UnrestMarker[] {
   return markers.filter((m) => {
     if (f.gov === "FCDO" && m.warning.source !== "FCDO") return false;
     if (f.gov === "US" && m.warning.source !== "US State Dept") return false;
-    if (m.kind === "riot" ? !f.riots : !f.protests) return false;
+    if (isMilitary(m.kind) ? f.military === false : m.kind === "riot" ? !f.riots : !f.protests) return false;
     const t = Date.parse(m.warning.updated ?? "");
     return Number.isFinite(t) && now.getTime() - t <= f.days * 86_400_000;
   });
