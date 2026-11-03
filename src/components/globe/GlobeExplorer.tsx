@@ -199,9 +199,6 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const goPrev = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY, -1); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
   const bulletinStats = wb ? WORLD_INDICATORS.slice(0, 6).flatMap((i) => { const v = world?.values[i.id]?.[wb.iso3]; return v ? [{ label: i.label, value: `${fmtWorld(v.value, i.unit)} (${v.year})` }] : []; }) : [];
   const countryVideos = sel && feed?.connected ? feed.items.filter((v) => v.country === sel) : [];
-  const headlines = [...official.slice(0, 8).map((m) => ({ id: m.id, text: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.country} (${m.warning.source}, ${fmtStamp(m.warning.updated)})`, go: () => pick(m) })),
-    ...emergencies.slice(0, 6).map((r) => ({ id: `fl-${r.p[0]}`, text: `Aircraft ${SQUAWK_MEANING[r.p[7]!]} — ${r.p[1] || r.p[0]}${r.p[8] ? `, over ${r.p[8].replace(/\b\w/g, (x) => x.toUpperCase())}` : ""} (${fmtStamp(new Date(r.p[10] * 1000).toISOString())})`, go: () => onChange({ fp: r.p[0] }) })),
-    ...(feed?.connected ? feed.items.slice(0, 8).map((v) => ({ id: v.id, text: `${v.channel}: ${v.title}`, go: () => onChange({ c: v.country, m: undefined }) })) : [])];
   const areaAdvice = useMemo(() => {
     const m = new Map<string, AreaAdvice>();
     for (const w of unrest?.warnings ?? []) if (w.source === "US State Dept" && w.level) m.set(w.key, { ...m.get(w.key), us: w.level });
@@ -236,6 +233,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   }, [plane]);
   const emergencies = planeRows.filter((r) => r.p[7] && SQUAWK_MEANING[r.p[7]]);
   const planeAdvice = plane?.p[8] ? travelAdviceLevel(unrest?.warnings ?? [], plane.p[8], unrest?.fcdoAlerts) : null;
+  const headlines = [...official.slice(0, 8).map((m) => ({ id: m.id, text: `${m.kind === "riot" ? "Riot" : "Protest"} warning — ${m.country} (${m.warning.source}, ${fmtStamp(m.warning.updated)})`, go: () => pick(m) })),
+    ...emergencies.slice(0, 6).map((r) => ({ id: `fl-${r.p[0]}`, text: `Aircraft ${SQUAWK_MEANING[r.p[7]!]} — ${r.p[1] || r.p[0]}${r.p[8] ? `, over ${r.p[8].replace(/\b\w/g, (x) => x.toUpperCase())}` : ""} (${fmtStamp(new Date(r.p[10] * 1000).toISOString())})`, go: () => onChange({ fp: r.p[0] }) })),
+    ...(feed?.connected ? feed.items.slice(0, 8).map((v) => ({ id: v.id, text: `${v.channel}: ${v.title}`, go: () => onChange({ c: v.country, m: undefined }) })) : [])];
   const hotList = [...hot.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   const find = (e: React.FormEvent) => {

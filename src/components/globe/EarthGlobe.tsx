@@ -39,14 +39,14 @@ export interface GlobeProps {
 export interface GlobePlane { id: string; lat: number; lng: number; status: "green" | "amber" | "red"; label: string }
 // Plain WebGL colours mirroring the fresh / ageing / overdue tokens.
 const PLANE_C = { green: "#3fcf7a", amber: "#f0a020", red: "#ff4a3a" } as const;
-let planeTex: string | null = null;
+let planeTex: THREE.Texture | null = null;
 /** Small white plane silhouette, tinted per layer. */
 function planeTexture() {
   if (planeTex) return planeTex;
   const c = document.createElement("canvas"); c.width = c.height = 64;
   const x = c.getContext("2d")!; x.fillStyle = "#fff"; x.beginPath();
   x.moveTo(32, 4); x.lineTo(37, 26); x.lineTo(60, 38); x.lineTo(60, 44); x.lineTo(37, 37); x.lineTo(36, 52); x.lineTo(44, 58); x.lineTo(44, 62); x.lineTo(32, 58); x.lineTo(20, 62); x.lineTo(20, 58); x.lineTo(28, 52); x.lineTo(27, 37); x.lineTo(4, 44); x.lineTo(4, 38); x.lineTo(27, 26); x.closePath(); x.fill();
-  return (planeTex = c.toDataURL());
+  return (planeTex = new THREE.CanvasTexture(c));
 }
 
 // Plain WebGL colours mirroring the overdue (riot) and ageing (protest) tokens.
@@ -243,7 +243,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         particlesColor={(set) => PLANE_C[(set as { st: GlobePlane["status"] }).st]}
         particlesSize={(set) => ((set as { st: string }).st === "green" ? 0.9 : 1.6) * planeSize}
         particlesSizeAttenuation={false}
-        particlesTexture={planes.length ? planeTexture() : undefined}
+        {...(planes.length ? { particlesTexture: planeTexture() } : {})}
         particleLabel={(p) => (p as GlobePlane).label}
         onParticleClick={(p) => onPlane?.((p as GlobePlane).id)}
         pathsData={planePaths}
@@ -254,7 +254,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pathColor={(d) => (d as { color: string }).color}
         pathStroke={2}
         pathDashLength={(d) => ((d as { ahead: boolean }).ahead ? 0.05 : 1)}
-        pathDashGap={(d) => ((d as { ahead: boolean }).ahead ? 0.03 : 0)}
+        pathDashGap={(d: object) => ((d as { ahead: boolean }).ahead ? 0.03 : 0)}
         pathTransitionDuration={0}
       />
     </div>
