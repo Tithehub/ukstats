@@ -18,7 +18,7 @@ const r3 = (n: number) => Math.round(n * 1000) / 1000;
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
 /** OpenSky /states/all → airborne planes (metres and m/s converted to feet and knots). */
-export function parseOpenSky(json: unknown): Omit<Plane, 8>[] extends never ? never : Plane[] {
+export function parseOpenSky(json: unknown): Plane[] {
   const states = (json as { states?: unknown[][] } | null)?.states;
   if (!Array.isArray(states)) return [];
   const out: Plane[] = [];
