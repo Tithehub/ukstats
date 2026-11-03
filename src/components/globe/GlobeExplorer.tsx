@@ -23,7 +23,8 @@ import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 
-const EarthGlobe = lazy(() => import("@/components/globe/EarthGlobe"));
+const loadEarthGlobe = () => import("@/components/globe/EarthGlobe");
+const EarthGlobe = lazy(loadEarthGlobe);
 
 export type GlobeState = {
   ind: string; official: boolean; acled: boolean; c: string; riots?: boolean | undefined; protests?: boolean | undefined; m?: string | undefined;
@@ -149,8 +150,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   const { data: flights } = useQuery(flightsQuery(!!s.fl));
   const [gl, setGl] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
-  useEffect(() => { const g = hasWebGL(); console.warn("GLDBG", g); setGl(g); }, []);
-  useEffect(() => { console.warn("COMMITDBG", gl, document.querySelector("section[data-gl]")?.getAttribute("data-gl"), document.querySelectorAll("section[data-gl]").length); }, [gl]);
+  // Load the 3D module before switching it on, so the swap never suspends inside a pending navigation and leaves the globe blank.
+  useEffect(() => { const g = hasWebGL(); if (!g) { setGl(false); return; } let live = true; void loadEarthGlobe().then(() => { if (live) setGl(true); }, () => { if (live) setGl(false); }); return () => { live = false; }; }, []);
 
   const ind = WORLD_INDICATORS.find((i) => i.slug === s.ind) ?? null;
   const byKey = useMemo(() => new Map((world?.countries ?? []).map((c) => [countryKey(c.name), c])), [world]);
@@ -261,7 +262,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   </div>;
 
   return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
-    <Suspense fallback={<p>SUSPENDED-SECTION</p>}><section data-gl={String(gl)} aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
+    <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
@@ -321,9 +322,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         <button onClick={() => setRotate((r) => !r)} aria-pressed={!!rotate} aria-label={rotate ? "Stop spin" : "Spin"} className={CTRL}>{rotate ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}<span className="max-sm:sr-only">{rotate ? "Stop spin" : "Spin"}</span></button>
         <button onClick={() => { setResetKey((k) => k + 1); onChange({ c: "", m: undefined }); }} aria-label="Reset view" className={CTRL}><RotateCcw className="size-3.5" /><span className="max-sm:sr-only">Reset view</span></button>
       </div>}
-    </section></Suspense>
+    </section>
 
-    <Suspense fallback={<p>SUSPENDED-ASIDE</p>}><aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
+    <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
       {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" /><b className="text-night-fg">{selName}</b> · {sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
@@ -413,7 +414,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
         {hotList.length ? <ul className="mt-3 space-y-1 text-sm">{hotList.map(([k, ws]) => <li key={k}><button className="w-full rounded border border-night-line px-3 py-2 text-left hover:bg-night" onClick={() => onChange({ c: k })}><b>{ws[0]!.country}</b> <span className="text-xs text-night-muted">· {ws.map((w) => w.source).join(", ")} · {fmtDate(ws[0]!.updated)}</span></button></li>)}</ul> : <p className="mt-3 text-sm text-night-muted">{!unrest ? "Waiting for the official feeds." : s.official ? "None in the last 30 days." : "Official layer is switched off."}</p>}
         <p className="mt-4 text-[11px] text-night-muted">Governments publish travel advice, not live riot maps. ACLED is an independent research body, not a government source.</p>
       </>}</div>}
-    </aside></Suspense>
+    </aside>
   </div>
   <div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-t border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
     <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">Latest</span>
