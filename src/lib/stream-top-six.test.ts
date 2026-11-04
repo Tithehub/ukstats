@@ -14,7 +14,7 @@ describe("topSix", () => {
   it("UK uses the latest Home Office day", () => {
     const b = topSix(world, "GBR", boats, true)[0]!;
     expect(b.value).toBe("412 people");
-    expect(b.when).toBe("7 boats · 3 Nov 2026");
+    expect(b.when).toBe("7 boats · 03 Nov 2026");
   });
   it("non-UK countries show no small-boats figure", () => {
     expect(topSix(world, "FRA", boats, false)[0]!.value).toBeNull();
