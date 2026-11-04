@@ -94,7 +94,7 @@ function BroadcastPage() {
     </header>
 
     <div className="relative flex min-h-0 flex-1">
-      <main className="relative flex min-w-0 flex-1 flex-col"><GlobeExplorer state={s} onChange={onChange} compact /></main>
+      <main className="relative flex min-w-0 flex-1 flex-col"><GlobeExplorer state={s} onChange={onChange} /></main>
 
       <aside className="z-30 flex w-[26%] flex-col gap-3 border-l border-night-line bg-night-panel/95 p-4">
         {card ? <section key={`${seg?.id}-${card.title}`} className="rounded border border-night-line bg-night p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4">
