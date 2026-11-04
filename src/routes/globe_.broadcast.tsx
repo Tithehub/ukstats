@@ -87,6 +87,7 @@ function BroadcastPage() {
   }, []);
 
   const { data: boatsData } = useQuery(smallBoatsQuery());
+  const { data: worldData } = useQuery(worldQuery());
   const metrics = stats?.metrics ?? [];
   const emergency = flights?.planes ? flights.planes.filter((p) => p[7] === "7500" || p[7] === "7600" || p[7] === "7700").length : null;
   const tenMin = now ? Math.floor(now.getTime() / 600_000) : 0;
