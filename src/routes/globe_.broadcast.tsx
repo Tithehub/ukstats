@@ -160,7 +160,7 @@ function BroadcastPage() {
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 h-[470px] overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{figure}</aside>
-      <div className="absolute left-1/2 top-[1252px] z-30 w-[680px] -translate-x-1/2">{clip}</div>
+      <div className="absolute left-1/2 top-[1252px] z-30 w-[620px] -translate-x-1/2">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
   </div></div>;
@@ -173,9 +173,9 @@ function Header({ seg, clock, region, portrait }: { seg: Segment | undefined; cl
       <span className="text-[40px] font-black tracking-tight">UKSTATS</span>
       <span className="rounded bg-destructive px-2 py-0.5 text-[24px] font-bold text-destructive-foreground">● LIVE</span>
     </div>
-    <div data-fit key={seg?.id} className={`flex min-w-0 flex-1 flex-col justify-center overflow-hidden px-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-4 ${portrait ? "h-[70px]" : ""}`}>
+    <div data-fit key={seg?.id} className={`flex min-w-0 flex-1 flex-col justify-center overflow-hidden px-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-4 `}>
       <span className={`font-mono text-[22px] font-bold uppercase tracking-widest ${major ? "" : "text-electric"}`}>{major ? "Major issue" : region}</span>
-      <span className="truncate text-[40px] font-black uppercase leading-tight tracking-tight">{seg?.title ?? "Official UK statistics"}</span>
+      <span className={`font-black uppercase leading-tight tracking-tight ${portrait ? "line-clamp-2 text-[34px]" : "truncate text-[40px]"}`}>{seg?.title ?? "Official UK statistics"}</span>
     </div>
     <div className={`flex items-center px-6 font-mono text-[26px] ${portrait ? "hidden" : ""}`}>{clock} <span className="ml-2 text-[20px] opacity-80">London</span></div>
   </header>;
