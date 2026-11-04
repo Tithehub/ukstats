@@ -35,6 +35,11 @@ function StudioPage() {
   const wrap = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
   const [guides, setGuides] = useState(true);
+  const [fits, setFits] = useState(true);
+  useEffect(() => {
+    const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === "ukstats-stream-fit") setFits(!!e.data.ok); };
+    addEventListener("message", on); return () => removeEventListener("message", on);
+  }, []);
   const [done, setDone] = useState<boolean[]>(() => STUDIO_CHECKLIST.map(() => false));
 
   useEffect(() => {
@@ -55,6 +60,7 @@ function StudioPage() {
         <a href="/globe/broadcast" target="_blank" rel="noopener" className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">Open full-size stream page</a>
       </div>
     </header>
+    {!fits && <p role="alert" className="mb-3 rounded border border-destructive bg-destructive/10 px-3 py-2 text-sm">Something is cut off in the stream's right panel — tell us which segment and we'll shorten it.</p>}
     <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
       <div ref={wrap} className="relative w-full overflow-hidden rounded border border-border bg-muted" style={{ aspectRatio: "16 / 9" }}>
         <iframe title="Live stream preview" src="/globe/broadcast" className="absolute left-0 top-0 origin-top-left border-0"

@@ -156,7 +156,7 @@ function hasWebGL() {
 }
 
 /** The globe plus its control panel, shared by the home page and /globe. */
-export function GlobeExplorer({ state: s, onChange, compact = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean }) {
+export function GlobeExplorer({ state: s, onChange, compact = false, broadcast = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean; broadcast?: boolean }) {
   const { data: world } = useQuery(worldQuery());
   const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
   const [feedPaused, setFeedPaused] = useState(false);
@@ -282,7 +282,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
   };
 
   const loading = <div className="grid h-full place-items-center text-sm text-night-muted">Loading globe…</div>;
-  const height = compact ? "h-[52vh] min-h-[340px] max-h-[620px]" : "h-[60vh] min-h-[380px] lg:h-auto";
+  const height = broadcast ? "h-full" : compact ? "h-[52vh] min-h-[340px] max-h-[620px]" : "h-[60vh] min-h-[380px] lg:h-auto";
 
   const ticker = <div aria-label="Latest official riot and protest warnings" className="flex items-center gap-2 overflow-x-auto border-b border-night-line bg-night-panel px-3 py-2 text-xs text-night-fg">
     <span className="shrink-0 font-mono uppercase text-overdue"><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />Official warnings</span>
@@ -294,11 +294,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
     {feed?.connected && <button onClick={() => onChange({ feed: "live" })} className="shrink-0 rounded border border-electric/60 px-2 py-1 font-mono uppercase text-electric-soft hover:bg-night">{feed.items.filter((i) => i.live).length ? `● ${feed.items.filter((i) => i.live).length} live now` : "Live feed"}</button>}
   </div>;
 
-  return <div className={compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}><div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-b border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
+  return <div className={broadcast ? "flex h-full min-h-0 flex-col overflow-hidden" : compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{!broadcast && <><div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-b border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
     <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">Latest</span>
     {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
       : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
-  </div>{ticker}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "flex-1"}`}>
+  </div>{ticker}</>}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "min-h-0 flex-1"}`}>
     <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
@@ -306,7 +306,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
         {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
-      <div className="absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80">
+      <div className={`absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80 ${broadcast ? "hidden" : ""}`}>
         <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
         <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1">
@@ -360,8 +360,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
           : s.layer === "us" ? <ul>{[1, 2, 3, 4].map((l) => <li key={l}><Swatch c={US_LEVEL_COLOURS[l]!} />Level {l}</li>)}<li className="text-night-muted">US State Dept</li></ul>
           : <ul>{(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => <li key={a} className="truncate"><Swatch c={UK_ALERT_COLOURS[a]} />{FCDO_ALERT_LABEL[a].replace("FCDO advises against ", "Against ")}</li>)}<li className="text-night-muted">UK FCDO</li></ul>}
       </div>}
-      {gl && <NewsScreens storageKey={compact ? "ukstats-news-screens-home" : undefined} countries={screenCountries} bulletinFor={bulletinFor} step={stepCountry} defaultCountry={UK_KEY} />}
-      {gl && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs">
+      {gl && !broadcast && <NewsScreens storageKey={compact ? "ukstats-news-screens-home" : undefined} countries={screenCountries} bulletinFor={bulletinFor} step={stepCountry} defaultCountry={UK_KEY} />}
+      {gl && !broadcast && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs">
         <button onClick={nextWarning} disabled={!listed.length} aria-label="Next warning" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next warning</span></button>
         <button onClick={nextCountry} aria-label="Next country" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next country</span></button>
         <button onClick={() => setRotate((r) => !r)} aria-pressed={!!rotate} aria-label={rotate ? "Stop spin" : "Spin"} className={CTRL}>{rotate ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}<span className="max-sm:sr-only">{rotate ? "Stop spin" : "Spin"}</span></button>
@@ -369,7 +369,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </div>}
     </section>
 
-    <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
+    <aside aria-label="Country controls" className={`${broadcast ? "hidden " : ""}w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
       {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" /><b className="text-night-fg">{selName}</b> · {sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
@@ -463,7 +463,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false }: { state: 
       </>}</div>}
     </aside>
   </div>
-  <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>
+  {!broadcast && <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>}
   </div>;
 }
 
