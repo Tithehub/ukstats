@@ -161,7 +161,7 @@ function ClipBox({ segmentId }: { segmentId: string }) {
   useEffect(() => setI(0), [segmentId]);
   const c = clips.length ? clips[i % clips.length]! : null;
   return <section className="overflow-hidden rounded border border-night-line bg-night">
-    <div className="relative aspect-video bg-night-panel">
+    <div className="relative h-[200px] bg-night-panel">
       {c ? <video key={c.id} src={c.url} autoPlay muted playsInline onEnded={() => setI((x) => x + 1)} className="absolute inset-0 size-full object-cover" />
         : <div className="absolute inset-0 grid place-items-center p-4 text-center font-mono text-xs text-night-muted">No licensed clip for this topic</div>}
       {c && <span className="absolute left-2 top-2 rounded bg-night/80 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest">Footage</span>}
