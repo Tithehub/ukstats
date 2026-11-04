@@ -14,7 +14,14 @@ describe("stream clips", () => {
     expect(clipAllowed(clip({ licence: "Licensed news (paid)" }))).toBe(false);
   });
   it("never substitutes a clip when nothing matches", () => {
-    expect(clipsFor("boats", STREAM_CLIPS)).toEqual([]);
+    expect(clipsFor("no-such-topic", STREAM_CLIPS)).toEqual([]);
+  });
+  it("alternates newest and archive footage", () => {
+    const out = clipsFor("crime", [clip({ id: "old", published: "2010-01-01" }), clip({ id: "new", published: "2025-01-01" })]);
+    expect(out.map((c) => c.id)).toEqual(["new", "old"]);
+  });
+  it("keeps country-tagged clips to their own country", () => {
+    expect(clipsFor("crime", [clip({ country: "united states" })], "france")).toEqual([]);
   });
   it("every shipped clip passes the rules", () => {
     expect(STREAM_CLIPS.every(clipAllowed)).toBe(true);
