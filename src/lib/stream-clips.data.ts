@@ -1,13 +1,13 @@
 // Dated snapshot of free-to-reuse footage for the live stream. Each entry was checked on its
 // Wikimedia Commons file page (licence, author, date) on CHECKED. Clips were trimmed to 30s and muted.
-import police from "@/assets/stream-clips/met_police_westminster.mp4.asset.json";
-import trafalgar from "@/assets/stream-clips/trafalgar_protest.mp4.asset.json";
-import march from "@/assets/stream-clips/london_march.mp4.asset.json";
-import thames from "@/assets/stream-clips/thames_city_london.mp4.asset.json";
-import nhs from "@/assets/stream-clips/nhs_protest_london.mp4.asset.json";
-import delhi from "@/assets/stream-clips/aircraft_landing_timelapse.mp4.asset.json";
-import ups from "@/assets/stream-clips/cargo_jet_landing.mp4.asset.json";
-import tripoli from "@/assets/stream-clips/uss_tripoli_f35_ops.mp4.asset.json";
+import police from "@/assets/stream-clips/met_police_westminster.webm.asset.json";
+import trafalgar from "@/assets/stream-clips/trafalgar_protest.webm.asset.json";
+import march from "@/assets/stream-clips/london_march.webm.asset.json";
+import thames from "@/assets/stream-clips/thames_city_london.webm.asset.json";
+import nhs from "@/assets/stream-clips/nhs_protest_london.webm.asset.json";
+import delhi from "@/assets/stream-clips/aircraft_landing_timelapse.webm.asset.json";
+import ups from "@/assets/stream-clips/cargo_jet_landing.webm.asset.json";
+import tripoli from "@/assets/stream-clips/uss_tripoli_f35_ops.webm.asset.json";
 import type { StreamClip } from "./stream-clips";
 
 export const CHECKED = "2026-11-04T00:16:00Z";
