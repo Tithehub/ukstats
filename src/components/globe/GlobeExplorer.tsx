@@ -157,6 +157,9 @@ function hasWebGL() {
 }
 
 /** The globe plus its control panel, shared by the home page and /globe. */
+/** Headline five World Bank figures shown per country, beside the migration box. */
+const TOP_FIVE = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL.GD.ZS", "SP.POP.TOTL"];
+
 export function GlobeExplorer({ state: s, onChange, compact = false, broadcast = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean; broadcast?: boolean }) {
   const { data: world } = useQuery(worldQuery());
   const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
@@ -165,7 +168,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const { data: flights } = useQuery(flightsQuery(!!s.fl));
   const { data: migration } = useQuery(migrationFlowsQuery(!!s.mg));
   const { data: reports } = useQuery(newsReportsQuery(!!s.nw));
-  const { data: boatsData } = useQuery({ ...smallBoatsQuery(), enabled: !!s.mg });
+  const { data: boatsData } = useQuery({ ...smallBoatsQuery(), enabled: !!s.mg || s.c === UK_KEY });
   const latestBoatDay = useMemo(() => { const d = boatsData?.days ?? boatsData?.series ?? []; return d.length ? d[d.length - 1]! : null; }, [boatsData]);
   const boatYear = useMemo(() => { if (!latestBoatDay) return null; const y = latestBoatDay.date.slice(0, 4); return (boatsData?.days ?? boatsData?.series ?? []).filter((d) => d.date.startsWith(y)).reduce((a, d) => ({ arrivals: a.arrivals + d.arrivals, boats: a.boats + d.boats }), { arrivals: 0, boats: 0 }); }, [boatsData, latestBoatDay]);
   const globeBoats = useMemo(() => { if (!s.mg) return []; const d = boatsData?.days ?? boatsData?.series ?? []; const byDay = new Map(d.map((x) => [x.date, x])); return boatHistory(d).map((b) => { const day = byDay.get(b.date)!; return { id: b.id, lat: b.lat, lng: b.lng, color: b.color, label: `Small boat detected crossing the Channel on ${fmtDate(b.date)}${b.ageDays === 0 ? " (latest day)" : ` — ${b.ageDays} days before the latest report`}: ${day.boats} boats, ${day.arrivals.toLocaleString("en-GB")} people that day (Home Office). Position illustrative.` }; }); }, [s.mg, boatsData]);
@@ -420,8 +423,17 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           : <button onClick={() => onChange({ cmp: wb.iso3 })} className="text-left underline">Compare {wb.name} with another country</button>}</div>}
         {dests.length > 0 && <nav aria-label={`Pages for ${selName}`} className="mt-3 grid gap-1.5">{dests.map((d) => <DestLink key={d.kind + d.label} d={d} />)}</nav>}
         {wb ? <>
-          <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            {WORLD_INDICATORS.slice(0, 6).map((i) => { const v = world?.values[i.id]?.[wb.iso3]; return <div key={i.id} className="rounded border border-night-line p-2"><dt className="text-[11px] text-night-muted">{i.label}</dt><dd className="font-mono">{v ? `${fmtWorld(v.value, i.unit)} (${v.year})` : "Not published"}</dd></div>; })}
+          <h3 className="mt-4 text-sm font-semibold">Top 6 figures</h3>
+          <div className="mt-2 rounded border border-overdue/60 p-2 text-sm" aria-label="Irregular migration and small boats">
+            <p className="text-[11px] font-semibold uppercase text-overdue">Irregular migration &amp; small boats</p>
+            {sel === UK_KEY ? (latestBoatDay ? <>
+              <p className="font-mono text-lg">{latestBoatDay.arrivals.toLocaleString("en-GB")} people · {latestBoatDay.boats} boats</p>
+              <p className="text-[11px] text-night-muted">Crossed the Channel on {fmtDate(latestBoatDay.date)} (latest reported day) · <a className="underline" href="https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats" target="_blank" rel="noreferrer noopener">Home Office</a>{(boatsData?.recentPublished ?? boatsData?.published) ? ` · published ${fmtDate((boatsData.recentPublished ?? boatsData.published)!)}` : ""}</p>
+            </> : <p className="text-night-muted">Loading Home Office small boats figures…</p>)
+              : <p className="text-night-muted">Not published for this country. Regional figures: <a className="underline" href={MIGRATION_SOURCES.frontex.url} target="_blank" rel="noreferrer noopener">Frontex (EU)</a>, <a className="underline" href={MIGRATION_SOURCES.cbp.url} target="_blank" rel="noreferrer noopener">US CBP</a>, <a className="underline" href={MIGRATION_SOURCES.unhcr.url} target="_blank" rel="noreferrer noopener">UNHCR refugees</a>. Turn on the Migration layer to see them.</p>}
+          </div>
+          <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+            {TOP_FIVE.map((id) => WORLD_INDICATORS.find((i) => i.id === id)!).map((i) => { const v = world?.values[i.id]?.[wb.iso3]; return <div key={i.id} className="rounded border border-night-line p-2"><dt className="text-[11px] text-night-muted">{i.label}</dt><dd className="font-mono">{v ? `${fmtWorld(v.value, i.unit)} (${v.year})` : "Not published"}</dd></div>; })}
           </dl>
           <p className="mt-1 text-[11px] text-night-muted">Source: <a className="underline" href={WORLD_SOURCE.url} target="_blank" rel="noreferrer noopener">{WORLD_SOURCE.name}</a></p>
         </> : <p className="mt-2 text-sm text-night-muted">No World Bank profile for this territory.</p>}
