@@ -31,6 +31,7 @@ import { Route as GlobalRouteImport } from './routes/global'
 import { Route as GlobeRouteImport } from './routes/globe'
 import { Route as GoldRouteImport } from './routes/gold'
 import { Route as GovernmentsRouteImport } from './routes/governments'
+import { Route as GroomingGangsInquiryRouteImport } from './routes/grooming-gangs-inquiry'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
@@ -191,6 +192,11 @@ const GoldRoute = GoldRouteImport.update({
 const GovernmentsRoute = GovernmentsRouteImport.update({
   id: '/governments',
   path: '/governments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroomingGangsInquiryRoute = GroomingGangsInquiryRouteImport.update({
+  id: '/grooming-gangs-inquiry',
+  path: '/grooming-gangs-inquiry',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsRoute = MapsRouteImport.update({
@@ -476,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/globe': typeof GlobeRoute
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
+  '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -550,6 +557,7 @@ export interface FileRoutesByTo {
   '/globe': typeof GlobeRoute
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
+  '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -625,6 +633,7 @@ export interface FileRoutesById {
   '/globe': typeof GlobeRoute
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
+  '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -702,6 +711,7 @@ export interface FileRouteTypes {
     | '/globe'
     | '/gold'
     | '/governments'
+    | '/grooming-gangs-inquiry'
     | '/maps'
     | '/my-pages'
     | '/online-speech'
@@ -776,6 +786,7 @@ export interface FileRouteTypes {
     | '/globe'
     | '/gold'
     | '/governments'
+    | '/grooming-gangs-inquiry'
     | '/maps'
     | '/my-pages'
     | '/online-speech'
@@ -850,6 +861,7 @@ export interface FileRouteTypes {
     | '/globe'
     | '/gold'
     | '/governments'
+    | '/grooming-gangs-inquiry'
     | '/maps'
     | '/my-pages'
     | '/online-speech'
@@ -926,6 +938,7 @@ export interface RootRouteChildren {
   GlobeRoute: typeof GlobeRoute
   GoldRoute: typeof GoldRoute
   GovernmentsRoute: typeof GovernmentsRoute
+  GroomingGangsInquiryRoute: typeof GroomingGangsInquiryRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
   OnlineSpeechRoute: typeof OnlineSpeechRoute
@@ -1115,6 +1128,13 @@ declare module '@tanstack/react-router' {
       path: '/governments'
       fullPath: '/governments'
       preLoaderRoute: typeof GovernmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grooming-gangs-inquiry': {
+      id: '/grooming-gangs-inquiry'
+      path: '/grooming-gangs-inquiry'
+      fullPath: '/grooming-gangs-inquiry'
+      preLoaderRoute: typeof GroomingGangsInquiryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps': {
@@ -1571,6 +1591,7 @@ const rootRouteChildren: RootRouteChildren = {
   GlobeRoute: GlobeRoute,
   GoldRoute: GoldRoute,
   GovernmentsRoute: GovernmentsRoute,
+  GroomingGangsInquiryRoute: GroomingGangsInquiryRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
   OnlineSpeechRoute: OnlineSpeechRoute,
