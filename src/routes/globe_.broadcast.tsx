@@ -156,11 +156,11 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </> : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
-      <div className="absolute inset-x-0 top-[260px] h-[560px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
+      <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
-      <div className="absolute inset-x-6 top-[700px] z-30">{lower}</div>
-      <aside data-fit className="absolute inset-x-0 top-[830px] z-30 h-[480px] overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{figure}</aside>
-      <div className="absolute inset-x-6 top-[1330px] z-30">{clip}</div>
+      <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
+      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 h-[400px] overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{figure}</aside>
+      <div className="absolute left-1/2 top-[1182px] z-30 w-[760px] -translate-x-1/2">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
   </div></div>;
