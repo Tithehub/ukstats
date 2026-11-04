@@ -2,12 +2,15 @@
 // and never a substitute clip when nothing matches the segment.
 import { FUNDING_PAUSED } from "./funding-policy";
 
-export const ALLOWED_LICENCES = ["Public domain (US Government)", "CC0", "CC BY 2.0", "CC BY 3.0", "CC BY 4.0", "CC BY-SA 3.0", "CC BY-SA 4.0"] as const;
+export const ALLOWED_LICENCES = ["Public domain", "Public domain (US Government)", "CC0", "CC BY 2.0", "CC BY 3.0", "CC BY 4.0", "CC BY-SA 2.0", "CC BY-SA 3.0", "CC BY-SA 4.0", "OGL v3.0", "Open Parliament Licence v3.0"] as const;
 export type ClipLicence = (typeof ALLOWED_LICENCES)[number] | "Licensed news (paid)";
+export type ClipTier = "newest" | "archive";
 
 export interface StreamClip {
   id: string; url: string; sourcePage: string; licence: ClipLicence; credit: string; publisher: string;
   description: string; published: string; topics: string[]; checkedAt: string;
+  /** Globe country key; omitted = usable for any country. */
+  country?: string;
 }
 
 const NEWS_OUTLETS = /\b(bbc|sky news|itv|channel 4|gb news|cnn|fox news|reuters|associated press|\bap\b|al jazeera|euronews|france 24|dw news|guardian|telegraph|daily mail|times radio)\b/i;
@@ -21,9 +24,20 @@ export function clipAllowed(c: StreamClip): boolean {
   return !NEWS_OUTLETS.test(`${c.credit} ${c.publisher}`);
 }
 
-/** Clips for a segment id; empty when none match — callers show a "no licensed clip" card. */
-export function clipsFor(segmentId: string, clips: StreamClip[]): StreamClip[] {
-  return clips.filter((c) => clipAllowed(c) && c.topics.includes(segmentId));
+/** Filmed 2020 or later counts as newest footage; older is archive. */
+export const clipTier = (c: StreamClip): ClipTier => (c.published >= "2020" ? "newest" : "archive");
+
+/** Clips for a topic (and country), alternating newest and archive; empty when none match. */
+export function clipsFor(topic: string, clips: StreamClip[], country?: string): StreamClip[] {
+  const ok = clips.filter((c) => clipAllowed(c) && c.topics.includes(topic) && (!c.country || !country || c.country === country));
+  const fresh = ok.filter((c) => clipTier(c) === "newest").sort((a, b) => b.published.localeCompare(a.published));
+  const old = ok.filter((c) => clipTier(c) === "archive");
+  const out: StreamClip[] = [];
+  for (let i = 0; i < Math.max(fresh.length, old.length); i++) {
+    if (fresh[i]) out.push(fresh[i]!);
+    if (old[i]) out.push(old[i]!);
+  }
+  return out;
 }
 
 export const clipCaption = (c: StreamClip) =>
