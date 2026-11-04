@@ -12,7 +12,7 @@ describe("grooming inquiry", () => {
   });
   it("timeline is sorted oldest first", () => {
     const t = sortedTimeline();
-    expect(t[0].date <= t[t.length - 1].date).toBe(true);
+    expect(t[0]!.date <= t[t.length - 1]!.date).toBe(true);
   });
   it("shows the final report as not published until it exists", () => {
     expect(finalReportLabel(STATUS.finalReport)).toBe("Not yet published");

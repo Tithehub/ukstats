@@ -11,6 +11,9 @@ const CASEY_ACC = "https://www.gov.uk/government/publications/national-audit-on-
 
 export type Source = { publisher: string; title: string; url: string; published: string };
 
+const UPDATE_SRC: Source = { publisher: "Home Office", title: "Update on Independent Inquiry into Grooming Gangs", url: "https://www.gov.uk/government/news/update-on-independent-inquiry-into-grooming-gangs", published: "2025-12-09" };
+const TOR_SRC: Source = { publisher: "Home Office", title: "Independent Inquiry into Grooming Gangs (collection, final terms of reference)", url: GOV_COLLECTION, published: "2026-03-31" };
+
 export const STATUS = {
   name: "Statutory Independent Inquiry into Grooming Gangs",
   basis: "Inquiries Act 2005 — full powers to compel witnesses and documents",
@@ -25,8 +28,8 @@ export const STATUS = {
   firstAreas: ["Oldham", "Bradford and Keighley", "London", "Birmingham"],
   finalReport: null as string | null, // not yet published
   sources: [
-    { publisher: "Home Office", title: "Update on Independent Inquiry into Grooming Gangs", url: "https://www.gov.uk/government/news/update-on-independent-inquiry-into-grooming-gangs", published: "2025-12-09" },
-    { publisher: "Home Office", title: "Independent Inquiry into Grooming Gangs (collection, final terms of reference)", url: GOV_COLLECTION, published: "2026-03-31" },
+    UPDATE_SRC,
+    TOR_SRC,
     { publisher: "The Inquiry", title: "About the Inquiry", url: INQUIRY_HOME, published: "2026-03-31" },
   ] as Source[],
 };
@@ -43,8 +46,8 @@ export const TIMELINE: TimelineEntry[] = [
   { date: "2022-10-20", title: "IICSA final report published", detail: "The Independent Inquiry into Child Sexual Abuse publishes its final report on child sexual abuse in England and Wales.", source: casey() },
   { date: "2025-01-15", title: "National audit commissioned", detail: "The Prime Minister and Home Secretary commission Baroness Casey's national audit (formally launched February 2025).", source: { publisher: "Home Office", title: "National Audit — publication page", url: CASEY_URL, published: "2025-06-16" } },
   { date: "2025-06-16", title: "Casey national audit published", detail: "Twelve recommendations, including a national inquiry and national police operation (recommendation 2). The government says it is implementing every recommendation.", source: casey() },
-  { date: "2025-12-09", title: "Chair and panel appointed", detail: "Baroness Longfield appointed chair with Zoë Billingham and Eleanor Kelly; three-year statutory inquiry, £65 million committed.", source: STATUS.sources[0] },
-  { date: "2026-03-31", title: "Final terms of reference published", detail: "Published after public consultation, with letters between the Home Secretary and the chair.", source: STATUS.sources[1] },
+  { date: "2025-12-09", title: "Chair and panel appointed", detail: "Baroness Longfield appointed chair with Zoë Billingham and Eleanor Kelly; three-year statutory inquiry, £65 million committed.", source: UPDATE_SRC },
+  { date: "2026-03-31", title: "Final terms of reference published", detail: "Published after public consultation, with letters between the Home Secretary and the chair.", source: TOR_SRC },
 ];
 
 export type Finding = { report: string; quote: string; source: Source };
@@ -62,7 +65,7 @@ export const FIGURES: Figure[] = [
   { label: "Rotherham — girls abused (estimate)", value: "at least 1,400", period: "1997–2013", note: "The Jay report's own estimate, not a count of convictions.", source: casey() },
   { label: "Telford — children who may have been exploited (estimate)", value: "up to 1,000", period: "1989–2017", note: "Telford Independent Inquiry's own estimate.", source: casey() },
   { label: "Oxfordshire — possible child victims (estimate)", value: "as many as 373", period: "to 2015", note: "Oxfordshire serious case review's own estimate.", source: casey() },
-  { label: "National inquiry funding", value: "£65 million", period: "3-year inquiry", note: "Government commitment.", source: STATUS.sources[0] },
+  { label: "National inquiry funding", value: "£65 million", period: "3-year inquiry", note: "Government commitment.", source: UPDATE_SRC },
 ];
 // No official body publishes a national count of grooming-gang victims, perpetrators
 // or convictions: the Casey audit says national ethnicity data is poor. Shown as "Not published".
@@ -70,7 +73,7 @@ export const NOT_PUBLISHED = ["National number of victims", "National number of 
 
 export type Recommendation = { n: number; text: string; position: "accepted" | "in progress" | "not stated"; source: Source };
 
-const accepted = STATUS.sources[0];
+const accepted = UPDATE_SRC;
 export const RECOMMENDATIONS: Recommendation[] = [
   "Change the law so adults who intentionally penetrate a child under 16 receive mandatory charges of rape.",
   "Launch a national police operation and a national inquiry co-ordinating targeted investigations.",
@@ -84,7 +87,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   "Commission research into the drivers of group-based exploitation, including online offending and cultural factors.",
   "Stop 'out of area' taxis and bring in tougher statutory taxi licensing standards.",
   "Fully resource implementation over multiple years and report regularly to Parliament.",
-].map((text, i) => ({ n: i + 1, text, position: i === 1 ? "in progress" : "accepted", source: i === 1 ? STATUS.sources[1] : accepted }) as Recommendation);
+].map((text, i) => ({ n: i + 1, text, position: i === 1 ? "in progress" : "accepted", source: i === 1 ? TOR_SRC : accepted }) as Recommendation);
 // Government position: the Home Secretary's 9 Dec 2025 letter states "The Government is implementing
 // every recommendation set out by Baroness Casey". Recommendation 2's inquiry is under way.
 
