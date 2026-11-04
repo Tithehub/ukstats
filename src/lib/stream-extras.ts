@@ -30,5 +30,5 @@ export function countdown(iso: string, now: Date): string {
 
 /** The published small-boats arrivals figure for the year so far, if the Home Office feed has one. */
 export function boatsYearMetric(metrics: Metric[]): Metric | null {
-  return metrics.find((m) => ok(m) && /small boat/i.test(m.title) && /(year|so far|20\d\d)/i.test(`${m.title} ${m.period ?? ""}`)) ?? null;
+  return metrics.find((m) => ok(m) && /small boat/i.test(m.title) && !m.title.includes(":") && !/-(male|female|sex|religion|ethnicity|age|nationality)/.test(m.id) && /(year|so far|20\d\d)/i.test(`${m.title} ${m.period ?? ""}`)) ?? null;
 }

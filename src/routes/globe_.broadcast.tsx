@@ -144,7 +144,7 @@ function BroadcastPage() {
     <span className="shrink-0 font-mono text-[22px] font-black tracking-widest">JUST PUBLISHED</span>
     <span className="min-w-0 truncate text-[24px] font-semibold">{freshItem.title}: {freshItem.value} · {freshItem.source}</span>
   </div> : null;
-  const next4 = upcomingReleases(metrics, t, layout === "portrait" ? 3 : 2);
+  const next4 = upcomingReleases(metrics, t, layout === "portrait" ? 3 : 1);
   const releases = next4.length ? <div className="shrink-0 rounded border-2 border-night-line bg-night px-4 py-2">
     <div className="font-mono text-[20px] font-bold uppercase tracking-widest text-electric">Next official releases</div>
     {next4.map((m) => <div key={m.id} className="flex justify-between gap-4 text-[22px]"><span className="truncate">{m.title}</span><span className="shrink-0 font-mono tabular-nums">in {countdown(m.nextDue!, t)}</span></div>)}
