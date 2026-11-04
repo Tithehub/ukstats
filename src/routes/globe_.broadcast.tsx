@@ -159,8 +159,8 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
-      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 h-[400px] overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{figure}</aside>
-      <div className="absolute left-1/2 top-[1182px] z-30 w-[760px] -translate-x-1/2">{clip}</div>
+      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 h-[470px] overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{figure}</aside>
+      <div className="absolute left-1/2 top-[1252px] z-30 w-[680px] -translate-x-1/2">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
   </div></div>;
@@ -188,8 +188,8 @@ function FigureCard({ card, segId, big }: { card: StreamCard | null; segId: stri
     <div className="mb-2 flex items-center gap-3 font-mono text-[22px] font-bold uppercase tracking-widest text-electric">
       {card.metric && <span className={`inline-block size-4 rounded-full ${FRESH[freshnessOf(card.metric)]}`} />}{card.kicker}
     </div>
-    <h2 className="line-clamp-2 text-[34px] font-bold leading-tight">{card.title}</h2>
-    <div className={`my-3 truncate font-black leading-none tabular-nums ${big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
+    <h2 className="line-clamp-2 shrink-0 text-[34px] font-bold leading-tight">{card.title}</h2>
+    <div className={`my-3 shrink-0 truncate font-black leading-none tabular-nums ${big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
     {card.sub && <p className="line-clamp-2 text-[24px] leading-snug text-night-muted">{card.sub}</p>}
     <dl className="mt-auto grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-[22px]">
       {meta("Source", card.source)}
