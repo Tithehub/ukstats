@@ -14,6 +14,8 @@ import { ageLabel, dueLabel, fmtDate, freshnessOf, type StatsPayload } from "@/l
 import { clipCaption, clipsFor } from "@/lib/stream-clips";
 import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
+import { QRCodeSVG } from "qrcode.react";
+import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
 import { buildUkHour, cardStep, positionAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
 const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
@@ -135,6 +137,27 @@ function BroadcastPage() {
   const clip = <ClipBox topic={seg?.topic ?? ""} country={seg?.country} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
+  const t = now ?? new Date(0);
+  const newest = justPublished(metrics, t);
+  const freshItem = newest.length ? newest[cardStep(pos.msIntoHour) % newest.length]! : null;
+  const fresh = freshItem ? <div key={freshItem.id} className="flex shrink-0 items-center gap-4 overflow-hidden rounded bg-destructive px-4 py-2 text-destructive-foreground motion-safe:animate-in motion-safe:fade-in">
+    <span className="shrink-0 font-mono text-[22px] font-black tracking-widest">JUST PUBLISHED</span>
+    <span className="min-w-0 truncate text-[24px] font-semibold">{freshItem.title}: {freshItem.value} · {freshItem.source}</span>
+  </div> : null;
+  const next4 = upcomingReleases(metrics, t, layout === "portrait" ? 3 : 1);
+  const releases = next4.length ? <div className="shrink-0 rounded border-2 border-night-line bg-night px-4 py-2">
+    <div className="font-mono text-[20px] font-bold uppercase tracking-widest text-electric">Next official releases</div>
+    {next4.map((m) => <div key={m.id} className="flex justify-between gap-4 text-[22px]"><span className="truncate">{m.title}</span><span className="shrink-0 font-mono tabular-nums">in {countdown(m.nextDue!, t)}</span></div>)}
+  </div> : null;
+  const boats = !wc ? boatsYearMetric(metrics) : null;
+  const boatsChip = boats ? <div className="rounded border-2 border-destructive bg-night-panel/95 px-4 py-2">
+    <div className="truncate font-mono text-[20px] font-bold uppercase tracking-widest text-destructive">{boats.title}</div>
+    <div className="flex items-baseline gap-3"><span className="text-[48px] font-black leading-none tabular-nums">{boats.value}</span><span className="truncate text-[20px] text-night-muted">{boats.period ?? ""} · Home Office</span></div>
+  </div> : null;
+  const qr = <div className="flex flex-col items-center gap-1 rounded bg-background p-2 text-foreground">
+    <QRCodeSVG value="https://ukstats.co.uk/?utm_source=youtube&utm_medium=social" size={140} />
+    <span className="font-mono text-[18px] font-bold">ukstats.co.uk</span>
+  </div>;
   const tickers = <div className="overflow-hidden border-t-2 border-night-line">
     <Ticker label="LATEST" items={latest} cls="bg-destructive text-destructive-foreground" speed={90} />
     <Ticker label="UK STATS" items={keyStats} cls="bg-primary text-primary-foreground" speed={140} />
@@ -149,8 +172,12 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[520px]">{next}</div>
       <aside data-fit className="absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel/95 p-5">
+        {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
+        {releases}
       </aside>
+      <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
+      {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
       <div className="absolute bottom-[232px] left-6 z-30 w-[540px]">{clip}</div>
       <div className="absolute bottom-[240px] left-[590px] z-30 w-[620px]">{lower}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
@@ -159,7 +186,9 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
-      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 h-[470px] overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{figure}</aside>
+      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[470px] flex-col gap-3 overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{fresh}<div className="min-h-0 flex-1">{figure}</div></aside>
+      <div className="absolute right-6 top-[1252px] z-30">{qr}</div>
+      <div className="absolute inset-x-6 top-[1560px] z-30">{releases}</div>
       <div className="absolute left-1/2 top-[1252px] z-30 w-[620px] -translate-x-1/2">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
