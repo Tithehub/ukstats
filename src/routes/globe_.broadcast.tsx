@@ -230,7 +230,7 @@ function FigureCard({ card, segId, big, compact }: { card: StreamCard | null; se
       {meta("Source", card.source)}
       {card.period && !compact && meta("Period", card.period)}
       {card.asOf && meta(card.live ? "Read" : "Published", card.live ? hhmm(card.asOf) : `${fmtDate(card.asOf)} · ${ageLabel(card.asOf)}`)}
-      {!card.live && meta("Next", card.nextDue ? `${fmtDate(card.nextDue)} · ${dueLabel(card.nextDue)}` : "Not announced")}
+      {!card.live && !compact && meta("Next", card.nextDue ? `${fmtDate(card.nextDue)} · ${dueLabel(card.nextDue)}` : "Not announced")}
     </dl>
   </section>;
 }
@@ -245,11 +245,11 @@ function LowerThird({ head }: { head: Headline }) {
 
 function TopSix({ boxes, name }: { boxes: TopBox[]; name: string }) {
   return <section aria-label={`Top 6 figures for ${name}`} className="shrink-0">
-    <div className="mb-1 truncate font-mono text-[20px] font-bold uppercase tracking-widest text-electric">Top 6 · {name}</div>
+    <div className="mb-1 truncate font-mono text-[20px] font-bold uppercase tracking-widest text-electric">Top 6 · {name} <span className="normal-case tracking-normal text-night-muted">· World Bank &amp; Home Office</span></div>
     <div className="grid grid-cols-3 gap-2">{boxes.map((b) => <div key={b.id} className={`min-w-0 rounded border-2 px-3 py-1.5 ${b.migration ? "border-destructive bg-destructive/15" : "border-night-line bg-night"}`}>
       <div className={`truncate text-[20px] font-semibold ${b.migration ? "text-destructive" : "text-night-muted"}`}>{b.label}</div>
       <div className="truncate text-[32px] font-black leading-tight tabular-nums">{b.value ?? "Not published"}</div>
-      <div className="truncate font-mono text-[18px] text-night-muted">{b.when ? `${b.when} · ` : ""}{b.source}</div>
+      <div className="truncate font-mono text-[18px] text-night-muted">{b.when ?? b.source}</div>
     </div>)}</div>
   </section>;
 }
