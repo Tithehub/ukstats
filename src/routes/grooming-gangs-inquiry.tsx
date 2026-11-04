@@ -62,7 +62,7 @@ function Page() {
         <ol className="mt-4 border-l border-night-line pl-5">
           {sortedTimeline(TIMELINE).map((e) => (
             <li key={e.title} className="mb-6">
-              <div className="font-mono text-xs text-night-muted">{fmtDate(e.date)}</div>
+              <div className="font-mono text-xs text-night-muted">{e.monthOnly ? new Date(e.date).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "Europe/London" }) : fmtDate(e.date)}</div>
               <h3 className="font-semibold">{e.title}</h3>
               <p className="text-sm text-night-muted">{e.detail}</p>
               <Src s={e.source} />

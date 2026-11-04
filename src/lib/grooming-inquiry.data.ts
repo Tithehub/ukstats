@@ -34,17 +34,17 @@ export const STATUS = {
   ] as Source[],
 };
 
-export type TimelineEntry = { date: string; title: string; detail: string; source: Source };
+export type TimelineEntry = { date: string; monthOnly?: boolean; title: string; detail: string; source: Source };
 
 const casey = (published = "2025-06-16"): Source => ({ publisher: "Home Office (Baroness Casey)", title: "National Audit on Group-based Child Sexual Exploitation and Abuse", url: CASEY_ACC, published });
 
 export const TIMELINE: TimelineEntry[] = [
   { date: "2014-08-26", title: "Jay report on Rotherham published", detail: "The report finds at least 1,400 underage girls were abused between 1997 and 2013 (as summarised in the Casey audit timeline).", source: casey() },
-  { date: "2014-08-01", title: "Operation Hydrant established", detail: "Set up to co-ordinate multiple non-recent child sexual abuse investigations across the UK.", source: casey() },
+  { date: "2014-08-01", monthOnly: true, title: "Operation Hydrant established", detail: "Set up to co-ordinate multiple non-recent child sexual abuse investigations across the UK.", source: casey() },
   { date: "2015-03-03", title: "Oxfordshire serious case review (Operation Bullfinch)", detail: "Finds as many as 373 children could have been victims of child sexual exploitation, and serious errors by police and social services.", source: casey() },
   { date: "2022-07-12", title: "Telford Independent Inquiry published", detail: "Finds up to 1,000 children may have been sexually exploited between 1989 and 2017, with failings across agencies.", source: casey() },
   { date: "2022-10-20", title: "IICSA final report published", detail: "The Independent Inquiry into Child Sexual Abuse publishes its final report on child sexual abuse in England and Wales.", source: casey() },
-  { date: "2025-01-15", title: "National audit commissioned", detail: "The Prime Minister and Home Secretary commission Baroness Casey's national audit (formally launched February 2025).", source: { publisher: "Home Office", title: "National Audit — publication page", url: CASEY_URL, published: "2025-06-16" } },
+  { date: "2025-01-01", monthOnly: true, title: "National audit commissioned", detail: "The Prime Minister and Home Secretary commission Baroness Casey's national audit (formally launched February 2025).", source: { publisher: "Home Office", title: "National Audit — publication page", url: CASEY_URL, published: "2025-06-16" } },
   { date: "2025-06-16", title: "Casey national audit published", detail: "Twelve recommendations, including a national inquiry and national police operation (recommendation 2). The government says it is implementing every recommendation.", source: casey() },
   { date: "2025-12-09", title: "Chair and panel appointed", detail: "Baroness Longfield appointed chair with Zoë Billingham and Eleanor Kelly; three-year statutory inquiry, £65 million committed.", source: UPDATE_SRC },
   { date: "2026-03-31", title: "Final terms of reference published", detail: "Published after public consultation, with letters between the Home Secretary and the chair.", source: TOR_SRC },
