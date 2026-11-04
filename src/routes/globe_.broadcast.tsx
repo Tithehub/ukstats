@@ -11,7 +11,7 @@ import { flightsQuery } from "@/lib/flights.functions";
 import { countryQuery } from "@/lib/country-queries";
 import { COUNTRIES } from "@/lib/countries";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type StatsPayload } from "@/lib/uk-stats";
-import { clipCaption, clipsFor, clipTier } from "@/lib/stream-clips";
+import { clipCaption, clipsFor } from "@/lib/stream-clips";
 import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { buildUkHour, cardStep, positionAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
@@ -224,7 +224,7 @@ function ClipBox({ topic, country }: { topic: string; country: string | undefine
     <div className="relative aspect-video bg-night-panel">
       {c ? <video key={c.id} src={c.url} autoPlay muted playsInline onEnded={() => setI((x) => x + 1)} className="absolute inset-0 size-full object-cover" />
         : <div className="absolute inset-0 grid place-items-center p-6 text-center text-[24px] text-night-muted">No licensed footage for this topic — figures shown are from the official publisher.</div>}
-      {c && <span className="absolute left-3 top-3 rounded bg-night/85 px-2 py-0.5 font-mono text-[20px] font-bold uppercase tracking-widest">{clipTier(c) === "newest" ? "Newest footage" : "Archive footage"}</span>}
+      {c && <span className="absolute left-3 top-3 rounded bg-night/85 px-2 py-0.5 font-mono text-[20px] font-bold uppercase tracking-widest">{`${c.published.slice(0, 4)} footage`}</span>}
     </div>
     {c && <p className="truncate px-3 pt-1.5 text-[22px] font-semibold">{c.description}</p>}
     {c && <p className="truncate px-3 pb-1.5 font-mono text-[18px] text-night-muted">{clipCaption(c)}</p>}
