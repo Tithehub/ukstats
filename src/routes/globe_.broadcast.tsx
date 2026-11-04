@@ -23,7 +23,7 @@ type Layout = "landscape" | "portrait";
 
 /** TV news-channel page captured by an external streamer (ffmpeg / OBS) for YouTube Live. */
 export const Route = createFileRoute("/globe_/broadcast")({
-  validateSearch: (s: Record<string, unknown>): { layout?: Layout } => (s.layout === "portrait" ? { layout: "portrait" } : {}),
+  validateSearch: (s: Record<string, unknown>): { layout?: Layout } => (s["layout"] === "portrait" ? { layout: "portrait" } : {}),
   loader: ({ context }) => Promise.all([
     context.queryClient.ensureQueryData(worldQuery()),
     context.queryClient.ensureQueryData(unrestQuery()),
@@ -166,7 +166,7 @@ function BroadcastPage() {
   </div></div>;
 }
 
-function Header({ seg, clock, region, portrait }: { seg?: Segment; clock: string; region: string; portrait: boolean }) {
+function Header({ seg, clock, region, portrait }: { seg: Segment | undefined; clock: string; region: string; portrait: boolean }) {
   const major = !!seg?.headline;
   return <header className={`flex h-full items-stretch overflow-hidden border-y-2 border-night-line ${major ? "bg-destructive text-destructive-foreground" : "bg-night-panel"} ${portrait ? "flex-wrap" : ""}`}>
     <div className="flex items-center gap-3 bg-primary px-6 text-primary-foreground">
@@ -181,7 +181,7 @@ function Header({ seg, clock, region, portrait }: { seg?: Segment; clock: string
   </header>;
 }
 
-function FigureCard({ card, segId, big }: { card: StreamCard | null; segId?: string; big: boolean }) {
+function FigureCard({ card, segId, big }: { card: StreamCard | null; segId: string | undefined; big: boolean }) {
   if (!card) return <section className="rounded border-2 border-night-line bg-night p-6 text-[26px] leading-snug text-night-muted">Every figure on UKStats comes from the official publisher, with its date and next release. No figure is published for this item.</section>;
   const meta = (k: string, v: string) => <><dt className="text-night-muted">{k}</dt><dd className="truncate">{v}</dd></>;
   return <section key={`${segId}-${card.title}`} className="flex h-full flex-col rounded border-2 border-night-line bg-night p-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4">
@@ -215,7 +215,7 @@ function UpNext({ items }: { items: string[] }) {
   </section>;
 }
 
-function ClipBox({ topic, country }: { topic: string; country?: string }) {
+function ClipBox({ topic, country }: { topic: string; country: string | undefined }) {
   const clips = useMemo(() => clipsFor(topic, STREAM_CLIPS, country), [topic, country]);
   const [i, setI] = useState(0);
   useEffect(() => setI(0), [topic, country]);

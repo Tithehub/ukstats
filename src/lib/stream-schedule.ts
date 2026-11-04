@@ -46,7 +46,7 @@ export function buildUkHour(segments: Segment[]): Slot[] {
 const londonParts = (d: Date) => {
   const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", hourCycle: "h23", minute: "numeric", second: "numeric" })
     .formatToParts(d).map((x) => [x.type, Number(x.value)]));
-  return p as Record<string, number>;
+  return p as { year: number; month: number; day: number; hour: number; minute: number; second: number };
 };
 
 export interface Position {
@@ -57,9 +57,9 @@ export interface Position {
 }
 export function positionAt(d: Date): Position {
   const p = londonParts(d);
-  const day = Math.floor(Date.UTC(p.year!, p.month! - 1, p.day!) / 86_400_000);
-  const hourIndex = day * 24 + p.hour!;
-  const msIntoHour = (p.minute! * 60 + p.second!) * 1000 + d.getMilliseconds();
+  const day = Math.floor(Date.UTC(p.year, p.month - 1, p.day) / 86_400_000);
+  const hourIndex = day * 24 + p.hour;
+  const msIntoHour = (p.minute * 60 + p.second) * 1000 + d.getMilliseconds();
   return { mode: hourIndex % 2 === 0 ? "uk" : "world", hourIndex, msIntoHour };
 }
 

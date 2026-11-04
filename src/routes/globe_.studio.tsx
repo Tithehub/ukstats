@@ -47,7 +47,7 @@ function StudioPage() {
   useEffect(() => {
     try { const v = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(v)) setDone(STUDIO_CHECKLIST.map((_, i) => !!v[i])); } catch { /* ignore */ }
     const el = wrap.current; if (!el) return;
-    const ro = new ResizeObserver(() => setScale(el.clientWidth / (el.dataset.portrait === "1" ? 1080 : 1920)));
+    const ro = new ResizeObserver(() => setScale(el.clientWidth / (el.dataset["portrait"] === "1" ? 1080 : 1920)));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -58,7 +58,7 @@ function StudioPage() {
       <div><h1 className="text-xl font-bold">Stream studio</h1>
         <p className="text-sm text-muted-foreground">Live preview at 1920×1080 (or 1080×1920 portrait) — exactly what YouTube viewers will see.</p></div>
       <div className="flex gap-2">
-        <button onClick={() => { setPortrait((v) => !v); requestAnimationFrame(() => { const el = wrap.current; if (el) setScale(el.clientWidth / (el.dataset.portrait === "1" ? 1080 : 1920)); }); }} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">{portrait ? "Show landscape 16:9" : "Show portrait 9:16"}</button>
+        <button onClick={() => { setPortrait((v) => !v); requestAnimationFrame(() => { const el = wrap.current; if (el) setScale(el.clientWidth / (el.dataset["portrait"] === "1" ? 1080 : 1920)); }); }} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">{portrait ? "Show landscape 16:9" : "Show portrait 9:16"}</button>
         <button onClick={() => setGuides((g) => !g)} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">{guides ? "Hide" : "Show"} YouTube safe areas</button>
         <a href={portrait ? "/globe/broadcast?layout=portrait" : "/globe/broadcast"} target="_blank" rel="noopener" className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">Open full-size stream page</a>
       </div>
