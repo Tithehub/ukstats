@@ -1,3 +1,4 @@
+import { LIVE_STREAM_URL } from "@/lib/brand";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { CHAT_ENABLED } from "@/lib/chat-flag";
@@ -173,6 +174,16 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               {status}
             </span>
           ) : null}
+          <a
+            href={LIVE_STREAM_URL}
+            target="_blank"
+            rel="noopener"
+            className={btn("ghost", "sm")}
+            aria-label="Watch the UKStats live stream"
+          >
+            <span className="size-2 animate-pulse rounded-full bg-destructive" aria-hidden="true" />
+            Watch live
+          </a>
           <ThemeToggle />
           {signedIn ? (
             <Button

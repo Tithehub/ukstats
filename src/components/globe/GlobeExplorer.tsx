@@ -1,3 +1,4 @@
+import { LIVE_STREAM_URL } from "@/lib/brand";
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -353,6 +354,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           <label className="flex items-center gap-1"><input type="checkbox" checked={showMil} onChange={(e) => onChange({ mil: e.target.checked })} /> Military strikes &amp; war zones</label>
         </div>
         {compact && <Link to="/globe" search={{ ...s, layer: s.layer, gov: s.gov, age: s.age, cmp: s.cmp }} className="mt-2 inline-flex items-center gap-1 text-electric-soft underline"><Maximize2 className="size-3" />Open full-screen globe</Link>}
+        {!broadcast && <a href={LIVE_STREAM_URL} target="_blank" rel="noopener" className="mt-2 ml-3 inline-flex items-center gap-1 text-electric-soft underline"><span className="size-2 rounded-full bg-destructive" aria-hidden="true" />Watch the live stream</a>}
       </div>}
       {keyOpen && <GlobeKey onClose={() => setKeyOpen(false)} />}
       {(stat && ind || s.layer) && !layersOpen && <div aria-label="Colour key" className="absolute right-3 bottom-14 z-10 max-w-[60%] rounded-md border border-night-line bg-night-panel/90 p-2 text-[10px] backdrop-blur sm:top-3 sm:bottom-auto sm:max-w-56">

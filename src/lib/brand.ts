@@ -6,3 +6,6 @@ export const RESTORE_BRITAIN_URL = "https://www.restorebritain.org.uk/";
 
 /** Their official join page — the only destination for a "Sign up to Restore Britain" link. */
 export const RESTORE_BRITAIN_JOIN_URL = "https://www.restorebritain.org.uk/join_us";
+
+/** Where "Watch live" buttons go. Swap for the YouTube watch link once the channel is live. */
+export const LIVE_STREAM_URL = "/globe/broadcast";
