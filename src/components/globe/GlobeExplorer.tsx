@@ -157,6 +157,9 @@ function hasWebGL() {
 }
 
 /** The globe plus its control panel, shared by the home page and /globe. */
+/** Headline five World Bank figures shown per country, beside the migration box. */
+const TOP_FIVE = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL.GD.ZS", "SP.POP.TOTL"];
+
 export function GlobeExplorer({ state: s, onChange, compact = false, broadcast = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean; broadcast?: boolean }) {
   const { data: world } = useQuery(worldQuery());
   const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
@@ -425,7 +428,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
             <p className="text-[11px] font-semibold uppercase text-overdue">Irregular migration &amp; small boats</p>
             {sel === UK_KEY ? (latestBoatDay ? <>
               <p className="font-mono text-lg">{latestBoatDay.arrivals.toLocaleString("en-GB")} people · {latestBoatDay.boats} boats</p>
-              <p className="text-[11px] text-night-muted">Crossed the Channel on {fmtDate(latestBoatDay.date)} (latest reported day) · <a className="underline" href="https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats" target="_blank" rel="noreferrer noopener">Home Office</a>{boatsData?.published ? ` · published ${fmtDate(boatsData.published)}` : ""}</p>
+              <p className="text-[11px] text-night-muted">Crossed the Channel on {fmtDate(latestBoatDay.date)} (latest reported day) · <a className="underline" href="https://www.gov.uk/government/publications/migrants-detected-crossing-the-english-channel-in-small-boats" target="_blank" rel="noreferrer noopener">Home Office</a>{(boatsData?.recentPublished ?? boatsData?.published) ? ` · published ${fmtDate((boatsData.recentPublished ?? boatsData.published)!)}` : ""}</p>
             </> : <p className="text-night-muted">Loading Home Office small boats figures…</p>)
               : <p className="text-night-muted">Not published for this country. Regional figures: <a className="underline" href={MIGRATION_SOURCES.frontex.url} target="_blank" rel="noreferrer noopener">Frontex (EU)</a>, <a className="underline" href={MIGRATION_SOURCES.cbp.url} target="_blank" rel="noreferrer noopener">US CBP</a>, <a className="underline" href={MIGRATION_SOURCES.unhcr.url} target="_blank" rel="noreferrer noopener">UNHCR refugees</a>. Turn on the Migration layer to see them.</p>}
           </div>
