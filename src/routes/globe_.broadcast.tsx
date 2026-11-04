@@ -8,6 +8,8 @@ import { getUkStats } from "@/lib/uk-stats.functions";
 import { newsReportsQuery } from "@/lib/news-reports.functions";
 import { flightsQuery } from "@/lib/flights.functions";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type StatsPayload } from "@/lib/uk-stats";
+import { clipCaption, clipsFor } from "@/lib/stream-clips";
+import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, CARD_MS, SEGMENT_MS, statsTicker } from "@/lib/stream-rundown";
 
 const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
@@ -112,6 +114,8 @@ function BroadcastPage() {
           </dl>
         </section> : <section className="rounded border border-night-line bg-night p-4 text-sm text-night-muted">Every figure on UKStats comes from the official publisher, with its date and next release.</section>}
 
+        <ClipBox segmentId={seg?.id ?? ""} />
+
         {upNext.length > 0 && <section className="mt-auto rounded border border-night-line p-3">
           <h3 className="mb-1 font-mono text-xs uppercase tracking-widest text-electric">Up next</h3>
           <ol className="space-y-1 text-sm">{upNext.map((u) => <li key={u.id}>▸ {u.title}</li>)}</ol>
@@ -133,6 +137,21 @@ function BroadcastPage() {
       <Ticker label="UK STATS" items={keyStats} cls="bg-primary text-primary-foreground" speed={140} />
     </footer>
   </div>;
+}
+
+function ClipBox({ segmentId }: { segmentId: string }) {
+  const clips = useMemo(() => clipsFor(segmentId, STREAM_CLIPS), [segmentId]);
+  const [i, setI] = useState(0);
+  useEffect(() => setI(0), [segmentId]);
+  const c = clips.length ? clips[i % clips.length]! : null;
+  return <section className="overflow-hidden rounded border border-night-line bg-night">
+    <div className="relative aspect-video bg-night-panel">
+      {c ? <video key={c.id} src={c.url} autoPlay muted playsInline onEnded={() => setI((x) => x + 1)} className="absolute inset-0 size-full object-cover" />
+        : <div className="absolute inset-0 grid place-items-center p-4 text-center font-mono text-xs text-night-muted">No licensed clip for this topic</div>}
+      {c && <span className="absolute left-2 top-2 rounded bg-night/80 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest">Footage</span>}
+    </div>
+    {c && <p className="px-2 py-1.5 font-mono text-[11px] leading-snug text-night-muted"><span className="text-night-fg">{c.description}</span><br />{clipCaption(c)}</p>}
+  </section>;
 }
 
 function Ticker({ label, items, cls, speed }: { label: string; items: string[]; cls: string; speed: number }) {
