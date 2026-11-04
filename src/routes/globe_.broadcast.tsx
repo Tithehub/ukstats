@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { startStreamAudio, type StreamAudio } from "@/lib/stream-audio";
 import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -87,6 +88,14 @@ function BroadcastPage() {
   const card = seg?.cards.length ? seg.cards[step % seg.cards.length] : null;
   const head = seg?.headlines.length ? seg.headlines[step % seg.headlines.length] : null;
   const upNext = rundown.length > 1 ? [1, 2, 3].map((i) => rundown[(segIdx + i) % rundown.length]!).filter((x, i, a) => a.indexOf(x) === i && x !== seg) : [];
+
+  const audio = useRef<StreamAudio | null>(null);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("sound") === "off") return;
+    audio.current = startStreamAudio();
+    return () => { audio.current?.stop(); audio.current = null; };
+  }, []);
+  useEffect(() => { if (seg?.id) audio.current?.sting(); }, [seg?.id]);
 
   useEffect(() => { if (seg) setS((o) => ({ ...o, c: seg.country, ...seg.layers, fl: seg.layers.fl || o.fl })); }, [seg?.id]);
 
