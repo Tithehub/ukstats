@@ -107,3 +107,6 @@ export const indicatorBySlug = (s: string | undefined): WorldIndicator => {
   if (!indicator) throw new Error("World indicator registry is empty");
   return indicator;
 };
+
+/** The five headline World Bank figures shown per country on the globe and the stream. */
+export const TOP_FIVE = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL.GD.ZS", "SP.POP.TOTL"];
