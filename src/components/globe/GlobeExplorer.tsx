@@ -371,7 +371,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
       </div>}
     </section>
 
-    <aside aria-label="Country controls" className={`${broadcast ? "hidden " : ""}w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
+    {!broadcast && <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
       {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" /><b className="text-night-fg">{selName}</b> · {sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
@@ -463,7 +463,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {hotList.length ? <ul className="mt-3 space-y-1 text-sm">{hotList.map(([k, ws]) => <li key={k}><button className="w-full rounded border border-night-line px-3 py-2 text-left hover:bg-night" onClick={() => onChange({ c: k })}><b>{ws[0]!.country}</b> <span className="text-xs text-night-muted">· {ws.map((w) => w.source).join(", ")} · {fmtDate(ws[0]!.updated)}</span></button></li>)}</ul> : <p className="mt-3 text-sm text-night-muted">{!unrest ? "Waiting for the official feeds." : s.official ? "None in the last 30 days." : "Official layer is switched off."}</p>}
         <p className="mt-4 text-[11px] text-night-muted">Governments publish travel advice, not live riot maps. ACLED is an independent research body, not a government source.</p>
       </>}</div>}
-    </aside>
+    </aside>}
   </div>
   {!broadcast && <p className="border-t border-night-line bg-night-panel px-3 py-2 text-[11px] text-night-muted">Governments publish travel advice, not live riot feeds: markers appear when their advice is updated, checked every 15 minutes, and always show the government's own publication time. * Advice names no place — marker shows the capital, not the exact spot. Places: Natural Earth.</p>}
   </div>;
