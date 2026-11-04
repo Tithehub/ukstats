@@ -203,7 +203,7 @@ function FigureCard({ card, segId, big }: { card: StreamCard | null; segId: stri
 function LowerThird({ head }: { head: Headline }) {
   return <div key={head.text} className="overflow-hidden rounded border-2 border-night-line bg-night-panel/95 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4">
     <div className={`px-4 py-1 font-mono text-[22px] font-bold uppercase ${head.official ? "bg-destructive text-destructive-foreground" : "bg-electric text-night"}`}>{head.official ? "Official warning" : "News report — not official"}</div>
-    <p data-fit className="line-clamp-2 max-h-[84px] px-4 pt-2 text-[30px] font-semibold leading-[42px]">{head.text}</p>
+    <p className="line-clamp-2 max-h-[84px] px-4 pt-2 text-[30px] font-semibold leading-[42px]">{head.text}</p>
     <p className="truncate px-4 pb-2 font-mono text-[22px] text-night-muted">{head.publisher}{head.time ? ` · ${hhmm(head.time)} London` : ""}</p>
   </div>;
 }
