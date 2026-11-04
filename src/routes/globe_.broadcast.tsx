@@ -52,12 +52,14 @@ function BroadcastPage() {
   useEffect(() => {
     const fit = () => { const k = Math.min(innerWidth / 1920, innerHeight / 1080); setScale(k); setOffset({ x: (innerWidth - 1920 * k) / 2, y: (innerHeight - 1080 * k) / 2 }); };
     fit(); addEventListener("resize", fit);
+    const ro = new ResizeObserver(fit); ro.observe(document.documentElement);
+    const late = setTimeout(fit, 1500);
     // Report any text running past its box to the studio preview.
     const chk = setInterval(() => {
       const bad = [...document.querySelectorAll<HTMLElement>("[data-fit]")].some((el) => el.scrollHeight > el.clientHeight + 1);
       if (parent !== window) parent.postMessage({ type: "ukstats-stream-fit", ok: !bad }, location.origin);
     }, 3000);
-    return () => { removeEventListener("resize", fit); clearInterval(chk); };
+    return () => { removeEventListener("resize", fit); ro.disconnect(); clearTimeout(late); clearInterval(chk); };
   }, []);
 
   useEffect(() => {
