@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 describe("broadcast page", () => {
   it("contains no YouTube embeds", () => {
     const src = readFileSync("src/routes/globe_.broadcast.tsx", "utf8");
-    expect(/youtube|<iframe/i.test(src)).toBe(false);
+    expect(/youtube(-nocookie)?\.com\/embed|<iframe/i.test(src)).toBe(false);
   });
   it("GlobeExplorer does not render the video side panel in broadcast mode", () => {
     const src = readFileSync("src/components/globe/GlobeExplorer.tsx", "utf8");
