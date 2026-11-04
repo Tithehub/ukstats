@@ -192,9 +192,9 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
-      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[540px] flex-col gap-3 overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{six}{fresh}<div className="min-h-0 flex-1">{figure}</div></aside>
-      <div className="absolute right-6 top-[1322px] z-30">{qr}</div>
-            <div className="absolute left-6 top-[1322px] z-30 w-[520px] -translate-x-1/2">{clip}</div>
+      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-3 overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{six}{fresh}<div className="min-h-0 flex-1">{figure}</div></aside>
+      <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
+            <div className="absolute left-6 top-[1420px] z-30 w-[400px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
   </div></div>;
