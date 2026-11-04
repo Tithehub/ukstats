@@ -16,21 +16,15 @@ describe("stream clips", () => {
   it("never substitutes a clip when nothing matches", () => {
     expect(clipsFor("no-such-topic", STREAM_CLIPS)).toEqual([]);
   });
-  const now = new Date("2026-11-04T00:00:00Z");
-  it("plays only recent footage when any exists, newest first", () => {
-    const out = clipsFor("crime", [clip({ id: "old", published: "2010-01-01" }), clip({ id: "a", published: "2025-01-01" }), clip({ id: "b", published: "2026-06-01" })], undefined, now);
-    expect(out.map((c) => c.id)).toEqual(["b", "a"]);
+  it("plays only footage filmed in 2026 or later, newest first", () => {
+    const out = clipsFor("crime", [clip({ id: "old", published: "2010-01-01" }), clip({ id: "a", published: "2025-12-31" }), clip({ id: "b", published: "2026-06-01" }), clip({ id: "c", published: "2026-01-02" })]);
+    expect(out.map((c) => c.id)).toEqual(["b", "c"]);
   });
-  it("falls back to archive only when no recent clip exists", () => {
-    const out = clipsFor("crime", [clip({ id: "old", published: "2010-01-01" }), clip({ id: "older", published: "1897" })], undefined, now);
-    expect(out.map((c) => c.id)).toEqual(["old", "older"]);
-  });
-  it("treats footage older than 24 months as archive", () => {
-    expect(clipTier(clip({ published: "2024-11-05" }), now)).toBe("newest");
-    expect(clipTier(clip({ published: "2024-11-03" }), now)).toBe("archive");
+  it("shows nothing rather than footage older than 2026", () => {
+    expect(clipsFor("crime", [clip({ id: "a", published: "2025-12-31" }), clip({ id: "older", published: "1897" })])).toEqual([]);
   });
   it("keeps country-tagged clips to their own country", () => {
-    expect(clipsFor("crime", [clip({ country: "united states" })], "france")).toEqual([]);
+    expect(clipsFor("crime", [clip({ country: "united states", published: "2026-05-01" })], "france")).toEqual([]);
   });
   it("every shipped clip passes the rules", () => {
     expect(STREAM_CLIPS.every(clipAllowed)).toBe(true);
