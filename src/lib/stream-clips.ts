@@ -24,21 +24,19 @@ export function clipAllowed(c: StreamClip): boolean {
   return !NEWS_OUTLETS.test(`${c.credit} ${c.publisher}`);
 }
 
-/** Main segments use footage filmed within this many months; older clips are archive fallback only. */
-export const RECENT_MONTHS = 24;
+/** Only footage filmed in this year or later ever plays; older clips are never shown. */
+export const MIN_FILMED_YEAR = 2026;
 
-/** Recent = filmed within RECENT_MONTHS of `now`; anything older (or undated) is archive. */
-export function clipTier(c: StreamClip, now: Date = new Date()): ClipTier {
-  const cut = new Date(now); cut.setUTCMonth(cut.getUTCMonth() - RECENT_MONTHS);
-  return c.published >= cut.toISOString().slice(0, 10) ? "newest" : "archive";
+/** Every clip that can play is current-year footage; kept for label compatibility. */
+export function clipTier(c: StreamClip): ClipTier {
+  return c.published >= String(MIN_FILMED_YEAR) ? "newest" : "archive";
 }
 
-/** Clips for a topic (and country): recent ones newest first; archive only when no recent clip exists; empty when none match. */
-export function clipsFor(topic: string, clips: StreamClip[], country?: string, now: Date = new Date()): StreamClip[] {
-  const ok = clips.filter((c) => clipAllowed(c) && c.topics.includes(topic) && (!c.country || !country || c.country === country));
-  const byDate = (a: StreamClip, b: StreamClip) => b.published.localeCompare(a.published);
-  const fresh = ok.filter((c) => clipTier(c, now) === "newest").sort(byDate);
-  return fresh.length ? fresh : ok.sort(byDate);
+/** Clips for a topic (and country): only footage filmed from MIN_FILMED_YEAR, newest first; empty when none match. */
+export function clipsFor(topic: string, clips: StreamClip[], country?: string, _now: Date = new Date()): StreamClip[] {
+  return clips
+    .filter((c) => clipAllowed(c) && clipTier(c) === "newest" && c.topics.includes(topic) && (!c.country || !country || c.country === country))
+    .sort((a, b) => b.published.localeCompare(a.published));
 }
 
 export const clipCaption = (c: StreamClip) =>
