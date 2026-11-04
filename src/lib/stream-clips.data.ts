@@ -22,13 +22,18 @@ import ferry from "@/assets/stream-clips/calais_ferry.webm.asset.json";
 import typhoonUk from "@/assets/stream-clips/raf_typhoon_uk.webm.asset.json";
 import typhoonMirage from "@/assets/stream-clips/raf_typhoon_mirage.webm.asset.json";
 import commons from "@/assets/stream-clips/commons_chamber.webm.asset.json";
+import kentAmb from "@/assets/stream-clips/kent_air_ambulance_2025.webm.asset.json";
+import glasgow from "@/assets/stream-clips/glasgow_2026.webm.asset.json";
 import type { StreamClip } from "./stream-clips";
 
 export const CHECKED = "2026-11-04T00:16:00Z";
 export const CHECKED_2 = "2026-11-04T19:10:00Z";
+export const CHECKED_3 = "2026-11-04T20:20:00Z";
 const C = "https://commons.wikimedia.org/wiki/File:";
 
 export const STREAM_CLIPS: StreamClip[] = [
+  { id: "kent-air-ambulance", url: kentAmb.url, sourcePage: C + "Kent_Surrey_Sussex_Air_Ambulance_(G-LNAC)_Take-off.webm", licence: "CC BY 4.0", credit: "Celsoazevedo", publisher: "Wikimedia Commons", description: "Kent Surrey Sussex Air Ambulance taking off", published: "2025-04-17", topics: ["nhs"], checkedAt: CHECKED_3 },
+  { id: "glasgow-2026", url: glasgow.url, sourcePage: C + "Explore_Europe_Glasgow_(1018751).webm", licence: "Public domain (US Government)", credit: "Staff Sgt. Gavin Lewis, US Air Force", publisher: "DVIDS", description: "Glasgow city centre", published: "2026-08-05", topics: ["cost", "economy", "news", "recap"], checkedAt: CHECKED_3 },
   { id: "thames", url: thames.url, sourcePage: C + "Mercuria_tour_boat_River_Thames_Bankside_Southwark_Bridge_Cannon_Street_Railway_Bridge_London_England_video.webm", licence: "CC BY-SA 4.0", credit: "Acabashi", publisher: "Wikimedia Commons", description: "River Thames by the City of London", published: "2025-09-22", topics: ["economy", "cost", "recap"], checkedAt: CHECKED },
   { id: "met-police", url: police.url, sourcePage: C + "(Police_BMW!)_Metropolitan_Police_responding_around_Westminster_Square!.webm", licence: "CC BY 3.0", credit: "112 South-West NL", publisher: "Wikimedia Commons", description: "Metropolitan Police vehicles in Westminster", published: "2023-10-23", topics: ["crime"], checkedAt: CHECKED },
   { id: "nhs-march", url: nhs.url, sourcePage: C + "NHS_No_Cuts_protest_in_London_5March2017.webm", licence: "CC BY 2.0", credit: "Su-May", publisher: "Wikimedia Commons", description: "NHS march in London", published: "2017-03-05", topics: ["nhs"], checkedAt: CHECKED },
