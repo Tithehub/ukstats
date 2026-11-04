@@ -15,6 +15,8 @@ import { clipCaption, clipsFor } from "@/lib/stream-clips";
 import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
+import { topSix, type TopBox } from "@/lib/stream-extras";
+import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
 import { buildUkHour, cardStep, positionAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
@@ -84,6 +86,8 @@ function BroadcastPage() {
     return () => { clearInterval(c); clearTimeout(r); window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onErr); };
   }, []);
 
+  const { data: boatsData } = useQuery(smallBoatsQuery());
+  const { data: worldData } = useQuery(worldQuery());
   const metrics = stats?.metrics ?? [];
   const emergency = flights?.planes ? flights.planes.filter((p) => p[7] === "7500" || p[7] === "7600" || p[7] === "7700").length : null;
   const tenMin = now ? Math.floor(now.getTime() / 600_000) : 0;
@@ -132,8 +136,10 @@ function BroadcastPage() {
   const clock = now ? `${london(now, { weekday: "short", day: "numeric", month: "short" })} · ${london(now, { hour: "2-digit", minute: "2-digit" })}` : "";
   const region = wc ? "AROUND THE WORLD" : "UK HOUR";
 
+  const iso3 = (() => { const code = wc ? wc.code.toUpperCase() : "GB"; return worldData?.countries.find((c) => c.iso2 === code)?.iso3 ?? null; })();
+  const six = <TopSix boxes={topSix(worldData, iso3, boatsData, !wc)} name={wc ? COUNTRIES[world!.index]!.name : "United Kingdom"} />;
   const header = <Header seg={seg} clock={clock} region={region} portrait={layout === "portrait"} />;
-  const figure = <FigureCard card={card} segId={seg?.id} big={!!seg?.headline} />;
+  const figure = <FigureCard card={card} segId={seg?.id} big={!!seg?.headline} compact />;
   const clip = <ClipBox topic={seg?.topic ?? ""} country={seg?.country} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
@@ -172,9 +178,9 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[520px]">{next}</div>
       <aside data-fit className="absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel/95 p-5">
+        {six}
         {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
-        {releases}
       </aside>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
@@ -186,10 +192,9 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
-      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[470px] flex-col gap-3 overflow-hidden border-y-2 border-night-line bg-night-panel/95 p-6">{fresh}<div className="min-h-0 flex-1">{figure}</div></aside>
-      <div className="absolute right-6 top-[1252px] z-30">{qr}</div>
-      <div className="absolute inset-x-6 top-[1560px] z-30">{releases}</div>
-      <div className="absolute left-1/2 top-[1252px] z-30 w-[620px] -translate-x-1/2">{clip}</div>
+      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel/95 px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
+      <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
+            <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
   </div></div>;
@@ -210,21 +215,21 @@ function Header({ seg, clock, region, portrait }: { seg: Segment | undefined; cl
   </header>;
 }
 
-function FigureCard({ card, segId, big }: { card: StreamCard | null; segId: string | undefined; big: boolean }) {
+function FigureCard({ card, segId, big, compact }: { card: StreamCard | null; segId: string | undefined; big: boolean; compact: boolean }) {
   if (!card) return <section className="rounded border-2 border-night-line bg-night p-6 text-[26px] leading-snug text-night-muted">Every figure on UKStats comes from the official publisher, with its date and next release. No figure is published for this item.</section>;
   const meta = (k: string, v: string) => <><dt className="text-night-muted">{k}</dt><dd className="truncate">{v}</dd></>;
   return <section key={`${segId}-${card.title}`} className="flex h-full flex-col rounded border-2 border-night-line bg-night p-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4">
     <div className="mb-2 flex items-center gap-3 font-mono text-[22px] font-bold uppercase tracking-widest text-electric">
       {card.metric && <span className={`inline-block size-4 rounded-full ${FRESH[freshnessOf(card.metric)]}`} />}{card.kicker}
     </div>
-    <h2 className="line-clamp-2 shrink-0 text-[34px] font-bold leading-tight">{card.title}</h2>
-    <div className={`my-3 shrink-0 truncate font-black leading-none tabular-nums ${big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
-    {card.sub && <p className="line-clamp-2 text-[24px] leading-snug text-night-muted">{card.sub}</p>}
+    <h2 className={`shrink-0 font-bold leading-tight ${compact ? "truncate text-[30px]" : "line-clamp-2 text-[34px]"}`} >{card.title}</h2>
+    <div className={`my-3 shrink-0 truncate font-black leading-none tabular-nums ${compact ? "text-[72px]" : big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
+    {card.sub && !compact && <p className="line-clamp-2 text-[24px] leading-snug text-night-muted">{card.sub}</p>}
     <dl className="mt-auto grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-[22px]">
       {meta("Source", card.source)}
-      {card.period && meta("Period", card.period)}
+      {card.period && !compact && meta("Period", card.period)}
       {card.asOf && meta(card.live ? "Read" : "Published", card.live ? hhmm(card.asOf) : `${fmtDate(card.asOf)} · ${ageLabel(card.asOf)}`)}
-      {!card.live && meta("Next", card.nextDue ? `${fmtDate(card.nextDue)} · ${dueLabel(card.nextDue)}` : "Not announced")}
+      {!card.live && !compact && meta("Next", card.nextDue ? `${fmtDate(card.nextDue)} · ${dueLabel(card.nextDue)}` : "Not announced")}
     </dl>
   </section>;
 }
@@ -235,6 +240,17 @@ function LowerThird({ head }: { head: Headline }) {
     <p className="line-clamp-2 max-h-[84px] px-4 pt-2 text-[30px] font-semibold leading-[42px]">{head.text}</p>
     <p className="truncate px-4 pb-2 font-mono text-[22px] text-night-muted">{head.publisher}{head.time ? ` · ${hhmm(head.time)} London` : ""}</p>
   </div>;
+}
+
+function TopSix({ boxes, name }: { boxes: TopBox[]; name: string }) {
+  return <section aria-label={`Top 6 figures for ${name}`} className="shrink-0">
+    <div className="mb-1 truncate font-mono text-[20px] font-bold uppercase tracking-widest text-electric">Top 6 · {name} <span className="normal-case tracking-normal text-night-muted">· World Bank &amp; Home Office</span></div>
+    <div className="grid grid-cols-3 gap-2">{boxes.map((b) => <div key={b.id} className={`min-w-0 rounded border-2 px-3 py-1.5 ${b.migration ? "border-destructive bg-destructive/15" : "border-night-line bg-night"}`}>
+      <div className={`truncate text-[20px] font-semibold ${b.migration ? "text-destructive" : "text-night-muted"}`}>{b.label}</div>
+      <div className="truncate text-[32px] font-black leading-tight tabular-nums">{b.value ?? "Not published"}</div>
+      <div className="truncate font-mono text-[18px] text-night-muted">{b.when ?? b.source}</div>
+    </div>)}</div>
+  </section>;
 }
 
 function UpNext({ items }: { items: string[] }) {

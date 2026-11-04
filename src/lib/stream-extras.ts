@@ -1,5 +1,8 @@
 // Pure helpers for stream overlays. They only pick from published metrics — never create figures.
 import type { Metric } from "./uk-stats";
+import { TOP_FIVE, WORLD_INDICATORS, fmtWorld, type WorldPayload } from "./world";
+import type { BoatDay } from "./small-boats";
+import { fmtDate } from "./uk-stats";
 
 const ok = (m: Metric) => m.status === "ok" && !!m.value;
 
@@ -31,4 +34,29 @@ export function countdown(iso: string, now: Date): string {
 /** The published small-boats arrivals figure for the year so far, if the Home Office feed has one. */
 export function boatsYearMetric(metrics: Metric[]): Metric | null {
   return metrics.find((m) => ok(m) && /small boat/i.test(m.title) && !m.title.includes(":") && !/-(male|female|sex|religion|ethnicity|age|nationality)/.test(m.id) && /(year|so far|20\d\d)/i.test(`${m.title} ${m.period ?? ""}`)) ?? null;
+}
+
+/** One box in the fixed "Top 6" strip. value null = not published (never estimated). */
+export type TopBox = { id: string; label: string; value: string | null; when: string | null; source: string; migration?: boolean };
+
+const SHORT: Record<string, string> = { "NY.GDP.PCAP.CD": "GDP per person", "GC.DOD.TOTL.GD.ZS": "Govt debt (% GDP)" };
+
+/** Fixed Top 6: irregular migration & small boats first, then the five World Bank headline figures. */
+export function topSix(
+  world: WorldPayload | null | undefined, iso3: string | null,
+  boats: { days?: BoatDay[]; series?: BoatDay[] } | null | undefined, isUk: boolean,
+): TopBox[] {
+  const d = boats?.days ?? boats?.series ?? [];
+  const last = isUk && d.length ? d[d.length - 1]! : null;
+  const mig: TopBox = {
+    id: "migration", label: "Small boats", migration: true, source: isUk ? "Home Office" : "No official feed",
+    value: last ? `${last.arrivals.toLocaleString("en-GB")} people` : null,
+    when: last ? `${last.boats} boats · ${fmtDate(last.date)}` : null,
+  };
+  const rest = TOP_FIVE.map((id) => {
+    const i = WORLD_INDICATORS.find((x) => x.id === id)!;
+    const v = iso3 ? world?.values[id]?.[iso3] : undefined;
+    return { id, label: SHORT[id] ?? i.label, value: v ? fmtWorld(v.value, i.unit) : null, when: v ? String(v.year) : null, source: "World Bank" };
+  });
+  return [mig, ...rest];
 }

@@ -6,7 +6,7 @@ import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Sear
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
-import { WORLD_INDICATORS, WORLD_SOURCE, MAX_LAG_YEARS, fmtWorld } from "@/lib/world";
+import { TOP_FIVE, WORLD_INDICATORS, WORLD_SOURCE, MAX_LAG_YEARS, fmtWorld } from "@/lib/world";
 import { countryKey, filterWarningMarkers, travelAdviceLevel, unrestHotspots, unrestMarkers, warningAge, FCDO_ALERT_LABEL, US_LEVEL_LABEL, KIND_LABEL, isMilitary, type UnrestKind, type FcdoAlert, type OfficialWarning, type UnrestMarker } from "@/lib/unrest";
 import { statLayer, shadeColour, NO_FIGURE, UK_ALERT_COLOURS, US_LEVEL_COLOURS } from "@/lib/globe-legend";
 import { UNREST_PLACES } from "@/lib/unrest-places.data";
@@ -157,9 +157,6 @@ function hasWebGL() {
 }
 
 /** The globe plus its control panel, shared by the home page and /globe. */
-/** Headline five World Bank figures shown per country, beside the migration box. */
-const TOP_FIVE = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL.GD.ZS", "SP.POP.TOTL"];
-
 export function GlobeExplorer({ state: s, onChange, compact = false, broadcast = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean; broadcast?: boolean }) {
   const { data: world } = useQuery(worldQuery());
   const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
