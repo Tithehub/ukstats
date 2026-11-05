@@ -267,6 +267,7 @@ function ClipBox({ topic, country, title }: { topic: string; country: string | u
   const clips = useMemo(() => clipsForCard(title, topic, STREAM_CLIPS, country), [title, topic, country]);
   const first = clips[0]?.id;
   const [i, setI] = useState(0);
+  useEffect(() => setI(0), [first]);
   const [failed, setFailed] = useState<string[]>([]);
   const [tick, setTick] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setTick(Date.now()), 60_000); return () => clearInterval(t); }, []);
@@ -284,8 +285,7 @@ function ClipBox({ topic, country, title }: { topic: string; country: string | u
       <p className="truncate px-3 pb-1.5 font-mono text-[18px] text-night-muted">{cameraCaption(cam)} · {cam.licence}</p>
     </section>;
   }
-  // Restart only when the best match for the new figure changes, so a matching clip keeps playing.
-  useEffect(() => setI(0), [first]);
+  // Clip restarts only when the best match for the new figure changes (effect above).
   const c = clips.length ? clips[i % clips.length]! : null;
   return <section className="overflow-hidden rounded border-2 border-night-line bg-night">
     <div className="relative aspect-video bg-night-panel">
