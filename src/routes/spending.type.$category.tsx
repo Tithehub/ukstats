@@ -28,9 +28,9 @@ export const Route = createFileRoute("/spending/type/$category")({
   },
   component: CategoryPage,
   notFoundComponent: () => (
-    <div className="p-8">Spending type not found. <Link className="underline" to="/spending" search={{ q: "" }}>Back to spending</Link></div>
+    <div className="p-8">Spending type not found. <Link className="underline" to="/spending">Back to spending</Link></div>
   ),
-  errorComponent: ({ error }) => <div role="alert" className="p-8">{error.message}</div>,
+  errorComponent: ({ error }) => <div role="alert" className="p-8">{error instanceof Error ? error.message : String(error)}</div>,
 });
 
 function CategoryPage() {
@@ -42,7 +42,7 @@ function CategoryPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <header>
-          <Link to="/spending" search={{ q: "" }} className="font-mono text-xs uppercase text-muted-foreground underline">Public spending</Link>
+          <Link to="/spending" className="font-mono text-xs uppercase text-muted-foreground underline">Public spending</Link>
           <h1 className="mt-1 text-3xl font-bold">{k.label}</h1>
           <p className="text-muted-foreground">{k.description}</p>
           <p className="font-mono text-xs text-muted-foreground">{k.level === "government" ? "Government spending (HM Treasury function)" : "Council spending (local returns)"}</p>

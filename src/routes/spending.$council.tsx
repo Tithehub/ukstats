@@ -31,9 +31,9 @@ export const Route = createFileRoute("/spending/$council")({
   },
   component: CouncilPage,
   notFoundComponent: () => (
-    <div className="p-8">Council not found. <Link className="underline" to="/spending" search={{ q: "" }}>Back to spending</Link></div>
+    <div className="p-8">Council not found. <Link className="underline" to="/spending">Back to spending</Link></div>
   ),
-  errorComponent: ({ error }) => <div role="alert" className="p-8">{error.message}</div>,
+  errorComponent: ({ error }) => <div role="alert" className="p-8">{error instanceof Error ? error.message : String(error)}</div>,
 });
 
 function CouncilPage() {
@@ -46,7 +46,7 @@ function CouncilPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <header>
-          <Link to="/spending" search={{ q: "" }} className="font-mono text-xs uppercase text-muted-foreground underline">Public spending</Link>
+          <Link to="/spending" className="font-mono text-xs uppercase text-muted-foreground underline">Public spending</Link>
           <h1 className="mt-1 text-3xl font-bold">{c.name}</h1>
           <p className="font-mono text-sm text-muted-foreground">{c.region} · {c.nation} · covers {c.places.join(", ")}</p>
         </header>

@@ -10,7 +10,7 @@ const D =
   "Where UK public money goes: government spending by function, spending per nation and region, and every council's spending by service, with direct links to the official sources and Freedom of Information pages.";
 
 export const Route = createFileRoute("/spending/")({
-  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
+  validateSearch: (s: Record<string, unknown>): { q?: string } => ({ q: typeof s["q"] === "string" ? (s["q"] as string) : undefined }),
   head: () => ({
     meta: [
       { title: T },
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/spending/")({
 function SpendingHub() {
   const { q } = Route.useSearch();
   const navigate = useNavigate({ from: "/spending/" });
-  const results = searchCouncils(q);
+  const results = searchCouncils(q ?? "");
   const gov = EXPENDITURE_CATEGORIES.filter((c) => c.level === "government");
   const council = EXPENDITURE_CATEGORIES.filter((c) => c.level === "council");
   const ukSources = SPENDING_SOURCES.filter((s) => s.nation === "UK");
@@ -50,7 +50,7 @@ function SpendingHub() {
         <section>
           <h2 className="text-xl font-semibold">Find a council</h2>
           <input
-            value={q}
+            value={q ?? ""}
             onChange={(e) => navigate({ search: { q: e.target.value }, replace: true })}
             placeholder="Town, city or council"
             className="mt-2 w-full max-w-md rounded-md border border-input bg-background px-3 py-2"
