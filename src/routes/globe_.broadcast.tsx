@@ -17,6 +17,9 @@ import { STREAM_CAMERAS } from "@/lib/stream-cameras.data";
 import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
+import { getSponsorBannerBoard } from "@/lib/banner.functions";
+import { readPaymentsEnvironment } from "@/lib/payments-env";
+import { regionFromPath, sponsorsForRegion, type SponsorBannerRow } from "@/lib/sponsor-visibility";
 import { topSix, type TopBox } from "@/lib/stream-extras";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
@@ -89,6 +92,11 @@ function BroadcastPage() {
   }, []);
 
   const { data: boatsData } = useQuery(smallBoatsQuery());
+  const { data: sponsorRows } = useQuery({
+    queryKey: ["stream-sponsors"], refetchInterval: 15 * 60_000, staleTime: 15 * 60_000,
+    queryFn: async () => (await getSponsorBannerBoard({ data: { environment: readPaymentsEnvironment() ?? "sandbox" } })).sponsors,
+  });
+  const sponsors = useMemo(() => sponsorsForRegion(sponsorRows ?? [], regionFromPath("/", COUNTRIES.map((c) => c.code))), [sponsorRows]);
   const { data: worldData } = useQuery(worldQuery());
   const metrics = stats?.metrics ?? [];
   const emergency = flights?.planes ? flights.planes.filter((p) => p[7] === "7500" || p[7] === "7600" || p[7] === "7700").length : null;
@@ -189,6 +197,7 @@ function BroadcastPage() {
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
       <div className="absolute bottom-[232px] left-6 z-30 w-[540px]">{clip}</div>
       <div className="absolute bottom-[240px] left-[590px] z-30 w-[620px]">{lower}</div>
+      {sponsors.length > 0 && <div className="absolute bottom-[232px] right-5 z-30 w-[420px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </> : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
@@ -197,6 +206,7 @@ function BroadcastPage() {
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
+      {sponsors.length > 0 && <div className="absolute right-[200px] top-[1420px] z-30 w-[420px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
             <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
@@ -307,4 +317,16 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
       <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
     </div>
   </div>;
+}
+
+/** Paid placement: approved sponsors only, rotating ~10s each, kept apart from figures. */
+function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) {
+  const r = rows[Math.floor(ms / 10_000) % rows.length]!;
+  const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
+  return <section data-fit className="overflow-hidden rounded border-2 border-night-line bg-night-panel">
+    <div className="flex items-center justify-between px-3 py-1 font-mono text-[18px] font-bold uppercase tracking-widest text-night-muted"><span>Supported by</span><span>Sponsor</span></div>
+    {img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] w-full bg-night object-cover motion-safe:animate-in motion-safe:fade-in" />
+      : <div key={r.id} className="grid aspect-[3/1] place-items-center bg-night px-3 text-center text-[32px] font-black">{r.name}</div>}
+    <p className="truncate px-3 py-1 text-[20px] font-semibold">{r.name}</p>
+  </section>;
 }
