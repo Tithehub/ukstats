@@ -137,7 +137,7 @@ function Page() {
             </div>
           ))}
         </div>
-        <p className="mt-6 text-xs text-night-muted">This page reports official documents only. It names no victims and no individuals beyond official reports, and avoids comment on live court cases.</p>
+        <p className="mt-6 text-xs text-night-muted">Figures and findings on this page come from official documents only. It names no victims, and avoids comment on live court cases.</p>
         <div className="mt-6"><Support /></div>
       </main>
       <SiteFooter />
