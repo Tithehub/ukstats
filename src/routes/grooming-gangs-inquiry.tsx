@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { UkTopicNav } from "@/components/UkTopicNav";
 import { fmtDate } from "@/lib/uk-stats";
-import { CHECKED, FIGURES, FINDINGS, LOCAL, NOT_PUBLISHED, RECOMMENDATIONS, STATUS, SUPPORT, TIMELINE, type Source } from "@/lib/grooming-inquiry.data";
+import { CHECKED, FIGURES, FINDINGS, LOCAL, NOT_PUBLISHED, RECOMMENDATIONS, STATUS, SUPPORT, TIMELINE, INDEPENDENT_WORKS, INDEPENDENT_CHECKED, type Source } from "@/lib/grooming-inquiry.data";
 import { finalReportLabel, recommendationCounts, sortedTimeline } from "@/lib/grooming-inquiry";
 
 const T = "Grooming gangs inquiry — official facts, timeline and figures | UK Stats";
@@ -47,7 +47,7 @@ function Page() {
         <div className="mt-6"><UkTopicNav /></div>
 
         <nav aria-label="On this page" className="mt-6 flex flex-wrap gap-3 font-mono text-xs">
-          {[["now", "Where things stand"], ["timeline", "Timeline"], ["findings", "Findings"], ["figures", "Figures"], ["local", "Local areas"], ["recs", "Recommendations"], ["sources", "Sources"]].map(([id, l]) => <a key={id} href={`#${id}`} className="underline">{l}</a>)}
+          {[["now", "Where things stand"], ["timeline", "Timeline"], ["findings", "Findings"], ["figures", "Figures"], ["local", "Local areas"], ["recs", "Recommendations"], ["sources", "Sources"], ["independent", "Independent inquiry and book"]].map(([id, l]) => <a key={id} href={`#${id}`} className="underline">{l}</a>)}
         </nav>
 
         <H id="now">Where things stand now</H>
@@ -125,7 +125,19 @@ function Page() {
         <ul className="mt-4 grid gap-1">
           {[...new Map([...STATUS.sources, ...TIMELINE.map((t) => t.source)].map((s) => [s.url, s])).values()].map((s) => <li key={s.url}><Src s={s} /></li>)}
         </ul>
-        <p className="mt-6 text-xs text-night-muted">This page reports official documents only. It names no victims and no individuals beyond official reports, and avoids comment on live court cases.</p>
+        <H id="independent">Other investigations and books</H>
+        <p className="mt-3 text-sm text-night-muted">These are independent publications, not official sources. UKStats makes no money from these links and does not take figures from them. Links checked {fmtDate(INDEPENDENT_CHECKED)}.</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {INDEPENDENT_WORKS.map((w) => (
+            <div key={w.title} className="rounded-md border border-night-line bg-night-panel p-4">
+              <div className="font-mono text-xs text-night-muted">{w.kind}</div>
+              <div className="mt-1 text-lg font-semibold">{w.title}</div>
+              <div className="text-sm text-night-muted">{w.by}</div>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm">{w.links.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold underline">{l.label}</a>)}</div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 text-xs text-night-muted">Figures and findings on this page come from official documents only. It names no victims, and avoids comment on live court cases.</p>
         <div className="mt-6"><Support /></div>
       </main>
       <SiteFooter />
