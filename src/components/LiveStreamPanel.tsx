@@ -17,7 +17,8 @@ export function LiveStreamPanel() {
           />
         ) : (
           <button type="button" onClick={() => setOn(true)} className="group absolute inset-0 h-full w-full" aria-label="Play the UKStats live stream">
-            <img src={`https://i.ytimg.com/vi/${LIVE_STREAM_ID}/hqdefault_live.jpg`} alt="" loading="lazy" className="h-full w-full object-cover" />
+            <span className="absolute inset-0 grid place-items-center bg-primary pb-28 text-2xl font-black tracking-wide text-primary-foreground">UKSTATS LIVE</span>
+            <img src={`https://i.ytimg.com/vi/${LIVE_STREAM_ID}/hqdefault_live.jpg`} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} className="relative h-full w-full object-cover" />
             <span className="absolute inset-0 grid place-items-center">
               <span className="grid h-16 w-16 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-lg transition group-hover:scale-110">
                 <Play className="h-8 w-8" />
