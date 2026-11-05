@@ -206,7 +206,7 @@ function BroadcastPage() {
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
-      {sponsors.length > 0 && <div className="absolute bottom-[232px] right-6 z-30 h-[104px] w-[440px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      {sponsors.length > 0 && <div className="absolute right-[196px] top-[1420px] z-30 h-[104px] w-[440px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
             <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
