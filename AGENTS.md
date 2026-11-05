@@ -56,4 +56,4 @@
 - /globe/broadcast is a fixed 1920×1080 frame scaled to the window; GlobeExplorer broadcast mode hides panels; [data-fit] overflow reports to /globe/studio.
 - Grooming inquiry page: dated official snapshot in grooming-inquiry.data.ts; report estimates labelled, national counts "Not published".
 - Stream live cameras: only allowed public-authority open-data feeds in stream-cameras.data.ts with live: true (continuous real-time video only; TfL JamCams are periodic loops so stay off), picked by cameraForCard, labelled "scene only", clip box as fallback — no private/police CCTV.
-- Public spending lives in src/lib/spending.data.ts (checked official sources, expenditure categories, council directory) with pure helpers in src/lib/spending.ts; council categories link only to their own nation's return — nations' categories differ, so they are never merged or summed.
+- Spending: sources/categories/councils in spending.data.ts, helpers in spending.ts; councils link only their own nation's return — categories differ, never summed.
