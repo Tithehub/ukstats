@@ -301,8 +301,8 @@ function ClipBox({ topic, country, title }: { topic: string; country: string | u
 function Ticker({ label, items, cls, speed }: { label: string; items: string[]; cls: string; speed: number }) {
   if (!items.length) return <div className="h-[52px] bg-night-panel" />;
   const text = items.join("   •   ");
-  return <div className="flex h-[52px] items-center overflow-hidden bg-night-panel">
-    <span className={`z-10 flex h-full shrink-0 items-center px-4 font-mono text-[24px] font-bold ${cls}`}>{label}</span>
+  return <div className={`flex h-[52px] items-center overflow-hidden ${cls}`}>
+    <span className="z-10 flex h-full shrink-0 items-center bg-stream-strap px-4 font-mono text-[24px] font-black text-stream-strap-fg">{label}</span>
     <div className="relative flex-1 overflow-hidden">
       <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
     </div>
