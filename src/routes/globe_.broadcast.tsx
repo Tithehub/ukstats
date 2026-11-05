@@ -199,6 +199,7 @@ function BroadcastPage() {
       <div className="absolute bottom-[240px] left-[590px] z-30 w-[620px]">{lower}</div>
       <div className={`absolute bottom-[120px] left-0 z-40 h-[104px] ${sponsors.length ? "right-[440px]" : "right-0"}`}>{tickers}</div>
       {sponsors.length > 0 && <div className="absolute bottom-[120px] right-0 z-40 h-[104px] w-[440px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      {sponsors.length > 0 && pos.msIntoHour % 300_000 < 20_000 && <div className="absolute left-6 top-[420px] z-50 w-[1190px]"><SponsorRollcall rows={sponsors} /></div>}
     </> : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -209,6 +210,7 @@ function BroadcastPage() {
       {sponsors.length > 0 && <div className="absolute right-[196px] top-[1420px] z-30 h-[104px] w-[440px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
             <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
+      {sponsors.length > 0 && pos.msIntoHour % 300_000 < 20_000 && <div className="absolute inset-x-6 top-[300px] z-50"><SponsorRollcall rows={sponsors} /></div>}
     </>}
   </div></div>;
 }
@@ -327,5 +329,17 @@ function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) 
     <div className="flex w-[124px] shrink-0 flex-col justify-center px-3 font-mono text-[16px] font-black uppercase leading-tight tracking-widest">Supported<br />by<span className="mt-1 truncate font-sans text-[14px] normal-case tracking-normal">{r.name}</span></div>
     {img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] h-full shrink-0 object-cover motion-safe:animate-in motion-safe:fade-in" />
       : <div key={r.id} className="grid aspect-[3/1] h-full shrink-0 place-items-center bg-night px-3 text-center text-[26px] font-black text-night-fg">{r.name}</div>}
+  </section>;
+}
+
+/** Every approved sponsor at once, shown 20s at the top of each 5-minute slot; never over figures. */
+function SponsorRollcall({ rows }: { rows: SponsorBannerRow[] }) {
+  return <section data-fit className="overflow-hidden rounded-lg border-2 border-night-line bg-stream-strap p-4 text-stream-strap-fg shadow-2xl">
+    <div className="mb-3 font-mono text-[22px] font-black uppercase tracking-widest">Thank you to our sponsors</div>
+    <div className="flex flex-wrap gap-3">{rows.map((r) => {
+      const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
+      return img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] h-[90px] object-cover" />
+        : <div key={r.id} className="grid h-[90px] place-items-center bg-night px-5 text-[26px] font-black text-night-fg">{r.name}</div>;
+    })}</div>
   </section>;
 }
