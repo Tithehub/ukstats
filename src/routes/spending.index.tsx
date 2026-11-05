@@ -10,7 +10,7 @@ const D =
   "Where UK public money goes: government spending by function, spending per nation and region, and every council's spending by service, with direct links to the official sources and Freedom of Information pages.";
 
 export const Route = createFileRoute("/spending/")({
-  validateSearch: (s: Record<string, unknown>): { q?: string } => ({ q: typeof s["q"] === "string" ? (s["q"] as string) : undefined }),
+  validateSearch: (s: Record<string, unknown>): { q?: string } => (typeof s["q"] === "string" && s["q"] ? { q: s["q"] as string } : {}),
   head: () => ({
     meta: [
       { title: T },
