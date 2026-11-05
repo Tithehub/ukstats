@@ -24,6 +24,7 @@ import { GlobalHome } from "@/components/home/GlobalHome";
 import { UkTopicNav } from "@/components/UkTopicNav";
 import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
 import { WORLD_INDICATORS } from "@/lib/world";
+import { LiveStreamPanel } from "@/components/LiveStreamPanel";
 
 const GT = "Stats Solutions — official statistics from around the world";
 const GD = "Live official figures for over 30 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
@@ -154,6 +155,7 @@ function HomeGlobe() {
   return <section aria-label="World globe" className="mt-5">
     <a href="#home-figures" className="mb-2 inline-flex min-h-11 items-center text-sm text-electric-soft underline sm:hidden">Skip the globe — go to UK figures</a>
     <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...(["layer", "gov", "age", "cmp", "feed", "fk", "fa", "fl", "fp", "mg", "nw"] as const).reduce((o, k) => (k in p ? { ...o, [k]: p[k] } : o), {}), ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("mil" in p ? { mil: p.mil } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false }); }} />
+    <LiveStreamPanel />
   </section>;
 }
 
