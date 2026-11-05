@@ -64,7 +64,7 @@ function CouncilPage() {
           <h2 className="text-xl font-semibold">Spending by service</h2>
           <p className="text-sm text-muted-foreground">
             Each service links to the official {c.nation} return that holds this council's figure. Where no return covers a
-            service in {c.nation}, it says "Not published".
+            service in {c.nation}, it says so.
           </p>
           <ul className="mt-3 grid gap-2 md:grid-cols-2">
             {cats.map((k) => {
@@ -74,7 +74,7 @@ function CouncilPage() {
                   <Link to="/spending/type/$category" params={{ category: k.slug }} className="font-medium underline">{k.label}</Link>
                   <p className="text-xs text-muted-foreground">{k.description}</p>
                   <p className="mt-1 font-mono text-xs">
-                    {ids.length ? `In: ${ids.length} official ${ids.length === 1 ? "return" : "returns"} below` : "Not published for " + c.nation}
+                    {ids.length ? `In: ${ids.length} official ${ids.length === 1 ? "return" : "returns"} below` : "No linked " + c.nation + " return for this yet"}
                   </p>
                 </li>
               );

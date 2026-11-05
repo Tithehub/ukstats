@@ -62,7 +62,7 @@ function CategoryPage() {
                 return (
                   <li key={c.slug} className="rounded-md border border-border bg-card p-3">
                     <Link to="/spending/$council" params={{ council: c.slug }} className="font-medium underline">{c.name}</Link>
-                    <span className="block font-mono text-xs text-muted-foreground">{has ? `In the ${c.nation} return` : `Not published for ${c.nation}`}</span>
+                    <span className="block font-mono text-xs text-muted-foreground">{has ? `In the ${c.nation} return` : `No linked ${c.nation} return yet`}</span>
                   </li>
                 );
               })}
