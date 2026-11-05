@@ -221,3 +221,6 @@
 - [x] Filings more than three years behind the newest are listed but never ranked; no figure is estimated
 - [x] Published to ukstats.co.uk (18 Oct 2026)
 - [ ] Re-check live /world loading and confirm Search Console sees the new pages
+
+- National-level spending figures (PESA/CRA, council returns) parsed into live numbers — stage 2
+- Extend council directory beyond 15 cities to all UK councils — stage 2
