@@ -35,6 +35,7 @@ import { Button } from '@/components/ui/button';
 import { currentBrand } from "@/lib/brand-host";
 
 interface NavItem {
+  wide?: boolean;
   to: string;
   label: string;
   icon: LucideIcon;
@@ -98,8 +99,8 @@ const PRIMARY: NavItem[] = [
   { to: "/register", label: "UK statistics", icon: Table2 },
   { to: "/countries", label: "World", icon: Globe2 },
   { to: "/maps", label: "Maps", icon: MapIcon },
-  { to: "/compare-countries", label: "Compare", icon: GitCompareArrows },
-  { to: "/preparedness", label: "Emergency Preparedness", icon: LifeBuoy },
+  { to: "/compare-countries", label: "Compare", icon: GitCompareArrows, wide: true },
+  { to: "/preparedness", label: "Preparedness", icon: LifeBuoy, wide: true },
 ];
 
 export function Wordmark() {
@@ -140,8 +141,8 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
   return (
     <header className="sticky top-0 z-40 border-b border-night-line/60 bg-night/85 backdrop-blur-md">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-3 focus:text-primary-foreground">Skip to content</a>
-      <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-4 py-2.5 sm:px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-6">
+      <div className="mx-auto flex max-w-[1280px] items-center gap-3 2xl:max-w-[1536px] px-4 py-2.5 sm:px-6">
+        <div className="flex min-w-0 flex-1 items-center gap-6 overflow-hidden">
           <Wordmark />
           <nav aria-label="Primary" className="hidden items-center gap-1 font-mono text-[12px] xl:flex">
             {PRIMARY.map((n) => (
@@ -150,29 +151,19 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
                 to={n.to}
                 activeOptions={{ exact: n.to === "/" }}
                 activeProps={{ className: "text-night-fg bg-night-panel" }}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
+                className={`${n.wide ? "max-2xl:hidden " : ""}inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric`}
               >
                 <n.icon className="size-4" aria-hidden="true" />
                 {n.label}
               </Link>
             ))}
-            {isAdmin ? (
-              <Link
-                to="/agents"
-                activeProps={{ className: "text-night-fg bg-night-panel" }}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-night-muted transition-colors hover:bg-night-panel hover:text-electric-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
-              >
-                <Bot className="size-4" aria-hidden="true" />
-                Agents
-              </Link>
-            ) : null}
           </nav>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <Button asChild variant="ghost" size="icon" title="Find a statistic"><Link to="/register" aria-label="Find a statistic"><Search /></Link></Button>
           {status ? (
-            <span className="hidden items-center gap-2 rounded-full border border-night-line/70 px-3 py-1.5 font-mono text-[11px] text-night-muted xl:inline-flex">
+            <span className="hidden">
               {status}
             </span>
           ) : null}
@@ -180,25 +171,25 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             href={LIVE_STREAM_URL}
             target="_blank"
             rel="noopener"
-            className={btn("ghost", "sm")}
+            className={btn("ghost", "sm", "whitespace-nowrap")}
             aria-label="Watch the UKStats live stream"
           >
             <span className="size-2 animate-pulse rounded-full bg-destructive" aria-hidden="true" />
-            Watch live
+            <span className="sm:hidden">Live</span><span className="max-sm:hidden">Watch live</span>
           </a>
           <ThemeToggle />
           {signedIn ? (
             <Button
               type="button"
               onClick={() => void supabase.auth.signOut()}
-              className={btn("ghost", "sm", "max-sm:hidden")}
+              className={btn("ghost", "sm", "max-sm:hidden whitespace-nowrap")}
               title={user?.email ?? undefined}
             >
               <LogOut className="size-4" aria-hidden="true" />
               Sign out
             </Button>
           ) : (
-            <Link to="/auth" className={btn("ghost", "sm", "max-sm:hidden")}>
+            <Link to="/auth" className={btn("ghost", "sm", "max-sm:hidden whitespace-nowrap")}>
               <LogIn className="size-4" aria-hidden="true" />
               Sign in
             </Link>
@@ -207,12 +198,12 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             href="https://x.com/ukstatsglobal"
             target="_blank"
             rel="noopener noreferrer"
-            className={btn("ghost", "sm", "max-md:hidden")}
+            className={btn("ghost", "sm", "max-xl:hidden whitespace-nowrap")}
             aria-label="Follow us on X @ukstatsglobal"
           >
             Follow on X
           </a>
-          <Link to="/widget" className={btn("secondary", "sm", "max-xl:hidden")}>
+          <Link to="/widget" className={btn("secondary", "sm", "max-2xl:hidden whitespace-nowrap")}>
             <LayoutGrid className="size-4" aria-hidden="true" />
             Embed figures
           </Link>
