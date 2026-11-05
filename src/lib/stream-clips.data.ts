@@ -24,6 +24,17 @@ import typhoonMirage from "@/assets/stream-clips/raf_typhoon_mirage.webm.asset.j
 import commons from "@/assets/stream-clips/commons_chamber.webm.asset.json";
 import kentAmb from "@/assets/stream-clips/kent_air_ambulance_2025.webm.asset.json";
 import glasgow from "@/assets/stream-clips/glasgow_2026.webm.asset.json";
+import scotProtest from "@/assets/stream-clips/scot_protest_2026.webm.asset.json";
+import guys from "@/assets/stream-clips/guys_hospital_2026.webm.asset.json";
+import borough from "@/assets/stream-clips/borough_market_2026.webm.asset.json";
+import norwich from "@/assets/stream-clips/norwich_train_2026.webm.asset.json";
+import lner from "@/assets/stream-clips/lner_2026.webm.asset.json";
+import marathon from "@/assets/stream-clips/marathon_2026.webm.asset.json";
+import aberdeen from "@/assets/stream-clips/aberdeen_mayday_2026.webm.asset.json";
+import tay from "@/assets/stream-clips/tay_bridge_2026.webm.asset.json";
+import haneda from "@/assets/stream-clips/haneda_2026.webm.asset.json";
+import sna from "@/assets/stream-clips/sna_flight_2026.webm.asset.json";
+import marrakech from "@/assets/stream-clips/marrakech_airshow_2026.webm.asset.json";
 import type { StreamClip } from "./stream-clips";
 
 export const CHECKED = "2026-11-04T00:16:00Z";
@@ -31,7 +42,20 @@ export const CHECKED_2 = "2026-11-04T19:10:00Z";
 export const CHECKED_3 = "2026-11-04T20:20:00Z";
 const C = "https://commons.wikimedia.org/wiki/File:";
 
+export const CHECKED_4 = "2026-11-05T00:20:00Z";
+
 export const STREAM_CLIPS: StreamClip[] = [
+  { id: "scot-protest-2026", url: scotProtest.url, sourcePage: C + "Anti-immigration_protest_&_counter_at_the_Scottish_Parliament_21-03-2026.webm", licence: "CC BY-SA 4.0", credit: "TheBritinator", publisher: "Wikimedia Commons", description: "Anti-immigration protest and counter-protest, Scottish Parliament — not a small boat", published: "2026-03-21", topics: ["boats", "legal", "warnings", "news"], keywords: ["small boat", "irregular", "migration", "asylum", "immigra", "protest"], checkedAt: CHECKED_4 },
+  { id: "guys-2026", url: guys.url, sourcePage: C + "Guy’s_Hospital_Tower,_London_(2026).webm", licence: "CC BY-SA 4.0", credit: "Fabiovieiramd", publisher: "Wikimedia Commons", description: "Guy's Hospital, London", published: "2026-05-09", topics: ["nhs"], keywords: ["waiting", "hospital", "a&e", "nhs", "referral", "treatment"], checkedAt: CHECKED_4 },
+  { id: "borough-2026", url: borough.url, sourcePage: C + "Borough_Market_London_Is_OVERWHELMING_in_2026_-_Saturday_Food_Walk_4K.webm", licence: "CC BY 4.0", credit: "London Walk 4K UHD", publisher: "Wikimedia Commons", description: "Food stalls at Borough Market, London", published: "2026-02-04", topics: ["cost", "economy"], keywords: ["inflation", "cpi", "food", "price", "retail", "sales"], checkedAt: CHECKED_4 },
+  { id: "norwich-2026", url: norwich.url, sourcePage: C + "Leaving_Norwich_by_train,_onto_Great_Eastern_Main_Line_-_2026-09-30_-_Andy_Mabbett.webm", licence: "CC BY 4.0", credit: "Andy Mabbett", publisher: "Wikimedia Commons", description: "Train leaving Norwich on the Great Eastern Main Line", published: "2026-09-30", topics: ["cost", "economy"], keywords: ["rail", "fare", "transport", "fuel", "petrol", "energy"], checkedAt: CHECKED_4 },
+  { id: "lner-2026", url: lner.url, sourcePage: C + "LNER_Azuma_800_209_passes_Peterborough_at_speed_-_2026-09-28_-_Andy_Mabbett.webm", licence: "CC BY 4.0", credit: "Andy Mabbett", publisher: "Wikimedia Commons", description: "LNER Azuma passing Peterborough", published: "2026-09-28", topics: ["economy", "cost"], keywords: ["gdp", "growth", "output", "productivity", "rail"], checkedAt: CHECKED_4 },
+  { id: "marathon-2026", url: marathon.url, sourcePage: C + "2026_London_Marathon_Upper_Thames_Street_from_Blackfriars_Bridge_and_Queenhithe.webm", licence: "CC BY-SA 4.0", credit: "Acabashi", publisher: "Wikimedia Commons", description: "London Marathon on Upper Thames Street, City of London", published: "2026-04-26", topics: ["economy", "recap", "news"], keywords: ["employment", "unemployment", "jobs", "population", "earnings", "wage"], checkedAt: CHECKED_4 },
+  { id: "aberdeen-2026", url: aberdeen.url, sourcePage: C + "Speaker_at_May_Day_march_in_Aberdeen,_2_May_2026_(43).webm", licence: "CC BY-SA 4.0", credit: "Lucas Kendall", publisher: "Wikimedia Commons", description: "Speaker at the May Day march in Aberdeen", published: "2026-05-02", topics: ["news", "warnings"], keywords: ["protest", "march", "strike", "wage", "earnings"], checkedAt: CHECKED_4 },
+  { id: "tay-2026", url: tay.url, sourcePage: C + "Tay_Road_Bridge_seen_from_Dundee_Law_-_September_2026.webm", licence: "CC BY-SA 4.0", credit: "Laerol", publisher: "Wikimedia Commons", description: "Tay Road Bridge from Dundee Law", published: "2026-09-19", topics: ["recap", "economy"], keywords: ["scotland", "debt", "borrowing", "public sector"], checkedAt: CHECKED_4 },
+  { id: "haneda-2026", url: haneda.url, sourcePage: C + "20_MINS_IN_Amazing_Night_Plane_Spotting_at_HANEDA_AIRPORT_(HND-RJTT)_2026.webm", licence: "CC BY 4.0", credit: "Tokyo Big Bird", publisher: "Wikimedia Commons", description: "Night arrivals at Haneda Airport, Tokyo", published: "2026-06-13", topics: ["flights", "legal", "world"], keywords: ["visa", "arrivals", "passenger", "emergency", "plane", "flight"], checkedAt: CHECKED_4 },
+  { id: "sna-2026", url: sna.url, sourcePage: C + "SNA_to_AVX_flight_spring_of_2026_by_Don_Ramey_Logan.webm", licence: "CC BY-SA 4.0", credit: "Don Ramey Logan", publisher: "Wikimedia Commons", description: "View from a light aircraft over the California coast", published: "2026-04-23", topics: ["flights", "world"], keywords: ["plane", "flight", "squawk"], checkedAt: CHECKED_4 },
+  { id: "marrakech-2026", url: marrakech.url, sourcePage: C + "Marrakech_Air_Show_2026_(1025700).webm", licence: "Public domain (US Government)", credit: "Staff Sgt. Brooke Rogers, US Air Force", publisher: "DVIDS", description: "Military helicopter display, Marrakech Air Show", published: "2026-10-06", topics: ["security", "world"], keywords: ["defence", "military", "armed forces", "alert"], checkedAt: CHECKED_4 },
   { id: "kent-air-ambulance", url: kentAmb.url, sourcePage: C + "Kent_Surrey_Sussex_Air_Ambulance_(G-LNAC)_Take-off.webm", licence: "CC BY 4.0", credit: "Celsoazevedo", publisher: "Wikimedia Commons", description: "Kent Surrey Sussex Air Ambulance taking off", published: "2025-04-17", topics: ["nhs"], checkedAt: CHECKED_3 },
   { id: "glasgow-2026", url: glasgow.url, sourcePage: C + "Explore_Europe_Glasgow_(1018751).webm", licence: "Public domain (US Government)", credit: "Staff Sgt. Gavin Lewis, US Air Force", publisher: "DVIDS", description: "Glasgow city centre", published: "2026-08-05", topics: ["cost", "economy", "news", "recap"], checkedAt: CHECKED_3 },
   { id: "thames", url: thames.url, sourcePage: C + "Mercuria_tour_boat_River_Thames_Bankside_Southwark_Bridge_Cannon_Street_Railway_Bridge_London_England_video.webm", licence: "CC BY-SA 4.0", credit: "Acabashi", publisher: "Wikimedia Commons", description: "River Thames by the City of London", published: "2025-09-22", topics: ["economy", "cost", "recap"], checkedAt: CHECKED },

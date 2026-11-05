@@ -11,7 +11,7 @@ import { flightsQuery } from "@/lib/flights.functions";
 import { countryQuery } from "@/lib/country-queries";
 import { COUNTRIES } from "@/lib/countries";
 import { ageLabel, dueLabel, fmtDate, freshnessOf, type StatsPayload } from "@/lib/uk-stats";
-import { clipCaption, clipsFor } from "@/lib/stream-clips";
+import { clipCaption, clipsForCard } from "@/lib/stream-clips";
 import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
@@ -140,7 +140,7 @@ function BroadcastPage() {
   const six = <TopSix boxes={topSix(worldData, iso3, boatsData, !wc)} name={wc ? COUNTRIES[world!.index]!.name : "United Kingdom"} />;
   const header = <Header seg={seg} clock={clock} region={region} portrait={layout === "portrait"} />;
   const figure = <FigureCard card={card} segId={seg?.id} big={!!seg?.headline} compact />;
-  const clip = <ClipBox topic={seg?.topic ?? ""} country={seg?.country} />;
+  const clip = <ClipBox topic={seg?.topic ?? ""} country={seg?.country} title={card?.title ?? ""} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);
@@ -260,10 +260,12 @@ function UpNext({ items }: { items: string[] }) {
   </section>;
 }
 
-function ClipBox({ topic, country }: { topic: string; country: string | undefined }) {
-  const clips = useMemo(() => clipsFor(topic, STREAM_CLIPS, country), [topic, country]);
+function ClipBox({ topic, country, title }: { topic: string; country: string | undefined; title: string }) {
+  const clips = useMemo(() => clipsForCard(title, topic, STREAM_CLIPS, country), [title, topic, country]);
+  const first = clips[0]?.id;
   const [i, setI] = useState(0);
-  useEffect(() => setI(0), [topic, country]);
+  // Restart only when the best match for the new figure changes, so a matching clip keeps playing.
+  useEffect(() => setI(0), [first]);
   const c = clips.length ? clips[i % clips.length]! : null;
   return <section className="overflow-hidden rounded border-2 border-night-line bg-night">
     <div className="relative aspect-video bg-night-panel">

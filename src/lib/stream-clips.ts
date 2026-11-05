@@ -11,6 +11,8 @@ export interface StreamClip {
   description: string; published: string; topics: string[]; checkedAt: string;
   /** Globe country key; omitted = usable for any country. */
   country?: string;
+  /** Words matched against the figure on screen, e.g. "inflation", "rail". */
+  keywords?: string[];
 }
 
 const NEWS_OUTLETS = /\b(bbc|sky news|itv|channel 4|gb news|cnn|fox news|reuters|associated press|\bap\b|al jazeera|euronews|france 24|dw news|guardian|telegraph|daily mail|times radio)\b/i;
@@ -37,6 +39,17 @@ export function clipsFor(topic: string, clips: StreamClip[], country?: string, _
   return clips
     .filter((c) => clipAllowed(c) && clipTier(c) === "newest" && c.topics.includes(topic) && (!c.country || !country || c.country === country))
     .sort((a, b) => b.published.localeCompare(a.published));
+}
+
+/** Clips for the figure on screen: 2026+ clips whose keywords appear in the card title come first
+ *  (most keyword hits first), then the rest of the topic's clips. Empty when the topic has none. */
+export function clipsForCard(title: string, topic: string, clips: StreamClip[], country?: string): StreamClip[] {
+  const t = title.toLowerCase();
+  const score = (c: StreamClip) => (c.keywords ?? []).filter((k) => t.includes(k.toLowerCase())).length;
+  return clipsFor(topic, clips, country)
+    .map((c, i) => ({ c, i, s: score(c) }))
+    .sort((a, b) => b.s - a.s || a.i - b.i)
+    .map((x) => x.c);
 }
 
 export const clipCaption = (c: StreamClip) =>
