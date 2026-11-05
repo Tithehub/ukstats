@@ -269,17 +269,17 @@ function ClipBox({ topic, country, title }: { topic: string; country: string | u
   const [i, setI] = useState(0);
   useEffect(() => setI(0), [first]);
   const [failed, setFailed] = useState<string[]>([]);
-  const [tick, setTick] = useState(() => Date.now());
-  useEffect(() => { const t = setInterval(() => setTick(Date.now()), 60_000); return () => clearInterval(t); }, []);
+  const [tick, setTick] = useState(0);
+  useEffect(() => { setTick(Date.now()); const t = setInterval(() => setTick(Date.now()), 60_000); return () => clearInterval(t); }, []);
   const cam = useMemo(() => cameraForCard(title.toLowerCase(), country, STREAM_CAMERAS, failed), [title, country, failed]);
   if (cam) {
     const mins = Math.floor((tick % (cam.refreshSeconds * 1000)) / 60_000);
     return <section className="overflow-hidden rounded border-2 border-night-line bg-night">
       <div className="relative aspect-video bg-night-panel">
-        <video key={cameraSrc(cam, tick)} src={cameraSrc(cam, tick)} poster={cam.imageUrl} autoPlay muted loop playsInline
-          onError={() => setFailed((f) => [...f, cam.id])} className="absolute inset-0 size-full object-cover" />
+        {tick > 0 && <video key={cameraSrc(cam, tick)} src={cameraSrc(cam, tick)} poster={cam.imageUrl} autoPlay muted loop playsInline
+          onError={() => setFailed((f) => [...f, cam.id])} className="absolute inset-0 size-full object-cover" />}
         <span className="absolute left-3 top-3 rounded bg-destructive px-2 py-0.5 font-mono text-[20px] font-bold uppercase tracking-widest text-destructive-foreground">● Live camera</span>
-        <span className="absolute right-3 top-3 rounded bg-night/85 px-2 py-0.5 font-mono text-[18px]">updated {mins} min ago</span>
+        <span className="absolute right-3 top-3 rounded bg-night/85 px-2 py-0.5 font-mono text-[18px]">{tick > 0 ? `updated ${mins} min ago` : "connecting…"}</span>
       </div>
       <p className="truncate px-3 pt-1.5 text-[22px] font-semibold">{cam.place}</p>
       <p className="truncate px-3 pb-1.5 font-mono text-[18px] text-night-muted">{cameraCaption(cam)} · {cam.licence}</p>
