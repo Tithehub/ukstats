@@ -131,7 +131,7 @@ function BroadcastPage() {
 
   const audio = useRef<StreamAudio | null>(null);
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("sound") === "off") return;
+    if (new URLSearchParams(window.location.search).get("sound") !== "on") return;
     audio.current = startStreamAudio();
     return () => { audio.current?.stop(); audio.current = null; };
   }, []);
