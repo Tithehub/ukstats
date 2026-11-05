@@ -109,3 +109,17 @@ export const SUPPORT = [
   { name: "NAPAC", detail: "Support for adults abused as children — 0808 801 0331", url: "https://napac.org.uk/" },
   { name: "Victim Support", detail: "Free 24/7 supportline 08 08 16 89 111", url: "https://www.victimsupport.org.uk/" },
 ];
+
+/** Independent (non-official) works. Links only — no figures are taken from these. Links checked 2026-11-05. */
+export type IndependentWork = { title: string; by: string; kind: string; links: { label: string; url: string }[] };
+export const INDEPENDENT_CHECKED = "2026-11-05";
+export const INDEPENDENT_WORKS: IndependentWork[] = [
+  { title: "The Grooming Gang Cover-Up", by: "Tommy Robinson and Peter McLoughlin", kind: "Book, November 2026", links: [
+    { label: "Book website", url: "https://groominggang.com/" },
+    { label: "Amazon UK", url: "https://www.amazon.co.uk/dp/0995584982" },
+  ] },
+  { title: "The Rape Gang Inquiry", by: "Rupert Lowe MP and Restore Britain", kind: "Independent crowdfunded inquiry", links: [
+    { label: "Inquiry website", url: "https://www.therapeganginquiry.org/" },
+    { label: "Restore Britain announcement", url: "https://restorebritain.substack.com/p/an-important-announcement-from-rupert" },
+  ] },
+];
