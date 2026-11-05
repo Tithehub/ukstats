@@ -188,7 +188,7 @@ function BroadcastPage() {
       <div className="absolute inset-y-0 left-0 w-[1240px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[520px]">{next}</div>
-      <aside data-fit className={`absolute right-0 top-[192px] z-30 flex ${sponsors.length ? "h-[420px]" : "h-[664px]"} w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5`}>
+      <aside data-fit className={`absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5`}>
         {six}
         {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
@@ -197,8 +197,8 @@ function BroadcastPage() {
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
       <div className="absolute bottom-[232px] left-6 z-30 w-[540px]">{clip}</div>
       <div className="absolute bottom-[240px] left-[590px] z-30 w-[620px]">{lower}</div>
-      {sponsors.length > 0 && <div className="absolute bottom-[232px] right-5 z-30 w-[420px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
-      <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
+      <div className={`absolute bottom-[120px] left-0 z-40 h-[104px] ${sponsors.length ? "right-[440px]" : "right-0"}`}>{tickers}</div>
+      {sponsors.length > 0 && <div className="absolute bottom-[120px] right-0 z-40 h-[104px] w-[440px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
     </> : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -206,7 +206,7 @@ function BroadcastPage() {
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
-      {sponsors.length > 0 && <div className="absolute right-[200px] top-[1420px] z-30 w-[420px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      {sponsors.length > 0 && <div className="absolute bottom-[232px] right-6 z-30 h-[104px] w-[440px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
             <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
@@ -323,10 +323,9 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
 function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) {
   const r = rows[Math.floor(ms / 10_000) % rows.length]!;
   const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
-  return <section data-fit className="overflow-hidden rounded border-2 border-night-line bg-night-panel">
-    <div className="flex items-center justify-between px-3 py-1 font-mono text-[18px] font-bold uppercase tracking-widest text-night-muted"><span>Supported by</span><span>Sponsor</span></div>
-    {img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] w-full bg-night object-cover motion-safe:animate-in motion-safe:fade-in" />
-      : <div key={r.id} className="grid aspect-[3/1] place-items-center bg-night px-3 text-center text-[32px] font-black">{r.name}</div>}
-    <p className="truncate px-3 py-1 text-[20px] font-semibold">{r.name}</p>
+  return <section data-fit className="flex h-full overflow-hidden border-2 border-night-line bg-stream-strap text-stream-strap-fg">
+    <div className="flex w-[124px] shrink-0 flex-col justify-center px-3 font-mono text-[16px] font-black uppercase leading-tight tracking-widest">Supported<br />by<span className="mt-1 truncate font-sans text-[14px] normal-case tracking-normal">{r.name}</span></div>
+    {img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] h-full shrink-0 object-cover motion-safe:animate-in motion-safe:fade-in" />
+      : <div key={r.id} className="grid aspect-[3/1] h-full shrink-0 place-items-center bg-night px-3 text-center text-[26px] font-black text-night-fg">{r.name}</div>}
   </section>;
 }
