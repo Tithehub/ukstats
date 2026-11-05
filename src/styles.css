@@ -45,6 +45,10 @@
   --color-night-muted: var(--night-muted);
   --color-electric: var(--electric);
   --color-electric-soft: var(--electric-soft);
+  --color-stream-strap: var(--stream-strap);
+  --color-stream-strap-fg: var(--stream-strap-fg);
+  --color-stream-yellow: var(--stream-yellow);
+  --color-stream-yellow-fg: var(--stream-yellow-fg);
   --color-dedication: var(--dedication);
   --color-dedication-foreground: var(--dedication-foreground);
   --color-dedication-muted: var(--dedication-muted);
@@ -366,4 +370,24 @@
   animation: ticker-scroll 60s linear infinite;
   &:hover, &:active { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+
+/* Live stream only: bright, saturated news-channel palette, solid (no see-through) panels, crisp text. */
+[data-frame] {
+  --night: oklch(0.27 0.11 258);
+  --night-panel: oklch(0.31 0.12 258);
+  --night-line: oklch(0.62 0.16 255);
+  --night-fg: oklch(1 0 0);
+  --night-muted: oklch(0.88 0.04 250);
+  --electric: oklch(0.88 0.18 95);
+  --destructive: oklch(0.6 0.25 27);
+  --destructive-foreground: oklch(1 0 0);
+  --primary: oklch(0.3 0.13 258);
+  --primary-foreground: oklch(1 0 0);
+  --stream-strap: oklch(1 0 0);
+  --stream-strap-fg: oklch(0.15 0.03 258);
+  --stream-yellow: oklch(0.88 0.18 95);
+  --stream-yellow-fg: oklch(0.15 0.03 258);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }

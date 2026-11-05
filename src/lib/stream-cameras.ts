@@ -8,12 +8,14 @@ export interface StreamCamera {
   /** ~10-second loop the operator republishes every few minutes. */
   videoUrl: string; imageUrl: string; licence: string; licenceUrl: string;
   refreshSeconds: number; checkedAt: string;
+  /** True only for a continuous real-time video feed. Periodic snapshots/loops are never shown as live. */
+  live: boolean;
   /** Words matched against the figure title; empty = general fallback for the country. */
   keywords: string[];
 }
 
 export function cameraAllowed(c: StreamCamera): boolean {
-  return (ALLOWED_CAMERA_OPERATORS as readonly string[]).includes(c.operator);
+  return c.live === true && (ALLOWED_CAMERA_OPERATORS as readonly string[]).includes(c.operator);
 }
 
 /** Best camera for the figure on screen, or null (the clip box is used instead). */
