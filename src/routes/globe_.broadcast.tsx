@@ -159,7 +159,7 @@ function BroadcastPage() {
     {next4.map((m) => <div key={m.id} className="flex justify-between gap-4 text-[22px]"><span className="truncate">{m.title}</span><span className="shrink-0 font-mono tabular-nums">in {countdown(m.nextDue!, t)}</span></div>)}
   </div> : null;
   const boats = !wc ? boatsYearMetric(metrics) : null;
-  const boatsChip = boats ? <div className="rounded border-2 border-destructive bg-night-panel/95 px-4 py-2">
+  const boatsChip = boats ? <div className="rounded border-2 border-destructive bg-night-panel px-4 py-2">
     <div className="truncate font-mono text-[20px] font-bold uppercase tracking-widest text-destructive">{boats.title}</div>
     <div className="flex items-baseline gap-3"><span className="text-[48px] font-black leading-none tabular-nums">{boats.value}</span><span className="truncate text-[20px] text-night-muted">{boats.period ?? ""} · Home Office</span></div>
   </div> : null;
@@ -180,7 +180,7 @@ function BroadcastPage() {
       <div className="absolute inset-y-0 left-0 w-[1240px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[520px]">{next}</div>
-      <aside data-fit className="absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel/95 p-5">
+      <aside data-fit className="absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5">
         {six}
         {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
@@ -195,7 +195,7 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
-      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel/95 px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
+      <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
             <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
@@ -205,13 +205,13 @@ function BroadcastPage() {
 
 function Header({ seg, clock, region, portrait }: { seg: Segment | undefined; clock: string; region: string; portrait: boolean }) {
   const major = !!seg?.headline;
-  return <header className={`flex h-full items-stretch overflow-hidden border-y-2 border-night-line ${major ? "bg-destructive text-destructive-foreground" : "bg-night-panel"} ${portrait ? "flex-wrap" : ""}`}>
+  return <header className={`flex h-full items-stretch overflow-hidden border-y-2 border-night-line ${major ? "bg-destructive text-destructive-foreground" : "bg-stream-strap text-stream-strap-fg"} ${portrait ? "flex-wrap" : ""}`}>
     <div className="flex items-center gap-3 bg-primary px-6 text-primary-foreground">
-      <span className="text-[40px] font-black tracking-tight">UKSTATS</span>
+      <span className="text-[44px] font-black tracking-tight">UKSTATS</span>
       <span className="rounded bg-destructive px-2 py-0.5 text-[24px] font-bold text-destructive-foreground">● LIVE</span>
     </div>
     <div data-fit key={seg?.id} className={`flex min-w-0 flex-1 flex-col justify-center overflow-hidden px-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-4 `}>
-      <span className={`font-mono text-[22px] font-bold uppercase tracking-widest ${major ? "" : "text-electric"}`}>{major ? "Major issue" : region}</span>
+      <span className={`font-mono text-[22px] font-bold uppercase tracking-widest ${major ? "" : "text-destructive"}`}>{major ? "Major issue" : region}</span>
       <span className={`font-black uppercase leading-tight tracking-tight ${portrait ? "line-clamp-2 text-[34px]" : "truncate text-[40px]"}`}>{seg?.title ?? "Official UK statistics"}</span>
     </div>
     <div className={`flex items-center px-6 font-mono text-[26px] ${portrait ? "hidden" : ""}`}>{clock} <span className="ml-2 text-[20px] opacity-80">London</span></div>
@@ -226,7 +226,7 @@ function FigureCard({ card, segId, big, compact }: { card: StreamCard | null; se
       {card.metric && <span className={`inline-block size-4 rounded-full ${FRESH[freshnessOf(card.metric)]}`} />}{card.kicker}
     </div>
     <h2 className={`shrink-0 font-bold leading-tight ${compact ? "truncate text-[30px]" : "line-clamp-2 text-[34px]"}`} >{card.title}</h2>
-    <div className={`my-3 shrink-0 truncate font-black leading-none tabular-nums ${compact ? "text-[72px]" : big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
+    <div className={`my-3 shrink-0 self-start truncate rounded bg-stream-yellow px-3 py-1 text-stream-yellow-fg font-black leading-none tabular-nums ${compact ? "text-[72px]" : big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
     {card.sub && !compact && <p className="line-clamp-2 text-[24px] leading-snug text-night-muted">{card.sub}</p>}
     <dl className="mt-auto grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-[22px]">
       {meta("Source", card.source)}
@@ -238,7 +238,7 @@ function FigureCard({ card, segId, big, compact }: { card: StreamCard | null; se
 }
 
 function LowerThird({ head }: { head: Headline }) {
-  return <div key={head.text} className="overflow-hidden rounded border-2 border-night-line bg-night-panel/95 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4">
+  return <div key={head.text} className="overflow-hidden rounded border-2 border-night-line bg-night-panel motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4">
     <div className={`px-4 py-1 font-mono text-[22px] font-bold uppercase ${head.official ? "bg-destructive text-destructive-foreground" : "bg-electric text-night"}`}>{head.official ? "Official warning" : "News report — not official"}</div>
     <p className="line-clamp-2 max-h-[84px] px-4 pt-2 text-[30px] font-semibold leading-[42px]">{head.text}</p>
     <p className="truncate px-4 pb-2 font-mono text-[22px] text-night-muted">{head.publisher}{head.time ? ` · ${hhmm(head.time)} London` : ""}</p>
@@ -257,7 +257,7 @@ function TopSix({ boxes, name }: { boxes: TopBox[]; name: string }) {
 }
 
 function UpNext({ items }: { items: string[] }) {
-  return <section className="rounded border-2 border-night-line bg-night-panel/90 px-4 py-3">
+  return <section className="rounded border-2 border-night-line bg-night-panel px-4 py-3">
     <h3 className="font-mono text-[22px] font-bold uppercase tracking-widest text-electric">Up next</h3>
     <ol className="mt-1 space-y-0.5 text-[24px]">{items.map((u) => <li key={u} className="truncate">▸ {u}</li>)}</ol>
   </section>;
@@ -279,7 +279,7 @@ function ClipBox({ topic, country, title }: { topic: string; country: string | u
         {tick > 0 && <video key={cameraSrc(cam, tick)} src={cameraSrc(cam, tick)} poster={cam.imageUrl} autoPlay muted loop playsInline
           onError={() => setFailed((f) => [...f, cam.id])} className="absolute inset-0 size-full object-cover" />}
         <span className="absolute left-3 top-3 rounded bg-destructive px-2 py-0.5 font-mono text-[20px] font-bold uppercase tracking-widest text-destructive-foreground">● Live camera</span>
-        <span className="absolute right-3 top-3 rounded bg-night/85 px-2 py-0.5 font-mono text-[18px]">{tick > 0 ? `updated ${mins} min ago` : "connecting…"}</span>
+        <span className="absolute right-3 top-3 rounded bg-night px-2 py-0.5 font-mono text-[18px]">{tick > 0 ? `updated ${mins} min ago` : "connecting…"}</span>
       </div>
       <p className="truncate px-3 pt-1.5 text-[22px] font-semibold">{cam.place}</p>
       <p className="truncate px-3 pb-1.5 font-mono text-[18px] text-night-muted">{cameraCaption(cam)} · {cam.licence}</p>
@@ -291,7 +291,7 @@ function ClipBox({ topic, country, title }: { topic: string; country: string | u
     <div className="relative aspect-video bg-night-panel">
       {c ? <video key={c.id} src={c.url} autoPlay muted playsInline onEnded={() => setI((x) => x + 1)} className="absolute inset-0 size-full object-cover" />
         : <div className="absolute inset-0 grid place-items-center p-6 text-center text-[24px] text-night-muted">No licensed footage for this topic — figures shown are from the official publisher.</div>}
-      {c && <span className="absolute left-3 top-3 rounded bg-night/85 px-2 py-0.5 font-mono text-[20px] font-bold uppercase tracking-widest">{`${c.published.slice(0, 4)} footage`}</span>}
+      {c && <span className="absolute left-3 top-3 rounded bg-night px-2 py-0.5 font-mono text-[20px] font-bold uppercase tracking-widest">{`Recorded footage · ${c.published.slice(0, 4)}`}</span>}
     </div>
     {c && <p className="truncate px-3 pt-1.5 text-[22px] font-semibold">{c.description}</p>}
     {c && <p className="truncate px-3 pb-1.5 font-mono text-[18px] text-night-muted">{clipCaption(c)}</p>}
@@ -304,7 +304,7 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
   return <div className="flex h-[52px] items-center overflow-hidden bg-night-panel">
     <span className={`z-10 flex h-full shrink-0 items-center px-4 font-mono text-[24px] font-bold ${cls}`}>{label}</span>
     <div className="relative flex-1 overflow-hidden">
-      <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-semibold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
+      <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
     </div>
   </div>;
 }

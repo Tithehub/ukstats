@@ -8,6 +8,8 @@ const tfl = (id: string, place: string, keywords: string[]): StreamCamera => ({
   imageUrl: `https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/${id}.jpg`,
   licence: "Powered by TfL Open Data", licenceUrl: "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
   refreshSeconds: 300, checkedAt: CHECKED, keywords,
+  // JamCams are ~10-second loops refreshed every few minutes, not live video — never shown on the stream.
+  live: false,
 });
 
 export const STREAM_CAMERAS: StreamCamera[] = [

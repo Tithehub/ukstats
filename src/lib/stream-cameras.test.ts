@@ -10,10 +10,14 @@ describe("cameraForCard", () => {
     const bad: StreamCamera = { ...STREAM_CAMERAS[0]!, id: "x", operator: "Random insecure cam site", keywords: ["inflation"] };
     expect(cameraForCard("Inflation", "france", [{ ...bad, country: "france" }])).toBeNull();
   });
-  it("matches the UK figure to a camera by keyword", () => {
-    expect(cameraForCard("Small boat arrivals", "united kingdom", STREAM_CAMERAS)?.place).toBe("Parliament Square, London");
+  const live = STREAM_CAMERAS.map((c) => ({ ...c, live: true }));
+  it("never shows a camera that is not truly live (TfL JamCams are periodic loops)", () => {
+    expect(cameraForCard("Small boat arrivals", "united kingdom", STREAM_CAMERAS)).toBeNull();
+  });
+  it("matches the UK figure to a live camera by keyword", () => {
+    expect(cameraForCard("Small boat arrivals", "united kingdom", live)?.place).toBe("Parliament Square, London");
   });
   it("skips a failed camera", () => {
-    expect(cameraForCard("Small boat arrivals", "united kingdom", STREAM_CAMERAS, ["tfl-00001.06501"])?.id).not.toBe("tfl-00001.06501");
+    expect(cameraForCard("Small boat arrivals", "united kingdom", live, ["tfl-00001.06501"])?.id).not.toBe("tfl-00001.06501");
   });
 });
