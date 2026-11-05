@@ -144,7 +144,8 @@ function BroadcastPage() {
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);
-  const newest = justPublished(metrics, t);
+  // UK register figures only belong on screen during the UK hour.
+  const newest = wc ? [] : justPublished(metrics, t);
   const freshItem = newest.length ? newest[cardStep(pos.msIntoHour) % newest.length]! : null;
   const fresh = freshItem ? <div key={freshItem.id} className="flex shrink-0 items-center gap-4 overflow-hidden rounded bg-destructive px-4 py-2 text-destructive-foreground motion-safe:animate-in motion-safe:fade-in">
     <span className="shrink-0 font-mono text-[22px] font-black tracking-widest">JUST PUBLISHED</span>
@@ -247,7 +248,7 @@ function TopSix({ boxes, name }: { boxes: TopBox[]; name: string }) {
     <div className="mb-1 truncate font-mono text-[20px] font-bold uppercase tracking-widest text-electric">Top 6 · {name} <span className="normal-case tracking-normal text-night-muted">· World Bank &amp; Home Office</span></div>
     <div className="grid grid-cols-3 gap-2">{boxes.map((b) => <div key={b.id} className={`min-w-0 rounded border-2 px-3 py-1.5 ${b.migration ? "border-destructive bg-destructive/15" : "border-night-line bg-night"}`}>
       <div className={`truncate text-[20px] font-semibold ${b.migration ? "text-destructive" : "text-night-muted"}`}>{b.label}</div>
-      <div className="truncate text-[32px] font-black leading-tight tabular-nums">{b.value ?? "Not published"}</div>
+      {b.value ? <div className="truncate text-[32px] font-black leading-tight tabular-nums">{b.value}</div> : <div className="text-[24px] font-black leading-[38px]">Not published</div>}
       <div className="truncate font-mono text-[18px] text-night-muted">{b.when ?? b.source}</div>
     </div>)}</div>
   </section>;
