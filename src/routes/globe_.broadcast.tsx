@@ -188,7 +188,7 @@ function BroadcastPage() {
       <div className="absolute inset-y-0 left-0 w-[1240px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[520px]">{next}</div>
-      <aside data-fit className="absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5">
+      <aside data-fit className={`absolute right-0 top-[192px] z-30 flex ${sponsors.length ? "h-[420px]" : "h-[664px]"} w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5`}>
         {six}
         {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
