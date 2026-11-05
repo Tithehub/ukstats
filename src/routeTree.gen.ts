@@ -71,6 +71,8 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as SpendingIndexRouteImport } from './routes/spending.index'
+import { Route as SpendingCouncilRouteImport } from './routes/spending.$council'
 import { Route as WorldIndexRouteImport } from './routes/world.index'
 import { Route as WorldIsoRouteImport } from './routes/world.$iso'
 import { Route as CountryEmbedMetricIdRouteImport } from './routes/$country.embed.$metricId'
@@ -78,6 +80,7 @@ import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.
 import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicV1GoldRouteImport } from './routes/api/public/v1/gold'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
@@ -394,6 +397,16 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
 } as any)
+const SpendingIndexRoute = SpendingIndexRouteImport.update({
+  id: '/spending/',
+  path: '/spending/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpendingCouncilRoute = SpendingCouncilRouteImport.update({
+  id: '/spending/$council',
+  path: '/spending/$council',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorldIndexRoute = WorldIndexRouteImport.update({
   id: '/world/',
   path: '/world/',
@@ -429,6 +442,11 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   id: '/public/outreach-tick',
   path: '/public/outreach-tick',
   getParentRoute: () => ApiRoute,
+} as any)
+const SpendingTypeCategoryRoute = SpendingTypeCategoryRouteImport.update({
+  id: '/spending/type/$category',
+  path: '/spending/type/$category',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -520,15 +538,18 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
+  '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
   '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -594,15 +615,18 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
   '/regions': typeof RegionsIndexRoute
+  '/spending': typeof SpendingIndexRoute
   '/world': typeof WorldIndexRoute
   '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -671,15 +695,18 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/regions/': typeof RegionsIndexRoute
+  '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
   '/$country/embed/$metricId': typeof CountryEmbedMetricIdRoute
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -749,15 +776,18 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
     | '/regions/'
+    | '/spending/'
     | '/world/'
     | '/$country/embed/$metricId'
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/spending/type/$category'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
@@ -823,15 +853,18 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/spending/$council'
     | '/world/$iso'
     | '/$country'
     | '/regions'
+    | '/spending'
     | '/world'
     | '/$country/embed/$metricId'
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/spending/type/$category'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
@@ -899,15 +932,18 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
     | '/regions/'
+    | '/spending/'
     | '/world/'
     | '/$country/embed/$metricId'
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/spending/type/$category'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
@@ -970,8 +1006,11 @@ export interface RootRouteChildren {
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
+  SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
+  SpendingTypeCategoryRoute: typeof SpendingTypeCategoryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1410,6 +1449,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/spending/': {
+      id: '/spending/'
+      path: '/spending'
+      fullPath: '/spending/'
+      preLoaderRoute: typeof SpendingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spending/$council': {
+      id: '/spending/$council'
+      path: '/spending/$council'
+      fullPath: '/spending/$council'
+      preLoaderRoute: typeof SpendingCouncilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/world/': {
       id: '/world/'
       path: '/world'
@@ -1458,6 +1511,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/outreach-tick'
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof ApiRoute
+    }
+    '/spending/type/$category': {
+      id: '/spending/type/$category'
+      path: '/spending/type/$category'
+      fullPath: '/spending/type/$category'
+      preLoaderRoute: typeof SpendingTypeCategoryRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -1623,8 +1683,11 @@ const rootRouteChildren: RootRouteChildren = {
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
+  SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
+  SpendingTypeCategoryRoute: SpendingTypeCategoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

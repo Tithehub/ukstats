@@ -41,6 +41,7 @@ const entries: SitemapEntry[] = [
   { path: "/compare-countries", changefreq: "daily", priority: "0.8" },
   { path: "/online-speech", changefreq: "weekly", priority: "0.6" },
   { path: "/grooming-gangs-inquiry", changefreq: "weekly", priority: "0.7" },
+  { path: "/spending", changefreq: "weekly", priority: "0.7" },
   { path: "/gold", changefreq: "weekly", priority: "0.7" },
   { path: "/small-boats", changefreq: "weekly", priority: "0.8" },
   { path: "/world", changefreq: "weekly", priority: "0.8" },

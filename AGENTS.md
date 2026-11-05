@@ -55,4 +55,5 @@
 - Stream footage: only licence-checked clips in stream-clips.data.ts filtered by clipAllowed; news-outlet footage rejected — avoids copyright strikes.
 - /globe/broadcast is a fixed 1920×1080 frame scaled to the window; GlobeExplorer broadcast mode hides panels; [data-fit] overflow reports to /globe/studio.
 - Grooming inquiry page: dated official snapshot in grooming-inquiry.data.ts; report estimates labelled, national counts "Not published".
-- Stream live cameras: only allowed public-authority open-data feeds in stream-cameras.data.ts with live: true (continuous real-time video only; TfL JamCams are periodic loops so stay off), picked by cameraForCard, labelled "scene only", clip box as fallback — no private/police CCTV.
+- Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
+- Spending (spending.data.ts/spending.ts): councils link only their own nation's return; never summed across nations.
