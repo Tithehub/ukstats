@@ -154,7 +154,17 @@ function BroadcastPage() {
   const figure = <FigureCard card={card} segId={seg?.id} big={!!seg?.headline} compact />;
   const clip = <ClipBox topic={seg?.topic ?? ""} country={seg?.country} title={card?.title ?? ""} />;
   const [voice, setVoice] = useState(false);
-  useEffect(() => { setVoice(new URLSearchParams(window.location.search).get("voice") === "on"); }, []);
+  useEffect(() => { setVoice(new URLSearchParams(window.location.search).get("voice") !== "off"); }, []);
+  // Reload when a new version is published, so OBS picks it up without a manual refresh.
+  useEffect(() => {
+    const pick = (html: string) => html.match(/\/assets\/[\w.-]+\.js/g)?.sort().join("|") ?? "";
+    const mine = pick(document.documentElement.outerHTML);
+    if (!mine) return;
+    const id = setInterval(() => {
+      fetch(window.location.pathname, { cache: "no-store" }).then((r) => r.text()).then((h) => { const v = pick(h); if (v && v !== mine) window.location.reload(); }).catch(() => {});
+    }, 5 * 60_000);
+    return () => clearInterval(id);
+  }, []);
   const anchor = <Presenter line={scriptForCard(card)} voice={voice} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;

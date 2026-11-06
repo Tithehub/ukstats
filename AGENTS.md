@@ -57,4 +57,4 @@
 - Grooming inquiry page: dated official snapshot in grooming-inquiry.data.ts; report estimates labelled, national counts "Not published".
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return; never summed across nations.
-- Stream AI presenter: says only scriptForCard text, labelled AI.
+- Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
