@@ -342,7 +342,7 @@ function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) 
   const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
   return <section data-fit className="flex h-full overflow-hidden border-2 border-night-line bg-stream-strap text-stream-strap-fg">
     <div className="flex w-[100px] shrink-0 flex-col justify-center px-2 font-mono text-[14px] font-black uppercase leading-tight tracking-widest">Supported<br />by<span className="mt-1 truncate font-sans text-[14px] normal-case tracking-normal">{r.name}</span></div>
-    {img ? <img key={r.id} src={img} alt={r.name} className="h-full min-w-0 flex-1 bg-white object-contain motion-safe:animate-in motion-safe:fade-in" />
+    {img ? <img key={r.id} src={img} alt={r.name} className="h-full min-w-0 flex-1 object-contain motion-safe:animate-in motion-safe:fade-in" />
       : <div key={r.id} className="grid h-full min-w-0 flex-1 place-items-center overflow-hidden bg-night px-2 text-center text-[18px] font-black text-night-fg">{r.name}</div>}
     <SponsorQr className="h-full shrink-0 border-l-2 border-night-line p-1.5" />
   </section>;
