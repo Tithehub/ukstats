@@ -1,5 +1,5 @@
-# Put the animated presenter on the live stream
+# Show both presenter styles, then decide
 
-1. Publish the preview to ukstats.co.uk (includes the moving presenter and name strap).
-2. The stream page in OBS reloads itself within about 5 minutes, so the YouTube stream picks it up with no clicks.
-3. Check the published stream page once it updates.
+1. Save the two test pictures of the stream (presenter in her own screen, and the green-screen style over the globe) to your Files and show them in chat.
+2. Also make a cleaner green-screen picture with her background properly removed, so you see how it would really look.
+3. Nothing on the site changes and nothing is published until you pick one.
