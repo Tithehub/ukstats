@@ -12,7 +12,7 @@ export const speakLine = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ audio: string | null; error: string | null }> => {
     const hit = cache.get(data.text);
     if (hit) return { audio: hit, error: null };
-    const key = process.env.LOVABLE_API_KEY;
+    const key = process.env["LOVABLE_API_KEY"];
     if (!key) return { audio: null, error: "Voice not configured" };
     const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
       method: "POST",
