@@ -198,7 +198,7 @@ function BroadcastPage() {
         {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
       </aside>
-      <div className="absolute left-6 top-[420px] z-30 h-[225px] w-[400px]">{anchor}</div>
+      <div className="absolute left-[620px] top-[440px] z-30 h-[225px] w-[400px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
       <div className="absolute bottom-[232px] left-6 z-30 w-[540px]">{clip}</div>
