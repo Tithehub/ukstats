@@ -165,7 +165,7 @@ function BroadcastPage() {
     }, 5 * 60_000);
     return () => clearInterval(id);
   }, []);
-  const anchor = <Presenter line={scriptForCard(card)} voice={voice} />;
+  const anchor = <Presenter line={scriptForCard(card)} upcoming={seg?.cards.length ? [1, 2, 3].map((i) => scriptForCard(seg!.cards[(step + i) % seg!.cards.length]!)) : []} voice={voice} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);

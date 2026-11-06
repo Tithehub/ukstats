@@ -8,7 +8,7 @@ describe("scriptForCard", () => {
   it("only speaks numbers that are on the card", () => {
     const s = scriptForCard(card({}));
     const nums = s.match(/\d+/g) ?? [];
-    const onCard = `412 4 Nov 2026 5 November 2026`;
+    const onCard = `412`;
     for (const n of nums) expect(onCard).toContain(n);
   });
   it("reads missing figures as not published", () => {
