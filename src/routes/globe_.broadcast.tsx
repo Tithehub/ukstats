@@ -208,7 +208,7 @@ function BroadcastPage() {
         {fresh}
         <div className="min-h-0 flex-1">{figure}</div>
       </aside>
-      <div className="absolute left-[590px] top-[380px] z-30 h-[290px] w-[460px]">{anchor}</div>
+      <div className="absolute left-[620px] top-[222px] z-30 h-[450px] w-[420px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
       <div className="absolute bottom-[232px] left-6 z-30 w-[540px]">{clip}</div>
@@ -219,7 +219,7 @@ function BroadcastPage() {
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
-      <div className="absolute right-6 top-[280px] z-30 h-[191px] w-[340px]">{anchor}</div>
+      <div className="absolute right-6 top-[280px] z-30 h-[310px] w-[300px]">{anchor}</div>
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
