@@ -32,7 +32,7 @@ const metricCard = (m: Metric, kicker: string): StreamCard => ({
 });
 
 /** Published metrics only: status "ok" with a real value. */
-export function publishedIn(metrics: Metric[], cats: Category[], max = 6): Metric[] {
+export function publishedIn(metrics: Metric[], cats: Category[], max = Infinity): Metric[] {
   return metrics.filter((m) => cats.includes(m.category) && m.status === "ok" && !!m.value).slice(0, max);
 }
 
@@ -73,7 +73,11 @@ export function buildRundown(input: {
     seg("crime", "Crime & policing", ["Crime"], "Crime"),
     seg("nhs", "NHS & health", ["NHS & doctors"], "Health"),
     legal,
+    seg("population", "Population", ["Population & migration"], "Population"),
+    seg("housing", "Housing", ["Housing"], "Housing"),
     seg("security", "Defence & national alerts", ["Defence & security", "National alerts"], "Security"),
+    seg("politics", "Politics & polls", ["Politics & polling"], "Politics"),
+    seg("weather", "Weather", ["Weather"], "Weather"),
     recent.length ? {
       id: "warnings", title: "World warnings — official advice", country: recent[0]!.key, topic: "warnings",
       layers: { fl: false, mg: false, nw: false }, cards: [], headlines: warnHeads,
@@ -94,13 +98,15 @@ export function buildRundown(input: {
 }
 
 /** Same template for every other country: its own published figures plus official warnings about it. */
-export function countrySegment(globeKey: string, payload: CountryPayload | null | undefined, warnings: OfficialWarning[], now: Date): Segment {
+export function countrySegment(globeKey: string, payload: CountryPayload | null | undefined, warnings: OfficialWarning[], now: Date, reports: ReportItem[] = []): Segment {
   const name = payload?.country.name ?? globeKey;
-  const cards: StreamCard[] = (payload?.metrics ?? []).filter((m) => m.value !== null).slice(0, 8).map((m) => ({
+  const cards: StreamCard[] = (payload?.metrics ?? []).filter((m) => m.value !== null).map((m) => ({
     kicker: name, title: m.title, value: m.value!, sub: null, source: m.source, period: m.period,
     asOf: m.asOf, nextDue: null, metric: null,
   }));
-  const heads = recentWarnings(warnings, now).filter((w) => w.key === globeKey).slice(0, 4).map(warnHeadline);
+  const warn = recentWarnings(warnings, now).filter((w) => w.key === globeKey).slice(0, 4).map(warnHeadline);
+  const news = countryHeadlines(name, reports);
+  const heads = [...warn, ...news];
   return { id: `country-${globeKey}`, title: `${name} — official figures`, country: globeKey, topic: "world",
     layers: { fl: false, mg: false, nw: false }, cards, headlines: heads };
 }
@@ -108,4 +114,11 @@ export function countrySegment(globeKey: string, payload: CountryPayload | null 
 /** Key-stats ticker: one short line per published headline metric. */
 export function statsTicker(metrics: Metric[], max = 14): string[] {
   return metrics.filter((m) => m.status === "ok" && m.value).slice(0, max).map((m) => `${m.title}: ${m.value}${m.period ? ` (${m.period})` : ""}`);
+}
+
+/** Latest news/police headlines naming a country, verbatim, newest first (max 5). */
+export function countryHeadlines(name: string, reports: ReportItem[], max = 5): Headline[] {
+  const re = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+  return reports.filter((r) => re.test(r.title)).sort((a, b) => byTime(a.published, b.published)).slice(0, max)
+    .map((r) => ({ text: r.title, publisher: r.publisher, time: r.published, official: r.official }));
 }
