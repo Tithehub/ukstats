@@ -1,13 +1,27 @@
 import { useState } from "react";
 import { Play } from "lucide-react";
 import { LIVE_STREAM_ID, LIVE_STREAM_URL } from "@/lib/brand";
+import { checkEmbeddable } from "@/lib/embed-check.functions";
 
 export function LiveStreamPanel() {
   const [on, setOn] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const play = async () => {
+    const r = await checkEmbeddable({ data: { id: LIVE_STREAM_ID } }).catch(() => ({ ok: true }));
+    if (r.ok) setOn(true); else setBlocked(true);
+  };
   return (
     <section aria-label="UKStats Live" className="mt-5 grid gap-4 rounded-lg border border-border bg-card p-4 md:grid-cols-[2fr_1fr]">
       <div className="relative aspect-video overflow-hidden rounded-md bg-muted">
-        {on ? (
+        {blocked ? (
+          <a href={LIVE_STREAM_URL} target="_blank" rel="noopener noreferrer" className="absolute inset-0 grid place-items-center bg-primary p-6 text-center text-primary-foreground">
+            <img src={`https://i.ytimg.com/vi/${LIVE_STREAM_ID}/hqdefault.jpg`} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+            <span className="relative grid gap-3 justify-items-center">
+              <span className="text-xl font-black">This stream plays on YouTube</span>
+              <span className="inline-flex min-h-11 items-center gap-2 rounded-md bg-destructive px-5 font-bold text-destructive-foreground"><Play className="h-5 w-5" /> Watch live on YouTube</span>
+            </span>
+          </a>
+        ) : on ? (
           <iframe
             className="absolute inset-0 h-full w-full"
             src={`https://www.youtube-nocookie.com/embed/${LIVE_STREAM_ID}?autoplay=1&mute=1`}
@@ -16,7 +30,7 @@ export function LiveStreamPanel() {
             allowFullScreen
           />
         ) : (
-          <button type="button" onClick={() => setOn(true)} className="group absolute inset-0 h-full w-full" aria-label="Play the UKStats live stream">
+          <button type="button" onClick={() => void play()} className="group absolute inset-0 h-full w-full" aria-label="Play the UKStats live stream">
             <span className="absolute inset-0 grid place-items-center bg-primary pb-28 text-2xl font-black tracking-wide text-primary-foreground">UKSTATS LIVE</span>
             <img src={`https://i.ytimg.com/vi/${LIVE_STREAM_ID}/hqdefault_live.jpg`} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} onLoad={(e) => { if (e.currentTarget.naturalWidth <= 120) e.currentTarget.style.display = "none"; }} className="relative h-full w-full object-cover" />
             <span className="absolute inset-0 grid place-items-center">
