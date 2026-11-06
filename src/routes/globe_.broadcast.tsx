@@ -370,11 +370,4 @@ function sponsorSite(url: string | null | undefined): { qr: string; label: strin
 
 const SPONSOR_QR_URL = "https://ukstats.co.uk/sponsors?utm_source=youtube&utm_medium=stream_sponsor";
 
-/** Scan-to-sponsors tile; links to the public sponsors page, never checkout. */
-function SponsorQr({ className = "", big = false }: { className?: string; big?: boolean }) {
-  return <div className={`flex items-center gap-2 bg-stream-strap text-stream-strap-fg ${className}`}>
-    <QRCodeSVG value={SPONSOR_QR_URL} level="M" marginSize={1} className={big ? "h-[150px] w-[150px]" : "aspect-square h-full w-auto"} aria-label="QR code to ukstats.co.uk/sponsors" />
-    <div className="font-mono text-[13px] font-black uppercase leading-tight">Scan to see<br />our sponsors<span className="mt-1 block font-sans text-[12px] normal-case">ukstats.co.uk/sponsors</span></div>
-  </div>;
-}
 
