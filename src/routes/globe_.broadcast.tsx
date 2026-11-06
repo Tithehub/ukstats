@@ -341,12 +341,31 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
 function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) {
   const r = rows[Math.floor(ms / 10_000) % rows.length]!;
   const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
-  return <section data-fit className="flex h-full overflow-hidden border-2 border-night-line bg-stream-strap text-stream-strap-fg">
-    <div className="flex w-[100px] shrink-0 flex-col justify-center px-2 font-mono text-[14px] font-black uppercase leading-tight tracking-widest">Supported<br />by<span className="mt-1 truncate font-sans text-[14px] normal-case tracking-normal">{r.name}</span></div>
-    {img ? <img key={r.id} src={img} alt={r.name} className="h-full min-w-0 flex-1 object-contain motion-safe:animate-in motion-safe:fade-in" />
-      : <div key={r.id} className="grid h-full min-w-0 flex-1 place-items-center overflow-hidden bg-night px-2 text-center text-[18px] font-black text-night-fg">{r.name}</div>}
-    <SponsorQr className="h-full shrink-0 border-l-2 border-night-line p-1.5" />
+  const site = sponsorSite(r.url);
+  const pct = ((ms % 10_000) / 10_000) * 100;
+  return <section data-fit key={r.id} className="relative flex h-full overflow-hidden border-2 border-night-line bg-stream-strap text-stream-strap-fg motion-safe:animate-in motion-safe:fade-in">
+    <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-2">
+      <span className="font-mono text-[12px] font-black uppercase tracking-widest">Supported by</span>
+      {img ? <img src={img} alt={r.name} className="h-[40px] w-full object-contain object-left" />
+        : <span className="truncate text-[20px] font-black leading-tight">{r.name}</span>}
+      {r.tagline && <span className="truncate text-[13px] leading-tight">{r.tagline}</span>}
+    </div>
+    <div className="flex shrink-0 items-center gap-1.5 border-l-2 border-night-line p-1.5">
+      <QRCodeSVG value={site.qr} level="M" marginSize={1} className="aspect-square h-full w-auto" aria-label={`QR code to ${site.label}`} />
+      <div className="w-[96px] font-mono text-[12px] font-black uppercase leading-tight">Scan to visit<span className="mt-1 block truncate font-sans text-[12px] normal-case">{site.label}</span></div>
+    </div>
+    <div className="absolute bottom-0 left-0 h-[3px] bg-destructive" style={{ width: `${pct}%` }} />
   </section>;
+}
+
+/** QR target: the sponsor's own http(s) site, else the public sponsors page. */
+function sponsorSite(url: string | null | undefined): { qr: string; label: string } {
+  try {
+    const u = new URL(url ?? "");
+    if (u.protocol !== "https:" && u.protocol !== "http:") throw 0;
+    u.searchParams.set("utm_source", "youtube"); u.searchParams.set("utm_medium", "ukstats_stream");
+    return { qr: u.toString(), label: u.hostname.replace(/^www\./, "") };
+  } catch { return { qr: SPONSOR_QR_URL, label: "ukstats.co.uk/sponsors" }; }
 }
 
 const SPONSOR_QR_URL = "https://ukstats.co.uk/sponsors?utm_source=youtube&utm_medium=stream_sponsor";
