@@ -117,7 +117,7 @@ function BroadcastPage() {
 
   let seg: Segment | undefined; let msIn = 0; let upNext: string[] = [];
   if (wc && world) {
-    seg = countrySegment(wc.key, countryData, unrest?.warnings ?? [], now ?? new Date(0));
+    seg = countrySegment(wc.key, countryData, unrest?.warnings ?? [], now ?? new Date(0), news?.items ?? []);
     msIn = world.msIntoSlot;
     upNext = [1, 2, 3].map((i) => COUNTRIES[(world.index + i) % COUNTRIES.length]!.name);
     if (60 - Math.floor(pos.msIntoHour / 60_000) <= 15) upNext = [...upNext.slice(0, 2), "UK hour at the top of the hour"];
@@ -165,7 +165,8 @@ function BroadcastPage() {
     }, 5 * 60_000);
     return () => clearInterval(id);
   }, []);
-  const anchor = <Presenter line={scriptForCard(card)} upcoming={seg?.cards.length ? [1, 2, 3].map((i) => scriptForCard(seg!.cards[(step + i) % seg!.cards.length]!)) : []} voice={voice} />;
+  const reads = readingList(seg);
+  const anchor = <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : []} voice={voice} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);
