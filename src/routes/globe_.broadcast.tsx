@@ -329,7 +329,18 @@ function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) 
     <div className="flex w-[124px] shrink-0 flex-col justify-center px-3 font-mono text-[16px] font-black uppercase leading-tight tracking-widest">Supported<br />by<span className="mt-1 truncate font-sans text-[14px] normal-case tracking-normal">{r.name}</span></div>
     {img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] h-full shrink-0 object-cover motion-safe:animate-in motion-safe:fade-in" />
       : <div key={r.id} className="grid aspect-[3/1] h-full shrink-0 place-items-center bg-night px-3 text-center text-[26px] font-black text-night-fg">{r.name}</div>}
+    <SponsorQr className="h-full shrink-0 border-l-2 border-night-line p-1.5" />
   </section>;
+}
+
+const SPONSOR_QR_URL = "https://ukstats.co.uk/sponsors?utm_source=youtube&utm_medium=stream_sponsor";
+
+/** Scan-to-sponsors tile; links to the public sponsors page, never checkout. */
+function SponsorQr({ className = "", big = false }: { className?: string; big?: boolean }) {
+  return <div className={`flex items-center gap-2 bg-stream-strap text-stream-strap-fg ${className}`}>
+    <QRCodeSVG value={SPONSOR_QR_URL} level="M" marginSize={1} className={big ? "h-[150px] w-[150px]" : "aspect-square h-full w-auto"} aria-label="QR code to ukstats.co.uk/sponsors" />
+    <div className="font-mono text-[13px] font-black uppercase leading-tight">Scan to see<br />our sponsors<span className="mt-1 block font-sans text-[12px] normal-case">ukstats.co.uk/sponsors</span></div>
+  </div>;
 }
 
 /** Every approved sponsor at once, shown 20s at the top of each 5-minute slot; never over figures. */
@@ -341,5 +352,6 @@ function SponsorRollcall({ rows }: { rows: SponsorBannerRow[] }) {
       return img ? <img key={r.id} src={img} alt={r.name} className="aspect-[3/1] h-[90px] object-cover" />
         : <div key={r.id} className="grid h-[90px] place-items-center bg-night px-5 text-[26px] font-black text-night-fg">{r.name}</div>;
     })}</div>
+    <SponsorQr big className="mt-3" />
   </section>;
 }
