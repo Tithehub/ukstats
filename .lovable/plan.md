@@ -10,7 +10,7 @@ Add a realistic presenter who reads out the figure on screen. Viewers are clearl
 - The silent mode stays the default for anyone who doesn't want sound. The voice is on in the version OBS captures (`?voice=on`), so the old hum never comes back.
 
 ## How it's made
-1. **Presenter footage:** I'll create two short looping clips of the same invented presenter (not a real person): one talking and one idle. They go in the project as video files.
+1. **Presenter footage:** the video generator turned down every request for a realistic talking person, so the presenter will be the approved still image (an invented person). On screen it gets a slow camera drift and a "speaking" light while the voice plays. A moving talking presenter would need a paid avatar service, which stays off while payments are on hold.
 2. **Voice:** scripts are turned into speech with Lovable AI's text-to-speech, using a calm British newsreader voice. No extra key needed.
 3. **Script builder:** a small, pure helper turns a figure card into a sentence. It uses only the card's title, value, period, source and published date, so the wording matches the screen exactly. Tests will check that it never adds a number that isn't on the card and that missing figures read "No figure is published".
 4. **Caching:** each spoken line is saved by its exact wording, so repeated cards don't cost credits again. A line is spoken only once per card change.
