@@ -24,7 +24,7 @@ export function Presenter({ line, voice }: { line: string; voice: boolean }) {
     <img src={presenter.url} alt="AI presenter" className={`h-full w-full object-cover transition-transform duration-[9000ms] ease-linear ${speaking ? "scale-110" : "scale-100"}`} />
     <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 bg-primary px-3 py-1 text-primary-foreground">
       <span className={`inline-block size-3 rounded-full ${speaking ? "bg-destructive motion-safe:animate-pulse" : "bg-night-muted"}`} />
-      <span className="truncate font-mono text-[18px] font-bold uppercase tracking-wider">AI presenter · reads official figures only</span>
+      <span className="truncate font-mono text-[17px] font-bold uppercase tracking-wide">AI presenter · official figures</span>
     </div>
   </div>;
 }
