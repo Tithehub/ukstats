@@ -20,6 +20,11 @@ When there are no approved sponsors:
 Close:
 > "Back to the figures."
 
+With your five sponsors, she would say:
+> "UKStats is supported by YachtFino.com, RareItUp.com, GpPharma.ai, gold.live and xpre.ai. Thank you to our sponsors. Sponsors never choose or change our figures."
+
+How these five get on the stream: each one is added as an approved sponsor record with its website. They then appear in the sponsor box with their own QR code, and the presenter names them. This is done by recording them as approved sponsors directly, not through checkout, so the payment pause stays in place. If any sponsor has a logo or tagline, send it and it will be shown too. Otherwise their name is shown.
+
 Sponsor names are read exactly as they were approved. She never makes claims about a sponsor or recommends one.
 
 ## Rules kept
