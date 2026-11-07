@@ -13,23 +13,20 @@ describe("statusTone", () => {
     expect(statusTone(scaled("red"))).toBe("red");
     expect(statusTone(scaled("crimson"))).toBe("red");
   });
-  it("Met Office amber and yellow keep their own colour", () => {
-    expect(statusTone(scaled("amber"))).toBe("amber");
+  it("yellow warnings are yellow", () => {
     expect(statusTone(scaled("yellow"))).toBe("yellow");
   });
-  it("no warnings in force is green", () => {
-    expect(statusTone(scaled("green"))).toBe("green");
+  it("amber and green levels stay plain", () => {
+    expect(statusTone(scaled("amber"))).toBe("plain");
+    expect(statusTone(scaled("green"))).toBe("plain");
   });
-  it("an unread level or missing figure is never coloured", () => {
+  it("ordinary figures are never coloured, however fresh", () => {
+    expect(statusTone({ ...scaled("red"), scale: null })).toBe("plain");
+  });
+  it("an unread level or missing figure is plain", () => {
     const m = scaled("red");
     expect(statusTone({ ...m, scale: { ...m.scale!, current: null } })).toBe("plain");
     expect(statusTone({ ...m, value: null })).toBe("plain");
     expect(statusTone(undefined)).toBe("plain");
-  });
-  it("plain figures use freshness: fresh green, 2-week-old amber", () => {
-    const now = Date.parse("2026-11-08T00:00:00Z");
-    const base = { ...scaled("green"), scale: null };
-    expect(statusTone(base, now)).toBe("green");
-    expect(statusTone({ ...base, asOf: "2026-10-21T00:00:00Z" }, now)).toBe("amber");
   });
 });

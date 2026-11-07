@@ -3,7 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Search, ArrowRight, ShieldCheck, Ship, CloudFog, Waves, ShoppingCart, Siren, Landmark, Building2, Home, Scale, Backpack, Globe2, Tv, Coins, BarChart3 } from "lucide-react";
 import { getUkStats } from "@/lib/uk-stats.functions";
-import { ageLabel, dueLabel, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
+import { ageLabel, dueLabel, freshnessOf, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { statusTone, type BlockTone } from "@/lib/status-tone";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -34,9 +34,7 @@ export const Route = createFileRoute("/new-home")({
 
 const TONE: Record<BlockTone, string> = {
   red: "bg-alert-red text-desk-fg border-transparent",
-  amber: "bg-alert-amber text-night border-transparent",
   yellow: "bg-alert-yellow text-night border-transparent",
-  green: "bg-alert-green text-night border-transparent",
   plain: "bg-card text-card-foreground border-border",
 };
 
@@ -47,15 +45,15 @@ function Meta({ m }: { m?: Metric | undefined }) {
 
 function Tile({ m, icon, label, link }: { m?: Metric | undefined; icon: ReactNode; label: string; link?: { category: Category } }) {
   const tone = statusTone(m);
-  const body = <div className={`flex h-full min-h-44 flex-col justify-between rounded-2xl border p-5 shadow-sm transition-transform hover:-translate-y-0.5 ${TONE[tone]}`}>
+  const body = <div className={`flex h-full min-h-32 flex-col justify-between gap-3 rounded-2xl border p-4 shadow-sm transition-transform hover:-translate-y-0.5 ${TONE[tone]}`}>
     <div className="flex items-start justify-between gap-2">
-      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-background/15">{icon}</span>
-      {tone !== "plain" && <span className="rounded-full bg-background/20 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider">{m?.scale ? "official level" : tone === "green" ? "fresh" : tone === "amber" ? "ageing" : "overdue"}</span>}
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-background/15">{icon}</span>
+      {m && (tone !== "plain" || m.scale || freshnessOf(m) !== "unknown") && <span className="shrink-0 rounded-full bg-background/20 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider">{tone !== "plain" ? "official level" : m.scale ? "current" : freshnessOf(m) === "unknown" ? "" : freshnessOf(m)}</span>}
     </div>
     <div className="min-w-0">
-      <div className="font-mono text-3xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-4xl">{m?.value ?? "Not published"}</div>
-      <div className="mt-1 text-sm font-bold">{label}</div>
-      <div className="mt-1 line-clamp-2 font-mono text-[11px] opacity-80"><Meta m={m} /></div>
+      <div className="font-mono text-2xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl">{m?.value ?? "Not published"}</div>
+      <div className="mt-0.5 text-sm font-bold">{label}</div>
+      <div className="mt-1 font-mono text-[11px] opacity-80 [overflow-wrap:anywhere]"><Meta m={m} /></div>
     </div>
   </div>;
   return link ? <Link to="/register" search={{ category: link.category, q: undefined }} className="block">{body}</Link> : body;
@@ -116,7 +114,7 @@ function NewHome() {
         </form>
       </section>
 
-      <section aria-label="The UK right now" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section aria-label="The UK right now" className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
         <Tile m={terror} icon={<ShieldCheck className="size-5" />} label="National terrorism threat level" link={{ category: "National alerts" }} />
         <Tile m={met} icon={<CloudFog className="size-5" />} label="Met Office weather warnings" link={{ category: "National alerts" }} />
         <Tile m={flood} icon={<Waves className="size-5" />} label="Flood alerts and warnings" link={{ category: "National alerts" }} />
@@ -124,7 +122,7 @@ function NewHome() {
         <Tile m={cpih} icon={<ShoppingCart className="size-5" />} label="CPIH inflation, annual rate" link={{ category: "Cost of living" }} />
         <Tile m={crime} icon={<Siren className="size-5" />} label={crime?.title ?? "Crime"} link={{ category: "Crime" }} />
       </section>
-      <p className="mt-2 font-mono text-[11px] text-muted-foreground">Colours: the publisher's own level for alerts; otherwise green = fresh, amber = ageing, red = overdue.</p>
+      <p className="mt-2 font-mono text-[11px] text-muted-foreground">Red and yellow are the publisher's own warning levels.</p>
 
       <section aria-label="Lead story" className="relative mt-8 overflow-hidden rounded-3xl border border-border">
         <img src={channel.url} alt="The white cliffs of Dover at dusk" width={1280} height={720} className="absolute inset-0 size-full object-cover" />
