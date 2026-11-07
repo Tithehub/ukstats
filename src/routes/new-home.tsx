@@ -48,12 +48,12 @@ function Tile({ m, icon, label, link }: { m?: Metric | undefined; icon: ReactNod
   const body = <div className={`flex h-full min-h-32 flex-col justify-between gap-3 rounded-2xl border p-4 shadow-sm transition-transform hover:-translate-y-0.5 ${TONE[tone]}`}>
     <div className="flex items-start justify-between gap-2">
       <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-background/15">{icon}</span>
-      {m && <span className="rounded-full bg-background/20 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider">{tone !== "plain" ? "official level" : m.scale ? "current" : freshnessOf(m) === "unknown" ? "" : freshnessOf(m)}</span>}
+      {m && (tone !== "plain" || m.scale || freshnessOf(m) !== "unknown") && <span className="shrink-0 rounded-full bg-background/20 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider">{tone !== "plain" ? "official level" : m.scale ? "current" : freshnessOf(m) === "unknown" ? "" : freshnessOf(m)}</span>}
     </div>
     <div className="min-w-0">
       <div className="font-mono text-2xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl">{m?.value ?? "Not published"}</div>
       <div className="mt-0.5 text-sm font-bold">{label}</div>
-      <div className="mt-1 line-clamp-2 font-mono text-[11px] opacity-80"><Meta m={m} /></div>
+      <div className="mt-1 font-mono text-[11px] opacity-80 [overflow-wrap:anywhere]"><Meta m={m} /></div>
     </div>
   </div>;
   return link ? <Link to="/register" search={{ category: link.category, q: undefined }} className="block">{body}</Link> : body;
