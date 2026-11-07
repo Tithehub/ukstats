@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import heroNetwork from "@/assets/hero-network.jpg";
 import { SLOGAN } from "@/lib/brand";
@@ -8,6 +8,8 @@ import { Search, ArrowRight, ShieldCheck, Ship, CloudFog, Waves, ShoppingCart, S
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { ageLabel, dueLabel, freshnessOf, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { statusTone, type BlockTone } from "@/lib/status-tone";
+import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
+import { WORLD_INDICATORS } from "@/lib/world";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { LiveStreamPanel } from "@/components/LiveStreamPanel";
@@ -19,6 +21,11 @@ import westminster from "@/assets/uk-westminster.jpg.asset.json";
 const statsQuery = queryOptions<StatsPayload>({ queryKey: ["uk-stats"], queryFn: () => getUkStats(), staleTime: 5 * 60_000 });
 
 export const Route = createFileRoute("/new-home")({
+  // Optional globe settings, so a globe view on this page is shareable.
+  validateSearch: (s: Record<string, unknown>): { c?: string | undefined; ind?: string | undefined } => ({
+    c: typeof s["c"] === "string" ? s["c"].slice(0, 80) : undefined,
+    ind: WORLD_INDICATORS.some((i) => i.slug === s["ind"]) ? String(s["ind"]) : undefined,
+  }),
   loader: ({ context }) => context.queryClient.ensureQueryData(statsQuery),
   head: () => ({
     meta: [
@@ -87,6 +94,17 @@ const TOPICS: { icon: ReactNode; label: string; category?: Category; to?: "/spen
   { icon: <Globe2 className="size-5" />, label: "World & countries", to: "/world" },
 ];
 
+function NewHomeGlobe() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const [layers, setLayers] = useState<Pick<GlobeState, "riots" | "protests" | "mil" | "m" | "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa">>({});
+  const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true, ...layers };
+  return <section aria-label="World globe" className="mt-8">
+    <a href="#new-home-lead" className="mb-2 inline-flex min-h-11 items-center text-sm text-primary underline sm:hidden">Skip the globe — go to the next section</a>
+    <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...(["layer", "gov", "age", "cmp", "feed", "fk", "fa", "fl", "fp", "mg", "nw"] as const).reduce((o, k) => (k in p ? { ...o, [k]: p[k] } : o), {}), ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("mil" in p ? { mil: p.mil } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false }); }} />
+  </section>;
+}
+
 function NewHome() {
   const { data } = useSuspenseQuery(statsQuery);
   const by = (id: string) => data.metrics.find((m) => m.id === id && m.value != null);
@@ -142,7 +160,9 @@ function NewHome() {
       </section>
       <p className="mt-2 font-mono text-[11px] text-muted-foreground">Red and yellow are the publisher's own warning levels.</p>
 
-      <section aria-label="Lead story" className="relative mt-8 overflow-hidden rounded-3xl border border-border">
+      <NewHomeGlobe />
+
+      <section aria-label="Lead story" id="new-home-lead" className="relative mt-8 scroll-mt-20 overflow-hidden rounded-3xl border border-border">
         <img src={channel.url} alt="The white cliffs of Dover at dusk" width={1280} height={720} className="absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/10" />
         <div className="relative max-w-2xl p-6 sm:p-12">
