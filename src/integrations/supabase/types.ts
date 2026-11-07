@@ -1088,6 +1088,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      list_report_editions: {
+        Args: { max_rows?: number }
+        Returns: {
+          edition: string
+          kind: string
+          pages: number
+          report_date: string
+        }[]
+      }
       rent_slug_available: { Args: { _slug: string }; Returns: boolean }
     }
     Enums: {
