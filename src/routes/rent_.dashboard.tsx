@@ -35,7 +35,7 @@ export const Route = createFileRoute("/rent_/dashboard")({
 const ALL = [{ code: "gb", name: "United Kingdom" }, ...COUNTRIES.map((c) => ({ code: c.code, name: c.name }))];
 const EMPTY: ChannelSettings = { slug: "", display_name: "", logo_url: null, accent: "#051D3F", presented_by: null, layout: "classic", countries: ["gb"], all_countries: false, presenter: "self", show_sponsor_box: true };
 const field = "mt-1 w-full rounded-lg border border-night-line bg-night px-3 py-2 text-night-fg focus:outline-none focus:ring-2 focus:ring-electric";
-const STEPS = ["Name", "Branding", "Countries & layout", "Presenter"] as const;
+const STEPS = ["Name", "Branding", "Countries & layout", "Presenter", "Plan & pay"] as const;
 const LAYOUTS: { id: ChannelSettings["layout"]; label: string; note: string; boxes: string }[] = [
   { id: "classic", label: "Classic", note: "Big globe, figures on the right", boxes: "grid-cols-[2fr_1fr]" },
   { id: "split", label: "Split", note: "Half globe, half figures", boxes: "grid-cols-2" },
@@ -105,7 +105,7 @@ function Editor() {
       return true;
     } catch (err) { toast.error(err instanceof Error ? err.message : "Could not save"); return false; } finally { setBusy(false); }
   };
-  const next = async () => { if (await persist(true)) setStep((s) => Math.min(STEPS.length, s + 1)); };
+  const next = async () => { if (await persist(true)) setStep((s) => Math.min(STEPS.length - 1, s + 1)); };
 
   const uploadLogo = async (file: File) => {
     if (!/^image\/(png|jpeg|svg\+xml|webp)$/.test(file.type)) return toast.error("Use a PNG, JPG, WebP or SVG image");
@@ -133,7 +133,7 @@ function Editor() {
         </div>
       </section>
 
-      <ol className="grid grid-cols-4 gap-2" aria-label="Setup steps">
+      <ol className="grid grid-cols-5 gap-2" aria-label="Setup steps">
         {STEPS.map((s, i) => <li key={s}><button onClick={() => setStep(i)} className={`w-full rounded-lg border px-2 py-2 text-left text-xs sm:text-sm ${i === step ? "border-electric bg-night-panel" : "border-night-line"}`}>
           <span className="font-mono text-electric">{i + 1}</span> {s}</button></li>)}
       </ol>
