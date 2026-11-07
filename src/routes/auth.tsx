@@ -43,7 +43,7 @@ function AuthPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && signedIn) void navigate({ to: dest });
+    if (!loading && signedIn) void navigate({ to: dest as "/my-pages" });
   }, [loading, signedIn, navigate]);
 
   async function submit(e: React.FormEvent) {
@@ -63,7 +63,7 @@ function AuthPage() {
       } else {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        void navigate({ to: dest });
+        void navigate({ to: dest as "/my-pages" });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
