@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { channelQuery } from "./s.$slug_.broadcast";
+import { channelQuery } from "@/lib/rent-channel-query";
 
 /** Public watch page for a rented channel: a scaled preview of the branded stream. */
 export const Route = createFileRoute("/s/$slug")({

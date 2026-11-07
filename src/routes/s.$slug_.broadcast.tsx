@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { BroadcastView, statsQuery } from "@/components/stream/BroadcastView";
 import { brandFromChannel } from "@/components/stream/stream-brand";
-import { getPublicChannel } from "@/lib/rent-channel.functions";
+import { channelQuery } from "@/lib/rent-channel-query";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
-
-export const channelQuery = (slug: string) => queryOptions({
-  queryKey: ["rent-channel", slug], staleTime: 5 * 60_000, refetchInterval: 10 * 60_000,
-  queryFn: () => getPublicChannel({ data: { slug } }).catch(() => null),
-});
 
 /** A customer's rented, branded stream frame for OBS. Figures are the UKStats register, unchanged. */
 export const Route = createFileRoute("/s/$slug_/broadcast")({

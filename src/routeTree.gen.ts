@@ -74,6 +74,7 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as SpendingIndexRouteImport } from './routes/spending.index'
 import { Route as SpendingCouncilRouteImport } from './routes/spending.$council'
 import { Route as WorldIndexRouteImport } from './routes/world.index'
@@ -83,6 +84,7 @@ import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.
 import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
 import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicV1GoldRouteImport } from './routes/api/public/v1/gold'
@@ -415,6 +417,11 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
 } as any)
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SpendingIndexRoute = SpendingIndexRouteImport.update({
   id: '/spending/',
   path: '/spending/',
@@ -460,6 +467,11 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   id: '/public/outreach-tick',
   path: '/public/outreach-tick',
   getParentRoute: () => ApiRoute,
+} as any)
+const SSlugBroadcastRoute = SSlugBroadcastRouteImport.update({
+  id: '/s/$slug_/broadcast',
+  path: '/s/$slug/broadcast',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SpendingTypeCategoryRoute = SpendingTypeCategoryRouteImport.update({
   id: '/spending/type/$category',
@@ -559,6 +571,7 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/s/$slug': typeof SSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
@@ -570,6 +583,7 @@ export interface FileRoutesByFullPath {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -639,6 +653,7 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/s/$slug': typeof SSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
@@ -650,6 +665,7 @@ export interface FileRoutesByTo {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -722,6 +738,7 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/s/$slug': typeof SSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
@@ -733,6 +750,7 @@ export interface FileRoutesById {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -806,6 +824,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/s/$slug'
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
@@ -817,6 +836,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/s/$slug/broadcast'
     | '/spending/type/$category'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -886,6 +906,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/s/$slug'
     | '/spending/$council'
     | '/world/$iso'
     | '/$country'
@@ -897,6 +918,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/s/$slug/broadcast'
     | '/spending/type/$category'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -968,6 +990,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/s/$slug'
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
@@ -979,6 +1002,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/s/$slug_/broadcast'
     | '/spending/type/$category'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -1045,10 +1069,12 @@ export interface RootRouteChildren {
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  SSlugRoute: typeof SSlugRoute
   SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
+  SSlugBroadcastRoute: typeof SSlugBroadcastRoute
   SpendingTypeCategoryRoute: typeof SpendingTypeCategoryRoute
 }
 
@@ -1509,6 +1535,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/spending/': {
       id: '/spending/'
       path: '/spending'
@@ -1571,6 +1604,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/outreach-tick'
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof ApiRoute
+    }
+    '/s/$slug_/broadcast': {
+      id: '/s/$slug_/broadcast'
+      path: '/s/$slug/broadcast'
+      fullPath: '/s/$slug/broadcast'
+      preLoaderRoute: typeof SSlugBroadcastRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/spending/type/$category': {
       id: '/spending/type/$category'
@@ -1746,10 +1786,12 @@ const rootRouteChildren: RootRouteChildren = {
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  SSlugRoute: SSlugRoute,
   SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
+  SSlugBroadcastRoute: SSlugBroadcastRoute,
   SpendingTypeCategoryRoute: SpendingTypeCategoryRoute,
 }
 export const routeTree = rootRouteImport
