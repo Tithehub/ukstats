@@ -108,14 +108,14 @@ function Editor() {
   const next = async () => { if (await persist(true)) setStep((s) => Math.min(STEPS.length - 1, s + 1)); };
 
   const uploadLogo = async (file: File) => {
-    if (!/^image\/(png|jpeg|svg\+xml|webp)$/.test(file.type)) return toast.error("Use a PNG, JPG, WebP or SVG image");
-    if (file.size > 2 * 1024 * 1024) return toast.error("Logo must be 2 MB or smaller");
+    if (!/^image\/(png|jpeg|svg\+xml|webp)$/.test(file.type)) { toast.error("Use a PNG, JPG, WebP or SVG image"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be 2 MB or smaller"); return; }
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const name = `logo-${Date.now()}.${file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "").slice(0, 5) || "png"}`;
     const path = `${u.user.id}/${name}`;
     const { error } = await supabase.storage.from("rent-logos").upload(path, file, { upsert: true, contentType: file.type });
-    if (error) return toast.error("Upload failed — please try again");
+    if (error) { toast.error("Upload failed — please try again"); return; }
     set({ logo_url: `storage:${path}` });
     setLogoPreview(URL.createObjectURL(file));
     toast.success("Logo uploaded — press Save to apply");
