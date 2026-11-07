@@ -24,11 +24,16 @@ export const Route = createFileRoute("/auth")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const n = s["next"];
+    return typeof n === "string" && /^\/[a-z0-9/_-]*$/i.test(n) && !n.startsWith("//") ? { next: n } : {};
+  },
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
+  const dest = Route.useSearch().next ?? "/my-pages";
   const { signedIn, loading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -38,7 +43,7 @@ function AuthPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && signedIn) void navigate({ to: "/my-pages" });
+    if (!loading && signedIn) void navigate({ to: dest });
   }, [loading, signedIn, navigate]);
 
   async function submit(e: React.FormEvent) {
@@ -51,14 +56,14 @@ function AuthPage() {
         const { error: err } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/my-pages` },
+          options: { emailRedirectTo: `${window.location.origin}${dest}` },
         });
         if (err) throw err;
         setNotice("Check your inbox — we've sent a confirmation link to finish creating your account.");
       } else {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        void navigate({ to: "/my-pages" });
+        void navigate({ to: dest });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -71,7 +76,7 @@ function AuthPage() {
     setError(null);
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/my-pages` },
+      options: { redirectTo: `${window.location.origin}${dest}` },
     });
     if (err) setError(err.message);
   }
