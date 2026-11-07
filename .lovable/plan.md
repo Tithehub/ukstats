@@ -8,6 +8,12 @@ Rent the same verified figures, freshness labels and source links to businesses,
 3. **Branded stream/screen** — the broadcast layout with their logo, for office screens, shops or their own YouTube channel (presenter optional, still labelled AI, still reads only official figures).
 4. **Data feed (API)** — clean JSON of figures with source, period, data age and next release, with an API key and usage limits.
 
+## Customer choices
+- **Layout builder** — pick a stream/dashboard layout (classic desk, data wall, split screen, portrait), move and show/hide panels, set logo and colours, with a live preview.
+- **Coverage** — choose single countries, a bundle of countries, or the whole package (every country and topic).
+- **Presenter** — either the UKStats AI presenter (labelled AI, reads only the official figures on screen), or **present it yourself**: a webcam/camera slot in the layout plus an autocue showing the same official-figure script, so the customer reads it on their own stream.
+- Self-presenters must keep the source/date labels on screen; what they say is their responsibility, and the layout states "Presented by [customer]".
+
 ## Rules that never change
 - No editing, hiding, or overriding figures, sources or dates — branding only.
 - Missing figures still show "Not published".
@@ -18,6 +24,8 @@ Rent the same verified figures, freshness labels and source links to businesses,
 - Widgets: £29/month
 - Branded dashboard page: £99/month (own subdomain +£50)
 - Branded screen/stream: £199/month
+- Coverage: one country included; +£25/month per extra country; whole package £399/month
+- Present-yourself mode: included with branded screen/stream; AI presenter +£50/month
 - API: £49/month (10k requests), £249/month (250k)
 - Founding 25% off for life for the first 10, same as sponsors.
 
