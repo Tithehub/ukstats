@@ -49,7 +49,7 @@ function ReportsPage() {
   const access = useServerFn(getMyReportAccess);
   const mine = useQuery({ queryKey: ["my-reports", env], enabled: signedIn && !!env, queryFn: () => access({ data: { environment: env! } }), refetchInterval: (q) => (justPaid && q.state.dataUpdateCount < 10 ? 3_000 : false) });
   const checkoutFn = useServerFn(createReportCheckout), downloadFn = useServerFn(getReportDownload), portalFn = useServerFn(createReportPortal);
-  const [buying, setBuying] = useState<{ priceId: ReportPriceId; date?: string } | null>(null);
+  const [buying, setBuying] = useState<{ priceId: ReportPriceId; date?: string | undefined } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   const purchases = mine.data?.purchases ?? [], subs = mine.data?.subs ?? [];
@@ -128,8 +128,8 @@ function ReportsPage() {
                 <div className="mt-4 flex items-baseline gap-2"><span className="font-mono text-4xl font-black">{gbp(REPORT_PRICES[daily].pence)}</span><span className="text-sm text-muted-foreground">per daily report</span></div>
                 <Button className="mt-3 w-full" size="lg" onClick={() => buy(daily)} disabled={!env || (signedIn && owns(ed, "daily", today))}>{signedIn && owns(ed, "daily", today) ? "You own today's report" : "Buy today's report"}</Button>
                 <div className="mt-4 grid gap-2">
-                  {[monthly, yearly].map((id) => {
-                    const p = REPORT_PRICES[id];
+                  {([monthly, yearly] as const).map((id) => {
+                    const p = REPORT_PRICES[id] as { edition: ReportEdition; pence: number; interval: "month" | "year"; label: string };
                     return (
                       <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
                         <div><p className="font-bold">{gbp(p.pence)} <span className="text-sm font-normal text-muted-foreground">/ {p.interval}</span></p>
