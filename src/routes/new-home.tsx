@@ -94,6 +94,17 @@ const TOPICS: { icon: ReactNode; label: string; category?: Category; to?: "/spen
   { icon: <Globe2 className="size-5" />, label: "World & countries", to: "/world" },
 ];
 
+function NewHomeGlobe() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const [layers, setLayers] = useState<Pick<GlobeState, "riots" | "protests" | "mil" | "m" | "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa">>({});
+  const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true, ...layers };
+  return <section aria-label="World globe" className="mt-8">
+    <a href="#new-home-lead" className="mb-2 inline-flex min-h-11 items-center text-sm text-primary underline sm:hidden">Skip the globe — go to the next section</a>
+    <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...(["layer", "gov", "age", "cmp", "feed", "fk", "fa", "fl", "fp", "mg", "nw"] as const).reduce((o, k) => (k in p ? { ...o, [k]: p[k] } : o), {}), ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("mil" in p ? { mil: p.mil } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false }); }} />
+  </section>;
+}
+
 function NewHome() {
   const { data } = useSuspenseQuery(statsQuery);
   const by = (id: string) => data.metrics.find((m) => m.id === id && m.value != null);
