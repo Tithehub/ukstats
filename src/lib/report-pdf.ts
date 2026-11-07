@@ -1,7 +1,11 @@
 // Builds the branded UKStats PDF report from saved official payloads.
 // Every value printed is copied verbatim from a publisher payload; a missing
 // figure prints "Not published". Nothing here estimates, rounds or fills gaps.
-import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { headlinesByCountry, travelRows, ukHeadlines, ukWarningMetrics } from "@/lib/report-extras";
+import type { ReportItem, ReportsPayload } from "@/lib/news-reports";
+import type { UnrestPayload } from "@/lib/unrest";
+import { PREPAREDNESS_SUPPLIERS, SUPPLIER_LINK_POLICY, SUPPLIER_LINKS_CHECKED } from "@/lib/preparedness-suppliers";
+import { PDFDocument, PDFString, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import qrcode from "qrcode-generator";
 import type { Metric } from "@/lib/uk-stats";
@@ -17,6 +21,8 @@ export interface ReportInput {
   metrics: Metric[];
   ukSavedAt: string | null;
   world: WorldPayload | null;
+  travel?: Pick<UnrestPayload, "warnings" | "fcdoAlerts"> | null;
+  headlines?: Pick<ReportsPayload, "items"> | null;
   fonts: ReportFonts;
 }
 
@@ -224,6 +230,100 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     });
   };
 
+  // ---------- Warnings, supply kits, headlines ----------
+  const link = (pg: PDFPage, x: number, yy: number, w: number, h: number, url: string) => {
+    const a = doc.context.obj({ Type: "Annot", Subtype: "Link", Rect: [x, yy, x + w, yy + h], Border: [0, 0, 0], A: { Type: "Action", S: "URI", URI: PDFString.of(url) } });
+    pg.node.addAnnot(doc.context.register(a));
+  };
+  const para = (s: string, f = F.r, size = 9, color = INK, indent = 0) => {
+    for (const l of wrap(f, s, size, W - 2 * M - indent)) {
+      if (y < 60) { p = newPage(curLabel); y = H - 92; }
+      text(p, l, M + indent, y, f, size, color); y -= size + 4;
+    }
+  };
+  const urlLine = (url: string, indent = 0) => {
+    const t = fit(F.m, url, 7, W - 2 * M - indent);
+    if (y < 60) { p = newPage(curLabel); y = H - 92; }
+    text(p, t, M + indent, y, F.m, 7, BLUE); link(p, M + indent, y - 2, width(F.m, t, 7), 10, url); y -= 12;
+  };
+  const need = (h: number) => { if (y - h < 60) { p = newPage(curLabel); y = H - 92; } };
+  let curLabel = "Government warnings";
+  p = newPage(curLabel); y = sectionTitle(p, "UK Government warnings", H - 92);
+  const warns = ukWarningMetrics(input.metrics);
+  if (!warns.length) para("Not published at time of report.", F.r, 10, MUTED);
+  for (const m of warns) {
+    need(46);
+    p.drawRectangle({ x: M, y: y - 4, width: 3, height: 14, color: m.value && /red|severe|critical/i.test(m.value) ? RED : m.value && /amber|yellow|substantial/i.test(m.value) ? YELLOW : NAVY });
+    text(p, fit(F.b, m.title, 10, 300), M + 10, y, F.b, 10, INK);
+    const v = m.value ?? "Not published at time of report";
+    text(p, fit(F.k, v, 10, 200), W - M - width(F.k, fit(F.k, v, 10, 200), 10), y, F.k, 10, m.value ? NAVY : MUTED);
+    y -= 13;
+    para(`${m.source}  |  issued ${shortDate(m.asOf)}${m.period ? `  |  ${m.period}` : ""}`, F.m, 7, MUTED, 10);
+    if (m.sourceUrl) urlLine(m.sourceUrl, 10);
+    y -= 6;
+  }
+  y -= 10; need(80);
+  y = sectionTitle(p, "Emergency supply kits", y);
+  para("Official advice first: the UK Government's Prepare guidance explains what to keep at home for an emergency.", F.r, 9);
+  urlLine("https://prepare.campaign.gov.uk/");
+  y -= 4;
+  para("UKStats makes no money from these links. They are not affiliate links or paid placements, and UKStats does not endorse or test any product. You buy directly from the supplier.", F.b, 8.5, RED);
+  para(`Supplier pages checked ${shortDate(SUPPLIER_LINKS_CHECKED)}.`, F.m, 7, MUTED);
+  y -= 4;
+  for (const s of PREPAREDNESS_SUPPLIERS) {
+    need(40);
+    para(`${s.supplier}: ${s.name} (${s.category})`, F.b, 8.5);
+    urlLine(s.url, 8);
+    para(s.limitations, F.r, 7.5, MUTED, 8);
+    y -= 4;
+  }
+  void SUPPLIER_LINK_POLICY;
+  const news = input.headlines?.items ?? [];
+  const headBlock = (items: ReportItem[]) => {
+    for (const h of items) {
+      need(30);
+      text(p, h.official ? "POLICE NOTICE" : "NEWS", M, y, F.mb, 6.5, h.official ? BLUE : RED); y -= 10;
+      para(h.title, F.b, 8.5, INK);
+      para(`${h.publisher}  |  ${h.published ? shortDate(h.published) : "time not stated"}`, F.m, 6.5, MUTED);
+      if (h.link) urlLine(h.link);
+      y -= 3;
+    }
+  };
+  const uk = ukHeadlines(news);
+  if (uk.length) {
+    curLabel = "Main headlines"; p = newPage(curLabel); y = sectionTitle(p, "Main UK headlines", H - 92);
+    para("Headlines copied word for word from the publisher. They are news, not official figures.", F.r, 8.5, MUTED); y -= 4;
+    headBlock(uk);
+  }
+
+  if (input.edition === "global" && input.travel) {
+    curLabel = "Travel warnings"; p = newPage(curLabel); y = sectionTitle(p, "Government travel warnings, every country", H - 92);
+    para("Each government's own wording, side by side and never merged: UK FCDO and US State Department. * = the publisher mentioned riots, protests or unrest in the last 30 days.", F.r, 8.5, MUTED); y -= 4;
+    const rows = travelRows(input.travel.warnings, input.travel.fcdoAlerts, new Date(`${input.date}T12:00:00Z`));
+    const cx = [M + 6, M + 140, M + 330];
+    const hdr = () => { p.drawRectangle({ x: M, y: y - 16, width: W - 2 * M, height: 16, color: NAVY }); ["COUNTRY", "UK FCDO", "US STATE DEPT"].forEach((h, i) => text(p, h, cx[i]!, y - 11, F.mb, 6.5, WHITE)); y -= 16; };
+    hdr();
+    rows.forEach((r, i) => {
+      if (y - 14 < 60) { p = newPage(curLabel); y = H - 80; hdr(); }
+      if (i % 2 === 0) p.drawRectangle({ x: M, y: y - 14, width: W - 2 * M, height: 14, color: PALE });
+      text(p, fit(F.b, `${r.unrest ? "* " : ""}${r.country}`, 7.5, 128), cx[0]!, y - 10, F.b, 7.5, r.unrest ? RED : INK);
+      const uk = fit(F.r, r.uk, 7, 184), us = fit(F.r, r.us, 7, W - M - cx[2]! - 6);
+      text(p, uk, cx[1]!, y - 10, F.r, 7, r.uk === "Not checked" ? MUTED : INK);
+      text(p, us, cx[2]!, y - 10, F.r, 7, r.us === "Not checked" ? MUTED : INK);
+      if (r.ukUrl) link(p, cx[1]!, y - 13, 184, 12, r.ukUrl);
+      if (r.usUrl) link(p, cx[2]!, y - 13, W - M - cx[2]!, 12, r.usUrl);
+      y -= 14;
+    });
+    if (!rows.length) para("Not published at time of report.", F.r, 10, MUTED);
+    const names = input.world?.countries.map((c) => c.name) ?? [...new Set(rows.map((r) => r.country))];
+    const per = headlinesByCountry(news, names.filter((n) => n !== "United Kingdom"));
+    if (per.length) {
+      curLabel = "World headlines"; p = newPage(curLabel); y = sectionTitle(p, "Main headlines by country", H - 92);
+      para("Headlines copied word for word from the publisher. They are news, not official figures.", F.r, 8.5, MUTED); y -= 4;
+      for (const c of per) { need(50); text(p, c.country, M, y, F.k, 11, NAVY); y -= 15; headBlock(c.items); y -= 4; }
+    }
+  }
+
   p = newPage("Official register"); y = H - 92;
   if (input.kind !== "daily") {
     const from = windowStart(input.date, input.kind);
@@ -292,7 +392,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     "UKStats copies each figure exactly as the official publisher released it. Nothing is estimated, interpolated, rounded or re-based.",
     "Where a publisher has not released a figure, or has no machine-readable feed, this report prints \"Not published\" instead of a number.",
     "Year-on-year comparisons appear only where the same publisher series gives the same period one year earlier.",
-    "Weather and terrorism warnings are the issuing body's own levels. News headlines are not included in this report.",
+    "Weather and terrorism warnings are the issuing body's own levels. News headlines are copied word for word, labelled as news or police notices, and never used as figures.",
   ];
   method.forEach((s) => { wrap(F.r, s, 9, W - 2 * M - 14).forEach((l, i) => { if (i === 0) p.drawCircle({ x: M + 3, y: y + 3, size: 1.6, color: RED }); text(p, l, M + 12, y, F.r, 9, INK); y -= 13; }); y -= 4; });
   y -= 10;
