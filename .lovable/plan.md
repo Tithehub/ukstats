@@ -1,21 +1,34 @@
-# Keep the YouTube stream running 24/7
+# Presenter "About UKStats" break every 15 minutes
 
-## Why it stops today
-The website only makes the broadcast page. YouTube gets the picture from OBS on the MacBook Pro. The stream ends when any of these happen:
-- The Mac sleeps, the lid closes, it restarts or updates, or it loses Wi-Fi
-- OBS is closed or crashes
-- YouTube ends the broadcast after the connection drops. With "Auto-stop" on, it stops a few minutes after the signal goes, and a new stream link may be created
+## What viewers will see and hear
+Every 15 minutes (at :00, :15, :30 and :45 London time), at the next gap between countries or data sections, the presenter does a short break of about 30–40 seconds. Then the stream picks up where it left off.
 
-## Options
-1. **Keep the Mac on (free, fragile):** turn off sleep in System Settings, use a wired network, set OBS to reconnect automatically, and turn off Auto-stop in YouTube Studio. One power cut or macOS update still stops it.
-2. **A small cloud computer streams for us (recommended, about £10–£25 a month):** a rented server runs a hidden browser on https://ukstats.co.uk/globe/broadcast and sends it to YouTube non-stop, with automatic restarts. The Mac can be switched off. I write the setup script and step-by-step guide; you rent the server and paste in your stream key. The key is never stored on the site.
-3. **Paid restreaming service** (for example Restream or Castr scheduled streams): easier, but these services stream recorded video, not our live page, so the figures would go out of date. Not suitable.
+On screen during the break:
+- A full "About UKStats" card with **ukstats.co.uk** in big letters and a large QR code to `https://ukstats.co.uk` (with stream tracking tags).
+- The current approved sponsors shown one after another, with each sponsor's own QR code (the same box as now).
+- The Top 6, the tickers and the presenter stay where they are.
 
-## What I'd build (option 2)
-- A "Run 24/7" section on /globe/studio with the YouTube settings to change (Auto-stop off, a permanent stream key, DVR on) and links to them
-- A ready-made server setup script (hidden browser + video encoder + watchdog that restarts within 30 seconds), saved to Files
-- A health line on the studio page showing when the broadcast page last loaded, so you can see it's running
+## What she says (draft for your approval)
+> "You're watching UKStats — the UK's independent register of official statistics. Every figure on this stream comes straight from government and official publishers, with its source, its date and when the next update is due. Nothing is estimated and nothing is made up. The site is free for everyone, forever. Visit ukstats.co.uk, or scan the QR code on screen to open it now."
+
+Sponsor line, only when approved sponsors exist:
+> "UKStats is supported by [Sponsor A], [Sponsor B] and [Sponsor C]. Thank you to our sponsors. Sponsors never choose or change our figures."
+
+When there are no approved sponsors:
+> "Want your business seen here? Find out how at ukstats.co.uk/sponsors."
+
+Close:
+> "Back to the figures."
+
+Sponsor names are read exactly as they were approved. She never makes claims about a sponsor or recommends one.
+
+## Rules kept
+- The break is labelled "About UKStats", so it is never mistaken for a statistic. It adds no figures.
+- The presenter, her voice and the ?voice=off option stay as they are.
+- She only names sponsors that are approved and active.
 
 ## Technical details
-- Headless Chromium at 1920×1080 30fps with PulseAudio for the presenter's voice, piped to ffmpeg (H.264, 4,500 Kbps, 2s keyframes) to rtmp://a.rtmp.youtube.com/live2/<key>, managed by systemd with Restart=always.
-- Stream key entered only on the server as an environment variable.
+- `src/lib/stream-script.ts`: add a pure function `scriptForPromo(sponsorNames: string[])` that returns the lines above. It joins names with commas and "and", and uses the fallback line when there are no sponsors.
+- `src/lib/stream-schedule.ts`: add `PROMO_EVERY_MS = 15 min`, `PROMO_MS ≈ 35s`, and `promoAt(pos)`. These are clock-driven, so a reload lands on the same moment. The promo is placed at the first slot/country boundary after each quarter-hour, and the content is shifted rather than cut mid-card.
+- `src/routes/globe_.broadcast.tsx`: add a `PromoCard` (domain plus a large QR) that shows while the promo is active. The Presenter's reading list is swapped for the promo script during the break, and sponsor names are passed in from the existing sponsor rows.
+- Tests in `src/lib/stream-reading.test.ts`: the promo comes up every 15 minutes, the sponsor names appear in the script, the no-sponsor fallback works, and the script says "ukstats.co.uk".
