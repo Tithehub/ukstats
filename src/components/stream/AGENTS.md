@@ -1,1 +1,2 @@
 - Rented streams: rent_channels (owner branding) + rent_entitlements (admin/Stripe-set features) clamped by pure src/lib/rent-entitlements.ts on save and on read; /s/$slug/broadcast renders the shared BroadcastView with a StreamBrand overlay — customers change branding only, never figures.
+- Rent checkout: pure src/lib/rent-checkout.ts maps plan → Stripe line items → features; subscriptions carry metadata kind=rent and the webhook writes rent_entitlements only when source != 'manual' — admin grants always win over Stripe.

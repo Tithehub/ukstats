@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { BroadcastView, statsQuery } from "@/components/stream/BroadcastView";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { BroadcastView, statsQuery, type Variant } from "@/components/stream/BroadcastView";
 import { brandFromChannel } from "@/components/stream/stream-brand";
 import { channelQuery } from "@/lib/rent-channel-query";
+import { getPreviewChannel, type PublicChannel } from "@/lib/rent-channel.functions";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
 
 /** A customer's rented, branded stream frame for OBS. Figures are the UKStats register, unchanged. */
 export const Route = createFileRoute("/s/$slug_/broadcast")({
+  validateSearch: (s: Record<string, unknown>): { preview?: boolean } => (s["preview"] === 1 || s["preview"] === "1" || s["preview"] === true ? { preview: true } : {}),
   loader: ({ context, params }) => Promise.all([
     context.queryClient.ensureQueryData(channelQuery(params.slug)),
     context.queryClient.ensureQueryData(worldQuery()),
@@ -26,11 +29,18 @@ export const Route = createFileRoute("/s/$slug_/broadcast")({
   component: RentedBroadcast,
 });
 
+const variantOf = (l: string): Variant => (l === "split" || l === "data-wall" ? l : "classic");
+
 function RentedBroadcast() {
   const { slug } = Route.useParams();
+  const { preview } = Route.useSearch();
   const { data: ch } = useSuspenseQuery(channelQuery(slug));
-  if (!ch || !ch.live) return <div className="fixed inset-0 flex items-center justify-center bg-night p-8 text-center text-night-fg">
+  const getPreview = useServerFn(getPreviewChannel);
+  const { data: pv, isLoading } = useQuery({ queryKey: ["rent-preview", slug], enabled: !!preview, queryFn: () => getPreview({ data: { slug } }).catch(() => null) });
+  const show: PublicChannel | null | undefined = preview ? pv : ch;
+  if (preview && isLoading) return <div className="fixed inset-0 bg-night" />;
+  if (!show || (!preview && !show.live)) return <div className="fixed inset-0 flex items-center justify-center bg-night p-8 text-center text-night-fg">
     <div><p className="text-3xl font-semibold">This stream is not active</p><p className="mt-2 text-night-muted">Powered by UKStats · ukstats.co.uk/rent</p></div>
   </div>;
-  return <BroadcastView layout={ch.layout === "portrait" ? "portrait" : "landscape"} brand={brandFromChannel(ch)} />;
+  return <BroadcastView layout={show.layout === "portrait" ? "portrait" : "landscape"} variant={variantOf(show.layout)} brand={brandFromChannel(show)} watermark={preview && !show.live ? "Preview — not live" : undefined} />;
 }

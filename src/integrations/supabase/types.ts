@@ -482,8 +482,10 @@ export type Database = {
           logo_url: string | null
           presented_by: string | null
           presenter: string
+          requested_at: string | null
           show_sponsor_box: boolean
           slug: string
+          status: string
           updated_at: string
           user_id: string
         }
@@ -498,8 +500,10 @@ export type Database = {
           logo_url?: string | null
           presented_by?: string | null
           presenter?: string
+          requested_at?: string | null
           show_sponsor_box?: boolean
           slug: string
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -514,8 +518,10 @@ export type Database = {
           logo_url?: string | null
           presented_by?: string | null
           presenter?: string
+          requested_at?: string | null
           show_sponsor_box?: boolean
           slug?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -526,10 +532,15 @@ export type Database = {
           active: boolean
           ai_presenter: boolean
           all_countries: boolean
+          cancel_at_period_end: boolean
+          environment: string | null
           expires_at: string | null
           max_countries: number
           no_sponsor_box: boolean
           source: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          sub_status: string | null
           updated_at: string
           user_id: string
         }
@@ -537,10 +548,15 @@ export type Database = {
           active?: boolean
           ai_presenter?: boolean
           all_countries?: boolean
+          cancel_at_period_end?: boolean
+          environment?: string | null
           expires_at?: string | null
           max_countries?: number
           no_sponsor_box?: boolean
           source?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          sub_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -548,10 +564,15 @@ export type Database = {
           active?: boolean
           ai_presenter?: boolean
           all_countries?: boolean
+          cancel_at_period_end?: boolean
+          environment?: string | null
           expires_at?: string | null
           max_countries?: number
           no_sponsor_box?: boolean
           source?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          sub_status?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -811,6 +832,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_rent_channels: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          requested_at: string
+          slug: string
+          status: string
+          user_id: string
+        }[]
+      }
       get_approved_explainer: {
         Args: { _metric_id: string }
         Returns: {
@@ -947,6 +980,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      rent_slug_available: { Args: { _slug: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

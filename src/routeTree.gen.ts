@@ -74,6 +74,7 @@ import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
+import { Route as RentAdminRouteImport } from './routes/rent_.admin'
 import { Route as RentDashboardRouteImport } from './routes/rent_.dashboard'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as SpendingIndexRouteImport } from './routes/spending.index'
@@ -418,6 +419,11 @@ const RegionsSlugRoute = RegionsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RegionsRoute,
 } as any)
+const RentAdminRoute = RentAdminRouteImport.update({
+  id: '/rent_/admin',
+  path: '/rent/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RentDashboardRoute = RentDashboardRouteImport.update({
   id: '/rent_/dashboard',
   path: '/rent/dashboard',
@@ -577,6 +583,7 @@ export interface FileRoutesByFullPath {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/rent/admin': typeof RentAdminRoute
   '/rent/dashboard': typeof RentDashboardRoute
   '/s/$slug': typeof SSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
@@ -660,6 +667,7 @@ export interface FileRoutesByTo {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/rent/admin': typeof RentAdminRoute
   '/rent/dashboard': typeof RentDashboardRoute
   '/s/$slug': typeof SSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
@@ -746,6 +754,7 @@ export interface FileRoutesById {
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
   '/regions/$slug': typeof RegionsSlugRoute
+  '/rent_/admin': typeof RentAdminRoute
   '/rent_/dashboard': typeof RentDashboardRoute
   '/s/$slug': typeof SSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
@@ -833,6 +842,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/rent/admin'
     | '/rent/dashboard'
     | '/s/$slug'
     | '/spending/$council'
@@ -916,6 +926,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/rent/admin'
     | '/rent/dashboard'
     | '/s/$slug'
     | '/spending/$council'
@@ -1001,6 +1012,7 @@ export interface FileRouteTypes {
     | '/history/$metricId'
     | '/p/$slug'
     | '/regions/$slug'
+    | '/rent_/admin'
     | '/rent_/dashboard'
     | '/s/$slug'
     | '/spending/$council'
@@ -1081,6 +1093,7 @@ export interface RootRouteChildren {
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  RentAdminRoute: typeof RentAdminRoute
   RentDashboardRoute: typeof RentDashboardRoute
   SSlugRoute: typeof SSlugRoute
   SpendingCouncilRoute: typeof SpendingCouncilRoute
@@ -1548,6 +1561,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionsSlugRouteImport
       parentRoute: typeof RegionsRoute
     }
+    '/rent_/admin': {
+      id: '/rent_/admin'
+      path: '/rent/admin'
+      fullPath: '/rent/admin'
+      preLoaderRoute: typeof RentAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rent_/dashboard': {
       id: '/rent_/dashboard'
       path: '/rent/dashboard'
@@ -1806,6 +1826,7 @@ const rootRouteChildren: RootRouteChildren = {
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  RentAdminRoute: RentAdminRoute,
   RentDashboardRoute: RentDashboardRoute,
   SSlugRoute: SSlugRoute,
   SpendingCouncilRoute: SpendingCouncilRoute,
