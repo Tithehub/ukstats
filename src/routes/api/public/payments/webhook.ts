@@ -25,8 +25,39 @@ async function syncRent(subscription: any, env: StripeEnv, deleted = false) {
   await supabaseAdmin.from("rent_channels").update({ status: active ? "active" : "paused" }).eq("user_id", userId);
 }
 
+/** Paid PDF reports: subscriptions unlock every edition until the paid period ends. */
+async function syncReportSub(subscription: any, env: StripeEnv, deleted = false) {
+  const userId = subscription.metadata?.userId;
+  const edition = subscription.metadata?.edition;
+  if (!userId || (edition !== "uk" && edition !== "global")) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const item = subscription.items?.data?.[0];
+  const start = item?.current_period_start ?? subscription.current_period_start;
+  const end = item?.current_period_end ?? subscription.current_period_end;
+  await supabaseAdmin.from("report_subscriptions").upsert({
+    user_id: userId, edition,
+    price_id: item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id || "unknown",
+    stripe_subscription_id: subscription.id, stripe_customer_id: subscription.customer,
+    status: deleted ? "canceled" : subscription.status,
+    current_period_start: start ? new Date(start * 1000).toISOString() : null,
+    current_period_end: end ? new Date(end * 1000).toISOString() : null,
+    cancel_at_period_end: !!subscription.cancel_at_period_end, environment: env, updated_at: new Date().toISOString(),
+  }, { onConflict: "stripe_subscription_id" });
+}
+
+async function recordReportPurchase(session: any, env: StripeEnv) {
+  const m = session.metadata ?? {};
+  if (session.payment_status === "unpaid" || !m.userId || !/^\d{4}-\d{2}-\d{2}$/.test(m.reportDate ?? "") || (m.edition !== "uk" && m.edition !== "global")) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("report_purchases").upsert(
+    { user_id: m.userId, edition: m.edition, report_date: m.reportDate, stripe_session_id: session.id, environment: env },
+    { onConflict: "stripe_session_id" },
+  );
+}
+
 async function upsertSubscription(subscription: any, env: StripeEnv) {
   if (subscription.metadata?.kind === "rent") return syncRent(subscription, env);
+  if (subscription.metadata?.kind === "report_sub") return syncReportSub(subscription, env);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const userId = subscription.metadata?.userId;
   const item = subscription.items?.data?.[0];
@@ -85,6 +116,7 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
 
 async function markCanceled(subscription: any, env: StripeEnv) {
   if (subscription.metadata?.kind === "rent") return syncRent(subscription, env, true);
+  if (subscription.metadata?.kind === "report_sub") return syncReportSub(subscription, env, true);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   await supabaseAdmin
     .from("subscriptions")
@@ -110,6 +142,10 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
               break;
             case "customer.subscription.deleted":
               await markCanceled(event.data.object, env);
+              break;
+            case "checkout.session.completed":
+            case "checkout.session.async_payment_succeeded":
+              if (event.data.object?.metadata?.kind === "report") await recordReportPurchase(event.data.object, env);
               break;
             default:
               break;

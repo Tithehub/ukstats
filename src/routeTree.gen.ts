@@ -86,6 +86,7 @@ import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.
 import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
 import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
 import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -480,6 +481,11 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   path: '/public/outreach-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicReportsTickRoute = ApiPublicReportsTickRouteImport.update({
+  id: '/public/reports-tick',
+  path: '/public/reports-tick',
+  getParentRoute: () => ApiRoute,
+} as any)
 const SSlugBroadcastRoute = SSlugBroadcastRouteImport.update({
   id: '/s/$slug_/broadcast',
   path: '/s/$slug/broadcast',
@@ -597,6 +603,7 @@ export interface FileRoutesByFullPath {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -681,6 +688,7 @@ export interface FileRoutesByTo {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -768,6 +776,7 @@ export interface FileRoutesById {
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -856,6 +865,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/reports-tick'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
     | '/api/public/payments/webhook'
@@ -940,6 +950,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/reports-tick'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
     | '/api/public/payments/webhook'
@@ -1026,6 +1037,7 @@ export interface FileRouteTypes {
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/reports-tick'
     | '/s/$slug_/broadcast'
     | '/spending/type/$category'
     | '/api/public/payments/webhook'
@@ -1645,6 +1657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/reports-tick': {
+      id: '/api/public/reports-tick'
+      path: '/public/reports-tick'
+      fullPath: '/api/public/reports-tick'
+      preLoaderRoute: typeof ApiPublicReportsTickRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/s/$slug_/broadcast': {
       id: '/s/$slug_/broadcast'
       path: '/s/$slug/broadcast'
@@ -1725,6 +1744,7 @@ const CountryRouteWithChildren =
 interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
+  ApiPublicReportsTickRoute: typeof ApiPublicReportsTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicV1GoldRoute: typeof ApiPublicV1GoldRoute
   ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
@@ -1735,6 +1755,7 @@ interface ApiRouteChildren {
 const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
+  ApiPublicReportsTickRoute: ApiPublicReportsTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicV1GoldRoute: ApiPublicV1GoldRoute,
   ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
