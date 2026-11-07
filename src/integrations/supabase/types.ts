@@ -838,6 +838,27 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_public_rent_channel: {
+        Args: { _slug: string }
+        Returns: {
+          accent: string
+          active: boolean
+          ai_presenter: boolean
+          all_countries: boolean
+          countries: string[]
+          display_name: string
+          ent_all_countries: boolean
+          expires_at: string
+          layout: string
+          logo_url: string
+          max_countries: number
+          no_sponsor_box: boolean
+          presented_by: string
+          presenter: string
+          show_sponsor_box: boolean
+          slug: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

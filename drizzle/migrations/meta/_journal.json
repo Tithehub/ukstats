@@ -113,6 +113,13 @@
       "when": 1794082685588,
       "tag": "0015_rent_channels",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794082698743,
+      "tag": "0016_rent_public_channel_fn",
+      "breakpoints": true
     }
   ]
 }
