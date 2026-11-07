@@ -6,6 +6,7 @@ import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { ANSWER_TOPICS } from "@/lib/answer-topics";
+import { EXPENDITURE_CATEGORIES } from "@/lib/spending.data";
 
 
 interface SitemapEntry {
@@ -42,6 +43,11 @@ const entries: SitemapEntry[] = [
   { path: "/online-speech", changefreq: "weekly", priority: "0.6" },
   { path: "/grooming-gangs-inquiry", changefreq: "weekly", priority: "0.7" },
   { path: "/spending", changefreq: "weekly", priority: "0.7" },
+  ...EXPENDITURE_CATEGORIES.map(c => ({ path: `/spending/type/${c.slug}`, changefreq: "monthly" as const, priority: "0.5" })),
+  { path: "/live", changefreq: "hourly", priority: "0.7" },
+  { path: "/reports", changefreq: "daily", priority: "0.6" },
+  { path: "/rent", changefreq: "monthly", priority: "0.5" },
+  { path: "/safest-places", changefreq: "weekly", priority: "0.7" },
   { path: "/gold", changefreq: "weekly", priority: "0.7" },
   { path: "/small-boats", changefreq: "weekly", priority: "0.8" },
   { path: "/world", changefreq: "weekly", priority: "0.8" },
