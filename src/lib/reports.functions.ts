@@ -104,14 +104,14 @@ export const createReportCheckout = createServerFn({ method: "POST" })
     }
   });
 
-/** Returns a 60-second private link to a report the caller is entitled to. */
+/** Returns the PDF itself (base64) to a caller entitled to it — never a shareable link. */
 export const getReportDownload = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { edition: ReportEdition; kind: ReportKind; date: string; environment: StripeEnv }) => {
     if (!envOk(d.environment) || !editionOk(d.edition) || !kindOk(d.kind) || !dateOk(d.date)) throw new Error("Invalid request");
     return d;
   })
-  .handler(async ({ data, context }): Promise<{ url: string; fileName: string } | { error: string }> => {
+  .handler(async ({ data, context }): Promise<{ base64: string; fileName: string } | { error: string }> => {
     const [p, s] = await Promise.all([
       context.supabase.from("report_purchases").select("edition,report_date").eq("user_id", context.userId).eq("environment", data.environment),
       context.supabase.from("report_subscriptions").select("edition,status,current_period_start,current_period_end").eq("user_id", context.userId).eq("environment", data.environment),
@@ -131,9 +131,12 @@ export const getReportDownload = createServerFn({ method: "POST" })
       }
     }
     const fileName = reportFileName(data.edition, data.kind, data.date);
-    const { data: signed, error } = await supabaseAdmin.storage.from("reports").createSignedUrl(path, 60, { download: fileName });
-    if (error || !signed) return { error: "Could not prepare the download." };
-    return { url: signed.signedUrl, fileName };
+    const { data: file, error } = await supabaseAdmin.storage.from("reports").download(path);
+    if (error || !file) return { error: "Could not prepare the download." };
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return { base64: btoa(bin), fileName };
   });
 
 export const createReportPortal = createServerFn({ method: "POST" })
