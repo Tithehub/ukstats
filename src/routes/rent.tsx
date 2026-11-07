@@ -131,6 +131,11 @@ function RentPage() {
                 ))}
               </div>
               <p className="mt-2 text-xs text-muted-foreground">If you present yourself, the screen shows "Presented by" your name. What you say is your responsibility; the figures on screen stay official.</p>
+              <p className="mt-3 text-sm">The stream backdrop is just £9/month because it carries a small UKStats sponsor box in the corner, showing one sponsor at a time.</p>
+              <label className="mt-2 flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={noSponsorBox} onChange={(e) => setNoSponsorBox(e.target.checked)} />
+                Remove the UKStats sponsor box · +£49/month
+              </label>
             </section>
 
             <section className={box}>
