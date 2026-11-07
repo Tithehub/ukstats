@@ -74,12 +74,12 @@ export const Route = createFileRoute("/")({
   },
   head: () => (currentBrand() === "global" ? GLOBAL_HEAD : {
     meta: [
-      { title: "UKStats — Built by the people, for the people" },
+      { title: "UKStats — Live UK official statistics, sourced and dated" },
       {
         name: "description",
-        content: `${SLOGAN}. Live UK official statistics at a glance: debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.`,
+        content: `Live UK official statistics in one place: national debt, inflation, crime, immigration, house prices and national alert levels — each with its source, data age and next release date.`,
       },
-      { property: "og:title", content: "UKStats — Built by the people, for the people" },
+      { property: "og:title", content: "UKStats — Live UK official statistics, sourced and dated" },
       {
         property: "og:description",
         content: `${SLOGAN}. Every figure timestamped, sourced and embeddable. Nothing estimated.`,
