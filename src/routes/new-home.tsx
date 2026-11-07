@@ -40,12 +40,12 @@ const TONE: Record<BlockTone, string> = {
   plain: "bg-card text-card-foreground border-border",
 };
 
-function Meta({ m }: { m?: Metric }) {
+function Meta({ m }: { m?: Metric | undefined }) {
   if (!m) return <span>Not published</span>;
   return <span>{m.source} · {m.period ?? fmtDate(m.asOf)} · {ageLabel(m.asOf)}{m.nextDue ? ` · ${dueLabel(m.nextDue)}` : ""}</span>;
 }
 
-function Tile({ m, icon, label, link }: { m?: Metric; icon: ReactNode; label: string; link?: { category: Category } }) {
+function Tile({ m, icon, label, link }: { m?: Metric | undefined; icon: ReactNode; label: string; link?: { category: Category } }) {
   const tone = statusTone(m);
   const body = <div className={`flex h-full min-h-44 flex-col justify-between rounded-2xl border p-5 shadow-sm transition-transform hover:-translate-y-0.5 ${TONE[tone]}`}>
     <div className="flex items-start justify-between gap-2">
