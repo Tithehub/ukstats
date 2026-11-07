@@ -1,30 +1,52 @@
-# Rent UKStats: Stage 2, payments and plans
+# Rent UKStats: finish the full streamer service (before payments)
 
-Stage 1 is built in preview: the stream dashboard, branded stream pages, watch page and the admin on/off switch. This stage connects checkout so channels switch on and off automatically.
+The basics already work in preview:
+- streamer dashboard
+- branded stream page
+- watch page
+- admin on/off switch
 
-## What customers get
+This plan turns that into a finished, polished service you can test end to end. Payments come after.
 
-1. **Build your plan on /rent and pay.** The prices are the ones already shown:
-   - £9/month base, one country included
-   - +£3 per extra country, or +£19 for all countries
-   - +£10 for the AI presenter
-   - +£49 to remove the sponsor box
+## What gets built
 
-   Sign-in is required. Payment is a monthly subscription, sold as digital goods.
-2. **Founding discount.** The first 10 streamers get 25% off.
-3. **Automatic access.** After payment, the channel switches on with exactly the features bought. It stays live until the end of the paid month after cancelling. If a payment fails, a warning shows and the channel stays on while Stripe retries.
-4. **Manage billing.** A button on /rent/dashboard lets customers change their card, see invoices, cancel or upgrade.
-5. **Your overrides.** The admin panel can still grant features by hand, for example free trials or partners. Manual grants are never overwritten by Stripe.
+1. **Guided setup (/rent/dashboard).** A clear 4-step setup replaces the single long form:
+   1. Name and web address, with a live "available / taken" check
+   2. Branding: logo upload (PNG/JPG/SVG up to 2 MB, stored with us), accent colour and "Presented by"
+   3. Countries and layout, showing a picture of each layout
+   4. Presenter and sponsor box
+
+   A live preview of the stream sits beside the steps and updates as settings change, even before the channel is switched on.
+2. **All four layouts working.** Classic, data wall (figures larger, globe smaller), split (half globe, half figures) and portrait each change the stream itself. Today only portrait does.
+3. **Request activation.** A "Request activation" button on the dashboard shows "Pending review" until you approve it. A notice appears in your admin panel.
+4. **Admin page (/rent/admin).** A proper admin page lists every channel with its status, owner email and date requested. Each row has buttons to approve, pause and grant features, and opens a preview of that channel. It stays limited to admins.
+5. **Customer status and help.** The dashboard shows Pending, Active, Paused or Expired, and a "Your stream is live" checklist covering:
+   - OBS link
+   - camera tips in self-presenter mode
+   - test-stream advice
+   - a copy button for the public watch link
+6. **A better watch page (/s/name).** A branded header with their logo and colour, the stream, share buttons, and a "Powered by UKStats" link.
+7. **Design pass.** All rent pages get the same navy news style with clear steps and works on phones. The pages are /rent, the dashboard, the admin page and the watch page.
+
+## Then, separately
+
+Payments and packages come next: £9 base plus add-ons, automatic activation on payment, and billing management.
 
 ## Technical details
 
-- **Stripe products** (tax code `txcd_10000000`, monthly, GBP), with prices kept in sync with `rent-pricing.ts`:
-  - `rent_stream_base` £9
-  - `rent_extra_country` £3, quantity-based
-  - `rent_all_countries` £19
-  - `rent_ai_presenter` £10
-  - `rent_no_sponsor_box` £49
-- **Checkout:** `createRentCheckout` (POST, signed in) builds the line items from the dashboard choices and uses embedded checkout with `managed_payments`. Subscription metadata `kind=rent` keeps it separate from sponsorships. The founding coupon is applied while fewer than 10 rent subscriptions exist.
-- **Webhook:** for `kind=rent`, it upserts `rent_entitlements` with `source='stripe'`, working out the features from the subscription items. Sponsor handling is unchanged. A test makes sure manual rows are not overwritten.
-- **Portal:** `createRentPortal` is limited to the customer's own Stripe customer.
-- **Tests:** checkout line items total `monthlyPence`, the mapping from items to entitlement, and the founding cap.
+- **Database changes:**
+  - `rent_channels`: add `status` ('draft', 'pending', 'active' or 'paused', default 'draft') and `requested_at`
+  - an admin-only function that returns owner emails for the admin page
+- **Logo storage:** a public `rent-logos` bucket. Owners can upload only to their own folder (`<uid>/...`), and the logo link is taken from that upload.
+- **Server functions (POST):**
+  - `checkSlug`, which says whether a web address is free
+  - `requestActivation`
+  - `adminSetChannelStatus`, which reuses the role check
+  - entitlements: approving sets `active=true`, pausing sets `active=false`
+- **Stream layouts:** `BroadcastView` gets a `variant` prop (classic, data-wall or split) that switches between absolute-position presets for the 1920×1080 frame. `/globe/broadcast` keeps classic.
+- **Preview mode:** a signed-in owner can open `/s/$slug/broadcast?preview=1` even when the channel isn't active. It's checked through their session and watermarked "Preview — not live".
+- **Tests:**
+  - slug rules
+  - status changes: an owner can only move a channel from draft to pending, and only an admin can approve or pause
+  - preview works only for the owner
+- Update the stream folder's AGENTS.md note and roadmap.md.
