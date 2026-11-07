@@ -38,7 +38,11 @@ const hhmm = (iso: string | null) => iso ? london(new Date(iso), { day: "numeric
 const FRESH: Record<string, string> = { fresh: "bg-fresh", ageing: "bg-ageing", overdue: "bg-overdue", unknown: "bg-night-muted" };
 
 /** TV news-channel frame captured by OBS. `brand` turns it into a rented, customer-branded channel (figures unchanged). */
-export function BroadcastView({ layout, brand }: { layout: Layout; brand?: StreamBrand }) {
+export type Variant = "classic" | "split" | "data-wall";
+const VARIANTS: Record<Exclude<Variant, "classic">, { globe: number }> = { split: { globe: 960 }, "data-wall": { globe: 840 } };
+
+export function BroadcastView({ layout, brand, variant = "classic", watermark }: { layout: Layout; brand?: StreamBrand; variant?: Variant; watermark?: string }) {
+  const V = variant === "classic" ? { globe: 1240 } : VARIANTS[variant];
   const WORLD = useMemo(() => brand ? ALL_WORLD.filter((w) => brand.countries.includes(w.code)) : ALL_WORLD, [brand]);
   const hasUk = !brand || brand.countries.includes("gb");
   const W = layout === "portrait" ? 1080 : 1920, H = layout === "portrait" ? 1920 : 1080;
@@ -190,7 +194,7 @@ export function BroadcastView({ layout, brand }: { layout: Layout; brand?: Strea
   return <div className="fixed inset-0 overflow-hidden bg-night">
   <div data-frame data-layout={layout} className="absolute left-0 top-0 origin-top-left overflow-hidden bg-night font-sans text-night-fg"
     style={{ width: W, height: H, transform: `scale(${scale})`, left: offset.x, top: offset.y }}>
-    {layout === "landscape" ? <>
+    {layout === "landscape" ? (variant === "classic" ? <>
       {/* Globe fills the left; YouTube's title and control zones (top 96px, bottom 120px) show only globe/background */}
       <div className="absolute inset-y-0 left-0 w-[1240px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
@@ -208,6 +212,22 @@ export function BroadcastView({ layout, brand }: { layout: Layout; brand?: Strea
       <div className={`absolute bottom-[120px] left-0 z-40 h-[104px] ${sponsors.length ? "right-[440px]" : "right-0"}`}>{tickers}</div>
       {sponsors.length > 0 && <div className="absolute bottom-[120px] right-[24px] z-40 h-[104px] w-[416px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
     </> : <>
+      {/* Rented layouts: "split" = half globe / half figures; "data-wall" = figures dominate, smaller globe */}
+      <div className="absolute inset-y-0 left-0" style={{ width: V.globe }}><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
+      <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
+      <div className="absolute left-6 top-[212px] z-30" style={{ width: V.globe - 460 }}>{next}</div>
+      <div className="absolute top-[212px] z-30" style={{ left: V.globe - 196 }}>{qr}</div>
+      <aside data-fit className="absolute right-0 top-[192px] z-30 flex h-[664px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5" style={{ width: 1920 - V.globe }}>
+        {six}
+        {fresh}
+        {boatsChip}
+        <div className="min-h-0 flex-1">{figure}</div>
+      </aside>
+      <div className="absolute left-6 z-30" style={{ top: 420, width: Math.min(420, V.globe - 48), height: 410 }}>{anchor}</div>
+      <div className="absolute bottom-[240px] z-30" style={{ left: Math.min(460, V.globe - 400), width: Math.max(360, V.globe - 484) }}>{lower}</div>
+      <div className={`absolute bottom-[120px] left-0 z-40 h-[104px] ${sponsors.length ? "right-[440px]" : "right-0"}`}>{tickers}</div>
+      {sponsors.length > 0 && <div className="absolute bottom-[120px] right-[24px] z-40 h-[104px] w-[416px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+    </>) : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute left-6 top-[280px] z-30 w-[520px]">{next}</div>
@@ -220,6 +240,7 @@ export function BroadcastView({ layout, brand }: { layout: Layout; brand?: Strea
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
     {brand && <BrandBadge brand={brand} portrait={layout === "portrait"} />}
+    {watermark && <div className="pointer-events-none absolute inset-0 z-[60] flex items-center justify-center"><span className="rotate-[-12deg] rounded-xl border-4 border-destructive px-10 py-4 font-mono text-[72px] font-black uppercase tracking-widest text-destructive opacity-70">{watermark}</span></div>}
   </div></div>;
 }
 
