@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
-import { SPONSOR_PRICE_IDS } from "@/lib/sponsor-plans";
+import { SPONSOR_PRICE_IDS, SPONSOR_SLOT_CAPS, slotFull } from "@/lib/sponsor-plans";
 import { BANNER_BUCKET, BANNER_URL_SECONDS, isOwnBannerPath } from "@/lib/banner-paths";
 import { fundingPaymentError } from "@/lib/funding-policy";
 
@@ -56,6 +56,16 @@ export const createSponsorCheckout = createServerFn({ method: "POST" })
         .eq("environment", data.environment)
         .in("status", ["active", "trialing", "past_due"]);
       if (existing && existing.length) return { error: "You already have an active plan — use Manage subscription to change it." };
+      if (SPONSOR_SLOT_CAPS[data.priceId] != null) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { count } = await supabaseAdmin
+          .from("subscriptions")
+          .select("id", { count: "exact", head: true })
+          .eq("price_id", data.priceId)
+          .eq("environment", data.environment)
+          .in("status", ["active", "trialing", "past_due"]);
+        if (slotFull(data.priceId, count ?? 0)) return { error: "All slots for this plan are taken. Please choose another plan or contact us." };
+      }
 
       const { data: u } = await context.supabase.auth.getUser();
       const stripe = createStripeClient(data.environment);
