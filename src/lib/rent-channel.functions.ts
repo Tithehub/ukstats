@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import type Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { clampChannel, isChannelLive, NO_ENTITLEMENT, slugify, validSlug, type ChannelSettings, type Entitlement } from "@/lib/rent-entitlements";
+import { clampChannel, isChannelLive, NO_ENTITLEMENT, WISH_ENTITLEMENT, slugify, validSlug, type ChannelSettings, type Entitlement } from "@/lib/rent-entitlements";
 import { FOUNDING_RENT_SLOTS, normalisePlan, RENT_PRICE_IDS, rentLineItems, type RentPlan } from "@/lib/rent-checkout";
 import type { StripeEnv } from "@/lib/stripe.server";
 
@@ -75,8 +75,8 @@ export const saveMyChannel = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }): Promise<{ ok: true; slug: string } | { error: string }> => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("rent_entitlements").select("*").eq("user_id", userId).maybeSingle();
-    const s = clampChannel(data, pickEnt(ent), userId);
+    // Store the customer's wishes; the live stream is clamped to what they've paid for on every read.
+    const s = clampChannel(data, WISH_ENTITLEMENT, userId);
     const { error } = await supabase.from("rent_channels").upsert({ ...s, user_id: userId }, { onConflict: "user_id" });
     if (error) return { error: error.code === "23505" ? "That web address is taken — try another." : "Could not save your channel." };
     return { ok: true, slug: s.slug };
@@ -121,7 +121,7 @@ export const getPreviewChannel = createServerFn({ method: "POST" })
     if (!ch) return null; // RLS: only the owner or an admin can read it
     const { data: ent } = await context.supabase.from("rent_entitlements").select("*").eq("user_id", ch.user_id).maybeSingle();
     const e = pickEnt(ent);
-    const s = clampChannel(ch as unknown as ChannelSettings, e);
+    const s = clampChannel(ch as unknown as ChannelSettings, WISH_ENTITLEMENT);
     return { ...s, logo_url: await signLogo(context.supabase as never, s.logo_url), live: isChannelLive(e, new Date()), preview: true };
   });
 

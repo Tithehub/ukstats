@@ -29,6 +29,9 @@ export interface ChannelSettings {
 
 export const NO_ENTITLEMENT: Entitlement = { active: false, max_countries: 1, all_countries: false, ai_presenter: false, no_sponsor_box: false, expires_at: null };
 
+/** Used for storing and previewing a customer's wishes; the live stream is always clamped to the real entitlement. */
+export const WISH_ENTITLEMENT: Entitlement = { active: true, max_countries: 300, all_countries: true, ai_presenter: true, no_sponsor_box: true, expires_at: null };
+
 /** All country codes a channel may pick: "gb" for the UK plus every register country. */
 export const RENT_COUNTRY_CODES = ["gb", ...COUNTRIES.map((c) => c.code)];
 
