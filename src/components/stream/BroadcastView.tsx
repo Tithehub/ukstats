@@ -210,7 +210,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute left-[620px] top-[222px] z-30 h-[450px] w-[420px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
-      <div className={`absolute left-6 z-30 w-[540px] ${sponsors.length ? "bottom-[336px]" : "bottom-[232px]"}`}>{clip}</div>
+      <div className={`absolute left-6 z-30 ${sponsors.length ? "bottom-[336px] w-[440px]" : "bottom-[232px] w-[540px]"}`}>{clip}</div>
       <div className="absolute bottom-[240px] left-[600px] z-30 w-[610px]">{lower}</div>
       <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[584px]" : "left-0"}`}>{tickers}</div>
       {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[200px] w-[584px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
