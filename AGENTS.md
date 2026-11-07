@@ -58,4 +58,3 @@
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return; never summed across nations.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
-- Rented streams: rent_channels (owner branding) + rent_entitlements (admin/Stripe-set features) clamped by pure src/lib/rent-entitlements.ts on save and on read; /s/$slug/broadcast renders the shared BroadcastView with a StreamBrand overlay — customers change branding only, never figures.

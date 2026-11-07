@@ -1,0 +1,1 @@
+- Rented streams: rent_channels (owner branding) + rent_entitlements (admin/Stripe-set features) clamped by pure src/lib/rent-entitlements.ts on save and on read; /s/$slug/broadcast renders the shared BroadcastView with a StreamBrand overlay — customers change branding only, never figures.
