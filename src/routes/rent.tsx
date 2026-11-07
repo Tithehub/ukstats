@@ -160,7 +160,7 @@ function RentPage() {
             ) : (
               <form className="mt-4 space-y-2" onSubmit={submit}>
                 {(["name", "email", "company", "website"] as const).map((k) => (
-                  <input key={k} required={k !== "website"} type={k === "email" ? "email" : "text"} placeholder={k === "website" ? "Website (optional)" : k[0].toUpperCase() + k.slice(1)}
+                  <input key={k} required={k !== "website"} type={k === "email" ? "email" : "text"} placeholder={k === "website" ? "Website (optional)" : k.charAt(0).toUpperCase() + k.slice(1)}
                     value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
                 ))}
