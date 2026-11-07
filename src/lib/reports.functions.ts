@@ -58,7 +58,7 @@ async function resolveCustomer(stripe: Stripe, userId: string, email?: string): 
 
 export const createReportCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { priceId: ReportPriceId; date?: string; returnUrl: string; environment: StripeEnv }) => {
+  .inputValidator((d: { priceId: ReportPriceId; date?: string | undefined; returnUrl: string; environment: StripeEnv }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
     if (!isReportPriceId(d.priceId)) throw new Error("Invalid plan");
     if (d.date !== undefined && !dateOk(d.date)) throw new Error("Invalid date");
@@ -85,7 +85,7 @@ export const createReportCheckout = createServerFn({ method: "POST" })
       const { data: u } = await context.supabase.auth.getUser();
       const customer = await resolveCustomer(stripe, context.userId, u.user?.email ?? undefined);
       const meta = { userId: context.userId, kind: plan.interval ? "report_sub" : "report", edition: plan.edition, ...(plan.interval ? {} : { reportDate: date }) };
-      const session = await stripe.checkout.sessions.create({
+      const params: Record<string, unknown> = {
         line_items: [{ price: price.id, quantity: 1 }],
         mode: plan.interval ? "subscription" : "payment",
         ui_mode: "embedded_page",
@@ -96,7 +96,8 @@ export const createReportCheckout = createServerFn({ method: "POST" })
         ...(plan.interval
           ? { subscription_data: { metadata: meta } }
           : { payment_intent_data: { description: `${plan.label} — ${date}` } }),
-      } as Stripe.Checkout.SessionCreateParams);
+      };
+      const session = await stripe.checkout.sessions.create(params as unknown as Stripe.Checkout.SessionCreateParams);
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };

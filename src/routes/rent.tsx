@@ -90,7 +90,7 @@ function RentPage() {
         <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
           Your logo, your colours, your layout and your countries. The figures, sources and dates stay exactly as published — you can brand the stats, never change them. Everything on ukstats.co.uk stays free.
         </p>
-        <div className="mt-5 flex flex-wrap gap-3"><Link to="/rent/dashboard" className="inline-flex items-center rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">Set up your stream</Link><span className="self-center text-sm text-muted-foreground">Sign in, brand your channel and get your OBS link.</span></div>
+        <div className="mt-5 flex flex-wrap gap-3"><Link to="/rent/dashboard" className="inline-flex items-center rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">Set up your stream</Link><span className="self-center text-sm text-muted-foreground">Sign in, brand your channel and get your OBS link.</span><Link to="/reports" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Daily PDF reports from £1</Link></div>
         
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
