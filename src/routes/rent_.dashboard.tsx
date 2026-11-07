@@ -199,7 +199,7 @@ function Editor() {
         {savedSlug ? <div className={`relative overflow-hidden rounded-xl border border-night-line bg-night ${f.layout === "portrait" ? "mx-auto aspect-[9/16] max-h-[640px]" : "aspect-video"}`}>
           <iframe key={previewKey} title="Your stream preview" src={`/s/${savedSlug}/broadcast?preview=1&voice=off`} className="absolute inset-0 h-full w-full border-0" />
         </div> : <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-night-line text-sm text-night-muted">Save step 1 to see your preview</div>}
-        <p className="mt-1 text-xs text-night-muted">Updates each time you save. Shows "Preview — not live" until your channel is active.</p>
+        <p className="mt-1 text-xs text-night-muted">{data.live ? "Your channel is live — this is exactly what viewers see. Updates each time you save." : "Updates each time you save. Shows \"Preview — not live\" until your channel is active."}</p>
       </section>
       {savedSlug && <GoLive slug={savedSlug} live={data.live} self={f.presenter === "self"} portrait={f.layout === "portrait"} />}
       {data.isAdmin && <Link to="/rent/admin" className="block rounded-xl border-2 border-electric p-3 text-sm font-semibold">Admin: review and switch on channels →</Link>}
