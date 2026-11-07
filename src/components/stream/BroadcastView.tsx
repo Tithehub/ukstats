@@ -41,7 +41,7 @@ const FRESH: Record<string, string> = { fresh: "bg-fresh", ageing: "bg-ageing", 
 export type Variant = "classic" | "split" | "data-wall";
 const VARIANTS: Record<Exclude<Variant, "classic">, { globe: number }> = { split: { globe: 960 }, "data-wall": { globe: 840 } };
 
-export function BroadcastView({ layout, brand, variant = "classic", watermark }: { layout: Layout; brand?: StreamBrand; variant?: Variant; watermark?: string }) {
+export function BroadcastView({ layout, brand, variant = "classic", watermark }: { layout: Layout; brand?: StreamBrand; variant?: Variant; watermark?: string | undefined }) {
   const V = variant === "classic" ? { globe: 1240 } : VARIANTS[variant];
   const WORLD = useMemo(() => brand ? ALL_WORLD.filter((w) => brand.countries.includes(w.code)) : ALL_WORLD, [brand]);
   const hasUk = !brand || brand.countries.includes("gb");

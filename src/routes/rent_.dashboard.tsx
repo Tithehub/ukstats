@@ -83,7 +83,7 @@ function Editor() {
 
   const slug = f.slug || slugify(f.display_name);
   useEffect(() => {
-    if (slug.length < 3) { setSlugState(null); return; }
+    if (slug.length < 3) { setSlugState(null); return undefined; }
     const t = setTimeout(() => check({ data: { slug } }).then((r) => setSlugState({ ok: r.ok, reason: r.reason })).catch(() => {}), 400);
     return () => clearTimeout(t);
   }, [slug, check]);

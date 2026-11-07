@@ -21,7 +21,7 @@ export function normalisePlan(p: RentPlan): RentPlan {
 
 export function rentLineItems(plan: RentPlan): { price: string; quantity: number }[] {
   const p = normalisePlan(plan);
-  const items = [{ price: RENT_PRICE.base, quantity: 1 }];
+  const items: { price: string; quantity: number }[] = [{ price: RENT_PRICE.base, quantity: 1 }];
   if (p.allCountries) items.push({ price: RENT_PRICE.allCountries, quantity: 1 });
   else if (p.countries > 1) items.push({ price: RENT_PRICE.extraCountry, quantity: p.countries - 1 });
   if (p.ai) items.push({ price: RENT_PRICE.ai, quantity: 1 });
