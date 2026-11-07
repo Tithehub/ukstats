@@ -3,7 +3,7 @@
 ## Homepage promotion — 7 November 2026
 - [x] Promote the new UK layout to /, retaining existing statistics sections and the worldwide homepage; redirect /new-home with globe settings intact
 - [x] Verify desktop/phone layout, search and rendered globe; warning tests pass and build OK; publication requested
-- [ ] Confirm the new layout on the published address (waiting on the scheduled deployment)
+- [x] Confirmed red LIVE bar and globe CTA on ukstats.co.uk; explicit homepage menu link verified and included in the next publication
 
 ## Non-commercial emergency supplier links — 3 November 2026
 - [x] Verified EVAQ8 individual/two-person kit pages and Countrywide evacuation starter bag; excluded blocked pages and out-of-stock deluxe kit
