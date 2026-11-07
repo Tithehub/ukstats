@@ -233,3 +233,9 @@
 ## Rent UKStats (white label) — 7 November 2026
 - [x] /rent page: choose products, layout, AI presenter / present yourself / none, single countries or whole package; live price; enquiry saved for admin review (no payment while paused). Linked from menu and footer
 - [ ] Customer accounts, saved brand settings, branded /p and ?org= stream views, self-presenter camera + autocue, API keys, checkout — waiting on Restore Britain lifting the payment pause before billing goes live
+
+## Order of works — 7 November 2026
+- [x] Phase 1: homepage player auto-plays muted, share buttons, new /live page; header Watch live opens /live
+- [ ] Phase 1: 24/7 cloud streaming server + auto-restart watchdog — waiting on Marco's cloud server account and YouTube API access
+- [ ] Phase 2: paid Rent/licence accounts, checkout, branded backdrops
+- [ ] Phase 3: SEO fixes, share cards, social drafts, outreach, media kit
