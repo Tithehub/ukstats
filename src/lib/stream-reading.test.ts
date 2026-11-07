@@ -24,3 +24,22 @@ describe("presenter reading", () => {
     expect(readingList(s)[0]).toContain("Strikes in France today");
   });
 });
+
+import { scriptForPromo } from "./stream-script";
+import { promoAt } from "./stream-schedule";
+describe("About UKStats break", () => {
+  it("runs at the start of every quarter-hour only", () => {
+    for (const q of [0, 15, 30, 45]) expect(promoAt(q * 60_000 + 5_000).active).toBe(true);
+    expect(promoAt(7 * 60_000).active).toBe(false);
+    expect(promoAt(15 * 60_000 + 41_000).active).toBe(false);
+  });
+  it("names every sponsor and the domain", () => {
+    const s = scriptForPromo(["YachtFino", "RAREITUP", "GoPharma", "Gold.live", "XPRE"]).join(" ");
+    expect(s).toContain("supported by YachtFino, RAREITUP, GoPharma, Gold.live and XPRE.");
+    expect(s).toContain("ukstats.co.uk");
+    expect(s).toContain("scan the QR code");
+  });
+  it("falls back to the sponsors page with no sponsors", () => {
+    expect(scriptForPromo([]).join(" ")).toContain("ukstats.co.uk/sponsors");
+  });
+});

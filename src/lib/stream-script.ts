@@ -25,3 +25,20 @@ export function readingList(seg: Segment | undefined): string[] {
   const heads = seg.headlines.map(scriptForHeadline);
   return [...cards, ...(heads.length ? heads : seg.id.startsWith("country-") ? [NO_HEADLINES] : [])];
 }
+
+/** Names joined for speech: "A", "A and B", "A, B and C". */
+const joinNames = (n: string[]) => n.length <= 1 ? (n[0] ?? "") : `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}`;
+
+/** "About UKStats" break: site explainer, approved sponsor names verbatim (no claims about them), domain and QR call. Adds no figures. */
+export function scriptForPromo(sponsorNames: string[]): string[] {
+  const names = sponsorNames.map((s) => s.trim()).filter(Boolean);
+  return [
+    "You're watching UKStats — the UK's independent register of official statistics.",
+    "Every figure on this stream comes straight from government and official publishers, with its source, its date and when the next update is due. Nothing is estimated and nothing is made up.",
+    "The site is free for everyone, forever. Visit ukstats.co.uk, or scan the QR code on screen to open it now.",
+    names.length
+      ? `UKStats is supported by ${joinNames(names)}. Thank you to our sponsors. Sponsors never choose or change our figures.`
+      : "Want your business seen here? Find out how at ukstats.co.uk/sponsors.",
+    "Back to the figures.",
+  ];
+}

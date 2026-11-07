@@ -83,3 +83,11 @@ export function worldCountryAt(countries: string[], pos: Position): { index: num
 }
 
 export const cardStep = (msIntoSlot: number) => Math.floor(msIntoSlot / CARD_MS);
+
+/** "About UKStats" break: the first PROMO_MS of every quarter-hour (:00, :15, :30, :45 London) — clock-driven so reloads land on the same moment. */
+export const PROMO_EVERY_MS = 15 * MIN;
+export const PROMO_MS = 40_000;
+export function promoAt(msIntoHour: number): { active: boolean; msIntoPromo: number } {
+  const m = msIntoHour % PROMO_EVERY_MS;
+  return { active: m < PROMO_MS, msIntoPromo: m };
+}

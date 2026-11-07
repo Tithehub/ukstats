@@ -18,14 +18,14 @@ import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
 import { Presenter } from "@/components/stream/Presenter";
-import { scriptForCard, readingList } from "@/lib/stream-script";
+import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import { regionFromPath, sponsorsForRegion, type SponsorBannerRow } from "@/lib/sponsor-visibility";
 import { topSix, type TopBox } from "@/lib/stream-extras";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
-import { buildUkHour, cardStep, positionAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
+import { buildUkHour, cardStep, positionAt, promoAt, PROMO_MS, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
 const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
 const WORLD = COUNTRIES.map((c) => ({ code: c.code, key: c.name.toLowerCase() }));
@@ -151,7 +151,7 @@ function BroadcastPage() {
   const iso3 = (() => { const code = wc ? wc.code.toUpperCase() : "GB"; return worldData?.countries.find((c) => c.iso2 === code)?.iso3 ?? null; })();
   const six = <TopSix boxes={topSix(worldData, iso3, boatsData, !wc)} name={wc ? COUNTRIES[world!.index]!.name : "United Kingdom"} />;
   const header = <Header seg={seg} clock={clock} region={region} portrait={layout === "portrait"} />;
-  const figure = <FigureCard card={card} segId={seg?.id} big={!!seg?.headline} compact />;
+  const figure = promoAt(pos.msIntoHour).active ? <PromoCard /> : <FigureCard card={card} segId={seg?.id} big={!!seg?.headline} compact />;
   const clip = <ClipBox topic={seg?.topic ?? ""} country={seg?.country} title={card?.title ?? ""} />;
   const [voice, setVoice] = useState(false);
   useEffect(() => { setVoice(new URLSearchParams(window.location.search).get("voice") !== "off"); }, []);
@@ -165,8 +165,13 @@ function BroadcastPage() {
     }, 5 * 60_000);
     return () => clearInterval(id);
   }, []);
+  const promo = promoAt(pos.msIntoHour);
+  const promoLines = scriptForPromo(sponsors.map((r) => r.name));
+  const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
   const reads = readingList(seg);
-  const anchor = <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : []} voice={voice} />;
+  const anchor = promo.active
+    ? <Presenter line={promoLines[promoStep]!} upcoming={promoLines.slice(promoStep + 1, promoStep + 4)} voice={voice} />
+    : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);
@@ -335,6 +340,19 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
       <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
     </div>
   </div>;
+}
+
+/** "About UKStats" break card — site explainer, domain and QR; contains no figures. */
+function PromoCard() {
+  return <section data-fit className="flex h-full items-center gap-6 overflow-hidden rounded border-2 border-electric bg-night p-5 motion-safe:animate-in motion-safe:fade-in">
+    <div className="min-w-0 flex-1">
+      <div className="font-mono text-[20px] font-black uppercase tracking-widest text-electric">About UKStats</div>
+      <div className="mt-1 text-[52px] font-black leading-none tracking-tight">ukstats.co.uk</div>
+      <p className="mt-3 text-[22px] leading-snug">The UK's independent register of official statistics. Every figure shows its source, date and next release. Free for everyone, forever.</p>
+      <div className="mt-3 font-mono text-[18px] font-bold uppercase tracking-widest">Scan to open the site</div>
+    </div>
+    <div className="shrink-0 rounded bg-background p-2"><QRCodeSVG value="https://ukstats.co.uk/?utm_source=youtube&utm_medium=stream_promo" size={200} level="M" aria-label="QR code to ukstats.co.uk" /></div>
+  </section>;
 }
 
 /** Paid placement: approved sponsors only, rotating ~10s each, kept apart from figures. */
