@@ -108,7 +108,7 @@ function ReportsPage() {
       <main className="mx-auto max-w-6xl px-4 py-10">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">UKStats reports</p>
         <h1 className="mt-2 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">Every official figure, in one beautifully set PDF each morning</h1>
-        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">Built at 07:00 London time from the same figures on ukstats.co.uk. Each figure shows its source, period, publication date and next release, plus the year-on-year change when the publisher gives one. Missing figures say "Not published". All the stats stay free on the site. The PDF is a paid, ready-to-share version.</p>
+        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">Built at 07:00 London time from the same figures on ukstats.co.uk. Each figure shows its source, period, publication date and next release, plus the year-on-year change when the publisher gives one. Missing figures say "Not published". Also includes UK Government warnings, links to emergency supply kits (we make no money from them) and the day's main headlines, labelled as news. The Global edition adds every country's UK and US travel warnings and headlines by country. All the stats stay free on the site. The PDF is a paid, ready-to-share version.</p>
         {justPaid && <p className="mt-4 rounded-lg border border-primary bg-primary/5 p-3 text-sm font-semibold">Thank you — your purchase is confirmed. Your download button appears below within a few seconds.</p>}
 
         <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Sample pages">

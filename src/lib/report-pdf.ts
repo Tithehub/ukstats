@@ -264,8 +264,8 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   }
   y -= 10; need(80);
   y = sectionTitle(p, "Emergency supply kits", y);
-  para("Official advice first: the UK Government's Prepare guidance explains what to keep at home for an emergency.", F.r, 9);
-  urlLine("https://prepare.campaign.gov.uk/");
+  para("Official advice first: the UK Government's Be Ready guidance explains what to keep at home for an emergency.", F.r, 9);
+  urlLine("https://beready.campaign.gov.uk/");
   y -= 4;
   para("UKStats makes no money from these links. They are not affiliate links or paid placements, and UKStats does not endorse or test any product. You buy directly from the supplier.", F.b, 8.5, RED);
   para(`Supplier pages checked ${shortDate(SUPPLIER_LINKS_CHECKED)}.`, F.m, 7, MUTED);
