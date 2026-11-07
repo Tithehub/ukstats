@@ -45,6 +45,7 @@ import { Route as PressRouteImport } from './routes/press'
 import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RentRouteImport } from './routes/rent'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RestoreBritainRouteImport } from './routes/restore-britain'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
@@ -273,6 +274,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const RentRoute = RentRouteImport.update({
   id: '/rent',
   path: '/rent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -562,6 +568,7 @@ export interface FileRoutesByFullPath {
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/rent': typeof RentRoute
+  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/press': typeof PressRoute
   '/register': typeof RegisterRoute
   '/rent': typeof RentRoute
+  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -735,6 +743,7 @@ export interface FileRoutesById {
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/rent': typeof RentRoute
+  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -824,6 +833,7 @@ export interface FileRouteTypes {
     | '/regions'
     | '/register'
     | '/rent'
+    | '/reports'
     | '/reset-password'
     | '/restore-britain'
     | '/robots.txt'
@@ -909,6 +919,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/register'
     | '/rent'
+    | '/reports'
     | '/reset-password'
     | '/restore-britain'
     | '/robots.txt'
@@ -996,6 +1007,7 @@ export interface FileRouteTypes {
     | '/regions'
     | '/register'
     | '/rent'
+    | '/reports'
     | '/reset-password'
     | '/restore-britain'
     | '/robots.txt'
@@ -1084,6 +1096,7 @@ export interface RootRouteChildren {
   RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   RentRoute: typeof RentRoute
+  ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RestoreBritainRoute: typeof RestoreBritainRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -1368,6 +1381,13 @@ declare module '@tanstack/react-router' {
       path: '/rent'
       fullPath: '/rent'
       preLoaderRoute: typeof RentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1826,6 +1846,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   RentRoute: RentRoute,
+  ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RestoreBritainRoute: RestoreBritainRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,

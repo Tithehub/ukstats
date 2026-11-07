@@ -45,8 +45,9 @@ function ReportsPage() {
   const { signedIn, loading } = useAuth();
   const env = envOrNull();
   const qc = useQueryClient();
+  const justPaid = Route.useSearch().checkout === "done";
   const access = useServerFn(getMyReportAccess);
-  const mine = useQuery({ queryKey: ["my-reports", env], enabled: signedIn && !!env, queryFn: () => access({ data: { environment: env! } }), refetchInterval: (q) => (Route.useSearch && q.state.dataUpdateCount < 6 ? 5_000 : false) });
+  const mine = useQuery({ queryKey: ["my-reports", env], enabled: signedIn && !!env, queryFn: () => access({ data: { environment: env! } }), refetchInterval: (q) => (justPaid && q.state.dataUpdateCount < 10 ? 3_000 : false) });
   const checkoutFn = useServerFn(createReportCheckout), downloadFn = useServerFn(getReportDownload), portalFn = useServerFn(createReportPortal);
   const [buying, setBuying] = useState<{ priceId: ReportPriceId; date?: string } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -104,7 +105,7 @@ function ReportsPage() {
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">UKStats reports</p>
         <h1 className="mt-2 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">Every official figure, in one beautifully set PDF each morning</h1>
         <p className="mt-4 max-w-3xl text-lg text-muted-foreground">Built at 07:00 London time from the same figures on ukstats.co.uk. Each figure shows its source, period, publication date and next release, plus the year-on-year change when the publisher gives one. Missing figures say "Not published". All the stats stay free on the site. The PDF is a paid, ready-to-share version.</p>
-        {Route.useSearch().checkout === "done" && <p className="mt-4 rounded-lg border border-primary bg-primary/5 p-3 text-sm font-semibold">Thank you — your purchase is confirmed. Your download button appears below within a few seconds.</p>}
+        {justPaid && <p className="mt-4 rounded-lg border border-primary bg-primary/5 p-3 text-sm font-semibold">Thank you — your purchase is confirmed. Your download button appears below within a few seconds.</p>}
 
         <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Sample pages">
           {[[cover, "Cover"], [headlines, "Headline figures"], [table, "Every figure, sourced and dated"], [world, "Global edition: world rankings"]].map(([src, cap]) => (
