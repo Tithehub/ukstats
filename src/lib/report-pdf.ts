@@ -124,7 +124,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     [input.edition === "global" && input.world ? String(input.world.countries.length) : "1", input.edition === "global" ? "countries" : "country"],
   ];
   strip.forEach(([v, l], i) => {
-    const x = M + i * 150;
+    const x = M + i * 130;
     text(cover, v!, x, 210, F.k, 34, WHITE);
     text(cover, l!.toUpperCase(), x, 194, F.mb, 8.5, rgb(0.7, 0.78, 0.9));
   });
@@ -132,13 +132,14 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   const qr = qrcode(0, "M");
   qr.addData("https://ukstats.co.uk/?utm_source=report&utm_medium=pdf");
   qr.make();
-  const n = qr.getModuleCount(), qs = 96, cell = qs / n, qx = W - M - qs - 12, qy = 80;
+  const n = qr.getModuleCount(), qs = 96, cell = qs / n, qx = W - M - qs - 8, qy = 180;
   cover.drawRectangle({ x: qx - 8, y: qy - 8, width: qs + 16, height: qs + 16, color: WHITE });
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) cover.drawRectangle({ x: qx + c * cell, y: qy + (n - 1 - r) * cell, width: cell + 0.2, height: cell + 0.2, color: NAVY });
   text(cover, "Scan for live figures", qx - 8, qy - 22, F.m, 8, rgb(0.7, 0.78, 0.9));
   text(cover, "Built by the people, for the people.", M, 110, F.b, 11, WHITE);
   text(cover, `Compiled ${dateLong}${input.ukSavedAt ? ` from figures saved ${shortDate(input.ukSavedAt)}` : ""}.`, M, 94, F.m, 8, rgb(0.7, 0.78, 0.9));
   text(cover, "Free statistics stay free at ukstats.co.uk. This PDF is a paid convenience edition.", M, 80, F.m, 8, rgb(0.7, 0.78, 0.9));
+  cover.drawRectangle({ x: 0, y: 0, width: W, height: 6, color: BLUE });
 
   // ---------- Page furniture ----------
   const pages: PDFPage[] = [];
@@ -162,7 +163,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   const byId = new Map(input.metrics.map((m) => [m.id, m]));
   let p = newPage("At a glance");
   let y = sectionTitle(p, "The headline figures", H - 92);
-  const cw = (W - 2 * M - 12) / 2, ch = 118;
+  const cw = (W - 2 * M - 12) / 2, ch = 140;
   HEADLINE_IDS.forEach((id, i) => {
     const m = byId.get(id);
     const x = M + (i % 2) * (cw + 12), top = y - Math.floor(i / 2) * (ch + 10);
@@ -173,10 +174,10 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     wrap(F.b, m?.title ?? id, 10, cw - 28).slice(0, 2).forEach((l, j) => text(p, l, x + 14, top - 30 - j * 12, F.b, 10, INK));
     const v = m?.value ?? "Not published";
     text(p, fit(F.k, v, m?.value ? 24 : 16, cw - 28), x + 14, top - 72, F.k, m?.value ? 24 : 16, m?.value ? NAVY : MUTED);
-    const meta = [m?.period, m?.yearAgo ? `Year earlier ${m.yearAgo.value} (${m.yearAgo.period}), ${m.yearAgo.diff}` : null].filter(Boolean).join("  |  ");
-    text(p, fit(F.m, meta, 7, cw - 28), x + 14, top - 88, F.m, 7, INK);
-    text(p, fit(F.m, `${m?.source ?? "Source"}  |  published ${shortDate(m?.asOf)}`, 6.5, cw - 28), x + 14, top - 100, F.m, 6.5, MUTED);
-    text(p, fit(F.m, `Next release: ${m?.nextDue ? shortDate(m.nextDue) : "not announced"}`, 6.5, cw - 28), x + 14, top - 110, F.m, 6.5, MUTED);
+    text(p, fit(F.m, m?.period ?? "Period not stated", 7.5, cw - 28), x + 14, top - 88, F.m, 7.5, INK);
+    if (m?.yearAgo) text(p, fit(F.m, `Year earlier: ${m.yearAgo.value} (${m.yearAgo.period}), ${m.yearAgo.diff}`, 7, cw - 28), x + 14, top - 100, F.m, 7, BLUE);
+    text(p, fit(F.m, m?.source ?? "Source", 6.5, cw - 28), x + 14, top - 114, F.m, 6.5, MUTED);
+    text(p, fit(F.m, `Published ${shortDate(m?.asOf)}  |  next release ${m?.nextDue ? shortDate(m.nextDue) : "not announced"}`, 6.5, cw - 28), x + 14, top - 124, F.m, 6.5, MUTED);
   });
 
   // ---------- Metric tables ----------
@@ -190,7 +191,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   const table = (heading: string, rows: Metric[], label: string) => {
     if (!rows.length) return;
     if (y < 160) { p = newPage(label); y = H - 92; }
-    else if (p === pages[pages.length - 1] && y < H - 120) y -= 16;
+    else if (y < H - 120) y -= 34;
     y = sectionTitle(p, heading, y);
     y = tableHeader(p, y);
     rows.forEach((m, idx) => {
