@@ -99,8 +99,8 @@ function NewHomeGlobe() {
   const navigate = Route.useNavigate();
   const [layers, setLayers] = useState<Pick<GlobeState, "riots" | "protests" | "mil" | "m" | "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa">>({});
   const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true, ...layers };
-  return <section aria-label="World globe" className="mt-8">
-    <a href="#new-home-lead" className="mb-2 inline-flex min-h-11 items-center text-sm text-primary underline sm:hidden">Skip the globe — go to the next section</a>
+  return <section id="new-home-globe" aria-label="World globe" className="mt-8 scroll-mt-20">
+    <a href="#new-home-services" className="mb-2 inline-flex min-h-11 items-center text-sm text-primary underline sm:hidden">Skip the globe — go to the next section</a>
     <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...(["layer", "gov", "age", "cmp", "feed", "fk", "fa", "fl", "fp", "mg", "nw"] as const).reduce((o, k) => (k in p ? { ...o, [k]: p[k] } : o), {}), ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("mil" in p ? { mil: p.mil } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false }); }} />
   </section>;
 }
@@ -136,6 +136,7 @@ function NewHome() {
             <Button type="submit"><ArrowRight aria-hidden="true" />Find figures</Button>
           </form>
           <div className="flex flex-wrap gap-2">
+            <Button asChild><a href="#new-home-globe"><Globe2 />Open interactive globe<ArrowRight /></a></Button>
             <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
             <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
             <Button asChild variant="ghost"><Link to="/safest-places" search={{ country: "uk" }}><ShieldCheck />Safest places</Link></Button>
@@ -159,8 +160,6 @@ function NewHome() {
         <Tile m={crime} icon={<Siren className="size-5" />} label={crime?.title ?? "Crime"} link={{ category: "Crime" }} />
       </section>
       <p className="mt-2 font-mono text-[11px] text-muted-foreground">Red and yellow are the publisher's own warning levels.</p>
-
-      <NewHomeGlobe />
 
       <section aria-label="Lead story" id="new-home-lead" className="relative mt-8 scroll-mt-20 overflow-hidden rounded-3xl border border-border">
         <img src={channel.url} alt="The white cliffs of Dover at dusk" width={1280} height={720} className="absolute inset-0 size-full object-cover" />
@@ -199,7 +198,9 @@ function NewHome() {
         <div className="mt-4"><LiveStreamPanel /></div>
       </section>
 
-      <section className="mt-12 flex flex-col gap-4 border-t-4 border-onair pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <NewHomeGlobe />
+
+      <section id="new-home-services" className="mt-12 flex scroll-mt-20 flex-col gap-4 border-t-4 border-onair pt-6 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="text-xl font-black">Stats are free. Your brand on them is what keeps them free.</p><p className="mt-1 text-muted-foreground">Branded widgets, dashboards and stream backdrops from £9/month. Sponsor the 24/7 live stream.</p></div>
         <div className="flex shrink-0 gap-2"><Link to="/rent" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">See paid services <ArrowRight className="size-4" /></Link><Link to="/advertise" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Sponsor</Link></div>
       </section>
