@@ -24,6 +24,12 @@ import { SPONSORSHIP_PAUSED as FUNDING_PAUSED, SPONSORSHIP_PAUSE_MESSAGE as FUND
 const PLANS = [
   { key: "supporter", name: "Supporter", monthly: 5, yearly: 50, perks: ["Your name and link in the footer “Supported by” line on every page", "Listed on this page as a supporter", "Text line only — banner pictures come with the Sponsor plan"] },
   { key: "sponsor", name: "Sponsor", monthly: 10, yearly: 100, perks: ["Everything in Supporter", "A short tagline next to your name", "Your own banner picture in the rotating strip", "Shown first in the rotation"] },
+]; 
+
+const NETWORK_PLANS = [
+  { id: "sponsor_network_title_monthly", name: "Network title sponsor", monthly: 299, slots: "1 slot", perks: ["Named by the presenter in every 15-minute break", "Your logo and own QR code on our stream and every rented backdrop", "Banner in the rotating strip"] },
+  { id: "sponsor_network_monthly", name: "Network sponsor", monthly: 99, slots: "Up to 10 slots", perks: ["One-at-a-time sponsor box with your own QR code", "On our stream and every rented backdrop", "Banner in the rotating strip"] },
+  { id: "sponsor_country_monthly", name: "Country sponsor", monthly: 49, slots: "1 per country", perks: ["Sponsor box on one country's backdrops and pages", "Your own QR code", "Pick your country after paying"] },
 ] as const;
 
 const field = "mt-1 w-full rounded-md border border-night-line bg-night-panel px-3 py-2";
@@ -243,6 +249,23 @@ export function SponsorPlans() {
             </li>
           );
         })}
+      </ul>
+      <h3 className="mt-8 text-base font-semibold">Stream network sponsorship</h3>
+      <p className="mt-1 text-sm text-night-muted">Shown on the UKStats live stream and on every streamer's rented backdrop — never on the figures.</p>
+      <ul className="mt-4 grid gap-4 sm:grid-cols-3">
+        {NETWORK_PLANS.map((p) => (
+          <li key={p.id} className="flex flex-col rounded-xl border border-night-line bg-night-panel/50 p-5">
+            <p className="font-semibold">{p.name}</p>
+            <p className="text-xs text-night-muted">{p.slots}</p>
+            <p className="mt-2 text-3xl font-semibold">£{p.monthly}<span className="text-sm font-normal text-night-muted">/month</span></p>
+            <ul className="mt-3 flex-1 list-disc space-y-1 pl-5 text-sm text-night-muted">{p.perks.map((x) => <li key={x}>{x}</li>)}</ul>
+            {FUNDING_PAUSED ? <Button disabled variant="outline" className="mt-4">Payments temporarily paused</Button> : loading ? null : !signedIn ? (
+              <Link to="/auth" className="mt-4 rounded-md border border-electric px-4 py-2 text-center text-sm text-electric-soft">Sign in to choose</Link>
+            ) : (
+              <button type="button" disabled={!ready} onClick={() => setPriceId(p.id)} className="mt-4 rounded-md bg-electric px-4 py-2 text-sm font-medium text-night disabled:opacity-50">Choose {p.name}</button>
+            )}
+          </li>
+        ))}
       </ul>
       <p className="mt-2 text-xs text-night-muted">Cancel any time. Your line is checked against the rules before it appears.</p>
       {!FUNDING_PAUSED && priceId ? <Checkout key={priceId} priceId={priceId} onClose={() => setPriceId(null)} /> : null}

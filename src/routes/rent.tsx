@@ -33,7 +33,7 @@ const LAYOUTS: { id: RentLayout; label: string; note: string }[] = [
   { id: "portrait", label: "Portrait", note: "For phones, Shorts and shop screens" },
 ];
 const PRESENTERS: { id: Presenter; label: string; note: string }[] = [
-  { id: "ai", label: "UKStats AI presenter", note: "+£50/month · labelled AI · reads only the figures on screen" },
+  { id: "ai", label: "UKStats AI presenter", note: "+£10/month · labelled AI · reads only the figures on screen" },
   { id: "self", label: "Present it yourself", note: "Included · camera slot plus an autocue of the official-figure script" },
   { id: "none", label: "No presenter", note: "Figures and tickers only" },
 ];
@@ -45,11 +45,12 @@ function RentPage() {
   const [whole, setWhole] = useState(false);
   const [picked, setPicked] = useState<string[]>(["uk"]);
   const [subdomain, setSubdomain] = useState(false);
+  const [noSponsorBox, setNoSponsorBox] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", company: "", website: "", message: "" });
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   const countryOptions = useMemo(() => [{ code: "uk", name: "United Kingdom" }, ...COUNTRIES.map((c) => ({ code: c.code, name: c.name }))], []);
-  const config = { products, countries: picked.length || 1, wholePackage: whole, presenter, subdomain, founding: false };
+  const config = { products, countries: picked.length || 1, wholePackage: whole, presenter, subdomain, noSponsorBox, founding: false };
   const price = monthlyPence(config);
   const founding = monthlyPence({ ...config, founding: true });
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
@@ -64,6 +65,7 @@ function RentPage() {
       `Presenter: ${presenter}`,
       `Coverage: ${whole ? "Whole package" : picked.join(", ")}`,
       `Own subdomain: ${subdomain ? "yes" : "no"}`,
+      `Remove sponsor box: ${noSponsorBox ? "yes" : "no"}`,
       `Quoted: ${gbp(price)}/month (founding ${gbp(founding)})`,
       form.message && `Notes: ${form.message}`,
     ].filter(Boolean).join("\n");
@@ -135,11 +137,11 @@ function RentPage() {
               <h2 className="text-lg font-bold">4. Which countries?</h2>
               <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
                 <input type="checkbox" checked={whole} onChange={(e) => setWhole(e.target.checked)} />
-                Whole package — every country and topic · +£399/month
+                Whole package — every country and topic · +£19/month
               </label>
               {!whole && (
                 <>
-                  <p className="mt-2 text-xs text-muted-foreground">One country included, +£25/month for each extra one.</p>
+                  <p className="mt-2 text-xs text-muted-foreground">One country included, +£3/month for each extra one.</p>
                   <div className="mt-2 flex max-h-56 flex-wrap gap-1 overflow-y-auto">
                     {countryOptions.map((c) => (
                       <button key={c.code} type="button" className={`${chip(picked.includes(c.code))} px-2 py-1 text-xs`} onClick={() => setPicked(toggle(picked, c.code))}>{c.name}</button>
