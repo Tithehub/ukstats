@@ -160,7 +160,9 @@ function NewHome() {
       </section>
       <p className="mt-2 font-mono text-[11px] text-muted-foreground">Red and yellow are the publisher's own warning levels.</p>
 
-      <section aria-label="Lead story" className="relative mt-8 overflow-hidden rounded-3xl border border-border">
+      <NewHomeGlobe />
+
+      <section aria-label="Lead story" id="new-home-lead" className="relative mt-8 scroll-mt-20 overflow-hidden rounded-3xl border border-border">
         <img src={channel.url} alt="The white cliffs of Dover at dusk" width={1280} height={720} className="absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/10" />
         <div className="relative max-w-2xl p-6 sm:p-12">
