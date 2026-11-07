@@ -111,7 +111,6 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     upNext = [...new Set([1, 2, 3].map((i) => WORLD[(world.index + i) % WORLD.length]!.code))]
       .filter((c) => c !== wc.code).map((c) => countryName(c));
     if (!upNext.length) upNext = [`${countryName(wc.code)} — fresh figures next round`];
-    if (hasUk && !upNext.some((x) => x.startsWith("UK hour"))) upNext.push(...[]);
     if (hasUk && 60 - Math.floor(pos.msIntoHour / 60_000) <= 15) upNext = [...upNext.slice(0, 2), "UK hour at the top of the hour"];
   } else if (ukHour.length) {
     const at = ukSlotAt(ukHour, pos.msIntoHour);
