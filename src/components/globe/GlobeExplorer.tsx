@@ -219,7 +219,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const wb = sel ? byKey.get(sel) : undefined;
   const warnings = sel ? (unrest?.warnings ?? []).filter((w) => w.key === sel) : [];
   const live = sel ? LIVE_SOURCES[sel] : undefined;
-  const selName = wb?.name ?? warnings[0]?.country ?? sel;
+  const selName = (wb?.name ?? warnings[0]?.country ?? sel)?.replace(/(^|[\s-])(\p{Ll})/gu, (_m, a: string, b: string) => a + b.toUpperCase());
   const dests = sel ? countryDestinations(wb?.iso2 ?? (sel === "united kingdom" ? "GB" : ""), wb?.iso3 ?? null, selName ?? "") : [];
   const [onAir, setOnAir] = useState(true);
   const order = useMemo(() => buildRunningOrder(names.map((c) => countryKey(c.name)), unrest?.warnings ?? []), [names, unrest]);
@@ -282,7 +282,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
     if (m) { onChange({ c: countryKey(m.name) }); setQ(""); }
   };
 
-  const loading = <div className="grid h-full place-items-center text-sm text-night-muted">Loading globe…</div>;
+  const loading = <div role="status" className="flex h-full flex-col items-center justify-center gap-3 text-sm text-night-muted"><span aria-hidden="true" className="size-10 animate-spin rounded-full border-2 border-night-line border-t-electric" />Loading globe…</div>;
   const height = broadcast ? "h-full" : compact ? "h-[52vh] min-h-[340px] max-h-[620px]" : "h-[60vh] min-h-[380px] lg:h-auto";
 
   const ticker = <div aria-label="Latest official riot and protest warnings" className="flex items-center gap-2 overflow-x-auto border-b border-night-line bg-night-panel px-3 py-2 text-xs text-night-fg">
@@ -308,9 +308,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
       <div className={`absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80 ${broadcast ? "hidden" : ""}`}>
-        <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur sm:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
-        <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1">
+        <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1 max-sm:basis-full">
           <label htmlFor={compact ? "globe-q-home" : "globe-q"} className="sr-only">Find a country</label>
           <div className="relative flex-1"><Search aria-hidden="true" className="absolute left-2 top-2 size-3.5 text-night-muted" />
             <input id={compact ? "globe-q-home" : "globe-q"} list="globe-country-names" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a country…" className="w-full rounded border border-night-line bg-night py-1.5 pr-2 pl-7" />

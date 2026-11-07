@@ -5,6 +5,8 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { COUNTRIES } from "@/lib/countries";
+
+const REST = new Set(["United States", "Canada", "Australia", "New Zealand", "Japan"]);
 import {
   PRODUCT_PRICES, gbp, monthlyPence,
   type Presenter, type RentLayout, type RentProduct,
@@ -147,11 +149,20 @@ function RentPage() {
               {!whole && (
                 <>
                   <p className="mt-2 text-xs text-muted-foreground">One country included, +£3/month for each extra one.</p>
-                  <div className="mt-2 flex max-h-56 flex-wrap gap-1 overflow-y-auto">
-                    {countryOptions.map((c) => (
-                      <button key={c.code} type="button" className={`${chip(picked.includes(c.code))} px-2 py-1 text-xs`} onClick={() => setPicked(toggle(picked, c.code))}>{c.name}</button>
-                    ))}
-                  </div>
+                  {([
+                    ["United Kingdom", countryOptions.filter((c) => c.code === "uk")],
+                    ["Europe", countryOptions.filter((c) => c.code !== "uk" && !REST.has(c.name))],
+                    ["Rest of the world", countryOptions.filter((c) => REST.has(c.name))],
+                  ] as const).map(([label, list]) => list.length > 0 && (
+                    <div key={label} className="mt-3">
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</h3>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {list.map((c) => (
+                          <button key={c.code} type="button" className={`${chip(picked.includes(c.code))} px-2 py-1 text-xs`} onClick={() => setPicked(toggle(picked, c.code))}>{c.name}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </>
               )}
             </section>
