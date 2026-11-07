@@ -53,7 +53,7 @@ function Tile({ m, icon, label, link }: { m?: Metric | undefined; icon: ReactNod
       {tone !== "plain" && <span className="rounded-full bg-background/20 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider">{m?.scale ? "official level" : tone === "green" ? "fresh" : tone === "amber" ? "ageing" : "overdue"}</span>}
     </div>
     <div className="min-w-0">
-      <div className="truncate font-mono text-3xl font-semibold tracking-tight sm:text-4xl">{m?.value ?? "Not published"}</div>
+      <div className="font-mono text-3xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-4xl">{m?.value ?? "Not published"}</div>
       <div className="mt-1 text-sm font-bold">{label}</div>
       <div className="mt-1 line-clamp-2 font-mono text-[11px] opacity-80"><Meta m={m} /></div>
     </div>
