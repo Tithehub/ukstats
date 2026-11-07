@@ -13,7 +13,7 @@ export const PRODUCT_PRICES: Record<RentProduct, { label: string; pence: number 
 export const SUBDOMAIN_PENCE = 5000;
 export const EXTRA_COUNTRY_PENCE = 300;
 export const WHOLE_PACKAGE_PENCE = 1900;
-export const AI_PRESENTER_PENCE = 1000
+export const AI_PRESENTER_PENCE = 1000;
 /** Optional: remove the UKStats sponsor box from a rented stream. */
 export const NO_SPONSOR_BOX_PENCE = 4900;
 export const FOUNDING_DISCOUNT = 0.25;
