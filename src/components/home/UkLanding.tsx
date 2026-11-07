@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import heroNetwork from "@/assets/hero-network.jpg";
 import { SLOGAN } from "@/lib/brand";
-import { Search, ArrowRight, ShieldCheck, Ship, CloudFog, Waves, ShoppingCart, Siren, Landmark, Building2, Home, Scale, Backpack, Globe2, Tv, Coins, BarChart3 } from "lucide-react";
+import { Search, ArrowRight, ShieldCheck, Ship, CloudFog, Waves, ShoppingCart, Siren, Landmark, Building2, Home, Scale, Backpack, Globe2, Tv, Coins, BarChart3, FileText } from "lucide-react";
 import { ageLabel, dueLabel, freshnessOf, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { statusTone, type BlockTone } from "@/lib/status-tone";
 import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
