@@ -13,13 +13,13 @@ const StatsMap = lazy(() => import("@/components/maps/StatsMap"));
 export const Route = createFileRoute("/maps")({
   head: () => ({
     meta: [
-      { title: "UK statistics heat maps — crime, house prices by area" },
+      { title: "UK crime and house price maps by area — official data" },
       {
         name: "description",
         content:
           "Interactive heat maps of official UK statistics: recorded crime rates by police force area, regional house prices, and street-level Police.uk crime by postcode.",
       },
-      { property: "og:title", content: "UK statistics heat maps" },
+      { property: "og:title", content: "UK crime and house price maps by area" },
       {
         property: "og:description",
         content: "Recorded crime by police force area, regional house prices and street-level Police.uk crime.",
@@ -78,7 +78,7 @@ function MapsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
         <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-night-muted">Geography</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">UK statistics heat maps</h1>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">UK crime and house price maps by area</h1>
         <p className="mt-3 max-w-2xl text-night-muted">
           Every shaded area shows a figure exactly as its publisher released it. Search a postcode to overlay
           street-level crimes published by Police.uk.

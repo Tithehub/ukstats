@@ -10,13 +10,13 @@ import { fmtDate } from "@/lib/uk-stats";
 export const Route = createFileRoute("/foreign-aid")({
   head: () => ({
     meta: [
-      { title: "UK foreign aid spend, every published year" },
+      { title: "UK government foreign aid spending by year — official totals since 1960" },
       {
         name: "description",
         content:
-          "Total UK overseas aid (official development assistance) in cash pounds for every year on the public record since 1960, with the share of national income and links to the official releases.",
+          "How much the UK government spends on foreign aid: total overseas aid (official development assistance) in cash pounds for every year on the public record since 1960, with the share of national income and links to the official releases.",
       },
-      { property: "og:title", content: "UK foreign aid spend by year" },
+      { property: "og:title", content: "UK government foreign aid spending by year" },
       {
         property: "og:description",
         content: "Published UK official development assistance in cash terms and as a share of national income.",
