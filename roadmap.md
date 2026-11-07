@@ -1,5 +1,9 @@
 # Roadmap
 
+## Homepage promotion — 7 November 2026
+- [x] Promote the new UK layout to /, retaining existing statistics sections and the worldwide homepage; redirect /new-home with globe settings intact
+- [ ] Verify desktop/phone layout, search and globe controls, then publish and check the live homepage
+
 ## Non-commercial emergency supplier links — 3 November 2026
 - [x] Verified EVAQ8 individual/two-person kit pages and Countrywide evacuation starter bag; excluded blocked pages and out-of-stock deluxe kit
 - [x] Added separate clean supplier links with no earnings, endorsement or guarantees, dated contents and water shortfalls; UKStats purchasing stays paused
