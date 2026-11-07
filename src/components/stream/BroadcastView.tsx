@@ -210,10 +210,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute left-[620px] top-[222px] z-30 h-[450px] w-[420px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
-      <div className={`absolute left-6 z-30 ${sponsors.length ? "bottom-[336px] w-[440px]" : "bottom-[232px] w-[540px]"}`}>{clip}</div>
-      <div className="absolute bottom-[240px] left-[600px] z-30 w-[610px]">{lower}</div>
-      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[584px]" : "left-0"}`}>{tickers}</div>
-      {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[200px] w-[584px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      <div className={`absolute left-6 z-30 ${sponsors.length ? "bottom-[356px] w-[440px]" : "bottom-[232px] w-[540px]"}`}>{clip}</div>
+      <div className="absolute bottom-[240px] left-[656px] z-30 w-[560px]">{lower}</div>
+      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
+      {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
     </> : <>
       {/* Rented layouts: "split" = half globe / half figures; "data-wall" = figures dominate, smaller globe */}
       <div className="absolute inset-y-0 left-0" style={{ width: V.globe }}><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -227,9 +227,9 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
         <div className="min-h-0 flex-1">{figure}</div>
       </aside>
       <div className="absolute left-6 z-30" style={{ top: 420, width: Math.min(420, V.globe - 48), height: 410 }}>{anchor}</div>
-      <div className="absolute bottom-[240px] z-30" style={sponsors.length ? { left: 600, width: Math.max(360, V.globe - 624) } : { left: Math.min(460, V.globe - 400), width: Math.max(360, V.globe - 484) }}>{lower}</div>
-      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[584px]" : "left-0"}`}>{tickers}</div>
-      {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[200px] w-[584px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      <div className="absolute bottom-[240px] z-30" style={sponsors.length ? { left: 656, width: Math.max(360, V.globe - 680) } : { left: Math.min(460, V.globe - 400), width: Math.max(360, V.globe - 484) }}>{lower}</div>
+      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
+      {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
     </>) : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -238,7 +238,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
-      {sponsors.length > 0 ? <div className="absolute left-6 top-[1420px] z-30 h-[200px] w-[584px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>
+      {sponsors.length > 0 ? <div className="absolute left-6 top-[1420px] z-30 h-[220px] w-[640px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>
         : <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>}
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
@@ -397,16 +397,21 @@ function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) 
   const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
   const site = sponsorSite(r.url);
   const pct = ((ms % 10_000) / 10_000) * 100;
-  return <section data-fit key={r.id} className="relative flex h-full overflow-hidden border-2 border-night-line bg-background text-foreground motion-safe:animate-in motion-safe:fade-in">
-    <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 py-3">
-      <span className="font-mono text-[14px] font-black uppercase tracking-widest">Supported by</span>
-      {img ? <img src={img} alt={r.name} className="h-[100px] w-full object-contain object-left" />
-        : <span className="line-clamp-2 text-[34px] font-black leading-tight">{r.name}</span>}
-      {r.tagline && <span className="truncate text-[17px] leading-tight">{r.tagline}</span>}
+  return <section data-fit key={r.id} className="relative flex h-full overflow-hidden border-2 border-night-line bg-night-panel text-night-fg motion-safe:animate-in motion-safe:fade-in">
+    <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative aspect-[3/1] w-full shrink-0 overflow-hidden bg-night">
+        {img ? <img src={img} alt={r.name} className="h-full w-full object-contain" />
+          : <span className="flex h-full items-center justify-center px-3 text-center text-[34px] font-black leading-tight">{r.name}</span>}
+        <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">Supported by</span>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col justify-center px-3 leading-tight">
+        <span className="truncate text-[22px] font-black">{r.name}</span>
+        <span className="truncate font-mono text-[17px] font-bold">{site.label}</span>
+      </div>
     </div>
-    <div className="flex w-[200px] shrink-0 flex-col items-center justify-center gap-1 border-l-2 border-border bg-background p-2">
-      <QRCodeSVG value={site.qr} size={148} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${site.label}`} />
-      <span className="max-w-full truncate font-mono text-[13px] font-black uppercase leading-tight">Scan · {site.label}</span>
+    <div className="flex w-[196px] shrink-0 flex-col items-center justify-center gap-1 bg-[#ffffff] p-2 text-[#000000]">
+      <QRCodeSVG value={site.qr} size={164} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${site.label}`} />
+      <span className="font-mono text-[13px] font-black uppercase">Scan to visit</span>
     </div>
     <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
   </section>;
@@ -418,7 +423,7 @@ function sponsorSite(url: string | null | undefined): { qr: string; label: strin
     const u = new URL(url ?? "");
     if (u.protocol !== "https:" && u.protocol !== "http:") throw 0;
     u.searchParams.set("utm_source", "youtube"); u.searchParams.set("utm_medium", "ukstats_stream");
-    return { qr: u.toString(), label: u.hostname.replace(/^www\./, "") };
+    return { qr: u.toString(), label: u.hostname };
   } catch { return { qr: SPONSOR_QR_URL, label: "ukstats.co.uk/sponsors" }; }
 }
 
