@@ -224,3 +224,7 @@
 
 - National-level spending figures (PESA/CRA, council returns) parsed into live numbers — stage 2
 - Extend council directory beyond 15 cities to all UK councils — stage 2
+
+## Rent UKStats (white label) — 7 November 2026
+- [x] /rent page: choose products, layout, AI presenter / present yourself / none, single countries or whole package; live price; enquiry saved for admin review (no payment while paused). Linked from menu and footer
+- [ ] Customer accounts, saved brand settings, branded /p and ?org= stream views, self-presenter camera + autocue, API keys, checkout — waiting on Restore Britain lifting the payment pause before billing goes live
