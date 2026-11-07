@@ -24,7 +24,7 @@ const getFonts = () => (fonts ??= { regular: fromDataUrl(regular), bold: fromDat
 /** Build one edition from the saved snapshots and store it. Returns the storage path. */
 export async function generateEdition(edition: ReportEdition, kind: ReportKind, date: string): Promise<string> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const from = supabaseAdmin.from as (t: string) => any;
+  const from = (supabaseAdmin.from as (t: string) => any).bind(supabaseAdmin);
   const [{ data: uk }, { data: world }] = await Promise.all([
     from("payload_cache").select("data").eq("id", "uk-stats").maybeSingle(),
     edition === "global" ? from("payload_cache").select("data").eq("id", "world-bank-v2").maybeSingle() : Promise.resolve({ data: null }),

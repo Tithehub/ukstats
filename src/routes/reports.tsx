@@ -72,7 +72,11 @@ function ReportsPage() {
     try {
       const r = await downloadFn({ data: { edition, kind, date, environment: env! } });
       if ("error" in r) { toast.error(r.error); return; }
-      const a = document.createElement("a"); a.href = r.url; a.download = r.fileName; document.body.appendChild(a); a.click(); a.remove();
+      const bin = atob(r.base64), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      const a = document.createElement("a"); a.href = url; a.download = r.fileName; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
       void qc.invalidateQueries({ queryKey: ["report-editions"] });
     } finally { setBusy(null); }
   };
@@ -145,7 +149,7 @@ function ReportsPage() {
         </section>
         {!env && <p className="mt-3 text-sm text-muted-foreground">Checkout isn't switched on for this site yet.</p>}
         <ul className="mt-4 grid gap-1 text-sm text-muted-foreground sm:grid-cols-3">
-          {["Official figures only, nothing estimated", "Download links are private and expire after a minute", "Cancel any time, access runs to the end of the period"].map((t) => <li key={t} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />{t}</li>)}
+          {["Official figures only, nothing estimated", "Downloads are tied to your account, never a shareable link", "Cancel any time, access runs to the end of the period"].map((t) => <li key={t} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />{t}</li>)}
         </ul>
 
         {buying && env && (
