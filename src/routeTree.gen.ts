@@ -32,6 +32,7 @@ import { Route as GlobeRouteImport } from './routes/globe'
 import { Route as GoldRouteImport } from './routes/gold'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as GroomingGangsInquiryRouteImport } from './routes/grooming-gangs-inquiry'
+import { Route as LiveRouteImport } from './routes/live'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as NewHomeRouteImport } from './routes/new-home'
@@ -202,6 +203,11 @@ const GovernmentsRoute = GovernmentsRouteImport.update({
 const GroomingGangsInquiryRoute = GroomingGangsInquiryRouteImport.update({
   id: '/grooming-gangs-inquiry',
   path: '/grooming-gangs-inquiry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsRoute = MapsRouteImport.update({
@@ -513,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
@@ -593,6 +600,7 @@ export interface FileRoutesByTo {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
@@ -674,6 +682,7 @@ export interface FileRoutesById {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
@@ -757,6 +766,7 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/live'
     | '/maps'
     | '/my-pages'
     | '/new-home'
@@ -837,6 +847,7 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/live'
     | '/maps'
     | '/my-pages'
     | '/new-home'
@@ -917,6 +928,7 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/live'
     | '/maps'
     | '/my-pages'
     | '/new-home'
@@ -999,6 +1011,7 @@ export interface RootRouteChildren {
   GoldRoute: typeof GoldRoute
   GovernmentsRoute: typeof GovernmentsRoute
   GroomingGangsInquiryRoute: typeof GroomingGangsInquiryRoute
+  LiveRoute: typeof LiveRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
   NewHomeRoute: typeof NewHomeRoute
@@ -1200,6 +1213,13 @@ declare module '@tanstack/react-router' {
       path: '/grooming-gangs-inquiry'
       fullPath: '/grooming-gangs-inquiry'
       preLoaderRoute: typeof GroomingGangsInquiryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps': {
@@ -1692,6 +1712,7 @@ const rootRouteChildren: RootRouteChildren = {
   GoldRoute: GoldRoute,
   GovernmentsRoute: GovernmentsRoute,
   GroomingGangsInquiryRoute: GroomingGangsInquiryRoute,
+  LiveRoute: LiveRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
   NewHomeRoute: NewHomeRoute,

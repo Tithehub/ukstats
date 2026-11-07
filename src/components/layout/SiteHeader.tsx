@@ -168,16 +168,14 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               {status}
             </span>
           ) : null}
-          <a
-            href={LIVE_STREAM_URL}
-            target="_blank"
-            rel="noopener"
+          <Link
+            to="/live"
             className={btn("ghost", "sm", "whitespace-nowrap")}
             aria-label="Watch the UKStats live stream"
           >
             <span className="size-2 animate-pulse rounded-full bg-destructive" aria-hidden="true" />
             <span className="sm:hidden">Live</span><span className="max-sm:hidden">Watch live</span>
-          </a>
+          </Link>
           <ThemeToggle />
           {signedIn ? (
             <Button
