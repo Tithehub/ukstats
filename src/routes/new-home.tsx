@@ -1,6 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import heroNetwork from "@/assets/hero-network.jpg";
+import { SLOGAN } from "@/lib/brand";
 import { Search, ArrowRight, ShieldCheck, Ship, CloudFog, Waves, ShoppingCart, Siren, Landmark, Building2, Home, Scale, Backpack, Globe2, Tv, Coins, BarChart3 } from "lucide-react";
 import { getUkStats } from "@/lib/uk-stats.functions";
 import { ageLabel, dueLabel, freshnessOf, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
@@ -89,8 +92,6 @@ function NewHome() {
   const by = (id: string) => data.metrics.find((m) => m.id === id && m.value != null);
   const debt = by("uk-national-debt"), debtGdp = by("uk-debt-gdp"), boats = by("uk-small-boats-daily"), week = by("uk-small-boats-week");
   const terror = by("uk-threat-level"), met = by("uk-metoffice-warnings"), flood = by("uk-flood-warnings"), cpih = by("uk-cpih"), crime = by("uk-street-crime");
-  const [q, setQ] = useState("");
-  const navigate = useNavigate();
   const ticker = [boats && `Home Office: ${boats.value} irregular arrivals detected (${boats.period ?? fmtDate(boats.asOf)})`, met && `Met Office: ${met.value}`, terror && `Terror threat level: ${terror.value}`, cpih && `ONS: CPIH inflation ${cpih.value}`, debt && `ONS: net debt ${debt.value}`].filter(Boolean) as string[];
 
   return <div className="min-h-screen bg-background text-foreground">
@@ -101,17 +102,34 @@ function NewHome() {
     <SiteHeader />
 
     <main className="mx-auto max-w-7xl px-4 sm:px-6">
+      <section className="relative mt-5 overflow-hidden rounded-3xl bg-night text-night-fg">
+        <img src={heroNetwork} alt="" fetchPriority="high" width={1408} height={1024} className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-70 sm:w-[62%]" />
+        <div className="absolute inset-0 bg-linear-to-r from-night via-night/90 to-night/20" />
+        <div className="relative grid gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:max-w-[65%]">
+          <div>
+            <p className="mb-3 font-mono text-xs text-electric-soft">Official statistics · UK & worldwide</p>
+            <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl">UKStats</h1>
+            <p className="mt-3 text-xl text-night-fg">{SLOGAN}</p>
+          </div>
+          <p className="max-w-xl text-sm leading-relaxed text-night-muted">Debt, prices, crime, migration and more — from official publishers. Every figure dated. Nothing guessed.</p>
+          <form action="/register" method="get" role="search" className="flex max-w-xl flex-wrap gap-2">
+            <label className="sr-only" htmlFor="home-stat-search">Find a UK statistic</label>
+            <div className="relative min-w-0 flex-1 basis-48"><Search aria-hidden="true" className="absolute left-3 top-3.5 size-4 text-muted-foreground" /><input id="home-stat-search" name="q" type="search" placeholder="Find debt, inflation, crime…" className="min-h-11 w-full rounded-md border border-input bg-background py-2 pr-3 pl-10 text-foreground" /></div>
+            <Button type="submit"><ArrowRight aria-hidden="true" />Find figures</Button>
+          </form>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
+            <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
+            <Button asChild variant="ghost"><Link to="/safest-places" search={{ country: "uk" }}><ShieldCheck />Safest places</Link></Button>
+          </div>
+        </div>
+      </section>
+
       <section className="relative py-12 text-center sm:py-16">
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">UK public sector net debt · {debt?.source ?? "ONS"} · {debt?.period ?? "Not published"}</p>
-        <h1 className="mt-4 bg-gradient-to-b from-foreground to-primary bg-clip-text font-mono text-6xl font-semibold tracking-tighter text-transparent sm:text-8xl lg:text-9xl">{debt?.value ?? "Not published"}</h1>
+        <p className="mt-4 bg-gradient-to-b from-foreground to-primary bg-clip-text font-mono text-6xl font-semibold tracking-tighter text-transparent sm:text-8xl lg:text-9xl">{debt?.value ?? "Not published"}</p>
         <p className="mt-3 text-sm text-muted-foreground sm:text-base">{debtGdp ? `${debtGdp.value} of GDP` : ""}{debt?.change ? ` · ${debt.change.label}` : ""}{debt?.nextDue ? ` · next release ${dueLabel(debt.nextDue)}` : ""}</p>
         <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-alert-green/50 bg-alert-green/15 px-4 py-1.5 text-sm font-semibold"><ShieldCheck className="size-4" />Free forever · official sources only · no account</p>
-        <form role="search" onSubmit={(e) => { e.preventDefault(); void navigate({ to: "/register", search: { q: q.trim() || undefined, category: undefined } }); }} className="mx-auto mt-6 flex max-w-2xl items-center gap-2 rounded-2xl border border-border bg-card p-1.5 pl-4 shadow-sm">
-          <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <label htmlFor="nh-q" className="sr-only">Search UK figures</label>
-          <input id="nh-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search debt, small boats, inflation…" className="min-w-0 flex-1 bg-transparent py-2.5 outline-none" />
-          <button className="shrink-0 rounded-xl bg-primary px-5 py-2.5 font-bold text-primary-foreground">Search</button>
-        </form>
       </section>
 
       <section aria-label="The UK right now" className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
