@@ -28,9 +28,26 @@ This plan turns that into a finished, polished service you can test end to end. 
 6. **A better watch page (/s/name).** A branded header with their logo and colour, the stream, share buttons, and a "Powered by UKStats" link.
 7. **Design pass.** All rent pages get the same navy news style with clear steps and works on phones. The pages are /rent, the dashboard, the admin page and the watch page.
 
-## Then, separately
+## Then payments and packages (same build)
 
-Payments and packages come next: £9 base plus add-ons, automatic activation on payment, and billing management.
+8. **Checkout on the dashboard.** "Choose your plan" works out the price from the choices: £9 base, +£3 per extra country or +£19 for all countries, +£10 AI presenter, +£49 to remove the sponsor box, and 25% off for the first 10. Checkout opens on the page. Payment is monthly, sold as digital goods.
+9. **Automatic access.** After payment, the channel switches on with exactly the features bought. After cancelling, it stays live until the end of the paid month. A failed payment shows a warning. Your manual grants are never overwritten.
+10. **Manage billing.** A button lets customers change their card, see invoices or cancel.
+
+## Full test-mode walkthrough (done by me, shown to you)
+
+I'll run the whole journey as a new test customer in test mode, using Stripe's test card `4242 4242 4242 4242` (no real money), and send you screenshots of each step:
+1. sign up
+2. set up the channel and upload a logo
+3. see the price
+4. pay
+5. return to "Active"
+6. the branded stream live in OBS size
+7. the watch page
+8. open billing and cancel
+9. confirm the stream stays live until the paid month ends
+
+If any step fails I'll fix it and re-run before reporting.
 
 ## Technical details
 
@@ -49,4 +66,14 @@ Payments and packages come next: £9 base plus add-ons, automatic activation on 
   - slug rules
   - status changes: an owner can only move a channel from draft to pending, and only an admin can approve or pause
   - preview works only for the owner
+- **Stripe products** (`txcd_10000000`, GBP, monthly):
+  - `rent_stream_base` £9
+  - `rent_extra_country` £3, quantity-based
+  - `rent_all_countries` £19
+  - `rent_ai_presenter` £10
+  - `rent_no_sponsor_box` £49
+- **Checkout:** `createRentCheckout` builds the line items from `rent-pricing.ts`, using embedded checkout with `managed_payments`. Subscription metadata `kind=rent` keeps it separate from sponsors. The founding coupon applies while fewer than 10 rent subscriptions exist.
+- **Webhook:** for `kind=rent`, it upserts `rent_entitlements` with `source='stripe'`. Rows with `source='manual'` are never touched.
+- **Portal:** `createRentPortal` opens the billing portal for the customer's own Stripe account only.
+- Tests check that line items total `monthlyPence`, and how subscription items map to features.
 - Update the stream folder's AGENTS.md note and roadmap.md.
