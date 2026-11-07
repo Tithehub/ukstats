@@ -1,8 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
 import { isPaidStatus, planFromPriceId } from "@/lib/sponsor-plans";
+import { entitlementFromItems, rentAccessActive } from "@/lib/rent-checkout";
+
+/** Rented streams: Stripe drives rent_entitlements (source 'stripe'); manual grants are never overwritten. */
+async function syncRent(subscription: any, env: StripeEnv, deleted = false) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const userId = subscription.metadata?.userId;
+  if (!userId) return;
+  const { data: existing } = await supabaseAdmin.from("rent_entitlements").select("source").eq("user_id", userId).maybeSingle();
+  if (existing?.source === "manual") return;
+  const items = (subscription.items?.data ?? []).map((i: any) => ({ lookup: i.price?.lookup_key || i.price?.metadata?.lovable_external_id || null, quantity: i.quantity ?? 1 }));
+  const first = subscription.items?.data?.[0];
+  const end = first?.current_period_end ?? subscription.current_period_end;
+  const periodEnd = end ? new Date(end * 1000) : null;
+  const status: string = deleted ? "canceled" : subscription.status;
+  const active = rentAccessActive(status, periodEnd, new Date());
+  await supabaseAdmin.from("rent_entitlements").upsert({
+    user_id: userId, ...entitlementFromItems(items), active, source: "stripe",
+    expires_at: status === "canceled" || subscription.cancel_at_period_end ? periodEnd?.toISOString() ?? null : null,
+    stripe_subscription_id: subscription.id, stripe_customer_id: subscription.customer, environment: env,
+    sub_status: status, cancel_at_period_end: !!subscription.cancel_at_period_end, updated_at: new Date().toISOString(),
+  });
+  await supabaseAdmin.from("rent_channels").update({ status: active ? "active" : "paused" }).eq("user_id", userId);
+}
 
 async function upsertSubscription(subscription: any, env: StripeEnv) {
+  if (subscription.metadata?.kind === "rent") return syncRent(subscription, env);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const userId = subscription.metadata?.userId;
   const item = subscription.items?.data?.[0];
@@ -60,6 +84,7 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
 }
 
 async function markCanceled(subscription: any, env: StripeEnv) {
+  if (subscription.metadata?.kind === "rent") return syncRent(subscription, env, true);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   await supabaseAdmin
     .from("subscriptions")
