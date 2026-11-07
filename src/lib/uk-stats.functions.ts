@@ -147,6 +147,12 @@ function onsPoints(series: OnsSeries, frequency?: "months" | "quarters" | "years
   return (series[freq] ?? series.quarters ?? series.years ?? []).filter((p) => p.value !== "");
 }
 
+/** "2026 SEP" -> "2025 SEP", "2026 Q3" -> "2025 Q3", "2026" -> "2025". */
+export function yearEarlierLabel(label: string): string | null {
+  const m = /^(\d{4})(.*)$/.exec(label.trim());
+  return m ? `${Number(m[1]) - 1}${m[2]}` : null;
+}
+
 async function onsMetric(opts: OnsDef): Promise<Metric> {
   const base: Metric = {
     id: opts.id,
@@ -176,8 +182,18 @@ async function onsMetric(opts: OnsDef): Promise<Metric> {
     const v = Number(last.value);
     const pv = prev ? Number(prev.value) : null;
     const delta = pv === null ? null : v - pv;
+    const ya = points.find((p) => p.label === yearEarlierLabel(last.label));
+    const annual = /12[- ]month|annual rate|inflation|cpi|cpih|rpi/i.test(opts.title);
+    let yearAgo: Metric["yearAgo"] = null;
+    if (ya && !annual && Number.isFinite(Number(ya.value))) {
+      const yv = Number(ya.value), d = v - yv;
+      const unit = opts.changeUnit.trim();
+      const diff = unit === "pp" ? `${Math.abs(d).toFixed(1)} percentage points` : unit === "pts" ? `${Math.abs(d).toFixed(1)} points` : opts.format(Math.abs(d));
+      yearAgo = { value: opts.format(yv), period: ya.label, diff, dir: d > 0 ? "up" : d < 0 ? "down" : "flat" };
+    }
     return {
       ...base,
+      yearAgo, annualChange: annual,
       value: opts.format(v),
       period: last.label,
       asOf: last.updateDate ?? null,

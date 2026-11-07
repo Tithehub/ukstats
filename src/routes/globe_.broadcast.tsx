@@ -260,6 +260,7 @@ function FigureCard({ card, segId, big, compact }: { card: StreamCard | null; se
     </div>
     <h2 className={`shrink-0 font-bold leading-tight ${compact ? "truncate text-[30px]" : "line-clamp-2 text-[34px]"}`} >{card.title}</h2>
     <div className={`my-3 shrink-0 self-start truncate rounded bg-stream-yellow px-3 py-1 text-stream-yellow-fg font-black leading-none tabular-nums ${compact ? "text-[72px]" : big ? "text-[120px]" : "text-[100px]"}`}>{card.value}</div>
+    {!compact && card.metric?.yearAgo && <p className="text-[22px] font-semibold leading-snug text-night-muted">Change on a year earlier: {card.metric.yearAgo.dir === "flat" ? "unchanged" : `${card.metric.yearAgo.dir === "up" ? "▲" : "▼"} ${card.metric.yearAgo.diff}`} (from {card.metric.yearAgo.value}, {card.metric.yearAgo.period})</p>}
     {card.sub && !compact && <p className="line-clamp-2 text-[24px] leading-snug text-night-muted">{card.sub}</p>}
     <dl className="mt-auto grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-[22px]">
       {meta("Source", card.source)}
