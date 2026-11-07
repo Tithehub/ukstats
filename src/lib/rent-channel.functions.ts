@@ -106,7 +106,9 @@ export const getPublicChannel = createServerFn({ method: "POST" })
     if (!r) return null;
     const e = pickEnt({ active: r.active, expires_at: r.expires_at, max_countries: r.max_countries, all_countries: r.ent_all_countries, ai_presenter: r.ai_presenter, no_sponsor_box: r.no_sponsor_box });
     const s = clampChannel(r as unknown as ChannelSettings, e);
-    return { ...s, logo_url: await signLogo(sb as never, s.logo_url), live: isChannelLive(e, new Date()) };
+    // Logos are private; sign only this channel's own logo server-side.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return { ...s, logo_url: await signLogo(supabaseAdmin as never, s.logo_url), live: isChannelLive(e, new Date()) };
   });
 
 /** Owner/admin preview of a channel that is not live yet. Checked through the caller's session. */

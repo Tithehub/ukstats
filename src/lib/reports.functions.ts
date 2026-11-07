@@ -25,7 +25,7 @@ export const listReportEditions = createServerFn({ method: "POST" }).handler(asy
       return fetch(input, { ...init, headers: h });
     } },
   });
-  const { data } = await sb.from("report_editions").select("edition,kind,report_date,pages").order("report_date", { ascending: false }).limit(120);
+  const { data } = await sb.rpc("list_report_editions", { max_rows: 120 });
   return { editions: (data ?? []) as ReportEditionRow[], today: await today() };
 });
 
