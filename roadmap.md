@@ -2,7 +2,8 @@
 
 ## Homepage promotion — 7 November 2026
 - [x] Promote the new UK layout to /, retaining existing statistics sections and the worldwide homepage; redirect /new-home with globe settings intact
-- [ ] Verify desktop/phone layout, search and globe controls, then publish and check the live homepage
+- [x] Verify desktop/phone layout, search and rendered globe; warning tests pass and build OK; publication requested
+- [ ] Confirm the new layout on the published address (waiting on the scheduled deployment)
 
 ## Non-commercial emergency supplier links — 3 November 2026
 - [x] Verified EVAQ8 individual/two-person kit pages and Countrywide evacuation starter bag; excluded blocked pages and out-of-stock deluxe kit
