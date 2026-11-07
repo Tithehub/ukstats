@@ -25,7 +25,6 @@ export const Route = createFileRoute("/s/$slug")({
 function Watch() {
   const { slug } = Route.useParams();
   const { data: ch } = useSuspenseQuery(channelQuery(slug));
-  const url = `https://ukstats.co.uk/s/${slug}`;
   return <div className="min-h-screen bg-night text-night-fg">
     <header className="border-b-4 bg-night-panel" style={{ borderColor: ch?.accent ?? undefined }}>
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4">
@@ -41,7 +40,7 @@ function Watch() {
       {ch?.live ? <div className={`relative overflow-hidden rounded-xl border border-night-line ${ch.layout === "portrait" ? "mx-auto aspect-[9/16] max-h-[80vh]" : "aspect-video"}`}>
         <iframe title={`${ch.display_name} stream`} src={`/s/${slug}/broadcast?voice=off`} className="absolute inset-0 h-full w-full border-0" allow="autoplay" />
       </div> : <p className="rounded-xl border border-night-line p-6">This stream is not active right now.</p>}
-      {ch && <div className="mt-4"><ShareRow url={url} title={`${ch.display_name} — live official statistics`} /></div>}
+      {ch && <div className="mt-4"><ShareRow path={`/s/${slug}`} title={`${ch.display_name} — live official statistics`} /></div>}
       <p className="mt-4 text-sm text-night-muted">Figures come from the UKStats register of official publishers — each shows its source, period, data age and next release. This channel controls its branding only.</p>
       <Link to="/rent" className="mt-4 inline-flex rounded-lg border border-night-line px-4 py-2 text-sm font-semibold">Powered by UKStats — run your own branded stream</Link>
     </main>

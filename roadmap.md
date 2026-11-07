@@ -242,4 +242,6 @@
 
 ## Rent UKStats for streamers
 - [x] Stage 1: channels, dashboard (/rent/dashboard), branded stream /s/<name>/broadcast, watch page, admin access switch
-- [ ] Stage 2: Stripe plans (£9 base + add-ons, digital goods) flipping access automatically — awaiting approval of Stage 1
+- [x] Guided setup, logo upload, layouts, activation requests, /rent/admin, watch page
+- [x] Stage 2: Stripe plans (£9 base + add-ons) flipping access automatically
+- [ ] Full test-mode purchase walkthrough with screenshots
