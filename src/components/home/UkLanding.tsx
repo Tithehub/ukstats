@@ -112,7 +112,9 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
             <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
             <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
             <Button asChild variant="ghost"><Link to="/safest-places" search={{ country: "uk" }}><ShieldCheck />Safest places</Link></Button>
+            <Button asChild variant="outline"><Link to="/reports"><FileText />Daily, monthly & yearly PDF reports</Link></Button>
           </div>
+          <p className="max-w-xl text-sm text-night-muted">Every stat you can see on UKStats stays completely free, forever. Reports are an optional download-ready PDF from £1.</p>
         </div>
       </section>
 
