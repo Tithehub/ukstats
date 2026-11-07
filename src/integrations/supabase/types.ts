@@ -578,6 +578,114 @@ export type Database = {
         }
         Relationships: []
       }
+      report_editions: {
+        Row: {
+          created_at: string
+          edition: string
+          id: string
+          kind: string
+          pages: number | null
+          report_date: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          edition: string
+          id?: string
+          kind?: string
+          pages?: number | null
+          report_date: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          edition?: string
+          id?: string
+          kind?: string
+          pages?: number | null
+          report_date?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
+      report_purchases: {
+        Row: {
+          created_at: string
+          edition: string
+          environment: string
+          id: string
+          report_date: string
+          stripe_session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          edition: string
+          environment: string
+          id?: string
+          report_date: string
+          stripe_session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          edition?: string
+          environment?: string
+          id?: string
+          report_date?: string
+          stripe_session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      report_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          edition: string
+          environment: string
+          id: string
+          price_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          edition: string
+          environment: string
+          id?: string
+          price_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          edition?: string
+          environment?: string
+          id?: string
+          price_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shared_pages: {
         Row: {
           created_at: string
