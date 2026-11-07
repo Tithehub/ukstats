@@ -159,7 +159,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
             return t.category ? <Link key={t.label} to="/register" search={{ category: t.category, q: undefined }}>{inner}</Link>
               : t.to === "/world" ? <Link key={t.label} to="/world" search={{ figure: undefined }}>{inner}</Link>
               : t.to === "/spending" ? <Link key={t.label} to="/spending" search={{}}>{inner}</Link>
-              : <Link key={t.label} to={t.to}>{inner}</Link>;
+              : t.to ? <Link key={t.label} to={t.to}>{inner}</Link> : null;
           })}
           <Link to="/register" search={{ q: undefined, category: undefined }}><span className="flex min-h-14 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold hover:bg-muted"><BarChart3 className="size-5 text-primary" />All UK figures →</span></Link>
         </div>
