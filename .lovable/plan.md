@@ -1,7 +1,7 @@
 # Bigger, easier-to-scan sponsor box on the live stream
 
 ## What changes
-- Sponsor box grows from 416×104 to about 600×200 (landscape), still bottom-right, still one sponsor at a time for 10 seconds with the red progress bar.
+- Sponsor box grows from 416×104 to about 600×200 (landscape), moved to the bottom-left corner, placed in clear space so it never covers the presenter, Top 6, globe, tickers or name strap; still one sponsor at a time for 10 seconds with the red progress bar.
 - Sponsor logo/banner image shown much larger (about 300×110 instead of 40px tall), with name and tagline beneath.
 - QR code grows from ~95px to ~176px on a solid white quiet-zone border with high error correction, so phones scan it from a TV or laptop screen. "Scan to visit" + the sponsor's website shown beside it in larger text.
 - Portrait layout gets the same scaled-up box, kept clear of the Top 6 panel and presenter.
