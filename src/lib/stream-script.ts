@@ -7,9 +7,20 @@ export function scriptForCard(card: StreamCard | null): string {
   const parts = [`${card.title}.`];
   const missing = !card.value || /not published/i.test(card.value);
   if (missing) parts.push("No figure is published.");
-  else parts.push(`${card.value}.`);
+  else { parts.push(`${card.value}.`); const y = yoyLine(card); if (y) parts.push(y); }
   parts.push(`Source: ${card.source.replace(/\s*\(.*?\)/g, "")}.`);
-  return parts.join(" ").slice(0, 400);
+  return parts.join(" ").slice(0, 480);
+}
+
+/** Year-on-year line from two published figures in the same series; never estimated. */
+export function yoyLine(card: StreamCard | null): string | null {
+  const m = card?.metric;
+  if (!m || card?.live || !card.value || /not published/i.test(card.value)) return null;
+  if (m.annualChange) return "That's the change over the past twelve months.";
+  const y = m.yearAgo;
+  if (!y) return "No year-earlier figure is published.";
+  if (y.dir === "flat") return `That's unchanged on a year earlier, ${y.period}.`;
+  return `That's ${y.dir} ${y.diff} on a year earlier, from ${y.value} in ${y.period}.`;
 }
 
 /** Spoken headline: verbatim text plus publisher; news is labelled not official. */

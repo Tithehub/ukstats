@@ -19,3 +19,14 @@ describe("scriptForCard", () => {
     expect(scriptForCard(card({}))).toContain("Source: Home Office.");
   });
 });
+
+import { yoyLine } from "./stream-script";
+import { yearEarlierLabel } from "./uk-stats.functions";
+describe("year-on-year line", () => {
+  const card = (metric: any) => ({ kicker: "", title: "Debt", value: "£2.9tn", sub: null, source: "ONS", period: null, asOf: null, nextDue: null, metric } as any);
+  it("says up with last year's figure", () => expect(yoyLine(card({ yearAgo: { value: "£2.7tn", period: "2025 SEP", diff: "£0.2tn", dir: "up" } }))).toBe("That's up £0.2tn on a year earlier, from £2.7tn in 2025 SEP."));
+  it("uses percentage points", () => expect(yoyLine(card({ yearAgo: { value: "4.1%", period: "2025 Q3", diff: "0.3 percentage points", dir: "down" } }))).toContain("down 0.3 percentage points"));
+  it("never guesses a missing year", () => expect(yoyLine(card({}))).toBe("No year-earlier figure is published."));
+  it("skips already-annual measures", () => expect(yoyLine(card({ annualChange: true }))).toBe("That's the change over the past twelve months."));
+  it("matches the same period", () => { expect(yearEarlierLabel("2026 SEP")).toBe("2025 SEP"); expect(yearEarlierLabel("2026 Q3")).toBe("2025 Q3"); });
+});

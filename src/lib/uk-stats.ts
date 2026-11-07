@@ -88,6 +88,10 @@ export interface Metric {
   /** Human description of the publication cadence. */
   cadence: string;
   change: { label: string; dir: "up" | "down" | "flat" } | null;
+  /** Same publisher series, same period one year earlier — only when that exact period is published. */
+  yearAgo?: { value: string; period: string; diff: string; dir: "up" | "down" | "flat" } | null;
+  /** True when the figure is itself a 12-month change, so no second comparison is made. */
+  annualChange?: boolean;
   spark: number[];
   status: MetricStatus;
   note: string | null;
