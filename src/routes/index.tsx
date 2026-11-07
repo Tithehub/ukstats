@@ -1,19 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getUkStats } from "@/lib/uk-stats.functions";
-import { CATEGORIES, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
+import { CATEGORIES, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { VitalSigns } from "@/components/VitalSigns";
 import { ShareRow } from "@/components/ShareRow";
 import { AlertDial, CategoryPanel, IndicatorCard } from "@/components/home/NightPieces";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import type { SponsorBannerRow } from "@/lib/sponsor-visibility";
-import { Button } from '@/components/ui/button';
-import { Search, ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { PageLoadError, PageNotFound } from '@/components/layout/PageFeedback';
 import heroNetwork from "@/assets/hero-network.jpg";
 import { SLOGAN } from "@/lib/brand";
@@ -22,9 +18,8 @@ import { PreparednessBanner } from "@/components/PreparednessBanner";
 import { currentBrand } from "@/lib/brand-host";
 import { GlobalHome } from "@/components/home/GlobalHome";
 import { UkTopicNav } from "@/components/UkTopicNav";
-import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
 import { WORLD_INDICATORS } from "@/lib/world";
-import { LiveStreamPanel } from "@/components/LiveStreamPanel";
+import { UkLanding } from "@/components/home/UkLanding";
 
 const GT = "Stats Solutions — official statistics from around the world";
 const GD = "Live official figures for over 30 countries from Eurostat and national publishers, each with its source, data age and next release. Nothing estimated.";
@@ -91,9 +86,7 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/" },
-      { property: "og:image", content: "https://ukstats.co.uk/og/home.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://ukstats.co.uk/og/home.jpg" },
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }, { rel: "preload", as: "image", href: heroNetwork, fetchPriority: "high" }],
   }),
@@ -147,80 +140,17 @@ function Home() {
   return currentBrand() === "global" ? <GlobalHome /> : <UkHome />;
 }
 
-function HomeGlobe() {
-  const search = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const [layers, setLayers] = useState<Pick<GlobeState, "riots" | "protests" | "mil" | "m" | "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa">>({});
-  const state: GlobeState = { c: search.c ?? "united kingdom", ind: search.ind ?? "none", official: true, acled: true, ...layers };
-  return <section aria-label="World globe" className="mt-5">
-    <a href="#home-figures" className="mb-2 inline-flex min-h-11 items-center text-sm text-electric-soft underline sm:hidden">Skip the globe — go to UK figures</a>
-    <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...(["layer", "gov", "age", "cmp", "feed", "fk", "fa", "fl", "fp", "mg", "nw"] as const).reduce((o, k) => (k in p ? { ...o, [k]: p[k] } : o), {}), ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("mil" in p ? { mil: p.mil } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); void navigate({ search: (prev) => ({ ...prev, c: "c" in p ? p.c || undefined : prev.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : prev.ind }), replace: true, resetScroll: false }); }} />
-    <LiveStreamPanel />
-  </section>;
-}
-
 function UkHome() {
   const { stats: data, sponsors } = Route.useLoaderData();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const metrics = data.metrics;
-  const live = metrics.filter((m) => m.status === "ok").length;
-
   const byId = useMemo(() => new Map(metrics.map((m) => [m.id, m])), [metrics]);
   const keyMetrics = KEY_IDS.map((id) => byId.get(id)).filter(Boolean) as Metric[];
   const dials = metrics.filter((m) => m.scale);
-  const debt = byId.get("uk-national-debt");
-
-  return (
-    <div className="min-h-screen bg-night font-sans text-night-fg">
-      <SiteHeader
-        status={
-          <>
-            <span className="size-1.5 rounded-full bg-fresh pulse-dot" />
-            {live} of {metrics.length} feeds live
-          </>
-        }
-      />
-
-
-      <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
-        {/* Hero */}
-        <section className="relative mt-5 overflow-hidden border-b border-night-line/50">
-          <img
-            src={heroNetwork}
-            alt=""
-            fetchPriority="high"
-            width={1408}
-            height={1024}
-            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-70 sm:w-[62%]"
-          />
-          <div className="absolute inset-0 bg-linear-to-r from-night via-night/90 to-night/20" />
-          <div className="relative grid gap-5 px-2 py-8 sm:px-6 sm:py-10 lg:max-w-[65%]">
-            <div>
-              <p className="mb-3 font-mono text-xs text-electric-soft">Official statistics · UK & worldwide</p>
-              <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl">UKStats</h1>
-              <p className="mt-3 text-xl text-night-fg">{SLOGAN}</p>
-            </div>
-            <p className="max-w-xl text-sm leading-relaxed text-night-muted">Debt, prices, crime, migration and more — from official publishers. Every figure dated. Nothing guessed.</p>
-            <form action="/register" method="get" role="search" className="flex max-w-xl flex-wrap gap-2">
-              <label className="sr-only" htmlFor="home-stat-search">Find a UK statistic</label>
-              <div className="relative min-w-0 flex-1 basis-48"><Search aria-hidden="true" className="absolute left-3 top-3.5 size-4 text-muted-foreground" /><input id="home-stat-search" name="q" type="search" placeholder="Find debt, inflation, crime…" className="min-h-11 w-full rounded-md border border-input bg-background py-2 pr-3 pl-10 text-foreground" /></div>
-              <Button type="submit"><ArrowRight aria-hidden="true" />Find figures</Button>
-            </form>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
-              <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
-              <Button asChild variant="ghost"><Link to="/safest-places" search={{ country: 'uk' }}><ShieldCheck />Safest places</Link></Button>
-            </div>
-            {debt ? (
-              <p className="font-mono text-[11px] text-night-muted">
-                Public sector net debt · <span className="text-night-fg">{debt.value ?? "Unavailable"}</span> ·{" "}
-                {debt.period ?? "—"} · published {fmtDate(debt.asOf)}
-              </p>
-            ) : null}
-          </div>
-        </section>
-
-        <HomeGlobe />
-
+  return <UkLanding data={data} search={search}
+    onSearchChange={(next) => { void navigate({ search: next, replace: true, resetScroll: false }); }}
+    additionalContent={<div className="bg-night px-4 py-8 text-night-fg sm:px-6">
         {/* Sponsor banner — sits under the hero for visibility, always labelled, never beside individual figures. */}
         <div className="mt-4">
           <SponsorBanner variant="hero" initialRows={sponsors} />
@@ -295,10 +225,5 @@ function UkHome() {
           path="/"
           title="UKStats — live UK official statistics, every figure sourced and timestamped"
         />
-      </main>
-
-      <SiteFooter fetchedAt={data.fetchedAt} />
-
-    </div>
-  );
+    </div>} />;
 }
