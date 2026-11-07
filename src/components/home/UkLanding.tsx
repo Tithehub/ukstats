@@ -98,7 +98,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
         <div className="relative grid gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:max-w-[65%]">
           <div>
             <p className="mb-3 font-mono text-xs text-electric-soft">Official statistics · UK & worldwide</p>
-            <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl">UKStats</h1>
+            <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl">UKStats<span className="sr-only"> — live UK official statistics, sourced and dated</span></h1>
             <p className="mt-3 text-xl text-night-fg">{SLOGAN}</p>
           </div>
           <p className="max-w-xl text-sm leading-relaxed text-night-muted">Debt, prices, crime, migration and more — from official publishers. Every figure dated. Nothing guessed.</p>
