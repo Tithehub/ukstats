@@ -29,7 +29,7 @@
 - City crime ranks use city-crime pure parsers and a POST server wrapper with official-source adapters; latest-year missing/suppressed cells block rankings, national/provincial totals and overlapping subareas are excluded, and unavailable countries never substitute regional or perception data.
 - Brand comes from the request host via src/lib/site-host.ts (stats.solutions = world-first, everything else UK); canonicals for world/country paths use stats.solutions, sitemap and robots are generated per host — one codebase serves both domains.
 
-- Subdirectories may have their own AGENTS.md (e.g. src/components/sponsor/); read it before changing files there.
+- Read any subdirectory AGENTS.md (sponsor/, stream/) before editing there.
 - World rankings use only World Bank WDI, cached as payload_cache "world-bank-v2"; figures more than 3 years behind the newest are unranked — keeps stale filings from skewing ranks.
 - Party comparisons use sourced election records and dated manifesto summaries in party-comparison.data.ts; pure helpers preserve ties and show polls individually, excluding devolved-party shares from GB headline ranks — avoids treating promises or estimates as outcomes.
 - World comparisons reuse the cached WDI payload and flag missing, stale and different-year filings; answer topics require reader/search evidence and reuse register values — avoids new figures or false equivalence.

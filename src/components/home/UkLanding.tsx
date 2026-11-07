@@ -174,7 +174,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
 
       <section id="new-home-services" className="mt-12 flex scroll-mt-20 flex-col gap-4 border-t-4 border-onair pt-6 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="text-xl font-black">Stats are free. Your brand on them is what keeps them free.</p><p className="mt-1 text-muted-foreground">Branded widgets, dashboards and stream backdrops from £9/month. Sponsor the 24/7 live stream.</p></div>
-        <div className="flex shrink-0 gap-2"><Link to="/rent" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">See paid services <ArrowRight className="size-4" /></Link><Link to="/advertise" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Sponsor</Link></div>
+        <div className="flex shrink-0 gap-2"><Link to="/rent" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">See paid services <ArrowRight className="size-4" /></Link><Link to="/rent/dashboard" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Brand your stream</Link><Link to="/advertise" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Sponsor</Link></div>
       </section>
       <p className="mt-6 pb-10 font-mono text-[11px] text-muted-foreground">Figures checked {fmtDate(data.fetchedAt)} · photos are decoration only.</p>
       {additionalContent}

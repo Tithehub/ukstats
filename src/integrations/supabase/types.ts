@@ -470,6 +470,93 @@ export type Database = {
         }
         Relationships: []
       }
+      rent_channels: {
+        Row: {
+          accent: string
+          all_countries: boolean
+          countries: string[]
+          created_at: string
+          display_name: string
+          id: string
+          layout: string
+          logo_url: string | null
+          presented_by: string | null
+          presenter: string
+          show_sponsor_box: boolean
+          slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent?: string
+          all_countries?: boolean
+          countries?: string[]
+          created_at?: string
+          display_name: string
+          id?: string
+          layout?: string
+          logo_url?: string | null
+          presented_by?: string | null
+          presenter?: string
+          show_sponsor_box?: boolean
+          slug: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent?: string
+          all_countries?: boolean
+          countries?: string[]
+          created_at?: string
+          display_name?: string
+          id?: string
+          layout?: string
+          logo_url?: string | null
+          presented_by?: string | null
+          presenter?: string
+          show_sponsor_box?: boolean
+          slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rent_entitlements: {
+        Row: {
+          active: boolean
+          ai_presenter: boolean
+          all_countries: boolean
+          expires_at: string | null
+          max_countries: number
+          no_sponsor_box: boolean
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          ai_presenter?: boolean
+          all_countries?: boolean
+          expires_at?: string | null
+          max_countries?: number
+          no_sponsor_box?: boolean
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          ai_presenter?: boolean
+          all_countries?: boolean
+          expires_at?: string | null
+          max_countries?: number
+          no_sponsor_box?: boolean
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shared_pages: {
         Row: {
           created_at: string
@@ -750,6 +837,27 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_public_rent_channel: {
+        Args: { _slug: string }
+        Returns: {
+          accent: string
+          active: boolean
+          ai_presenter: boolean
+          all_countries: boolean
+          countries: string[]
+          display_name: string
+          ent_all_countries: boolean
+          expires_at: string
+          layout: string
+          logo_url: string
+          max_countries: number
+          no_sponsor_box: boolean
+          presented_by: string
+          presenter: string
+          show_sponsor_box: boolean
+          slug: string
+        }[]
       }
       has_role: {
         Args: {

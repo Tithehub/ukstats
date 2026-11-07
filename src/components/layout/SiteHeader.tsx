@@ -89,6 +89,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/support", label: "Support", icon: LifeBuoy },
       { to: "/sponsors", label: "Our sponsors", icon: LifeBuoy },
       { to: "/rent", label: "Rent UKStats (your brand)", icon: PlusCircle },
+      { to: "/rent/dashboard", label: "My branded stream", icon: FileText },
       { to: "/sponsor-dashboard", label: "My sponsorship", icon: FileText },
     ],
   },

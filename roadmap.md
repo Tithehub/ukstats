@@ -239,3 +239,7 @@
 - [ ] Phase 1: 24/7 cloud streaming server + auto-restart watchdog — waiting on Marco's cloud server account and YouTube API access
 - [ ] Phase 2: paid Rent/licence accounts, checkout, branded backdrops
 - [ ] Phase 3: SEO fixes, share cards, social drafts, outreach, media kit
+
+## Rent UKStats for streamers
+- [x] Stage 1: channels, dashboard (/rent/dashboard), branded stream /s/<name>/broadcast, watch page, admin access switch
+- [ ] Stage 2: Stripe plans (£9 base + add-ons, digital goods) flipping access automatically — awaiting approval of Stage 1
