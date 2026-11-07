@@ -1,4 +1,4 @@
-import { FUNDING_PAUSED } from "./funding-policy";
+import { DONATIONS_PAUSED } from "./funding-policy";
 
 /**
  * Crypto donation addresses. Left empty until the real wallets are supplied —
@@ -53,7 +53,7 @@ export const DONATION_SUGGESTIONS = ["0.005", "0.01", "0.05", "0.1"];
 
 /** Keep receiving wallets configured, but never offer them during the funding pause. */
 export function availableDonationAddresses(): DonationAddress[] {
-  return FUNDING_PAUSED ? [] : DONATION_ADDRESSES;
+  return DONATIONS_PAUSED ? [] : DONATION_ADDRESSES;
 }
 
 export function qrSrc(text: string): string {

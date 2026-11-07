@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { FundingLegalNotice } from "@/components/FundingLegalNotice";
 import { COUNTRIES } from "@/lib/countries";
 import {
   PRODUCT_PRICES, gbp, monthlyPence,
@@ -87,7 +86,7 @@ function RentPage() {
         <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
           Your logo, your colours, your layout and your countries. The figures, sources and dates stay exactly as published — you can brand the stats, never change them. Everything on ukstats.co.uk stays free.
         </p>
-        <div className="mt-6"><FundingLegalNotice /></div>
+        
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">

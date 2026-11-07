@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ShareRow } from "@/components/ShareRow";
 import { availableDonationAddresses, DONATION_SUGGESTIONS, qrSrc, type DonationAddress } from "@/lib/donate";
-import { FUNDING_PAUSED, FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
+import { DONATIONS_PAUSED as FUNDING_PAUSED, DONATIONS_PAUSE_MESSAGE as FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 import { FundingLegalNotice } from "@/components/FundingLegalNotice";
 
 
