@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { FUNDING_PAUSED, fundingPaymentError, legalHoldStatement } from "./funding-policy";
+import { DONATIONS_PAUSED, SPONSORSHIP_PAUSED, fundingPaymentError, legalHoldStatement } from "./funding-policy";
 import { availableDonationAddresses, DONATION_ADDRESSES } from "./donate";
 
-describe("temporary funding pause", () => {
-  it("blocks new sponsorship payments pending further information", () => {
-    expect(FUNDING_PAUSED).toBe(true);
-    expect(fundingPaymentError()).not.toBeNull();
+describe("funding policy", () => {
+  it("allows sponsorship payments", () => {
+    expect(SPONSORSHIP_PAUSED).toBe(false);
+    expect(fundingPaymentError()).toBeNull();
   });
-  it("offers no crypto donation addresses while preserving all four wallets for later", () => {
+  it("keeps donations paused and hides all crypto addresses, preserving the four wallets", () => {
+    expect(DONATIONS_PAUSED).toBe(true);
     expect(availableDonationAddresses()).toEqual([]);
     expect(DONATION_ADDRESSES).toHaveLength(4);
   });
-  it("states the legal hold in plain words: on hold, due diligence, still free", () => {
-    const statement = legalHoldStatement();
-    expect(statement).toContain("donations and sponsorships are on hold");
-    expect(statement).toContain("legal due diligence process");
-    expect(statement).toContain("completely free");
+  it("notice says donations paused, sponsorship and licensing open", () => {
+    const s = legalHoldStatement();
+    expect(s).toContain("Donations are temporarily paused");
+    expect(s).toContain("Sponsorship and licensing are open");
   });
 });

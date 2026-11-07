@@ -1,6 +1,6 @@
 // Pure rules for stream footage: only open-licence or public-domain clips, never news-outlet footage,
 // and never a substitute clip when nothing matches the segment.
-import { FUNDING_PAUSED } from "./funding-policy";
+import { DONATIONS_PAUSED as FUNDING_PAUSED } from "./funding-policy";
 
 export const ALLOWED_LICENCES = ["Public domain", "Public domain (US Government)", "CC0", "CC BY 2.0", "CC BY 3.0", "CC BY 4.0", "CC BY-SA 2.0", "CC BY-SA 3.0", "CC BY-SA 4.0", "OGL v3.0", "Open Parliament Licence v3.0"] as const;
 export type ClipLicence = (typeof ALLOWED_LICENCES)[number] | "Licensed news (paid)";

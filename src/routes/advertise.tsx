@@ -7,8 +7,7 @@ import { SponsorPlans } from "@/components/sponsor/SponsorPlans";
 import { SponsorPreview } from "@/components/sponsor/SponsorPreview";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { Button } from "@/components/ui/button";
-import { FUNDING_PAUSED } from "@/lib/funding-policy";
-import { FundingLegalNotice } from "@/components/FundingLegalNotice";
+import { SPONSORSHIP_PAUSED as FUNDING_PAUSED } from "@/lib/funding-policy";
 
 
 export const Route = createFileRoute("/advertise")({
@@ -71,7 +70,7 @@ function AdvertisePage() {
           — in clearly labelled places that never touch the numbers.
         </p>
 
-        <FundingLegalNotice className="mt-8" />
+        
         <h2 className="mt-10 text-lg font-semibold">{FUNDING_PAUSED ? "Sponsorship plans — payments paused" : "Choose a plan"}</h2>
 
         <Button asChild variant="outline" className="mt-3"><Link to="/sponsor-dashboard">Manage my sponsorship</Link></Button>

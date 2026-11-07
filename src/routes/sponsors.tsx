@@ -7,7 +7,6 @@ import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibi
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { FundingLegalNotice } from "@/components/FundingLegalNotice";
 
 
 export const Route = createFileRoute("/sponsors")({
@@ -59,7 +58,7 @@ function SponsorsPage() {
         <p className="mt-3 max-w-2xl text-night-muted">
           These businesses and people keep UKStats free, open and ad-free. Sponsors never see or influence any figure.
         </p>
-        <FundingLegalNotice className="mt-5" />
+        
 
         {rows === null ? (
           <p className="mt-8 text-night-muted">Loading…</p>

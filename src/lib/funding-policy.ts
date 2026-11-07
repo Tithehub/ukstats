@@ -1,16 +1,20 @@
-/** Temporary pause; retain checkout, plans and donation configuration for reactivation. */
-export const FUNDING_PAUSED = true;
-export const FUNDING_PAUSE_MESSAGE = "New sponsorship payments and donations are temporarily paused while we await further information from Restore Britain. UKStats remains free to use.";
+/** Sponsorship and licensing are open; donations stay paused. Keep donation configuration for reactivation. */
+export const SPONSORSHIP_PAUSED = false;
+export const DONATIONS_PAUSED = true;
 
-/** Legal statement shown site-wide while funding is on hold. */
-export const LEGAL_HOLD_STATEMENT =
-  "Legal notice: all donations and sponsorships are on hold until the full legal due diligence process is completed. UKStats will remain completely free.";
+export const SPONSORSHIP_PAUSE_MESSAGE = "New sponsorship payments are temporarily paused. UKStats remains free to use.";
+export const DONATIONS_PAUSE_MESSAGE = "Donations are temporarily paused. UKStats remains free to use.";
 
-/** Returns the legal statement only while funding is on hold, so reactivation is one flag. */
+/** Short notice shown wherever donations are mentioned. */
+export const DONATIONS_NOTICE =
+  "Donations are temporarily paused. Sponsorship and licensing are open. UKStats stays free to use.";
+
+/** Returns the donations notice only while donations are paused. */
 export function legalHoldStatement(): string | null {
-  return FUNDING_PAUSED ? LEGAL_HOLD_STATEMENT : null;
+  return DONATIONS_PAUSED ? DONATIONS_NOTICE : null;
 }
 
+/** Error returned by sponsor checkout when sponsorship is paused. */
 export function fundingPaymentError(): string | null {
-  return FUNDING_PAUSED ? FUNDING_PAUSE_MESSAGE : null;
+  return SPONSORSHIP_PAUSED ? SPONSORSHIP_PAUSE_MESSAGE : null;
 }
