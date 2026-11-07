@@ -5,6 +5,17 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { COUNTRIES } from "@/lib/countries";
+import shotStream from "@/assets/rent/rent-stream.jpg";
+import shotWidget from "@/assets/rent/rent-widget.jpg";
+import shotDashboard from "@/assets/rent/rent-dashboard.jpg";
+import shotWatch from "@/assets/rent/rent-watch.jpg";
+
+const SHOTS = [
+  { src: shotStream, title: "Branded live stream", caption: "Your logo and presenter, official figures at 1920×1080", alt: "Branded UKStats live stream with Top 6 panel, warnings and camera window" },
+  { src: shotWidget, title: "Embeddable widget", caption: "Live official alerts for your own website", alt: "UKStats widget builder showing official alert cards" },
+  { src: shotDashboard, title: "Stream dashboard", caption: "Name, brand, countries, presenter and your OBS link", alt: "Rent UKStats stream dashboard with live preview" },
+  { src: shotWatch, title: "Public watch page", caption: "A shareable page for your viewers", alt: "Public watch page for a branded UKStats channel" },
+];
 
 const REST = new Set(["United States", "Canada", "Australia", "New Zealand", "Japan"]);
 import {
@@ -91,7 +102,19 @@ function RentPage() {
           Your logo, your colours, your layout and your countries. The figures, sources and dates stay exactly as published — you can brand the stats, never change them. Everything on ukstats.co.uk stays free.
         </p>
         <div className="mt-5 flex flex-wrap gap-3"><Link to="/rent/dashboard" className="inline-flex items-center rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">Set up your stream</Link><span className="self-center text-sm text-muted-foreground">Sign in, brand your channel and get your OBS link.</span><Link to="/reports" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Daily PDF reports from £1</Link></div>
-        
+
+        <section aria-labelledby="rent-shots" className="mt-10">
+          <h2 id="rent-shots" className="text-2xl font-black">See what you get</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Real screenshots of the service, captured 7 November 2026, showing figures exactly as published.</p>
+          <div className="mt-4 flex snap-x gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible">
+            {SHOTS.map((s) => (
+              <a key={s.title} href={s.src} target="_blank" rel="noreferrer" className="w-72 shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-card lg:w-auto">
+                <img src={s.src} alt={s.alt} loading="lazy" className="aspect-video w-full object-cover object-top" />
+                <span className="block p-3"><span className="block font-bold">{s.title}</span><span className="block text-xs text-muted-foreground">{s.caption}</span></span>
+              </a>
+            ))}
+          </div>
+        </section>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">
