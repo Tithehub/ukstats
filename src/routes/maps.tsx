@@ -78,7 +78,7 @@ function MapsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
         <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-night-muted">Geography</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">UK statistics heat maps</h1>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">UK crime and house price maps by area</h1>
         <p className="mt-3 max-w-2xl text-night-muted">
           Every shaded area shows a figure exactly as its publisher released it. Search a postcode to overlay
           street-level crimes published by Police.uk.
