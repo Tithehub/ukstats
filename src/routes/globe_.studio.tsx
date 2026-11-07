@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { STREAM_DESCRIPTION, STREAM_TITLE, STUDIO_CHECKLIST } from "@/lib/stream-copy";
 
@@ -61,6 +61,7 @@ function StudioPage() {
         <button onClick={() => { setPortrait((v) => !v); requestAnimationFrame(() => { const el = wrap.current; if (el) setScale(el.clientWidth / (el.dataset["portrait"] === "1" ? 1080 : 1920)); }); }} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">{portrait ? "Show landscape 16:9" : "Show portrait 9:16"}</button>
         <button onClick={() => setGuides((g) => !g)} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">{guides ? "Hide" : "Show"} YouTube safe areas</button>
         <a href={portrait ? "/globe/broadcast?layout=portrait" : "/globe/broadcast"} target="_blank" rel="noopener" className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">Open full-size stream page</a>
+        <Link to="/rent/dashboard" className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">Run your own branded stream</Link>
       </div>
     </header>
     {!fits && <p role="alert" className="mb-3 rounded border border-destructive bg-destructive/10 px-3 py-2 text-sm">Something is cut off in the stream's right panel — tell us which segment and we'll shorten it.</p>}
