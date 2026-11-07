@@ -34,6 +34,7 @@ import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as GroomingGangsInquiryRouteImport } from './routes/grooming-gangs-inquiry'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
+import { Route as NewHomeRouteImport } from './routes/new-home'
 import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PartiesRouteImport } from './routes/parties'
@@ -211,6 +212,11 @@ const MapsRoute = MapsRouteImport.update({
 const MyPagesRoute = MyPagesRouteImport.update({
   id: '/my-pages',
   path: '/my-pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewHomeRoute = NewHomeRouteImport.update({
+  id: '/new-home',
+  path: '/new-home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnlineSpeechRoute = OnlineSpeechRouteImport.update({
@@ -509,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
@@ -588,6 +595,7 @@ export interface FileRoutesByTo {
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
@@ -668,6 +676,7 @@ export interface FileRoutesById {
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
   '/maps': typeof MapsRoute
   '/my-pages': typeof MyPagesRoute
+  '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
@@ -750,6 +759,7 @@ export interface FileRouteTypes {
     | '/grooming-gangs-inquiry'
     | '/maps'
     | '/my-pages'
+    | '/new-home'
     | '/online-speech'
     | '/outreach'
     | '/parties'
@@ -829,6 +839,7 @@ export interface FileRouteTypes {
     | '/grooming-gangs-inquiry'
     | '/maps'
     | '/my-pages'
+    | '/new-home'
     | '/online-speech'
     | '/outreach'
     | '/parties'
@@ -908,6 +919,7 @@ export interface FileRouteTypes {
     | '/grooming-gangs-inquiry'
     | '/maps'
     | '/my-pages'
+    | '/new-home'
     | '/online-speech'
     | '/outreach'
     | '/parties'
@@ -989,6 +1001,7 @@ export interface RootRouteChildren {
   GroomingGangsInquiryRoute: typeof GroomingGangsInquiryRoute
   MapsRoute: typeof MapsRoute
   MyPagesRoute: typeof MyPagesRoute
+  NewHomeRoute: typeof NewHomeRoute
   OnlineSpeechRoute: typeof OnlineSpeechRoute
   OutreachRoute: typeof OutreachRoute
   PartiesRoute: typeof PartiesRoute
@@ -1201,6 +1214,13 @@ declare module '@tanstack/react-router' {
       path: '/my-pages'
       fullPath: '/my-pages'
       preLoaderRoute: typeof MyPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/new-home': {
+      id: '/new-home'
+      path: '/new-home'
+      fullPath: '/new-home'
+      preLoaderRoute: typeof NewHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/online-speech': {
@@ -1674,6 +1694,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroomingGangsInquiryRoute: GroomingGangsInquiryRoute,
   MapsRoute: MapsRoute,
   MyPagesRoute: MyPagesRoute,
+  NewHomeRoute: NewHomeRoute,
   OnlineSpeechRoute: OnlineSpeechRoute,
   OutreachRoute: OutreachRoute,
   PartiesRoute: PartiesRoute,
