@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, HeartHandshake } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/restore-britain-logo.png.asset.json";
-import { DONATIONS_PAUSED as FUNDING_PAUSED, DONATIONS_PAUSE_MESSAGE as FUNDING_PAUSE_MESSAGE } from "@/lib/funding-policy";
 import { FundingLegalNotice } from "@/components/FundingLegalNotice";
 import { SLOGAN } from "@/lib/brand";
 
