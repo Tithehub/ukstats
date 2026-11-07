@@ -1,0 +1,327 @@
+// Builds the branded UKStats PDF report from saved official payloads.
+// Every value printed is copied verbatim from a publisher payload; a missing
+// figure prints "Not published". Nothing here estimates, rounds or fills gaps.
+import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import qrcode from "qrcode-generator";
+import type { Metric } from "@/lib/uk-stats";
+import { CATEGORIES } from "@/lib/uk-stats";
+import { fmtWorld, rankIndicator, WORLD_INDICATORS, WORLD_SOURCE, type WorldPayload } from "@/lib/world";
+import { windowStart, type ReportEdition, type ReportKind } from "@/lib/reports";
+
+export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array }
+export interface ReportInput {
+  edition: ReportEdition;
+  kind: ReportKind;
+  date: string; // London date YYYY-MM-DD
+  metrics: Metric[];
+  ukSavedAt: string | null;
+  world: WorldPayload | null;
+  fonts: ReportFonts;
+}
+
+const W = 595.28, H = 841.89, M = 40;
+const NAVY = rgb(5 / 255, 29 / 255, 63 / 255);
+const NAVY2 = rgb(14 / 255, 46 / 255, 92 / 255);
+const BLUE = rgb(0.02, 0.42, 1);
+const INK = rgb(0.07, 0.09, 0.13);
+const MUTED = rgb(0.38, 0.42, 0.48);
+const LINE = rgb(0.86, 0.88, 0.91);
+const PALE = rgb(0.95, 0.96, 0.98);
+const WHITE = rgb(1, 1, 1);
+const RED = rgb(0.82, 0.1, 0.12);
+const YELLOW = rgb(1, 0.8, 0.1);
+
+const HEADLINE_IDS = ["uk-national-debt", "uk-small-boats-week", "uk-irregular-migration", "uk-cpi", "uk-unemployment", "uk-threat-level", "uk-metoffice-warnings", "uk-flood-warnings"];
+const TOP5 = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL.GD.ZS", "SP.POP.TOTL"];
+
+export function longDate(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+}
+const shortDate = (iso: string | null | undefined) => (iso ? longDate(iso) : "—");
+
+export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8Array; pages: number }> {
+  const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
+  const F = {
+    r: await doc.embedFont(input.fonts.regular, { subset: true }),
+    b: await doc.embedFont(input.fonts.bold, { subset: true }),
+    k: await doc.embedFont(input.fonts.black, { subset: true }),
+    m: await doc.embedFont(input.fonts.mono, { subset: true }),
+    mb: await doc.embedFont(input.fonts.monoBold, { subset: true }),
+  };
+  const charsets = new Map<PDFFont, Set<number>>();
+  const safe = (f: PDFFont, s: string) => {
+    let set = charsets.get(f);
+    if (!set) { set = new Set(f.getCharacterSet()); charsets.set(f, set); }
+    const map: Record<string, string> = { "₂": "2", "–": "-", "—": "-", "’": "'", "‘": "'", "“": '"', "”": '"', "…": "...", "·": "|", "≈": "~" };
+    return Array.from(s.replace(/\s+/g, " ")).map((c) => (set!.has(c.codePointAt(0)!) ? c : map[c] && set!.has(map[c]!.codePointAt(0)!) ? map[c] : map[c] ?? "")).join("");
+  };
+  const width = (f: PDFFont, s: string, size: number) => f.widthOfTextAtSize(safe(f, s), size);
+  const wrap = (f: PDFFont, s: string, size: number, max: number): string[] => {
+    const words = safe(f, s).split(" ");
+    const lines: string[] = [];
+    let cur = "";
+    for (const w of words) {
+      const next = cur ? `${cur} ${w}` : w;
+      if (f.widthOfTextAtSize(next, size) <= max || !cur) cur = next;
+      else { lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+    // Hard-break any single word still wider than the column.
+    return lines.flatMap((l) => {
+      if (f.widthOfTextAtSize(l, size) <= max) return [l];
+      const out: string[] = []; let c = "";
+      for (const ch of l) { if (f.widthOfTextAtSize(c + ch, size) > max && c) { out.push(c); c = ch; } else c += ch; }
+      return c ? [...out, c] : out;
+    });
+  };
+  const text = (p: PDFPage, s: string, x: number, y: number, f: PDFFont, size: number, color = INK) =>
+    p.drawText(safe(f, s), { x, y, size, font: f, color });
+  const fit = (f: PDFFont, s: string, size: number, max: number) => {
+    let t = safe(f, s);
+    if (f.widthOfTextAtSize(t, size) <= max) return t;
+    while (t.length > 1 && f.widthOfTextAtSize(`${t}...`, size) > max) t = t.slice(0, -1);
+    return `${t.trimEnd()}...`;
+  };
+
+  const editionName = input.edition === "uk" ? "UK" : "Global";
+  const kindName = input.kind === "daily" ? "Daily" : input.kind === "weekly" ? "Weekly" : "Monthly";
+  const title = `${kindName} ${editionName} Report`;
+  const dateLong = longDate(input.date);
+
+  const logo = (p: PDFPage, x: number, y: number, s: number, light: boolean) => {
+    // UKStats bar mark drawn as vectors so it stays sharp at any size.
+    const bars = [[0.18, 0.34, 0.5], [0.42, 0.58, 0.64], [0.66, 0.82, 0.78]];
+    bars.forEach(([a, b, h], i) => p.drawRectangle({ x: x + a! * s, y, width: (b! - a!) * s, height: h! * s, color: i === 2 ? BLUE : light ? WHITE : NAVY }));
+  };
+
+  // ---------- Cover ----------
+  const cover = doc.addPage([W, H]);
+  cover.drawRectangle({ x: 0, y: 0, width: W, height: H, color: NAVY });
+  cover.drawRectangle({ x: 0, y: H - 8, width: W, height: 8, color: RED });
+  cover.drawRectangle({ x: 0, y: H - 12, width: W, height: 4, color: WHITE });
+  logo(cover, M, H - 120, 60, true);
+  text(cover, "UKSTATS", M + 70, H - 102, F.k, 30, WHITE);
+  text(cover, "ukstats.co.uk", M + 72, H - 118, F.m, 10, rgb(0.7, 0.78, 0.9));
+  text(cover, "OFFICIAL FIGURES ONLY", M, H - 260, F.mb, 11, YELLOW);
+  const tl = wrap(F.k, title.toUpperCase(), 46, W - 2 * M);
+  tl.forEach((l, i) => text(cover, l, M, H - 310 - i * 50, F.k, 46, WHITE));
+  const yDate = H - 310 - tl.length * 50 - 10;
+  text(cover, dateLong, M, yDate, F.b, 22, WHITE);
+  cover.drawRectangle({ x: M, y: yDate - 24, width: 80, height: 4, color: BLUE });
+  const intro = input.kind === "daily"
+    ? "Every figure in this report is copied exactly as an official publisher released it, with its source, the period it covers, when it was published and when the next release is due."
+    : `Figures published since ${longDate(windowStart(input.date, input.kind))}, plus the full register as it stands. Every figure is copied exactly as an official publisher released it.`;
+  wrap(F.r, intro, 12, 360).forEach((l, i) => text(cover, l, M, yDate - 56 - i * 17, F.r, 12, rgb(0.85, 0.89, 0.95)));
+  // Cover stats strip
+  const ok = input.metrics.filter((m) => m.value != null).length;
+  const strip = [
+    [String(ok), "official figures"],
+    [String(new Set(input.metrics.map((m) => m.source)).size), "publishers"],
+    [input.edition === "global" && input.world ? String(input.world.countries.length) : "1", input.edition === "global" ? "countries" : "country"],
+  ];
+  strip.forEach(([v, l], i) => {
+    const x = M + i * 150;
+    text(cover, v!, x, 210, F.k, 34, WHITE);
+    text(cover, l!.toUpperCase(), x, 194, F.mb, 8.5, rgb(0.7, 0.78, 0.9));
+  });
+  // QR
+  const qr = qrcode(0, "M");
+  qr.addData("https://ukstats.co.uk/?utm_source=report&utm_medium=pdf");
+  qr.make();
+  const n = qr.getModuleCount(), qs = 96, cell = qs / n, qx = W - M - qs - 12, qy = 80;
+  cover.drawRectangle({ x: qx - 8, y: qy - 8, width: qs + 16, height: qs + 16, color: WHITE });
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) cover.drawRectangle({ x: qx + c * cell, y: qy + (n - 1 - r) * cell, width: cell + 0.2, height: cell + 0.2, color: NAVY });
+  text(cover, "Scan for live figures", qx - 8, qy - 22, F.m, 8, rgb(0.7, 0.78, 0.9));
+  text(cover, "Built by the people, for the people.", M, 110, F.b, 11, WHITE);
+  text(cover, `Compiled ${dateLong}${input.ukSavedAt ? ` from figures saved ${shortDate(input.ukSavedAt)}` : ""}.`, M, 94, F.m, 8, rgb(0.7, 0.78, 0.9));
+  text(cover, "Free statistics stay free at ukstats.co.uk. This PDF is a paid convenience edition.", M, 80, F.m, 8, rgb(0.7, 0.78, 0.9));
+
+  // ---------- Page furniture ----------
+  const pages: PDFPage[] = [];
+  const newPage = (section: string) => {
+    const p = doc.addPage([W, H]);
+    pages.push(p);
+    p.drawRectangle({ x: 0, y: H - 34, width: W, height: 34, color: NAVY });
+    logo(p, M, H - 26, 18, true);
+    text(p, "UKSTATS", M + 22, H - 23, F.k, 11, WHITE);
+    text(p, fit(F.mb, `${title.toUpperCase()}  |  ${dateLong.toUpperCase()}`, 7.5, 300), W - M - width(F.mb, fit(F.mb, `${title.toUpperCase()}  |  ${dateLong.toUpperCase()}`, 7.5, 300), 7.5), H - 21, F.mb, 7.5, rgb(0.75, 0.82, 0.92));
+    text(p, section.toUpperCase(), M, H - 62, F.mb, 8, BLUE);
+    return p;
+  };
+  const sectionTitle = (p: PDFPage, s: string, y: number) => {
+    text(p, s, M, y, F.k, 22, NAVY);
+    p.drawRectangle({ x: M, y: y - 9, width: 40, height: 3, color: RED });
+    return y - 30;
+  };
+
+  // ---------- Headlines ----------
+  const byId = new Map(input.metrics.map((m) => [m.id, m]));
+  let p = newPage("At a glance");
+  let y = sectionTitle(p, "The headline figures", H - 92);
+  const cw = (W - 2 * M - 12) / 2, ch = 118;
+  HEADLINE_IDS.forEach((id, i) => {
+    const m = byId.get(id);
+    const x = M + (i % 2) * (cw + 12), top = y - Math.floor(i / 2) * (ch + 10);
+    const warn = id === "uk-metoffice-warnings" && m?.value ? (/red/i.test(m.value) ? RED : /amber|yellow/i.test(m.value) ? YELLOW : null) : null;
+    p.drawRectangle({ x, y: top - ch, width: cw, height: ch, color: PALE, borderColor: LINE, borderWidth: 0.6 });
+    p.drawRectangle({ x, y: top - ch, width: 4, height: ch, color: warn ?? NAVY });
+    text(p, fit(F.mb, (m?.category ?? "").toUpperCase(), 7, cw - 24), x + 14, top - 16, F.mb, 7, MUTED);
+    wrap(F.b, m?.title ?? id, 10, cw - 28).slice(0, 2).forEach((l, j) => text(p, l, x + 14, top - 30 - j * 12, F.b, 10, INK));
+    const v = m?.value ?? "Not published";
+    text(p, fit(F.k, v, m?.value ? 24 : 16, cw - 28), x + 14, top - 72, F.k, m?.value ? 24 : 16, m?.value ? NAVY : MUTED);
+    const meta = [m?.period, m?.yearAgo ? `Year earlier ${m.yearAgo.value} (${m.yearAgo.period}), ${m.yearAgo.diff}` : null].filter(Boolean).join("  |  ");
+    text(p, fit(F.m, meta, 7, cw - 28), x + 14, top - 88, F.m, 7, INK);
+    text(p, fit(F.m, `${m?.source ?? "Source"}  |  published ${shortDate(m?.asOf)}`, 6.5, cw - 28), x + 14, top - 100, F.m, 6.5, MUTED);
+    text(p, fit(F.m, `Next release: ${m?.nextDue ? shortDate(m.nextDue) : "not announced"}`, 6.5, cw - 28), x + 14, top - 110, F.m, 6.5, MUTED);
+  });
+
+  // ---------- Metric tables ----------
+  const cols = [{ w: 168, h: "Measure" }, { w: 92, h: "Figure" }, { w: 82, h: "Period" }, { w: 70, h: "Published" }, { w: 103, h: "Source  |  next release" }];
+  const tableHeader = (pg: PDFPage, yy: number) => {
+    pg.drawRectangle({ x: M, y: yy - 16, width: W - 2 * M, height: 16, color: NAVY });
+    let x = M + 6;
+    cols.forEach((c) => { text(pg, c.h.toUpperCase(), x, yy - 11, F.mb, 6.5, WHITE); x += c.w; });
+    return yy - 16;
+  };
+  const table = (heading: string, rows: Metric[], label: string) => {
+    if (!rows.length) return;
+    if (y < 160) { p = newPage(label); y = H - 92; }
+    else if (p === pages[pages.length - 1] && y < H - 120) y -= 16;
+    y = sectionTitle(p, heading, y);
+    y = tableHeader(p, y);
+    rows.forEach((m, idx) => {
+      const cells = [
+        wrap(F.b, m.title, 8, cols[0]!.w - 10),
+        wrap(F.k, m.value ?? (m.emptyLabel || "Not published"), m.value ? 9 : 8, cols[1]!.w - 10),
+        wrap(F.r, m.period ?? "—", 7.5, cols[2]!.w - 10),
+        wrap(F.m, shortDate(m.asOf), 7, cols[3]!.w - 8),
+        [...wrap(F.m, m.source, 6.5, cols[4]!.w - 8), ...wrap(F.m, `Next: ${m.nextDue ? shortDate(m.nextDue) : "not announced"}`, 6.5, cols[4]!.w - 8)],
+      ];
+      const yoy = m.yearAgo ? wrap(F.m, `Year earlier: ${m.yearAgo.value} (${m.yearAgo.period}), ${m.yearAgo.diff}`, 6.5, cols[0]!.w - 10) : [];
+      cells[0] = [...cells[0]!, ...yoy];
+      const lines = Math.max(...cells.map((c) => c.length));
+      const rh = Math.max(22, lines * 9.5 + 9);
+      if (y - rh < 60) { p = newPage(label); y = tableHeader(p, H - 80); }
+      if (idx % 2 === 0) p.drawRectangle({ x: M, y: y - rh, width: W - 2 * M, height: rh, color: PALE });
+      let x = M + 6;
+      cells.forEach((c, ci) => {
+        const f = ci === 0 ? F.b : ci === 1 ? F.k : ci === 2 ? F.r : F.m;
+        c.forEach((l, li) => {
+          const isYoy = ci === 0 && li >= cells[0]!.length - yoy.length && yoy.length > 0;
+          const isNext = ci === 4 && l.startsWith("Next:");
+          text(p, l, x, y - 12 - li * 9.5, isYoy ? F.m : f, isYoy || ci === 4 ? 6.5 : ci === 1 ? (m.value ? 9 : 8) : ci === 3 ? 7 : ci === 2 ? 7.5 : 8,
+            ci === 1 && !m.value ? MUTED : isYoy ? BLUE : isNext ? MUTED : INK);
+        });
+        x += cols[ci]!.w;
+      });
+      p.drawLine({ start: { x: M, y: y - rh }, end: { x: W - M, y: y - rh }, thickness: 0.4, color: LINE });
+      y -= rh;
+    });
+  };
+
+  p = newPage("Official register"); y = H - 92;
+  if (input.kind !== "daily") {
+    const from = windowStart(input.date, input.kind);
+    const fresh = input.metrics.filter((m) => m.asOf && m.asOf.slice(0, 10) >= from && m.asOf.slice(0, 10) <= input.date);
+    table(`Published this ${input.kind === "weekly" ? "week" : "month"}`, fresh, "New releases");
+    if (!fresh.length) { text(p, `No figure in the register was published between ${longDate(from)} and ${dateLong}.`, M, y, F.r, 10, MUTED); y -= 30; }
+  }
+  for (const cat of CATEGORIES) table(cat, input.metrics.filter((m) => m.category === cat), cat);
+  const other = input.metrics.filter((m) => !CATEGORIES.includes(m.category));
+  table("Other measures", other, "Other measures");
+
+  // ---------- Global ----------
+  if (input.edition === "global") {
+    const wp = input.world;
+    p = newPage("World"); y = sectionTitle(p, "World rankings", H - 92);
+    if (!wp) {
+      text(p, "World Bank figures were not available when this report was compiled. Not published.", M, y, F.r, 10, MUTED);
+    } else {
+      wrap(F.r, `Top ten countries for each headline measure, from ${WORLD_SOURCE.name}. Figures more than three years behind the newest filing are not ranked.`, 9, W - 2 * M).forEach((l) => { text(p, l, M, y, F.r, 9, MUTED); y -= 13; });
+      y -= 6;
+      const inds = TOP5.map((id) => WORLD_INDICATORS.find((i) => i.id === id)!).filter(Boolean);
+      const boxW = (W - 2 * M - 12) / 2;
+      inds.forEach((ind, i) => {
+        const rows = rankIndicator(wp, ind).filter((r) => r.rank != null).slice(0, 10);
+        const bh = 34 + 10 * 13;
+        const col = i % 2, x = M + col * (boxW + 12);
+        if (col === 0 && i > 0) y -= bh + 12;
+        if (y - bh < 60) { p = newPage("World"); y = H - 92; }
+        p.drawRectangle({ x, y: y - bh, width: boxW, height: bh, color: PALE, borderColor: LINE, borderWidth: 0.6 });
+        text(p, fit(F.b, ind.label, 10, boxW - 20), x + 10, y - 16, F.b, 10, NAVY);
+        rows.forEach((r, j) => {
+          const yy = y - 32 - j * 13;
+          text(p, String(r.rank).padStart(2, " "), x + 10, yy, F.mb, 7.5, BLUE);
+          text(p, fit(F.r, r.country.name, 8, boxW - 120), x + 28, yy, F.r, 8, INK);
+          const v = `${fmtWorld(r.value, ind.unit)} (${r.year})`;
+          text(p, v, x + boxW - 10 - width(F.m, v, 7.5), yy, F.m, 7.5, INK);
+        });
+      });
+      // Country directory
+      p = newPage("Country by country"); y = sectionTitle(p, "Five main figures, every country", H - 92);
+      const dc = [{ w: 135, h: "Country" }, ...inds.map((i) => ({ w: (W - 2 * M - 135) / inds.length, h: i.label.replace(/ \(.*\)/, "") }))];
+      const head = (pg: PDFPage, yy: number) => {
+        pg.drawRectangle({ x: M, y: yy - 18, width: W - 2 * M, height: 18, color: NAVY });
+        let x = M + 6; dc.forEach((c) => { text(pg, fit(F.mb, c.h.toUpperCase(), 6, c.w - 6), x, yy - 12, F.mb, 6, WHITE); x += c.w; });
+        return yy - 18;
+      };
+      y = head(p, y);
+      [...wp.countries].sort((a, b) => a.name.localeCompare(b.name)).forEach((c, idx) => {
+        if (y - 15 < 60) { p = newPage("Country by country"); y = head(p, H - 80); }
+        if (idx % 2 === 0) p.drawRectangle({ x: M, y: y - 15, width: W - 2 * M, height: 15, color: PALE });
+        let x = M + 6;
+        text(p, fit(F.b, c.name, 7.5, dc[0]!.w - 8), x, y - 10.5, F.b, 7.5, INK); x += dc[0]!.w;
+        inds.forEach((ind, k) => {
+          const v = wp.values[ind.id]?.[c.iso3];
+          text(p, v ? `${fmtWorld(v.value, ind.unit)} '${String(v.year).slice(2)}` : "Not published", x, y - 10.5, F.m, 7, v ? INK : MUTED);
+          x += dc[k + 1]!.w;
+        });
+        y -= 15;
+      });
+    }
+  }
+
+  // ---------- Sources ----------
+  p = newPage("Sources"); y = sectionTitle(p, "Sources and method", H - 92);
+  const method = [
+    "UKStats copies each figure exactly as the official publisher released it. Nothing is estimated, interpolated, rounded or re-based.",
+    "Where a publisher has not released a figure, or has no machine-readable feed, this report prints \"Not published\" instead of a number.",
+    "Year-on-year comparisons appear only where the same publisher series gives the same period one year earlier.",
+    "Weather and terrorism warnings are the issuing body's own levels. News headlines are not included in this report.",
+  ];
+  method.forEach((s) => { wrap(F.r, s, 9, W - 2 * M - 14).forEach((l, i) => { if (i === 0) p.drawCircle({ x: M + 3, y: y + 3, size: 1.6, color: RED }); text(p, l, M + 12, y, F.r, 9, INK); y -= 13; }); y -= 4; });
+  y -= 10;
+  const sources = new Map<string, string>();
+  input.metrics.forEach((m) => { if (!sources.has(m.source)) sources.set(m.source, m.sourceUrl); });
+  if (input.edition === "global") sources.set(WORLD_SOURCE.name, WORLD_SOURCE.url);
+  for (const [name, url] of [...sources].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const nl = wrap(F.b, name, 8.5, 200), ul = wrap(F.m, url, 7, W - 2 * M - 220);
+    const rh = Math.max(nl.length * 11, ul.length * 9) + 6;
+    if (y - rh < 60) { p = newPage("Sources"); y = H - 92; }
+    nl.forEach((l, i) => text(p, l, M, y - i * 11, F.b, 8.5, INK));
+    ul.forEach((l, i) => text(p, l, M + 220, y - i * 9, F.m, 7, BLUE));
+    y -= rh;
+    p.drawLine({ start: { x: M, y: y + 3 }, end: { x: W - M, y: y + 3 }, thickness: 0.3, color: LINE });
+  }
+
+  // ---------- Footers ----------
+  const total = pages.length + 1;
+  pages.forEach((pg, i) => {
+    pg.drawLine({ start: { x: M, y: 40 }, end: { x: W - M, y: 40 }, thickness: 0.5, color: LINE });
+    text(pg, "UKStats  |  ukstats.co.uk  |  Official figures only, nothing estimated", M, 26, F.m, 7, MUTED);
+    const pn = `Page ${i + 2} of ${total}`;
+    text(pg, pn, W - M - width(F.mb, pn, 7), 26, F.mb, 7, NAVY);
+  });
+  void NAVY2;
+
+  doc.setTitle(`UKStats ${title} — ${dateLong}`);
+  doc.setAuthor("UKStats");
+  doc.setSubject("Official statistics, every figure sourced and dated");
+  doc.setCreator("ukstats.co.uk");
+  doc.setProducer("UKStats");
+  return { bytes: await doc.save(), pages: total };
+}
