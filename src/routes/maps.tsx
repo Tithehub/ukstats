@@ -13,13 +13,13 @@ const StatsMap = lazy(() => import("@/components/maps/StatsMap"));
 export const Route = createFileRoute("/maps")({
   head: () => ({
     meta: [
-      { title: "UK statistics heat maps — crime, house prices by area" },
+      { title: "UK crime and house price maps by area — official data" },
       {
         name: "description",
         content:
           "Interactive heat maps of official UK statistics: recorded crime rates by police force area, regional house prices, and street-level Police.uk crime by postcode.",
       },
-      { property: "og:title", content: "UK statistics heat maps" },
+      { property: "og:title", content: "UK crime and house price maps by area" },
       {
         property: "og:description",
         content: "Recorded crime by police force area, regional house prices and street-level Police.uk crime.",

@@ -19,7 +19,9 @@ export const Route = createFileRoute("/history/$metricId")({
       return { meta: [{ title: "Series unavailable — UKStats" }, { name: "robots", content: "noindex" }] };
     }
     const title = `${loaderData.title} by year — full official UK history`;
-    const description = `Every published observation of ${loaderData.title.toLowerCase()} from ${
+    const last = loaderData.points[loaderData.points.length - 1];
+    const lead = last?.formatted ? `Latest official figure: ${last.formatted} (${last.label}). ` : "";
+    const description = `${lead}Every published observation of ${loaderData.title.toLowerCase()} from ${
       loaderData.points[0]?.label ?? "the first release"
     } to ${loaderData.points[loaderData.points.length - 1]?.label ?? "today"}, straight from ${loaderData.source}.`;
     return {
