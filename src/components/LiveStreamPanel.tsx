@@ -15,6 +15,22 @@ export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolea
       .then((r) => { if (alive) setState(r.ok ? "on" : "blocked"); });
     return () => { alive = false; };
   }, []);
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [muted, setMuted] = useState(true);
+  const send = (func: string) => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args: [] }), "*");
+  useEffect(() => {
+    if (state !== "on") return;
+    const on = (e: MessageEvent) => {
+      if (!/youtube(-nocookie)?\.com$/.test(new URL(e.origin).hostname)) return;
+      try {
+        const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+        if (d?.info && typeof d.info.muted === "boolean") setMuted(d.info.muted);
+      } catch { /* ignore */ }
+    };
+    addEventListener("message", on);
+    const t = setInterval(() => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "listening", id: "ukstats-live" }), "*"), 1000);
+    return () => { removeEventListener("message", on); clearInterval(t); };
+  }, [state]);
   return (
     <section aria-label="UKStats Live" className="mt-5 grid gap-4 rounded-lg border border-border bg-card p-4 md:grid-cols-[2fr_1fr]">
       <div className="relative aspect-video overflow-hidden rounded-md bg-muted">
@@ -26,13 +42,22 @@ export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolea
             </span>
           </a>
         ) : state === "on" ? (
-          <iframe
-            className="absolute inset-0 h-full w-full"
-            src={`https://www.youtube-nocookie.com/embed/${LIVE_STREAM_ID}?autoplay=1&mute=1&playsinline=1`}
-            title="UKStats Live stream"
-            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
-          />
+          <>
+            <iframe
+              ref={frame}
+              className="absolute inset-0 h-full w-full"
+              src={`https://www.youtube-nocookie.com/embed/${LIVE_STREAM_ID}?autoplay=1&mute=0&playsinline=1&enablejsapi=1`}
+              title="UKStats Live stream"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+            {muted && (
+              <button type="button" onClick={() => { send("unMute"); send("playVideo"); setMuted(false); }}
+                className="absolute left-3 top-3 inline-flex min-h-11 items-center gap-2 rounded-md bg-destructive px-4 font-bold text-destructive-foreground shadow-lg">
+                <Volume2 className="h-5 w-5" /> Tap for sound
+              </button>
+            )}
+          </>
         ) : (
           <span className="absolute inset-0 grid place-items-center bg-primary text-2xl font-black tracking-wide text-primary-foreground">UKSTATS LIVE</span>
         )}
