@@ -93,6 +93,7 @@ import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.hi
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicEducationTickRouteImport } from './routes/api/public/education-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as ApiPublicPlacesTickRouteImport } from './routes/api/public/places-tick'
 import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
 import { Route as EducationSchoolsIndexRouteImport } from './routes/education.schools.index'
 import { Route as EducationSchoolsUrnRouteImport } from './routes/education.schools.$urn'
@@ -526,6 +527,11 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   path: '/public/outreach-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicPlacesTickRoute = ApiPublicPlacesTickRouteImport.update({
+  id: '/public/places-tick',
+  path: '/public/places-tick',
+  getParentRoute: () => ApiRoute,
+} as any)
 const ApiPublicReportsTickRoute = ApiPublicReportsTickRouteImport.update({
   id: '/public/reports-tick',
   path: '/public/reports-tick',
@@ -670,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
@@ -765,6 +772,7 @@ export interface FileRoutesByTo {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
@@ -863,6 +871,7 @@ export interface FileRoutesById {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
@@ -962,6 +971,7 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/places-tick'
     | '/api/public/reports-tick'
     | '/education/schools/$urn'
     | '/s/$slug/broadcast'
@@ -1057,6 +1067,7 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/places-tick'
     | '/api/public/reports-tick'
     | '/education/schools/$urn'
     | '/s/$slug/broadcast'
@@ -1154,6 +1165,7 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/places-tick'
     | '/api/public/reports-tick'
     | '/education/schools/$urn'
     | '/s/$slug_/broadcast'
@@ -1833,6 +1845,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/places-tick': {
+      id: '/api/public/places-tick'
+      path: '/public/places-tick'
+      fullPath: '/api/public/places-tick'
+      preLoaderRoute: typeof ApiPublicPlacesTickRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/api/public/reports-tick': {
       id: '/api/public/reports-tick'
       path: '/public/reports-tick'
@@ -1942,6 +1961,7 @@ interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicEducationTickRoute: typeof ApiPublicEducationTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
+  ApiPublicPlacesTickRoute: typeof ApiPublicPlacesTickRoute
   ApiPublicReportsTickRoute: typeof ApiPublicReportsTickRoute
   ApiPublicOgKeyRoute: typeof ApiPublicOgKeyRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1955,6 +1975,7 @@ const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicEducationTickRoute: ApiPublicEducationTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
+  ApiPublicPlacesTickRoute: ApiPublicPlacesTickRoute,
   ApiPublicReportsTickRoute: ApiPublicReportsTickRoute,
   ApiPublicOgKeyRoute: ApiPublicOgKeyRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
