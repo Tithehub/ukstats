@@ -43,7 +43,7 @@ function Score({ v }: { v: number | null | undefined }) {
 
 function TopList({ title, icon, rows }: { title: string; icon: React.ReactNode; rows: Place[] }) {
   return (
-    <section className="rounded-lg border border-night-border bg-night-card p-4">
+    <section className="rounded-lg border border-night-line bg-night-panel p-4">
       <h2 className="flex items-center gap-2 text-lg font-semibold">{icon}{title}</h2>
       <ol className="mt-3 space-y-1.5">
         {rows.map((p, i) => (
@@ -88,8 +88,8 @@ function Page() {
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <TopList title="Top 10 happiest" icon={<Smile className="size-5 text-status-fresh" aria-hidden="true" />} rows={happiest} />
-          <TopList title="Top 10 saddest (lowest happiness)" icon={<Frown className="size-5 text-status-overdue" aria-hidden="true" />} rows={saddest} />
+          <TopList title="Top 10 happiest" icon={<Smile className="size-5 text-fresh" aria-hidden="true" />} rows={happiest} />
+          <TopList title="Top 10 saddest (lowest happiness)" icon={<Frown className="size-5 text-overdue" aria-hidden="true" />} rows={saddest} />
         </div>
 
         <section className="mt-8">
@@ -99,9 +99,9 @@ function Page() {
             <Button size="sm" variant={!search.nation ? "default" : "outline"} onClick={() => set({ nation: undefined })}>All UK</Button>
             {NATIONS.map((n) => <Button key={n} size="sm" variant={search.nation === n ? "default" : "outline"} onClick={() => set({ nation: n })}>{n}</Button>)}
           </div>
-          <div className="mt-4 overflow-x-auto rounded-lg border border-night-border">
+          <div className="mt-4 overflow-x-auto rounded-lg border border-night-line">
             <table className="w-full text-sm">
-              <thead className="bg-night-card text-left">
+              <thead className="bg-night-panel text-left">
                 <tr>
                   <th className="p-2">#</th><th className="p-2">Area</th>
                   {WELLBEING_MEASURES.map((m) => (
@@ -113,7 +113,7 @@ function Page() {
               </thead>
               <tbody>
                 {[...ranked, ...unranked].map((p, i) => (
-                  <tr key={p.code} className="border-t border-night-border">
+                  <tr key={p.code} className="border-t border-night-line">
                     <td className="p-2 font-mono text-night-muted">{i < ranked.length ? i + 1 : "—"}</td>
                     <td className="p-2">{p.name} <span className="text-xs text-night-muted">· {p.nation}</span></td>
                     {WELLBEING_MEASURES.map((m) => <td key={m.key} className="p-2"><Score v={p.wellbeing?.[m.key]} /></td>)}

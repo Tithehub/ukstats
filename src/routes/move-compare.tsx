@@ -66,7 +66,7 @@ function Page() {
   const select = (label: string, value: string | undefined, key: "from" | "to") => (
     <label className="flex flex-col gap-1 text-sm">
       <span className="font-mono text-[11px] uppercase tracking-wide text-night-muted">{label}</span>
-      <select className="h-10 rounded-md border border-night-border bg-night-card px-2" value={value ?? ""} onChange={(e) => set({ [key]: e.target.value || undefined })}>
+      <select className="h-10 rounded-md border border-night-line bg-night-panel px-2" value={value ?? ""} onChange={(e) => set({ [key]: e.target.value || undefined })}>
         <option value="">Choose a place…</option>
         {data.places.map((p) => <option key={p.code} value={p.code}>{p.name} ({p.nation})</option>)}
       </select>
@@ -79,8 +79,8 @@ function Page() {
       <UkTopicNav />
       <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <h1 className="text-3xl font-semibold">Thinking of moving? Compare two places</h1>
-        <div role="note" className="mt-4 flex gap-2 rounded-lg border-2 border-status-ageing bg-status-ageing/10 p-3 text-sm">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-status-ageing" aria-hidden="true" />
+        <div role="note" className="mt-4 flex gap-2 rounded-lg border-2 border-ageing bg-ageing/10 p-3 text-sm">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ageing" aria-hidden="true" />
           <p><strong>Unofficial tool, for testing purposes only.</strong> The score is UKStats' own weighting of official figures — it is not an official statistic and not advice. Every figure behind it is shown with its source.</p>
         </div>
 
@@ -90,7 +90,7 @@ function Page() {
           {select("Moving to", s.to, "to")}
         </section>
 
-        <section className="mt-6 rounded-lg border border-night-border bg-night-card p-4">
+        <section className="mt-6 rounded-lg border border-night-line bg-night-panel p-4">
           <h2 className="font-semibold">Who is moving?</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {HOUSEHOLDS.map((x) => <Button key={x.key} size="sm" variant={h === x.key ? "default" : "outline"} aria-pressed={h === x.key} onClick={() => set({ h: x.key, w: undefined })}>{x.label}</Button>)}
@@ -111,7 +111,7 @@ function Page() {
           <section className="mt-6" aria-live="polite">
             <div className="grid gap-4 md:grid-cols-2">
               {[{ p: from, r: result.from, t: "From" }, { p: to, r: result.to, t: "To" }].map(({ p, r, t }) => (
-                <div key={t} className="rounded-lg border border-night-border bg-night-card p-4">
+                <div key={t} className="rounded-lg border border-night-line bg-night-panel p-4">
                   <p className="font-mono text-[11px] uppercase text-night-muted">{t}</p>
                   <h3 className="text-xl font-semibold">{p.name} <span className="text-sm text-night-muted">· {p.nation}</span></h3>
                   <p className="mt-2 text-4xl font-bold">{r.score ?? "—"}<span className="text-base font-normal text-night-muted"> / 100</span></p>
@@ -122,7 +122,7 @@ function Page() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 rounded-lg border border-night-border p-4">
+            <div className="mt-4 rounded-lg border border-night-line p-4">
               <h3 className="font-semibold">Moving to {to.name}, factor by factor</h3>
               <ul className="mt-2 grid gap-1 text-sm sm:grid-cols-2">
                 {FACTORS.map((f) => <li key={f.key}><strong>{f.label}:</strong> {result.verdicts[f.key]}</li>)}
