@@ -33,6 +33,7 @@ import { btn, iconBtn } from "@/lib/ui";
 import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from '@/components/ui/button';
 import { currentBrand } from "@/lib/brand-host";
+import { SiteSearch } from "./SiteSearch";
 
 interface NavItem {
   wide?: boolean;
@@ -41,73 +42,88 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-/** Grouped so the drawer reads by theme rather than as one long list. */
-const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
+/** Grouped by theme so the drawer reads as five short lists rather than one long one. */
+export const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
   {
-    name: "Explore statistics",
+    name: "UK statistics",
     items: [
       { to: "/", label: "Home — live statistics & globe", icon: Home },
-      { to: "/register", label: "UK statistics", icon: Table2 },
-      { to: "/maps", label: "Maps", icon: MapIcon },
+      { to: "/register", label: "All UK statistics", icon: Table2 },
       { to: "/small-boats", label: "Small boats since 2018", icon: Table2 },
-      { to: "/grooming-gangs-inquiry", label: "Grooming gangs inquiry", icon: FileText },
-      { to: "/scandals", label: "Scandals — official records", icon: FileText },
+      { to: "/safest-places", label: "City crime rankings", icon: MapIcon },
       { to: "/education", label: "Education — schools, Ofsted & universities", icon: FileText },
       { to: "/spending", label: "Public spending & FOI", icon: Banknote },
-      { to: "/safest-places", label: "City crime rankings", icon: MapIcon },
       { to: "/happiest-places", label: "Happiest & saddest places", icon: MapIcon },
       { to: "/move-compare", label: "Thinking of moving? (unofficial)", icon: MapIcon },
-      { to: "/citizen-journalists", label: "Citizen journalists", icon: FileText },
-      { to: "/politics-explained", label: "Politics explained — terms A–Z", icon: FileText },
-      { to: "/world", label: "World rankings (200+ countries)", icon: Globe2 },
-      { to: "/countries", label: "Countries", icon: MapIcon },
-      { to: "/gold", label: "Gold reserves", icon: Banknote },
-      { to: "/sources", label: "Official sources", icon: Table2 },
-      { to: "/global", label: "Rest of the world", icon: MapIcon },
+      { to: "/maps", label: "Maps", icon: MapIcon },
       { to: "/daily", label: "Daily statement", icon: CalendarDays },
-      { to: "/compare", label: "Compare figures", icon: GitCompareArrows },
-      { to: "/calendar", label: "Release calendar", icon: CalendarDays },
-      { to: "/status", label: "Source availability", icon: Activity },
+      { to: "/preparedness", label: "Emergency preparedness", icon: LifeBuoy },
     ],
   },
   {
-    name: "Understand the numbers",
+    name: "World",
     items: [
+      { to: "/globe", label: "World globe — unrest warnings", icon: Globe2 },
+      { to: "/world", label: "World rankings (200+ countries)", icon: Globe2 },
+      { to: "/countries", label: "Country registers", icon: MapIcon },
+      { to: "/compare-countries", label: "Compare countries", icon: GitCompareArrows },
+      { to: "/global", label: "Rest of the world", icon: MapIcon },
+      { to: "/gold", label: "Gold reserves", icon: Banknote },
+    ],
+  },
+  {
+    name: "Investigations",
+    items: [
+      { to: "/scandals", label: "Scandals — official records", icon: FileText },
+      { to: "/grooming-gangs-inquiry", label: "Grooming gangs inquiry", icon: FileText },
+      { to: "/citizen-journalists", label: "Citizen journalists", icon: FileText },
+      { to: "/restore-britain", label: "Restore Britain videos & stories", icon: FileText },
+    ],
+  },
+  {
+    name: "Learn",
+    items: [
+      { to: "/politics-explained", label: "Politics explained — terms A–Z", icon: FileText },
       { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
       { to: "/foreign-aid", label: "Foreign aid", icon: Plane },
       { to: "/polling", label: "Polling", icon: Vote },
       { to: "/parties", label: "Political party comparison", icon: Vote },
       { to: "/governments", label: "Governments", icon: LayoutGrid },
-      { to: "/restore-britain", label: "Restore Britain videos & stories", icon: FileText },
-      { to: "/preparedness", label: "Emergency Preparedness", icon: LifeBuoy },
-      { to: "/globe", label: "World globe — unrest warnings", icon: LayoutGrid },
+      { to: "/compare", label: "Compare figures", icon: GitCompareArrows },
+      { to: "/sources", label: "Official sources", icon: Table2 },
+      { to: "/calendar", label: "Release calendar", icon: CalendarDays },
+      { to: "/status", label: "Source availability", icon: Activity },
     ],
   },
   {
-    name: "Use & share",
+    name: "Services",
     items: [
-      { to: "/widget", label: "Widgets", icon: LayoutGrid },
-      { to: "/create", label: "Create a live page", icon: PlusCircle },
-      { to: "/my-pages", label: "My pages", icon: FileText },
-      { to: "/outreach", label: "Outreach", icon: Bot },
-      { to: "/connections", label: "Connect socials", icon: Plug },
-      ...(CHAT_ENABLED ? [{ to: "/chat", label: "Live chat", icon: Bot } as const] : []),
-      { to: "/support", label: "Support", icon: LifeBuoy },
+      { to: "/reports", label: "Daily PDF reports", icon: FileText },
+      { to: "/widget", label: "Widgets — embed figures", icon: LayoutGrid },
+      { to: "/rent", label: "Rent UKStats (your brand)", icon: PlusCircle },
       { to: "/sponsors", label: "Our sponsors", icon: LifeBuoy },
       { to: "/business-directory", label: "Business directory", icon: LifeBuoy },
-      { to: "/reports", label: "Daily PDF reports", icon: FileText },
-      { to: "/rent", label: "Rent UKStats (your brand)", icon: PlusCircle },
-      { to: "/rent/dashboard", label: "My branded stream", icon: FileText },
-      { to: "/sponsor-dashboard", label: "My sponsorship", icon: FileText },
+      ...(CHAT_ENABLED ? [{ to: "/chat", label: "Live chat", icon: Bot } as const] : []),
+      { to: "/support", label: "Support", icon: LifeBuoy },
     ],
   },
+];
+
+/** Only shown to signed-in visitors — these pages need an account. */
+const ACCOUNT_ITEMS: NavItem[] = [
+  { to: "/create", label: "Create a live page", icon: PlusCircle },
+  { to: "/my-pages", label: "My pages", icon: FileText },
+  { to: "/rent/dashboard", label: "My branded stream", icon: FileText },
+  { to: "/sponsor-dashboard", label: "My sponsorship", icon: FileText },
+  { to: "/connections", label: "Connect socials", icon: Plug },
+  { to: "/outreach", label: "Outreach", icon: Bot },
 ];
 
 /** The few links that stay on the desktop bar; everything else lives in the menu. */
 const PRIMARY: NavItem[] = [
   { to: "/globe", label: "Globe", icon: Globe2 },
   { to: "/register", label: "UK statistics", icon: Table2 },
-  { to: "/countries", label: "World", icon: Globe2 },
+  { to: "/world", label: "World", icon: Globe2 },
   { to: "/maps", label: "Maps", icon: MapIcon },
   { to: "/compare-countries", label: "Compare", icon: GitCompareArrows, wide: true },
   { to: "/preparedness", label: "Preparedness", icon: LifeBuoy, wide: true },
@@ -171,7 +187,7 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="ghost" size="icon" title="Find a statistic"><Link to="/register" aria-label="Find a statistic"><Search /></Link></Button>
+          <SiteSearch extra={signedIn ? ACCOUNT_ITEMS : []} />
           {status ? (
             <span className="hidden">
               {status}
@@ -244,8 +260,8 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             aria-label="All pages"
             className="relative z-40 max-h-[calc(100dvh-65px)] overflow-y-auto border-t border-night-line/60 bg-night px-4 pb-6 pt-4 sm:px-6"
           >
-            <div className="mx-auto grid max-w-[1280px] gap-6 sm:grid-cols-3">
-              {NAV_GROUPS.map((g) => (
+            <div className="mx-auto grid max-w-[1280px] gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...NAV_GROUPS, ...(signedIn ? [{ name: "Your account", items: ACCOUNT_ITEMS }] : [])].map((g) => (
                 <div key={g.name}>
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-electric">{g.name}</p>
                   <ul className="mt-2 grid gap-0.5">
@@ -285,10 +301,6 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
                 </div>
               ) : null}
             </div>
-            <Link to="/create" onClick={() => setOpen(false)} className={btn("primary", "md", "mt-6 w-full sm:hidden")}>
-              <PlusCircle className="size-4" aria-hidden="true" />
-              Create live page
-            </Link>
             {signedIn ? (
               <Button
                 type="button"
