@@ -15,7 +15,7 @@ import { canDownload, dailyEquivalent, gbp, REPORT_PRICES, savingPercent, subAct
 import { createReportCheckout, createReportPortal, getMyReportAccess, getReportDownload, listReportEditions } from "@/lib/reports.functions";
 import cover from "@/assets/reports/uk-01.jpg";
 import headlines from "@/assets/reports/uk-02.jpg";
-import table from "@/assets/reports/uk-03.jpg";
+import globalCover from "@/assets/reports/global-01.jpg";
 import world from "@/assets/reports/global-12.jpg";
 
 const editionsQuery = queryOptions({ queryKey: ["report-editions"], queryFn: () => listReportEditions(), staleTime: 60_000 });
@@ -112,7 +112,7 @@ function ReportsPage() {
         {justPaid && <p className="mt-4 rounded-lg border border-primary bg-primary/5 p-3 text-sm font-semibold">Thank you — your purchase is confirmed. Your download button appears below within a few seconds.</p>}
 
         <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Sample pages">
-          {[[cover, "Cover"], [headlines, "Headline figures"], [table, "Every figure, sourced and dated"], [world, "Global edition: world rankings"]].map(([src, cap]) => (
+          {[[cover, "UK edition cover"], [globalCover, "Global edition cover"], [headlines, "Headline figures"], [world, "Global edition: world rankings"]].map(([src, cap]) => (
             <figure key={cap} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <img src={src} alt={`Sample report page: ${cap}`} className="aspect-[1/1.414] w-full object-cover object-top" loading="lazy" width={428} height={605} />
               <figcaption className="border-t border-border px-3 py-2 text-xs font-semibold">{cap}</figcaption>
