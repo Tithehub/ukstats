@@ -98,10 +98,11 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   const title = `${kindName} ${editionName} Report`;
   const dateLong = longDate(input.date);
 
-  const logo = (p: PDFPage, x: number, y: number, s: number, light: boolean) => {
-    // UKStats bar mark drawn as vectors so it stays sharp at any size.
-    const bars = [[0.18, 0.34, 0.5], [0.42, 0.58, 0.64], [0.66, 0.82, 0.78]];
-    bars.forEach(([a, b, h], i) => p.drawRectangle({ x: x + a! * s, y, width: (b! - a!) * s, height: h! * s, color: i === 2 ? BLUE : light ? WHITE : NAVY }));
+  const logo = (p: PDFPage, x: number, y: number, s: number, _light: boolean) => {
+    // Real UKStats mark (traced from the brand logo), drawn all white as vectors.
+    const k = s / 660;
+    const path = "M0 416 L188 310 L188 648 L0 648 Z M237 278 L413 178 L413 648 L237 648 Z M466 111 L660 0 L660 648 L466 648 Z";
+    p.drawSvgPath(path, { x, y: y + 648 * k, scale: k, color: WHITE });
   };
 
   // ---------- Cover (drawn last, see drawCover) ----------
