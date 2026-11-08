@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { placesQuery } from "@/lib/places.functions";
 import { NATIONS, WELLBEING_MEASURES, rankByMeasure, type Nation, type Place, type WellbeingKey } from "@/lib/places";
 
-type Search = { q?: string; nation?: Nation; sort?: WellbeingKey };
+type Search = { q?: string | undefined; nation?: Nation | undefined; sort?: WellbeingKey | undefined };
 
 export const Route = createFileRoute("/happiest-places")({
   validateSearch: (s: Record<string, unknown>): Search => ({

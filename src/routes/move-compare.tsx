@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { placesQuery } from "@/lib/places.functions";
 import { FACTORS, HOUSEHOLDS, PRESET_WEIGHTS, UNOFFICIAL_LABEL, compare, factorPositions, type FactorKey, type Household, type Place, type PlacesPayload } from "@/lib/places";
 
-type Search = { from?: string; to?: string; h?: Household; w?: string };
+type Search = { from?: string | undefined; to?: string | undefined; h?: Household | undefined; w?: string | undefined };
 
 export const Route = createFileRoute("/move-compare")({
   validateSearch: (s: Record<string, unknown>): Search => ({
