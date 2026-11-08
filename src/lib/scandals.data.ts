@@ -348,4 +348,66 @@ export const SCANDALS: Scandal[] = [
     ],
     videos: [],
   },
+  {
+    slug: "madeleine-mccann",
+    title: "The disappearance of Madeleine McCann",
+    region: "International",
+    summary: "Three-year-old Madeleine McCann went missing from a holiday apartment in Praia da Luz, Portugal, on 3 May 2007 and has never been found. Portuguese prosecutors lifted the formal suspect status of her parents in July 2008. The Metropolitan Police has run its own investigation, Operation Grange, since 2011. In 2020 German prosecutors named a German man as a suspect; he has not been charged in connection with her disappearance at the time of checking.",
+    status: "Missing — investigations open in the UK, Portugal and Germany",
+    official: [
+      { publisher: "Metropolitan Police", title: "Operation Grange", url: "https://www.met.police.uk/operation-grange" },
+      { publisher: "UK Parliament", title: "Written question HL8003 — Operation Grange funding", url: "https://questions-statements.parliament.uk/written-questions/detail/2025-06-03/HL8003", published: "2025-06-17" },
+    ],
+    headlines: [
+      { outlet: "Reuters", title: "Fact Check: British police's Madeleine McCann probe is still on", url: "https://www.reuters.com/fact-check/british-polices-madeleine-mccann-probe-is-still-2025-06-20/", published: "2025-06-20" },
+      { outlet: "ITV News", title: "Madeleine McCann suspect 'very happy' as round-the-clock police surveillance to end", url: "https://www.itv.com/news/2026-10-30/madeleine-mccann-suspect-very-happy-as-24-hour-police-surveillance-to-end", published: "2026-10-30" },
+    ],
+    videos: [],
+  },
+  {
+    slug: "john-mcafee",
+    title: "The death of John McAfee",
+    region: "International",
+    summary: "Antivirus pioneer John McAfee was indicted in the US in 2020–21 on tax-evasion charges (Tennessee) and cryptocurrency fraud and money-laundering charges (New York). He was arrested in Spain and found dead in his cell at Brians 2 prison near Barcelona on 23 June 2021, hours after Spain's National Court approved his extradition. A Spanish court ruled the death a suicide and closed the case in 2023. The charges were never tried.",
+    status: "Case closed by Spanish court 2023",
+    official: [
+      { publisher: "US Attorney's Office, Western District of Tennessee", title: "John McAfee indicted for tax evasion", url: "https://www.justice.gov/usao-wdtn/pr/john-mcafee-indicted-tax-evasion" },
+      { publisher: "US Attorney's Office, Southern District of New York", title: "John David McAfee and executive adviser to his cryptocurrency team indicted in Manhattan", url: "https://www.justice.gov/usao-sdny/pr/john-david-mcafee-and-executive-adviser-his-cryptocurrency-team-indicted-manhattan", published: "2021-03-05" },
+    ],
+    headlines: [
+      { outlet: "Reuters", title: "Spanish court rules software mogul McAfee's death was suicide", url: "https://www.reuters.com/world/europe/spanish-court-rules-software-mogul-mcafees-death-was-suicide-2023-09-29/", published: "2023-09-29" },
+      { outlet: "AP News", title: "A Spanish court rejects appeal to reopen the investigation into tycoon John McAfee's jail cell death", url: "https://apnews.com/article/spain-mcafee-death-suicide-court-38bf1fd5725fc0548a9aac6ac1bd0fd0", published: "2023-09-29" },
+    ],
+    videos: [],
+  },
+  {
+    slug: "julian-assange",
+    title: "Julian Assange and WikiLeaks",
+    region: "UK and US",
+    summary: "WikiLeaks founder Julian Assange published leaked US military and diplomatic files from 2010. He lived in Ecuador's London embassy from 2012 until his arrest in April 2019, then spent five years in Belmarsh prison fighting US extradition through the English courts. In June 2024 he pleaded guilty in Saipan to one US count of conspiring to obtain and disclose national defence information, was sentenced to time served and returned to Australia.",
+    status: "Released — plea agreement June 2024",
+    official: [
+      { publisher: "US Department of Justice", title: "WikiLeaks founder pleads guilty and is sentenced for conspiring to obtain and disclose classified national defense information", url: "https://www.justice.gov/archives/opa/pr/wikileaks-founder-pleads-guilty-and-sentenced-conspiring-obtain-and-disclose-classified", published: "2024-06-25" },
+      { publisher: "US Department of Justice", title: "Julian Assange plea agreement (PDF)", url: "https://www.justice.gov/opa/media/1358636/dl", published: "2024-06-25" },
+      { publisher: "Courts and Tribunals Judiciary", title: "Assange v USA — judgments", url: "https://www.judiciary.uk/judgments/assange-v-usa/" },
+    ],
+    headlines: [],
+    videos: [],
+  },
+  {
+    slug: "edward-snowden",
+    title: "Edward Snowden and the NSA surveillance leaks",
+    region: "UK and US",
+    summary: "In June 2013 former NSA contractor Edward Snowden leaked documents revealing mass-surveillance programmes run by the US NSA and the UK's GCHQ. The US charged him under the Espionage Act; he remains in Russia. In 2021 the Grand Chamber of the European Court of Human Rights ruled that parts of GCHQ's bulk-interception regime breached the European Convention on Human Rights.",
+    status: "Charges outstanding; lives in Russia",
+    official: [
+      { publisher: "US Department of Justice", title: "Justice Department statement on the request to Hong Kong for Edward Snowden's provisional arrest", url: "https://www.justice.gov/archives/opa/pr/justice-department-statement-request-hong-kong-edward-snowden-s-provisional-arrest", published: "2013-06-26" },
+      { publisher: "European Court of Human Rights", title: "Big Brother Watch and Others v. the United Kingdom (Grand Chamber)", url: "https://hudoc.echr.coe.int/fre?i=001-210077", published: "2021-05-25" },
+      { publisher: "Privacy and Civil Liberties Oversight Board", title: "PCLOB — oversight reports on US surveillance programmes", url: "https://www.pclob.gov/" },
+    ],
+    headlines: [
+      { outlet: "Reuters", title: "U.S. files charges against former NSA contractor Snowden", url: "https://www.reuters.com/article/world/uk/us-files-charges-against-former-nsa-contractor-snowden-idUSBRE95K1AB/", published: "2013-06-21" },
+    ],
+    videos: [],
+  },
 ];
