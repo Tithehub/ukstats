@@ -10,7 +10,7 @@ import { EDU_SOURCES, PHASES } from "@/lib/education";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface S { q?: string; phase?: string; la?: string; page?: number }
+interface S { q?: string | undefined; phase?: string | undefined; la?: string | undefined; page?: number | undefined }
 
 const T = "Find a school in England — Ofsted, results and pupil numbers | UK Stats";
 const D = "Search every open school and college in England by name, town or postcode. See its latest Ofsted outcome, GCSE results and pupil numbers from official sources.";

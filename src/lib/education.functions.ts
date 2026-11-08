@@ -20,7 +20,7 @@ export const educationSummaryQuery = () => queryOptions({ queryKey: ["education-
 
 const LIST_COLS = "id,kind,name,phase,type,type_group,la,town,postcode,pupils,low_age,high_age,ofsted,ks4,provider";
 
-export interface EduSearch { q?: string; phase?: string; la?: string; page?: number; kind: "school" | "provider"; }
+export interface EduSearch { q?: string | undefined; phase?: string | undefined; la?: string | undefined; page?: number | undefined; kind: "school" | "provider"; }
 
 export const searchInstitutions = createServerFn({ method: "POST" })
   .inputValidator((d: EduSearch) => ({

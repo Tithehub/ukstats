@@ -11,7 +11,7 @@ import { EDU_SOURCES, NO_FEED_LINKS } from "@/lib/education";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface S { q?: string; page?: number }
+interface S { q?: string | undefined; page?: number | undefined }
 const T = "Universities and registered higher-education providers in England | UK Stats";
 const D = "Every provider on the Office for Students Register: registration category, degree-awarding powers, university title, TEF status and any fines, straight from the official register.";
 
