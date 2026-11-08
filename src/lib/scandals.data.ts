@@ -299,4 +299,53 @@ export const SCANDALS: Scandal[] = [
     ],
     videos: [],
   },
+  {
+    slug: "charlie-kirk",
+    title: "The assassination of Charlie Kirk",
+    region: "US",
+    summary: "Conservative activist Charlie Kirk was shot dead while speaking at Utah Valley University on 10 September 2025. The Utah County Attorney's Office filed formal charges, including aggravated murder, against Tyler Robinson and said it intends to seek the death penalty. He has not been tried; no trial date had been set at the time of checking.",
+    status: "Charged — awaiting trial",
+    official: [
+      { publisher: "Utah County Government", title: "Formal Charges Filed Against Tyler Robinson in the Charlie Kirk Shooting Case", url: "https://www.utahcounty.gov/news/420/formal-charges-filed-against-tyler-robinson-in-the-charlie-kirk-shooting-case", published: "2025-09-16" },
+      { publisher: "Utah County Attorney's Office", title: "Criminal information — State of Utah v. Tyler James Robinson (PDF)", url: "https://atty.utahcounty.gov/cms/uploads/TJR%5FInformation%5F49872215e3.pdf", published: "2025-09-16" },
+    ],
+    headlines: [
+      { outlet: "AP News", title: "Court hears charges against Tyler Robinson in fatal shooting of Charlie Kirk", url: "https://apnews.com/article/tyler-robinson-charlie-kirk-charges-criminal-counts-34e0a6e790222a9a915df383eea281ee", published: "2025-09-17" },
+      { outlet: "Reuters", title: "Judge puts off decision on Charlie Kirk murder trial date", url: "https://www.reuters.com/legal/government/tyler-robinson-requests-2029-trial-alleged-murder-charlie-kirk-2026-10-23/", published: "2026-10-23" },
+      { outlet: "CNN", title: "Defense lawyers in Charlie Kirk's killing want a 2029 trial", url: "https://www.cnn.com/2026/10/23/us/charlie-kirk-tyler-robinson-trial-timeline", published: "2026-10-23" },
+    ],
+    videos: [],
+  },
+  {
+    slug: "jill-dando",
+    title: "Who killed Jill Dando? The unsolved BBC murder",
+    region: "UK",
+    summary: "BBC Crimewatch presenter Jill Dando was shot dead outside her home in Fulham, London, on 26 April 1999. Barry George was convicted in 2001; the Court of Appeal quashed the conviction in November 2007 and he was acquitted at a retrial in August 2008. Nobody else has been charged and the case remains unsolved. In September 2026 the Metropolitan Police said it would re-examine CCTV footage using newer enhancement technology.",
+    status: "Unsolved — CCTV re-examination announced 2026",
+    official: [
+      { publisher: "Court of Appeal (BAILII)", title: "R v George [2007] EWCA Crim 2722", url: "https://www.bailii.org/ew/cases/EWCA/Crim/2007/2722.html", published: "2007-11-15" },
+    ],
+    headlines: [
+      { outlet: "BBC News", title: "Met to re-examine CCTV footage from unsolved Jill Dando murder", url: "https://www.bbc.co.uk/news/articles/c60m334grx9vo", published: "2026-09-26" },
+      { outlet: "The Guardian", title: "Jill Dando murder: technological advances allow police to review CCTV 27 years later", url: "https://www.theguardian.com/uk-news/2026/sep/26/jill-dando-murder-technological-advances-police-cctv", published: "2026-09-26" },
+      { outlet: "Sky News", title: "Police to re-examine CCTV footage in Jill Dando unsolved murder case after advances in enhancement technology", url: "https://news.sky.com/story/police-to-re-examine-cctv-footage-in-jill-dando-unsolved-murder-case-after-advances-in-enhancement-technology-13592095", published: "2026-09-26" },
+    ],
+    videos: [],
+  },
+  {
+    slug: "ann-widdecombe",
+    title: "The killing of Ann Widdecombe",
+    region: "UK",
+    summary: "Former Conservative minister and Reform UK spokeswoman Ann Widdecombe, 78, was found dead at her home in Haytor, Dartmoor, on 9 July 2026. Counter Terrorism Policing took over the murder investigation, and on 20 July 2026 the Crown Prosecution Service authorised a murder charge against a 28-year-old man from Rotherham. Criminal proceedings are active: he is presumed innocent unless proven guilty, and UKStats will not repeat evidence or allegations before a verdict.",
+    status: "Charged — criminal proceedings active",
+    official: [
+      { publisher: "Crown Prosecution Service", title: "CPS charges man with murder following death of Ann Widdecombe", url: "https://www.cps.gov.uk/national-news-south-west/news/charges-man-murder-following-death-ann-widdecombe", published: "2026-07-20" },
+      { publisher: "Counter Terrorism Policing", title: "Charges of murder for the death of Ann Widdecombe", url: "https://www.counterterrorism.police.uk/news/charges-of-murder-for-the-death-of-ann-widdecombe/", published: "2026-07-20" },
+      { publisher: "Devon & Cornwall Police", title: "Counter Terrorism Policing leading investigation into the death of Ann Widdecombe", url: "https://news.devon-cornwall.police.uk/news-article/b4591b23-b37e-f111-9d98-6045bdd24049" },
+    ],
+    headlines: [
+      { outlet: "The Guardian", title: "Man, 28, charged with murder of former MP Ann Widdecombe", url: "https://www.theguardian.com/uk-news/2026/jul/20/man-charged-with-murder-ann-widdecombe-joshua-kerry", published: "2026-07-20" },
+    ],
+    videos: [],
+  },
 ];
