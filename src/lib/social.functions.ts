@@ -2,6 +2,30 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { platformSpec, type SocialPlatform } from "@/lib/social";
 import { publicHttpsUrl } from "@/lib/safe-url";
+import { youtubeIdFromLink, youtubeThumbnailUrls } from "@/lib/stream-launch";
+
+interface Thumb { url: string; bytes: Uint8Array; type: string; title: string }
+
+/** Fetch the stream's thumbnail from YouTube's fixed image host (never arbitrary URLs). */
+async function loadThumb(link: string): Promise<Thumb | null> {
+  const id = youtubeIdFromLink(link);
+  if (!id) return null;
+  let title = "UKStats live";
+  try {
+    const o = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${id}`)}`);
+    if (o.ok) title = String(((await o.json()) as { title?: string }).title ?? title).slice(0, 300);
+  } catch { /* keep default title */ }
+  for (const url of youtubeThumbnailUrls(id)) {
+    try {
+      const r = await fetch(url, { redirect: "error" });
+      if (!r.ok) { await r.body?.cancel(); continue; }
+      const bytes = new Uint8Array(await r.arrayBuffer());
+      if (bytes.length < 2000 || bytes.length > 950_000) continue; // placeholder or too big for Bluesky
+      return { url, bytes, type: r.headers.get("content-type") ?? "image/jpeg", title };
+    } catch { /* try next */ }
+  }
+  return null;
+}
 
 function mastodonBase(c: Creds): string {
   const u = publicHttpsUrl((c["instance"] ?? "").startsWith("http") ? c["instance"]! : `https://${c["instance"] ?? ""}`);
@@ -82,7 +106,7 @@ async function verify(platform: SocialPlatform, c: Creds): Promise<string> {
   }
 }
 
-async function send(platform: SocialPlatform, c: Creds, text: string, link: string): Promise<string | null> {
+async function send(platform: SocialPlatform, c: Creds, text: string, link: string, thumb: Thumb | null = null): Promise<string | null> {
   switch (platform) {
     case "bluesky": {
       const session = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
@@ -97,6 +121,17 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
       const bytes = new TextEncoder().encode(body);
       const linkBytes = new TextEncoder().encode(link);
       const start = indexOfBytes(bytes, linkBytes);
+      let embed: unknown = undefined;
+      if (thumb) {
+        const up = await fetch("https://bsky.social/xrpc/com.atproto.repo.uploadBlob", {
+          method: "POST",
+          headers: { "content-type": thumb.type, authorization: `Bearer ${s.accessJwt}` },
+          body: thumb.bytes,
+        });
+        if (!up.ok) throw new Error(`Bluesky refused the picture (${up.status}).`);
+        const blob = ((await up.json()) as { blob: unknown }).blob;
+        embed = { $type: "app.bsky.embed.external", external: { uri: link, title: thumb.title, description: "Watch live on YouTube", thumb: blob } };
+      }
       const res = await fetch("https://bsky.social/xrpc/com.atproto.repo.createRecord", {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${s.accessJwt}` },
@@ -107,6 +142,7 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
             $type: "app.bsky.feed.post",
             text: body,
             createdAt: new Date().toISOString(),
+            ...(embed ? { embed } : {}),
             ...(start >= 0
               ? {
                   facets: [
@@ -127,24 +163,33 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
     }
     case "mastodon": {
       const base = mastodonBase(c);
+      const mediaIds: string[] = [];
+      if (thumb) {
+        const fd = new FormData();
+        fd.append("file", new Blob([thumb.bytes], { type: thumb.type }), "livestream.jpg");
+        fd.append("description", "Livestream thumbnail");
+        const m = await fetch(`${base}/api/v2/media`, { method: "POST", redirect: "error", headers: { authorization: `Bearer ${c["accessToken"]}` }, body: fd });
+        if (!m.ok) throw new Error(`Mastodon refused the picture (${m.status}).`);
+        mediaIds.push(String(((await m.json()) as { id: string }).id));
+      }
       const res = await fetch(`${base}/api/v1/statuses`, {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${c["accessToken"]}` },
-        body: JSON.stringify({ status: text.includes(link) ? text : `${text}\n${link}` }),
+        body: JSON.stringify({ status: text.includes(link) ? text : `${text}\n${link}`, ...(mediaIds.length ? { media_ids: mediaIds } : {}) }),
       });
       if (!res.ok) throw new Error(`Mastodon refused the post (${res.status}): ${await res.text()}`);
       const j = (await res.json()) as { url?: string };
       return j.url ?? null;
     }
     case "telegram": {
-      const res = await fetch(`https://api.telegram.org/bot${c["botToken"]}/sendMessage`, {
+      const msg = text.includes(link) ? text : `${text}\n${link}`;
+      const usePhoto = thumb && msg.length <= 1024;
+      const res = await fetch(`https://api.telegram.org/bot${c["botToken"]}/${usePhoto ? "sendPhoto" : "sendMessage"}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          chat_id: c["chatId"],
-          text: text.includes(link) ? text : `${text}\n${link}`,
-          disable_web_page_preview: false,
-        }),
+        body: JSON.stringify(usePhoto
+          ? { chat_id: c["chatId"], photo: thumb.url, caption: msg }
+          : { chat_id: c["chatId"], text: msg, disable_web_page_preview: false }),
       });
       if (!res.ok) throw new Error(`Telegram refused the post (${res.status}): ${await res.text()}`);
       return null;
@@ -157,7 +202,12 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
       const res = await fetch(hook, { redirect: "error",
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(platform === "discord" ? { content: body } : { text: body }),
+        body: JSON.stringify(platform === "discord"
+          ? { content: body, ...(thumb ? { embeds: [{ title: thumb.title, url: link, image: { url: thumb.url } }] } : {}) }
+          : { text: body, ...(thumb ? { blocks: [
+              { type: "section", text: { type: "mrkdwn", text: body } },
+              { type: "image", image_url: thumb.url, alt_text: "Livestream thumbnail", title: { type: "plain_text", text: thumb.title.slice(0, 150) } },
+            ] } : {}) }),
       });
       if (!res.ok) throw new Error(`The webhook refused the post (${res.status}): ${await res.text()}`);
       return null;
@@ -243,13 +293,15 @@ export const postToSocialAccounts = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .in("id", data.accountIds.slice(0, 10));
 
-    const results: { id: string; label: string; ok: boolean; url: string | null; error: string | null }[] = [];
+    const thumb = await loadThumb(link);
+    const picture = Boolean(thumb);
+    const results: { id: string; label: string; ok: boolean; url: string | null; error: string | null; picture: boolean }[] = [];
     for (const row of rows ?? []) {
       const platform = row.platform as SocialPlatform;
       try {
-        const url = await send(platform, clean(row.credentials), text, link);
+        const url = await send(platform, clean(row.credentials), text, link, thumb);
         await db.from("social_accounts").update({ last_posted_at: new Date().toISOString() }).eq("id", row.id);
-        results.push({ id: row.id as string, label: row.label as string, ok: true, url, error: null });
+        results.push({ id: row.id as string, label: row.label as string, ok: true, url, error: null, picture });
       } catch (e) {
         results.push({
           id: row.id as string,
@@ -257,6 +309,7 @@ export const postToSocialAccounts = createServerFn({ method: "POST" })
           ok: false,
           url: null,
           error: e instanceof Error ? e.message : "Posting failed.",
+          picture: false,
         });
       }
     }
