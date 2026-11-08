@@ -128,6 +128,60 @@ export type Database = {
         }
         Relationships: []
       }
+      citizen_journalists: {
+        Row: {
+          bio: string
+          created_at: string
+          id: string
+          name: string
+          photo_url: string | null
+          review_note: string | null
+          rumble_url: string | null
+          status: string
+          substack_url: string | null
+          updated_at: string
+          user_id: string | null
+          website_url: string | null
+          x_url: string | null
+          youtube_channel_id: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          bio?: string
+          created_at?: string
+          id?: string
+          name: string
+          photo_url?: string | null
+          review_note?: string | null
+          rumble_url?: string | null
+          status?: string
+          substack_url?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website_url?: string | null
+          x_url?: string | null
+          youtube_channel_id?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          bio?: string
+          created_at?: string
+          id?: string
+          name?: string
+          photo_url?: string | null
+          review_note?: string | null
+          rumble_url?: string | null
+          status?: string
+          substack_url?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website_url?: string | null
+          x_url?: string | null
+          youtube_channel_id?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       country_metric_snapshots: {
         Row: {
           code: string
