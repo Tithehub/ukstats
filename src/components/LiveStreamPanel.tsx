@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Play, Volume2 } from "lucide-react";
-import { LIVE_STREAM_ID, LIVE_STREAM_URL } from "@/lib/brand";
+import { LIVE_STREAM_ID, YOUTUBE_CHANNEL_URL } from "@/lib/brand";
 import { checkEmbeddable } from "@/lib/embed-check.functions";
 import { ShareRow } from "@/components/ShareRow";
 
@@ -35,7 +35,7 @@ export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolea
     <section aria-label="UKStats Live" className="mt-5 grid gap-4 rounded-lg border border-border bg-card p-4 md:grid-cols-[2fr_1fr]">
       <div className="relative aspect-video overflow-hidden rounded-md bg-muted">
         {state === "blocked" ? (
-          <a href={LIVE_STREAM_URL} target="_blank" rel="noopener noreferrer" className="absolute inset-0 grid place-items-center bg-primary p-6 text-center text-primary-foreground">
+          <a href={YOUTUBE_CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="absolute inset-0 grid place-items-center bg-primary p-6 text-center text-primary-foreground">
             <span className="relative grid gap-3 justify-items-center">
               <span className="text-xl font-black">Back shortly — watch on YouTube</span>
               <span className="inline-flex min-h-11 items-center gap-2 rounded-md bg-destructive px-5 font-bold text-destructive-foreground"><Play className="h-5 w-5" /> Open YouTube</span>
@@ -73,7 +73,7 @@ export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolea
           {showLiveLink && (
             <Link to="/live" className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 font-semibold">Full-page live</Link>
           )}
-          <a href={LIVE_STREAM_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground">
+          <a href={YOUTUBE_CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground">
             Watch on YouTube
           </a>
         </div>
