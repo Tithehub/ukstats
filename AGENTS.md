@@ -58,4 +58,3 @@
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
-- Scandals (/scandals): dated snapshot in src/lib/scandals.data.ts; official records separate from labelled news headlines and YouTube links, summaries say what an official body found — avoids presenting allegations or news as fact.
