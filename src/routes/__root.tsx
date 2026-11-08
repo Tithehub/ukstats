@@ -1,3 +1,4 @@
+import { MobileTabBar } from "@/components/layout/MobileTabBar";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -142,6 +143,7 @@ function RootComponent() {
       {loading ? <div role="status" aria-label="Loading page" className="fixed inset-x-0 top-0 z-50 h-1 bg-primary motion-safe:animate-pulse" /> : null}
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <MobileTabBar />
     </QueryClientProvider>
   );
 }

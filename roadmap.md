@@ -11,3 +11,10 @@
 - [ ] Education next: KS2 per-school results, HESA student numbers, Scotland/Wales/NI school lists
 
 - [ ] Move-compare: add amenities (DfT journey times) and Scotland/NI crime and NI pay sources
+
+## Audit follow-up (Nov 2026)
+- [x] Phase A: five-section menu, account-only items hidden, site page search (Ctrl/⌘K), phone bottom bar
+- [ ] Merge overlapping world pages into one World hub with redirects
+- [ ] Phase B: home page rework, lazy-load globe/YouTube, mobile fixes on top pages
+- [ ] Phase C: design consistency, accessibility, speed
+- [ ] Phase D: trust page + corrections log, foreign-aid fixes, per-figure share links, structured data
