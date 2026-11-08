@@ -192,6 +192,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const [gl0, setGl0] = useState(false);
+  const lastTele = useRef(0);
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const colors = COLORS;
@@ -285,6 +286,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   }, [preset?.n]);
   const onMove = (e: { clientX: number; clientY: number }) => {
     const g = ref.current; if (!g || !onTelemetry || !wrap.current) return;
+    const t = performance.now(); if (t - lastTele.current < 120) return; lastTele.current = t;
     const r = wrap.current.getBoundingClientRect();
     const c = g.toGlobeCoords(e.clientX - r.left, e.clientY - r.top);
     onTelemetry({ lat: c?.lat ?? null, lng: c?.lng ?? null, altKm: Math.round(g.pointOfView().altitude * 6371) });
