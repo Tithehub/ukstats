@@ -7,6 +7,7 @@ export function UkTopicNav() {
   return <div className="border-y border-night-line py-4"><nav aria-label="UK topic shortcuts" className="flex flex-wrap gap-2">
     <Button asChild variant="outline" size="sm"><Link to="/small-boats"><Anchor />Small boats</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/grooming-gangs-inquiry"><Scale />Grooming gangs inquiry</Link></Button>
+    <Button asChild variant="outline" size="sm"><Link to="/scandals"><FileText />Scandals</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/spending"><Banknote />Public spending</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/reports"><FileText />Daily PDF report</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/register" search={{ category: "Cost of living" }}><ShoppingBasket />Cost of living</Link></Button>

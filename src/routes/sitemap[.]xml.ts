@@ -1,3 +1,4 @@
+import { SCANDALS } from "@/lib/scandals.data";
 import { COUNTRIES } from "@/lib/countries";
 import { ES_DEFS } from "@/lib/eurostat";
 import { brandFromHost, isGlobalPath, SITES } from "@/lib/site-host";
@@ -43,6 +44,8 @@ const entries: SitemapEntry[] = [
   { path: "/compare-countries", changefreq: "daily", priority: "0.8" },
   { path: "/online-speech", changefreq: "weekly", priority: "0.6" },
   { path: "/grooming-gangs-inquiry", changefreq: "weekly", priority: "0.7" },
+  { path: "/scandals", changefreq: "weekly", priority: "0.7" },
+  ...SCANDALS.map(s => ({ path: `/scandals/${s.slug}`, changefreq: "monthly" as const, priority: "0.6" })),
   { path: "/spending", changefreq: "weekly", priority: "0.7" },
   ...EXPENDITURE_CATEGORIES.map(c => ({ path: `/spending/type/${c.slug}`, changefreq: "monthly" as const, priority: "0.5" })),
   { path: "/live", changefreq: "hourly", priority: "0.7" },
