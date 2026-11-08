@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BusinessDirectoryRouteImport } from './routes/business-directory'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as CitizenJournalistsRouteImport } from './routes/citizen-journalists'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CompareCountriesRouteImport } from './routes/compare-countries'
 import { Route as ConnectionsRouteImport } from './routes/connections'
@@ -42,6 +43,7 @@ import { Route as NewHomeRouteImport } from './routes/new-home'
 import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as PartiesRouteImport } from './routes/parties'
+import { Route as PoliticsExplainedRouteImport } from './routes/politics-explained'
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as PreparednessRouteImport } from './routes/preparedness'
 import { Route as PressRouteImport } from './routes/press'
@@ -159,6 +161,11 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CitizenJournalistsRoute = CitizenJournalistsRouteImport.update({
+  id: '/citizen-journalists',
+  path: '/citizen-journalists',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
@@ -272,6 +279,11 @@ const OutreachRoute = OutreachRouteImport.update({
 const PartiesRoute = PartiesRouteImport.update({
   id: '/parties',
   path: '/parties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliticsExplainedRoute = PoliticsExplainedRouteImport.update({
+  id: '/politics-explained',
+  path: '/politics-explained',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PollingRoute = PollingRouteImport.update({
@@ -621,6 +633,7 @@ export interface FileRoutesByFullPath {
   '/business-directory': typeof BusinessDirectoryRoute
   '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
+  '/citizen-journalists': typeof CitizenJournalistsRoute
   '/compare': typeof CompareRoute
   '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
@@ -644,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
+  '/politics-explained': typeof PoliticsExplainedRoute
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
@@ -721,6 +735,7 @@ export interface FileRoutesByTo {
   '/business-directory': typeof BusinessDirectoryRoute
   '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
+  '/citizen-journalists': typeof CitizenJournalistsRoute
   '/compare': typeof CompareRoute
   '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
@@ -744,6 +759,7 @@ export interface FileRoutesByTo {
   '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
+  '/politics-explained': typeof PoliticsExplainedRoute
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
@@ -822,6 +838,7 @@ export interface FileRoutesById {
   '/business-directory': typeof BusinessDirectoryRoute
   '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
+  '/citizen-journalists': typeof CitizenJournalistsRoute
   '/compare': typeof CompareRoute
   '/compare-countries': typeof CompareCountriesRoute
   '/connections': typeof ConnectionsRoute
@@ -845,6 +862,7 @@ export interface FileRoutesById {
   '/online-speech': typeof OnlineSpeechRoute
   '/outreach': typeof OutreachRoute
   '/parties': typeof PartiesRoute
+  '/politics-explained': typeof PoliticsExplainedRoute
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
@@ -925,6 +943,7 @@ export interface FileRouteTypes {
     | '/business-directory'
     | '/calendar'
     | '/chat'
+    | '/citizen-journalists'
     | '/compare'
     | '/compare-countries'
     | '/connections'
@@ -948,6 +967,7 @@ export interface FileRouteTypes {
     | '/online-speech'
     | '/outreach'
     | '/parties'
+    | '/politics-explained'
     | '/polling'
     | '/preparedness'
     | '/press'
@@ -1025,6 +1045,7 @@ export interface FileRouteTypes {
     | '/business-directory'
     | '/calendar'
     | '/chat'
+    | '/citizen-journalists'
     | '/compare'
     | '/compare-countries'
     | '/connections'
@@ -1048,6 +1069,7 @@ export interface FileRouteTypes {
     | '/online-speech'
     | '/outreach'
     | '/parties'
+    | '/politics-explained'
     | '/polling'
     | '/preparedness'
     | '/press'
@@ -1125,6 +1147,7 @@ export interface FileRouteTypes {
     | '/business-directory'
     | '/calendar'
     | '/chat'
+    | '/citizen-journalists'
     | '/compare'
     | '/compare-countries'
     | '/connections'
@@ -1148,6 +1171,7 @@ export interface FileRouteTypes {
     | '/online-speech'
     | '/outreach'
     | '/parties'
+    | '/politics-explained'
     | '/polling'
     | '/preparedness'
     | '/press'
@@ -1227,6 +1251,7 @@ export interface RootRouteChildren {
   BusinessDirectoryRoute: typeof BusinessDirectoryRoute
   CalendarRoute: typeof CalendarRoute
   ChatRoute: typeof ChatRoute
+  CitizenJournalistsRoute: typeof CitizenJournalistsRoute
   CompareRoute: typeof CompareRoute
   CompareCountriesRoute: typeof CompareCountriesRoute
   ConnectionsRoute: typeof ConnectionsRoute
@@ -1250,6 +1275,7 @@ export interface RootRouteChildren {
   OnlineSpeechRoute: typeof OnlineSpeechRoute
   OutreachRoute: typeof OutreachRoute
   PartiesRoute: typeof PartiesRoute
+  PoliticsExplainedRoute: typeof PoliticsExplainedRoute
   PollingRoute: typeof PollingRoute
   PreparednessRoute: typeof PreparednessRoute
   PressRoute: typeof PressRoute
@@ -1364,6 +1390,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/chat'
       preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/citizen-journalists': {
+      id: '/citizen-journalists'
+      path: '/citizen-journalists'
+      fullPath: '/citizen-journalists'
+      preLoaderRoute: typeof CitizenJournalistsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -1525,6 +1558,13 @@ declare module '@tanstack/react-router' {
       path: '/parties'
       fullPath: '/parties'
       preLoaderRoute: typeof PartiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politics-explained': {
+      id: '/politics-explained'
+      path: '/politics-explained'
+      fullPath: '/politics-explained'
+      preLoaderRoute: typeof PoliticsExplainedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/polling': {
@@ -2096,6 +2136,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessDirectoryRoute: BusinessDirectoryRoute,
   CalendarRoute: CalendarRoute,
   ChatRoute: ChatRoute,
+  CitizenJournalistsRoute: CitizenJournalistsRoute,
   CompareRoute: CompareRoute,
   CompareCountriesRoute: CompareCountriesRoute,
   ConnectionsRoute: ConnectionsRoute,
@@ -2119,6 +2160,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnlineSpeechRoute: OnlineSpeechRoute,
   OutreachRoute: OutreachRoute,
   PartiesRoute: PartiesRoute,
+  PoliticsExplainedRoute: PoliticsExplainedRoute,
   PollingRoute: PollingRoute,
   PreparednessRoute: PreparednessRoute,
   PressRoute: PressRoute,

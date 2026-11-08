@@ -170,6 +170,8 @@ function UkHome() {
           <Link to="/happiest-places" search={{}} className="inline-flex min-h-11 items-center">Happiest places →</Link>
           <Link to="/happiest-places" search={{ view: "countries" }} className="inline-flex min-h-11 items-center">Happiest countries →</Link>
           <Link to="/move-compare" search={{}} className="inline-flex min-h-11 items-center">Thinking of moving? →</Link>
+          <Link to="/politics-explained" search={{}} className="inline-flex min-h-11 items-center">Politics explained →</Link>
+          <Link to="/citizen-journalists" search={{}} className="inline-flex min-h-11 items-center">Citizen journalists →</Link>
           <Link to="/small-boats" className="inline-flex min-h-11 items-center">Small boats since 2018 →</Link>
           <Link to="/world" search={{ figure: undefined }} className="inline-flex min-h-11 items-center">World rankings →</Link>
           <Link to="/parties" search={{ view: "election" }} className="inline-flex min-h-11 items-center">Political parties →</Link>
