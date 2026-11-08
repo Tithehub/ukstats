@@ -97,6 +97,7 @@ import { Route as ApiPublicEducationTickRouteImport } from './routes/api/public/
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicPlacesTickRouteImport } from './routes/api/public/places-tick'
 import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
+import { Route as ApiPublicWorldWellbeingTickRouteImport } from './routes/api/public/world-wellbeing-tick'
 import { Route as EducationSchoolsIndexRouteImport } from './routes/education.schools.index'
 import { Route as EducationSchoolsUrnRouteImport } from './routes/education.schools.$urn'
 import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
@@ -549,6 +550,12 @@ const ApiPublicReportsTickRoute = ApiPublicReportsTickRouteImport.update({
   path: '/public/reports-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicWorldWellbeingTickRoute =
+  ApiPublicWorldWellbeingTickRouteImport.update({
+    id: '/public/world-wellbeing-tick',
+    path: '/public/world-wellbeing-tick',
+    getParentRoute: () => ApiRoute,
+  } as any)
 const EducationSchoolsIndexRoute = EducationSchoolsIndexRouteImport.update({
   id: '/education/schools/',
   path: '/education/schools/',
@@ -692,6 +699,7 @@ export interface FileRoutesByFullPath {
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/api/public/world-wellbeing-tick': typeof ApiPublicWorldWellbeingTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
@@ -790,6 +798,7 @@ export interface FileRoutesByTo {
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/api/public/world-wellbeing-tick': typeof ApiPublicWorldWellbeingTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
@@ -891,6 +900,7 @@ export interface FileRoutesById {
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/api/public/world-wellbeing-tick': typeof ApiPublicWorldWellbeingTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
@@ -993,6 +1003,7 @@ export interface FileRouteTypes {
     | '/api/public/outreach-tick'
     | '/api/public/places-tick'
     | '/api/public/reports-tick'
+    | '/api/public/world-wellbeing-tick'
     | '/education/schools/$urn'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
@@ -1091,6 +1102,7 @@ export interface FileRouteTypes {
     | '/api/public/outreach-tick'
     | '/api/public/places-tick'
     | '/api/public/reports-tick'
+    | '/api/public/world-wellbeing-tick'
     | '/education/schools/$urn'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
@@ -1191,6 +1203,7 @@ export interface FileRouteTypes {
     | '/api/public/outreach-tick'
     | '/api/public/places-tick'
     | '/api/public/reports-tick'
+    | '/api/public/world-wellbeing-tick'
     | '/education/schools/$urn'
     | '/s/$slug_/broadcast'
     | '/spending/type/$category'
@@ -1899,6 +1912,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicReportsTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/world-wellbeing-tick': {
+      id: '/api/public/world-wellbeing-tick'
+      path: '/public/world-wellbeing-tick'
+      fullPath: '/api/public/world-wellbeing-tick'
+      preLoaderRoute: typeof ApiPublicWorldWellbeingTickRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/education/schools/': {
       id: '/education/schools/'
       path: '/education/schools'
@@ -2003,6 +2023,7 @@ interface ApiRouteChildren {
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
   ApiPublicPlacesTickRoute: typeof ApiPublicPlacesTickRoute
   ApiPublicReportsTickRoute: typeof ApiPublicReportsTickRoute
+  ApiPublicWorldWellbeingTickRoute: typeof ApiPublicWorldWellbeingTickRoute
   ApiPublicOgKeyRoute: typeof ApiPublicOgKeyRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicV1GoldRoute: typeof ApiPublicV1GoldRoute
@@ -2017,6 +2038,7 @@ const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
   ApiPublicPlacesTickRoute: ApiPublicPlacesTickRoute,
   ApiPublicReportsTickRoute: ApiPublicReportsTickRoute,
+  ApiPublicWorldWellbeingTickRoute: ApiPublicWorldWellbeingTickRoute,
   ApiPublicOgKeyRoute: ApiPublicOgKeyRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicV1GoldRoute: ApiPublicV1GoldRoute,
