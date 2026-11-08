@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import cover from "@/assets/grooming-gang-cover-up-book.jpg.asset.json";
+import cover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 
 const ext = { target: "_blank", rel: "noopener noreferrer" } as const;
 const btn = "inline-flex items-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-bold";
