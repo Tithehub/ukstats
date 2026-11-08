@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth } from "@/lib/useAuth";
 import { dismissFinding, getAgentDashboard, reviewDraft, runAgentsNow } from "@/lib/agents.functions";
 import { LaunchKit, MarketingPanel } from "@/components/agents/MarketingPanel";
+import { StreamLaunchComposer } from "@/components/agents/StreamLaunchComposer";
 import { DomainsPanel } from "@/components/agents/DomainsPanel";
 import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
 import { ImprovementPlanPanel } from "@/components/agents/ImprovementPlanPanel";
@@ -118,6 +119,7 @@ function AgentsPage() {
             {!drafts.length ? <p className="text-night-muted">No drafts waiting.</p> : null}
           </div>
         </section>
+        <StreamLaunchComposer />
         <MarketingPanel />
         <LaunchKit />
         <DomainsPanel />
