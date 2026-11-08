@@ -4,6 +4,8 @@ import bold from "@/assets/fonts/Archivo-Bold.ttf?inline";
 import black from "@/assets/fonts/Archivo-Black.ttf?inline";
 import mono from "@/assets/fonts/IBMPlexMono-Regular.ttf?inline";
 import monoBold from "@/assets/fonts/IBMPlexMono-SemiBold.ttf?inline";
+import ukMapPng from "@/assets/report/uk-map.png?inline";
+import globePng from "@/assets/report/globe.png?inline";
 import { buildReportPdf, type ReportFonts } from "@/lib/report-pdf";
 import { reportPath, type ReportEdition, type ReportKind } from "@/lib/reports";
 import type { StatsPayload } from "@/lib/uk-stats";
@@ -21,7 +23,7 @@ const fromDataUrl = (u: string) => {
   return out;
 };
 let fonts: ReportFonts | null = null;
-const getFonts = () => (fonts ??= { regular: fromDataUrl(regular), bold: fromDataUrl(bold), black: fromDataUrl(black), mono: fromDataUrl(mono), monoBold: fromDataUrl(monoBold) });
+const getFonts = () => (fonts ??= { regular: fromDataUrl(regular), bold: fromDataUrl(bold), black: fromDataUrl(black), mono: fromDataUrl(mono), monoBold: fromDataUrl(monoBold), ukMap: fromDataUrl(ukMapPng), globe: fromDataUrl(globePng) });
 
 /** Build one edition from the saved snapshots and store it. Returns the storage path. */
 export async function generateEdition(edition: ReportEdition, kind: ReportKind, date: string): Promise<string> {
