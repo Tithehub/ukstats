@@ -1,1 +1,2 @@
 - Share cards (/api/public/og/$key) render in pure JS via og-render.server.ts from published snapshots — no native image libs on the edge.
+- Globe quakes/satellites: earth-watch.functions.ts + pure quakes.ts/satellites.ts; natural-event and orbit layers only, never figures.

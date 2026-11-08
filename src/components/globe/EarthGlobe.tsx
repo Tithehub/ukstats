@@ -39,6 +39,28 @@ export interface GlobeProps {
   boats?: { id: string; lat: number; lng: number; label: string; color?: string }[];
   /** Migration arrows: origin country name to a country name or a fixed point. */
   flows?: GlobeFlow[];
+  /** USGS earthquakes (past day). */
+  quakes?: { id: string; lat: number; lng: number; mag: number; label: string }[];
+  /** Satellites: current position (altitude in globe radii) and ground path. */
+  sats?: { id: string; lat: number; lng: number; alt: number; label: string; path: [number, number, number][] }[];
+  /** Camera preset request: bump n to apply. */
+  preset?: { n: number; kind: "world" | "tilt" | "focus" } | null;
+  /** Day/night shading with the sunrise line. */
+  dayNight?: boolean;
+  /** Pointer and camera readout for the control-room HUD. */
+  onTelemetry?: ((t: { lat: number | null; lng: number | null; altKm: number }) => void) | undefined;
+}
+
+/** Subsolar point for a UTC time (simple solar declination + equation of time). */
+export function sunPosition(d: Date): { lat: number; lng: number } {
+  const day = (Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(d.getUTCFullYear(), 0, 0)) / 864e5;
+  const g = (2 * Math.PI / 365) * (day - 1 + (d.getUTCHours() - 12) / 24);
+  const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  const eqt = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  const mins = d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60;
+  let lng = -((mins + eqt) / 4 - 180);
+  lng = ((lng + 540) % 360) - 180;
+  return { lat: (decl * 180) / Math.PI, lng };
 }
 
 export interface GlobeFlow { id: string; from: string; to: string; toLat?: number | undefined; toLng?: number | undefined; color: string; stroke: number; label: string }
@@ -142,7 +164,7 @@ function centreOf(name: string) { const n = mapName(name); return n ? centre(cou
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [] }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [], quakes = [], sats = [], preset = null, dayNight = false, onTelemetry }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -169,6 +191,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     g.pointOfView({ ...focus, altitude: 0.9 }, 900);
   }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
+  const [gl0, setGl0] = useState(false);
+  const lastTele = useRef(0);
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const colors = COLORS;
@@ -236,8 +260,44 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     return `rgba(${Math.round(30 + 200 * s)}, ${Math.round(110 + 80 * s)}, ${Math.round(220 - 150 * s)}, 0.75)`;
   };
 
+  // Night side: a slightly larger dark shell, transparent on the sunlit half.
+  useEffect(() => {
+    const g = ref.current; if (!g || !dayNight) return;
+    const mat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false,
+      uniforms: { sun: { value: new THREE.Vector3(1, 0, 0) } },
+      vertexShader: "varying vec3 vN; void main(){ vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: "uniform vec3 sun; varying vec3 vN; void main(){ float d = dot(vN, normalize(sun)); float n = smoothstep(0.08, -0.12, d); float edge = (1.0 - smoothstep(0.0, 0.06, abs(d))) * 0.35; gl_FragColor = vec4(mix(vec3(0.0,0.02,0.08), vec3(1.0,0.55,0.2), edge), n * 0.62 + edge * 0.25); }",
+    });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(100.6, 96, 64), mat);
+    const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); mat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
+    set(); g.scene().add(mesh);
+    const t = setInterval(set, 60_000);
+    return () => { clearInterval(t); g.scene().remove(mesh); mesh.geometry.dispose(); mat.dispose(); };
+  }, [dayNight, gl0]);
+  useEffect(() => {
+    const g = ref.current; if (!g || !preset) return;
+    g.controls().autoRotate = false;
+    const pov = g.pointOfView();
+    const p = selected ? centre(selected) : null;
+    if (preset.kind === "world") g.pointOfView({ lat: 20, lng: pov.lng, altitude: 2.6 }, 1200);
+    else if (preset.kind === "tilt") g.pointOfView({ lat: Math.max(-60, pov.lat - 25), lng: pov.lng, altitude: 0.7 }, 1200);
+    else g.pointOfView({ ...(p ?? { lat: pov.lat, lng: pov.lng }), altitude: 0.55 }, 1400);
+  }, [preset?.n]);
+  const onMove = (e: { clientX: number; clientY: number }) => {
+    const g = ref.current; if (!g || !onTelemetry || !wrap.current) return;
+    const t = performance.now(); if (t - lastTele.current < 120) return; lastTele.current = t;
+    const r = wrap.current.getBoundingClientRect();
+    const c = g.toGlobeCoords(e.clientX - r.left, e.clientY - r.top);
+    onTelemetry({ lat: c?.lat ?? null, lng: c?.lng ?? null, altKm: Math.round(g.pointOfView().altitude * 6371) });
+  };
+  const satObjs = useMemo(() => sats.map((x) => ({ ...x })), [sats]);
+  const satPaths = useMemo(() => sats.map((x) => ({ pts: x.path, ahead: false, color: "rgba(140,240,255,0.55)", sat: true })), [sats]);
+  const allPaths = useMemo(() => [...planePaths, ...satPaths], [planePaths, satPaths]);
+  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const }))], [events, quakes]);
+
   return (
-    <div ref={wrap} className="h-full w-full" onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
+    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
       <Globe
         ref={ref}
         width={size.w}
@@ -254,13 +314,18 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
         onPolygonClick={(f) => { const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
-        pointsData={events}
-        pointLat={(e) => (e as AcledEvent).lat}
-        pointLng={(e) => (e as AcledEvent).lng}
-        pointColor={() => "#ffb020"}
-        pointAltitude={0.02}
-        pointRadius={0.25}
-        pointLabel={(e) => { const x = e as AcledEvent; return `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+        onGlobeReady={() => setGl0(true)}
+        pointsData={pts}
+        pointLat={(e) => (e as { lat: number }).lat}
+        pointLng={(e) => (e as { lng: number }).lng}
+        pointColor={(e) => ((e as { _k: string })._k === "quake" ? "#c86bff" : "#ffb020")}
+        pointAltitude={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.01 + Math.max(0, (x.mag ?? 0) - 2.5) * 0.025 : 0.02; }}
+        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : 0.25; }}
+        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+        customLayerData={satObjs}
+        customThreeObject={() => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(1.1), new THREE.MeshBasicMaterial({ color: "#8cf0ff" })); return m; }}
+        customThreeObjectUpdate={(o, d) => { const x = d as { lat: number; lng: number; alt: number }; Object.assign((o as THREE.Object3D).position, ref.current?.getCoords(x.lat, x.lng, x.alt) ?? {}); }}
+        customLayerLabel={(d) => (d as { label: string }).label}
         objectsData={objects}
         objectLat={(m) => (m as GlobeMarker).lat}
         objectLng={(m) => (m as GlobeMarker).lng}
@@ -309,11 +374,11 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         particlesTexture={(set: object) => planeTexture((set as { st: GlobePlane["status"] }).st)}
         particleLabel={(p) => (p as GlobePlane).label}
         onParticleClick={(p) => onPlane?.((p as GlobePlane).id)}
-        pathsData={planePaths}
+        pathsData={allPaths}
         pathPoints={(d) => (d as { pts: [number, number][] }).pts}
         pathPointLat={(p) => (p as [number, number])[0]}
         pathPointLng={(p) => (p as [number, number])[1]}
-        pathPointAlt={0.016}
+        pathPointAlt={(p) => (p as number[])[2] ?? 0.016}
         pathColor={(d: object) => (d as { color: string }).color}
         pathStroke={2}
         pathDashLength={(d) => ((d as { ahead: boolean }).ahead ? 0.05 : 1)}
