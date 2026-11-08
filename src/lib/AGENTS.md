@@ -2,3 +2,4 @@
 - Globe quakes/satellites: earth-watch.functions.ts + pure quakes.ts/satellites.ts; natural-event and orbit layers only, never figures.
 - Scandals: scandals.data.ts snapshot; official records separate from labelled news/YouTube; summaries state what an official body found.
 - Globe public cameras: public-cams.ts parsers (registry CAM_SOURCES; TfL, Caltrans, DriveBC, Fintraffic, Iceland, Hong Kong, NZTA, Lithuania) + public-cams.functions.ts; public-authority open data only; only Caltrans HLS streams are labelled LIVE, TfL loops and stills say so; scene only, never figures.
+- Globe weather: weather-globe.ts city list/parser + getWeather in earth-watch.functions.ts (Open-Meteo, 30 min); labelled model readings, never register figures.

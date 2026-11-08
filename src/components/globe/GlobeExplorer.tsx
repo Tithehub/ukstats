@@ -32,7 +32,8 @@ import { boatHistory, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flow
 import { SMALL_BOATS_SOURCE } from "@/lib/small-boats";
 import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 import { GlobeKey } from "@/components/globe/GlobeKey";
-import { quakesQuery, tlesQuery } from "@/lib/earth-watch.functions";
+import { quakesQuery, tlesQuery, weatherQuery } from "@/lib/earth-watch.functions";
+import { WX_SOURCE, wxColor, wxWords } from "@/lib/weather-globe";
 import { QUAKE_SOURCE } from "@/lib/quakes";
 import { publicCamsQuery } from "@/lib/public-cams.functions";
 import { CamList, CamViewer } from "./CamViewer";
@@ -61,10 +62,12 @@ export type GlobeState = {
   nw?: boolean | undefined;
   /** Earthquakes (USGS) and satellites (CelesTrak) layers. */
   eq?: boolean | undefined; st?: boolean | undefined; cam?: boolean | undefined; dn?: false | undefined;
+  /** City weather readings (Open-Meteo model). */
+  wx?: boolean | undefined;
 };
 
 /** Shared search-param parsing for every page that hosts the globe. */
-export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg" | "nw" | "eq" | "st" | "cam" | "dn"> {
+export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg" | "nw" | "eq" | "st" | "cam" | "dn" | "wx"> {
   const age = Number(s["age"]), fa = Number(s["fa"]);
   return {
     layer: s["layer"] === "us" || s["layer"] === "uk" ? s["layer"] : undefined,
@@ -80,6 +83,7 @@ export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "
     dn: s["dn"] === false || s["dn"] === "0" || s["dn"] === "false" ? false : undefined,
     cam: s["cam"] === true || s["cam"] === "1" || s["cam"] === "true" ? true : undefined,
     nw: s["nw"] === true || s["nw"] === "1" || s["nw"] === "true" ? true : undefined,
+    wx: s["wx"] === true || s["wx"] === "1" || s["wx"] === "true" ? true : undefined,
     fp: typeof s["fp"] === "string" && /^[0-9a-z~]{4,8}$/i.test(s["fp"]) ? s["fp"] : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
   };
@@ -182,6 +186,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const { data: reports } = useQuery(newsReportsQuery(!!s.nw));
   const { data: quakeData } = useQuery(quakesQuery(!!s.eq));
   const { data: tleData } = useQuery(tlesQuery(!!s.st));
+  const { data: wxData } = useQuery(weatherQuery(!!s.wx));
+  const globeWx = useMemo(() => (s.wx && wxData ? wxData.items.map((w) => ({ id: `wx-${w.name}`, lat: w.lat, lng: w.lng, color: wxColor(w.tempC), label: `${w.name}: ${Math.round(w.tempC)}°C, ${wxWords(w.code)}${Number.isFinite(w.windKmh) ? `, wind ${Math.round(w.windKmh)} km/h` : ""} — model reading at ${fmtStamp(w.time)} (Open-Meteo)` })) : []), [s.wx, wxData]);
   const globeQuakes = useMemo(() => (s.eq && quakeData ? quakeData.items.map((q) => ({ id: q.id, lat: q.lat, lng: q.lng, mag: q.mag, label: `Magnitude ${q.mag.toFixed(1)} — ${q.place}, ${fmtStamp(q.time)}, depth ${Math.round(q.depthKm)} km${q.tsunami ? " · tsunami flag" : ""} (USGS)` })) : []), [s.eq, quakeData]);
   const { data: camData } = useQuery(publicCamsQuery(!!s.cam));
   const [camId, setCamId] = useState<string | null>(null);
@@ -337,7 +343,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
+        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} wx={globeWx} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
       {cam && <CamViewer cam={cam} all={globeCams} onPick={setCamId} onClose={() => setCamId(null)} />}
       <div className={`absolute inset-x-3 top-3 z-20 flex items-start gap-2 text-xs sm:right-16 ${broadcast ? "hidden" : ""} ${panel === "search" ? "" : "max-sm:hidden"}`}>
@@ -385,6 +391,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           {s.mg && <span className="mt-1 block text-night-muted"><Swatch c="#f05a28" />Boats: one per boat on the latest Home Office day <Swatch c="#f0a020" />EU illegal crossings (Frontex, 12 months) <Swatch c="#ff4a3a" />US southwest border encounters (CBP, latest month) <Swatch c="#7fb2ff" />Refugees and asylum seekers living abroad (UNHCR, yearly — not illegal crossings). Thicker = more people.</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.nw} onChange={(e) => onChange({ nw: e.target.checked || undefined })} /> <span><b>News &amp; police reports</b>: protests, riots and planes diverted, grounded or searched{s.nw && reports ? ` — ${reports.items.length} in 3 days` : ""}
           {s.nw && <span className="mt-1 block text-night-muted">Headlines from BBC, Guardian, Sky News and other publishers found through Google News, plus Police Scotland notices, shown word for word. News reports are not official warnings.</span>}</span></label>
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.wx} onChange={(e) => onChange({ wx: e.target.checked || undefined })} /> <span><b>Weather</b>: temperature, sky and wind in major cities{s.wx && wxData ? ` — ${wxData.items.length}` : ""}
+          {s.wx && <span className="mt-1 block text-night-muted"><Swatch c="#7fe3c4" />Blue = cold, yellow = mild, red = hot. Model readings, not official observations. Source: <a className="underline" href={WX_SOURCE.url} target="_blank" rel="noreferrer noopener">{WX_SOURCE.name}</a>{wxData ? `, checked ${fmtStamp(new Date(wxData.at).toISOString())}` : " — not published"}.</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.eq} onChange={(e) => onChange({ eq: e.target.checked || undefined })} /> <span><b>Earthquakes</b>: magnitude 2.5+, past 24 hours{s.eq && quakeData ? ` — ${quakeData.items.length}` : ""}
           {s.eq && <span className="mt-1 block text-night-muted"><Swatch c="#c86bff" />Taller and wider = stronger. Source: <a className="underline" href={QUAKE_SOURCE.url} target="_blank" rel="noreferrer noopener">{QUAKE_SOURCE.name}</a>{quakeData ? `, checked ${fmtStamp(new Date(quakeData.at).toISOString())}` : ""}.</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={s.dn !== false} onChange={(e) => onChange({ dn: e.target.checked ? undefined : false })} /> <span><b>Day and night</b>: shade the side of the Earth in darkness, with the sunrise and sunset line</span></label>
