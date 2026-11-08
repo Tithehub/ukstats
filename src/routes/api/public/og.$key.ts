@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/public/og/$key")({
         const headers = { "content-type": "image/png", "cache-control": "public, max-age=3600, s-maxage=3600" };
 
         const page = OG_TITLE_PAGES[key];
-        if (page) return new Response(renderTitleCard(page.title, page.subtitle, domain, site.name), { headers });
+        if (page) return new Response(renderTitleCard(page.title, page.subtitle, domain, site.name) as BodyInit, { headers });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         let fig: OgFigure | null = null;
@@ -31,8 +31,8 @@ export const Route = createFileRoute("/api/public/og/$key")({
           const { data } = await supabaseAdmin.from("metric_snapshots").select("title, value, period, source, as_of, updated_at").eq("metric_id", id).maybeSingle();
           if (data) fig = { title: data.title, value: data.value, period: data.period, source: data.source, asOf: data.as_of ?? data.updated_at };
         }
-        if (!fig) return new Response(renderTitleCard(site.name, site.tagline, domain, site.name), { headers: { ...headers, "cache-control": "public, max-age=300" } });
-        return new Response(renderFigureCard(ogCardText(fig), domain, site.name), { headers });
+        if (!fig) return new Response(renderTitleCard(site.name, site.tagline, domain, site.name) as BodyInit, { headers: { ...headers, "cache-control": "public, max-age=300" } });
+        return new Response(renderFigureCard(ogCardText(fig), domain, site.name) as BodyInit, { headers });
       },
     },
   },
