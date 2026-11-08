@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const cache = new Map<string, string>();
 
 /** Turns one presenter line into WAV audio (base64). Lines are short and cached by exact wording. */
 export const speakLine = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { text: string }) => {
     const text = String(d?.text ?? "").trim().slice(0, 400);
     if (!text) throw new Error("Empty line");

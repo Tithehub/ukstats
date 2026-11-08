@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { platformSpec, type SocialPlatform } from "@/lib/social";
+import { publicHttpsUrl } from "@/lib/safe-url";
+
+function mastodonBase(c: Creds): string {
+  const u = publicHttpsUrl((c["instance"] ?? "").startsWith("http") ? c["instance"]! : `https://${c["instance"] ?? ""}`);
+  if (!u) throw new Error("Enter a public Mastodon server address, e.g. https://mastodon.social");
+  return u.origin;
+}
+
+function discordWebhook(c: Creds): string {
+  const url = c["webhookUrl"] ?? "";
+  if (!/^https:\/\/(?:canary\.|ptb\.)?(?:discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[\w-]+$/.test(url)) throw new Error("That is not a Discord webhook URL.");
+  return url;
+}
 
 export interface SocialAccount {
   id: string;
@@ -41,8 +54,8 @@ async function verify(platform: SocialPlatform, c: Creds): Promise<string> {
       return `@${j.handle ?? c["handle"]}`;
     }
     case "mastodon": {
-      const base = (c["instance"] ?? "").replace(/\/+$/, "");
-      const res = await fetch(`${base}/api/v1/accounts/verify_credentials`, {
+      const base = mastodonBase(c);
+      const res = await fetch(`${base}/api/v1/accounts/verify_credentials`, { redirect: "error",
         headers: { authorization: `Bearer ${c["accessToken"]}` },
       });
       if (!res.ok) throw new Error(`Mastodon rejected the access token (${res.status}).`);
@@ -56,7 +69,7 @@ async function verify(platform: SocialPlatform, c: Creds): Promise<string> {
       return `@${j.result?.username ?? "bot"} → ${c["chatId"]}`;
     }
     case "discord": {
-      const res = await fetch(c["webhookUrl"] ?? "");
+      const res = await fetch(discordWebhook(c), { redirect: "error" });
       if (!res.ok) throw new Error(`Discord did not recognise that webhook (${res.status}).`);
       const j = (await res.json()) as { name?: string; channel_id?: string };
       return j.name ? `${j.name}` : `channel ${j.channel_id ?? ""}`;
@@ -113,7 +126,7 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
       return rkey ? `https://bsky.app/profile/${c["handle"]}/post/${rkey}` : null;
     }
     case "mastodon": {
-      const base = (c["instance"] ?? "").replace(/\/+$/, "");
+      const base = mastodonBase(c);
       const res = await fetch(`${base}/api/v1/statuses`, {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${c["accessToken"]}` },
@@ -139,7 +152,9 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
     case "discord":
     case "slack": {
       const body = text.includes(link) ? text : `${text}\n${link}`;
-      const res = await fetch(c["webhookUrl"] ?? "", {
+      const hook = platform === "discord" ? discordWebhook(c) : (c["webhookUrl"] ?? "");
+      if (platform === "slack" && !/^https:\/\/hooks\.slack\.com\/services\//.test(hook)) throw new Error("That is not a Slack incoming webhook URL.");
+      const res = await fetch(hook, { redirect: "error",
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(platform === "discord" ? { content: body } : { text: body }),

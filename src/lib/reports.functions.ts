@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { canDownload, isReportPriceId, REPORT_PRICES, reportFileName, type ReportEdition, type ReportKind, type ReportPriceId, type ReportPurchase, type ReportSub } from "@/lib/reports";
 import type { StripeEnv } from "@/lib/stripe.server";
+import { assertReturnUrl } from "@/lib/safe-url";
 
 const envOk = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
 const dateOk = (d: unknown): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d);
@@ -62,8 +63,7 @@ export const createReportCheckout = createServerFn({ method: "POST" })
     if (!envOk(d.environment)) throw new Error("Invalid environment");
     if (!isReportPriceId(d.priceId)) throw new Error("Invalid plan");
     if (d.date !== undefined && !dateOk(d.date)) throw new Error("Invalid date");
-    if (typeof d.returnUrl !== "string" || d.returnUrl.length > 500) throw new Error("Invalid return URL");
-    return d;
+    return { ...d, returnUrl: assertReturnUrl(d.returnUrl) };
   })
   .handler(async ({ data, context }): Promise<{ clientSecret: string } | { error: string }> => {
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
@@ -141,7 +141,7 @@ export const getReportDownload = createServerFn({ method: "POST" })
 
 export const createReportPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { returnUrl: string; environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return d; })
+  .inputValidator((d: { returnUrl: string; environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return { ...d, returnUrl: assertReturnUrl(d.returnUrl) }; })
   .handler(async ({ data, context }): Promise<{ url: string } | { error: string }> => {
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
     const { data: sub } = await context.supabase.from("report_subscriptions").select("stripe_customer_id").eq("user_id", context.userId).eq("environment", data.environment).order("created_at", { ascending: false }).limit(1).maybeSingle();
