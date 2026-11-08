@@ -69,6 +69,8 @@ import { Route as CountrySourcesRouteImport } from './routes/$country.sources'
 import { Route as CountryStatusRouteImport } from './routes/$country.status'
 import { Route as AnswersQuestionRouteImport } from './routes/answers.$question'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
+import { Route as EducationIndexRouteImport } from './routes/education.index'
+import { Route as EducationUniversitiesRouteImport } from './routes/education.universities'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
@@ -89,8 +91,11 @@ import { Route as CountryEmbedMetricIdRouteImport } from './routes/$country.embe
 import { Route as CountryExplainedMetricIdRouteImport } from './routes/$country.explained.$metricId'
 import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.history.$metricId'
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
+import { Route as ApiPublicEducationTickRouteImport } from './routes/api/public/education-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
+import { Route as EducationSchoolsIndexRouteImport } from './routes/education.schools.index'
+import { Route as EducationSchoolsUrnRouteImport } from './routes/education.schools.$urn'
 import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
 import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
 import { Route as ApiPublicOgKeyRouteImport } from './routes/api/public/og.$key'
@@ -400,6 +405,16 @@ const DailyDateRoute = DailyDateRouteImport.update({
   path: '/$date',
   getParentRoute: () => DailyRoute,
 } as any)
+const EducationIndexRoute = EducationIndexRouteImport.update({
+  id: '/education/',
+  path: '/education/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EducationUniversitiesRoute = EducationUniversitiesRouteImport.update({
+  id: '/education/universities',
+  path: '/education/universities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
   id: '/embed/$metric',
   path: '/embed/$metric',
@@ -501,6 +516,11 @@ const ApiPublicAgentsTickRoute = ApiPublicAgentsTickRouteImport.update({
   path: '/public/agents-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicEducationTickRoute = ApiPublicEducationTickRouteImport.update({
+  id: '/public/education-tick',
+  path: '/public/education-tick',
+  getParentRoute: () => ApiRoute,
+} as any)
 const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   id: '/public/outreach-tick',
   path: '/public/outreach-tick',
@@ -510,6 +530,16 @@ const ApiPublicReportsTickRoute = ApiPublicReportsTickRouteImport.update({
   id: '/public/reports-tick',
   path: '/public/reports-tick',
   getParentRoute: () => ApiRoute,
+} as any)
+const EducationSchoolsIndexRoute = EducationSchoolsIndexRouteImport.update({
+  id: '/education/schools/',
+  path: '/education/schools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EducationSchoolsUrnRoute = EducationSchoolsUrnRouteImport.update({
+  id: '/education/schools/$urn',
+  path: '/education/schools/$urn',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SSlugBroadcastRoute = SSlugBroadcastRouteImport.update({
   id: '/s/$slug_/broadcast',
@@ -615,6 +645,7 @@ export interface FileRoutesByFullPath {
   '/$country/status': typeof CountryStatusRoute
   '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
+  '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
@@ -629,6 +660,7 @@ export interface FileRoutesByFullPath {
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
+  '/education/': typeof EducationIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
@@ -636,10 +668,13 @@ export interface FileRoutesByFullPath {
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
+  '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/education/schools/': typeof EducationSchoolsIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -705,6 +740,7 @@ export interface FileRoutesByTo {
   '/$country/status': typeof CountryStatusRoute
   '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
+  '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
@@ -719,6 +755,7 @@ export interface FileRoutesByTo {
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
+  '/education': typeof EducationIndexRoute
   '/regions': typeof RegionsIndexRoute
   '/spending': typeof SpendingIndexRoute
   '/world': typeof WorldIndexRoute
@@ -726,10 +763,13 @@ export interface FileRoutesByTo {
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
+  '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/education/schools': typeof EducationSchoolsIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -798,6 +838,7 @@ export interface FileRoutesById {
   '/$country/status': typeof CountryStatusRoute
   '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
+  '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
@@ -812,6 +853,7 @@ export interface FileRoutesById {
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
+  '/education/': typeof EducationIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
@@ -819,10 +861,13 @@ export interface FileRoutesById {
   '/$country/explained/$metricId': typeof CountryExplainedMetricIdRoute
   '/$country/history/$metricId': typeof CountryHistoryMetricIdRoute
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
+  '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/education/schools/': typeof EducationSchoolsIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -892,6 +937,7 @@ export interface FileRouteTypes {
     | '/$country/status'
     | '/answers/$question'
     | '/daily/$date'
+    | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe/broadcast'
@@ -906,6 +952,7 @@ export interface FileRouteTypes {
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
+    | '/education/'
     | '/regions/'
     | '/spending/'
     | '/world/'
@@ -913,10 +960,13 @@ export interface FileRouteTypes {
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
+    | '/api/public/education-tick'
     | '/api/public/outreach-tick'
     | '/api/public/reports-tick'
+    | '/education/schools/$urn'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
+    | '/education/schools/'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -982,6 +1032,7 @@ export interface FileRouteTypes {
     | '/$country/status'
     | '/answers/$question'
     | '/daily/$date'
+    | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe/broadcast'
@@ -996,6 +1047,7 @@ export interface FileRouteTypes {
     | '/spending/$council'
     | '/world/$iso'
     | '/$country'
+    | '/education'
     | '/regions'
     | '/spending'
     | '/world'
@@ -1003,10 +1055,13 @@ export interface FileRouteTypes {
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
+    | '/api/public/education-tick'
     | '/api/public/outreach-tick'
     | '/api/public/reports-tick'
+    | '/education/schools/$urn'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
+    | '/education/schools'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -1074,6 +1129,7 @@ export interface FileRouteTypes {
     | '/$country/status'
     | '/answers/$question'
     | '/daily/$date'
+    | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe_/broadcast'
@@ -1088,6 +1144,7 @@ export interface FileRouteTypes {
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
+    | '/education/'
     | '/regions/'
     | '/spending/'
     | '/world/'
@@ -1095,10 +1152,13 @@ export interface FileRouteTypes {
     | '/$country/explained/$metricId'
     | '/$country/history/$metricId'
     | '/api/public/agents-tick'
+    | '/api/public/education-tick'
     | '/api/public/outreach-tick'
     | '/api/public/reports-tick'
+    | '/education/schools/$urn'
     | '/s/$slug_/broadcast'
     | '/spending/type/$category'
+    | '/education/schools/'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -1162,6 +1222,7 @@ export interface RootRouteChildren {
   WidgetRoute: typeof WidgetRoute
   WorldCompareRoute: typeof WorldCompareRoute
   AnswersQuestionRoute: typeof AnswersQuestionRoute
+  EducationUniversitiesRoute: typeof EducationUniversitiesRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
@@ -1173,10 +1234,13 @@ export interface RootRouteChildren {
   SSlugRoute: typeof SSlugRoute
   SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
+  EducationIndexRoute: typeof EducationIndexRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
+  EducationSchoolsUrnRoute: typeof EducationSchoolsUrnRoute
   SSlugBroadcastRoute: typeof SSlugBroadcastRoute
   SpendingTypeCategoryRoute: typeof SpendingTypeCategoryRoute
+  EducationSchoolsIndexRoute: typeof EducationSchoolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1601,6 +1665,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DailyDateRouteImport
       parentRoute: typeof DailyRoute
     }
+    '/education/': {
+      id: '/education/'
+      path: '/education'
+      fullPath: '/education/'
+      preLoaderRoute: typeof EducationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/education/universities': {
+      id: '/education/universities'
+      path: '/education/universities'
+      fullPath: '/education/universities'
+      preLoaderRoute: typeof EducationUniversitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/$metric': {
       id: '/embed/$metric'
       path: '/embed/$metric'
@@ -1741,6 +1819,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAgentsTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/education-tick': {
+      id: '/api/public/education-tick'
+      path: '/public/education-tick'
+      fullPath: '/api/public/education-tick'
+      preLoaderRoute: typeof ApiPublicEducationTickRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/api/public/outreach-tick': {
       id: '/api/public/outreach-tick'
       path: '/public/outreach-tick'
@@ -1754,6 +1839,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/reports-tick'
       preLoaderRoute: typeof ApiPublicReportsTickRouteImport
       parentRoute: typeof ApiRoute
+    }
+    '/education/schools/': {
+      id: '/education/schools/'
+      path: '/education/schools'
+      fullPath: '/education/schools/'
+      preLoaderRoute: typeof EducationSchoolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/education/schools/$urn': {
+      id: '/education/schools/$urn'
+      path: '/education/schools/$urn'
+      fullPath: '/education/schools/$urn'
+      preLoaderRoute: typeof EducationSchoolsUrnRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/s/$slug_/broadcast': {
       id: '/s/$slug_/broadcast'
@@ -1841,6 +1940,7 @@ const CountryRouteWithChildren =
 
 interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
+  ApiPublicEducationTickRoute: typeof ApiPublicEducationTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
   ApiPublicReportsTickRoute: typeof ApiPublicReportsTickRoute
   ApiPublicOgKeyRoute: typeof ApiPublicOgKeyRoute
@@ -1853,6 +1953,7 @@ interface ApiRouteChildren {
 
 const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
+  ApiPublicEducationTickRoute: ApiPublicEducationTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
   ApiPublicReportsTickRoute: ApiPublicReportsTickRoute,
   ApiPublicOgKeyRoute: ApiPublicOgKeyRoute,
@@ -1956,6 +2057,7 @@ const rootRouteChildren: RootRouteChildren = {
   WidgetRoute: WidgetRoute,
   WorldCompareRoute: WorldCompareRoute,
   AnswersQuestionRoute: AnswersQuestionRoute,
+  EducationUniversitiesRoute: EducationUniversitiesRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
@@ -1967,10 +2069,13 @@ const rootRouteChildren: RootRouteChildren = {
   SSlugRoute: SSlugRoute,
   SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
+  EducationIndexRoute: EducationIndexRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
+  EducationSchoolsUrnRoute: EducationSchoolsUrnRoute,
   SSlugBroadcastRoute: SSlugBroadcastRoute,
   SpendingTypeCategoryRoute: SpendingTypeCategoryRoute,
+  EducationSchoolsIndexRoute: EducationSchoolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
