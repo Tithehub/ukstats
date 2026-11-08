@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy, ExternalLink, Radio, Send } from "lucide-react";
 import { listSocialAccounts, postToSocialAccounts } from "@/lib/social.functions";
-import { cleanStreamLink, defaultLaunchText, shareIntents } from "@/lib/stream-launch";
+import { cleanStreamLink, defaultLaunchText, shareIntents, youtubeIdFromLink, youtubeThumbnailUrls } from "@/lib/stream-launch";
 
 export function StreamLaunchComposer() {
   const accounts = useServerFn(listSocialAccounts);
@@ -13,7 +13,7 @@ export function StreamLaunchComposer() {
   const [raw, setRaw] = useState("");
   const [text, setText] = useState(defaultLaunchText());
   const [busy, setBusy] = useState(false);
-  const [results, setResults] = useState<{ label: string; ok: boolean; url: string | null; error: string | null }[] | null>(null);
+  const [results, setResults] = useState<{ label: string; ok: boolean; url: string | null; error: string | null; picture?: boolean }[] | null>(null);
   const [copied, setCopied] = useState(false);
   const link = cleanStreamLink(raw);
   const full = link ? `${text}\n${link}` : text;
@@ -25,6 +25,9 @@ export function StreamLaunchComposer() {
       <label className="mt-3 block text-[13px] font-medium">YouTube live link
         <input value={raw} onChange={(e) => { setRaw(e.target.value); setResults(null); }} placeholder="https://www.youtube.com/live/…" className="mt-1 w-full rounded-lg border border-night-line bg-night p-2 text-[14px]" />
       </label>
+      {link ? (
+        <img src={youtubeThumbnailUrls(youtubeIdFromLink(link) ?? "")[1]} alt="Livestream thumbnail that will post with the link" className="mt-2 w-60 rounded-lg border border-night-line" />
+      ) : null}
       {raw && !link ? <p className="mt-1 text-[13px] text-overdue">That isn't a YouTube link.</p> : null}
       <label className="mt-3 block text-[13px] font-medium">Message
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3} maxLength={250} className="mt-1 w-full rounded-lg border border-night-line bg-night p-2 text-[14px]" />
@@ -48,7 +51,7 @@ export function StreamLaunchComposer() {
         <ul className="mt-2 space-y-1 text-[13px]">
           {results.map((r, i) => (
             <li key={i} className={r.ok ? "text-fresh" : "text-overdue"}>
-              {r.ok ? "Posted" : "Failed"} — {r.label}{r.url ? <> · <a href={r.url} target="_blank" rel="noreferrer" className="underline">view</a></> : null}{r.error ? ` · ${r.error}` : null}
+              {r.ok ? (r.picture === false ? "Posted without picture" : "Posted with picture") : "Failed"} — {r.label}{r.url ? <> · <a href={r.url} target="_blank" rel="noreferrer" className="underline">view</a></> : null}{r.error ? ` · ${r.error}` : null}
             </li>
           ))}
         </ul>
