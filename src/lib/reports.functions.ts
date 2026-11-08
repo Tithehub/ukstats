@@ -34,7 +34,7 @@ export interface MyReportAccess { purchases: ReportPurchase[]; subs: (ReportSub 
 
 export const getMyReportAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return { ...d, returnUrl: assertReturnUrl(d.returnUrl) }; })
+  .inputValidator((d: { environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return d; })
   .handler(async ({ data, context }): Promise<MyReportAccess> => {
     const [p, s] = await Promise.all([
       context.supabase.from("report_purchases").select("edition,report_date").eq("user_id", context.userId).eq("environment", data.environment),
