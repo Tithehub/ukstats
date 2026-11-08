@@ -20,7 +20,7 @@ export function directoryEntries(rows: readonly Row[], environment: string, now:
 }
 
 /** Search + region filter used by the directory page. Region "all" listings match every region. */
-export function filterDirectory(list: readonly DirectoryEntry[], q: string, region: string): DirectoryEntry[] {
+export function filterDirectory<T extends DirectoryEntry>(list: readonly T[], q: string, region: string): T[] {
   const needle = q.trim().toLowerCase();
   return list.filter((e) =>
     (!needle || `${e.name} ${e.domain} ${e.tagline ?? ""}`.toLowerCase().includes(needle)) &&

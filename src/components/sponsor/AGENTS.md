@@ -6,3 +6,4 @@
 - The home page's sponsor banner comes from the route loader via getSponsorBannerBoard (src/lib/banner.functions.ts) and is rendered with the page, never only by the page's interactive layer — that layer can fail to start on the live home page, and a sponsor's banner must show regardless.
 - Public sponsor displays read only payments-env, never the Stripe SDK; this prevents payment scripts from loading on statistics-only pages.
 - The live stream (/globe/broadcast) shows sponsors only in its StreamSponsors corner box (same getSponsorBannerBoard records, UK region), never on figures, Top 6 or tickers — keeps paid placement away from the numbers on air.
+- Sponsor review profiles (sponsor_review_links) are plain outbound links validated by normaliseReviewUrl and shown only once admin-approved; never embed review-site scripts or display ratings we can't source officially.
