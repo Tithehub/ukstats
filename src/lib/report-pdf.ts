@@ -379,7 +379,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     const art = input.edition === "uk" ? input.fonts.ukMap : input.fonts.globe;
     if (art) {
       const img = await doc.embedPng(art);
-      const bh = input.edition === "uk" ? 230 : 230, bw = (img.width / img.height) * bh;
+      const bh = input.edition === "uk" ? 215 : 230, bw = (img.width / img.height) * bh;
       c.drawImage(img, { x: W - M - bw + (input.edition === "uk" ? 10 : 0), y: H - 300, width: bw, height: bh, opacity: 0.85 });
     }
     c.drawRectangle({ x: 0, y: H - 8, width: W, height: 8, color: RED });
