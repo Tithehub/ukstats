@@ -69,6 +69,7 @@ import { Route as CountrySourcesRouteImport } from './routes/$country.sources'
 import { Route as CountryStatusRouteImport } from './routes/$country.status'
 import { Route as AnswersQuestionRouteImport } from './routes/answers.$question'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
+import { Route as EducationIndexRouteImport } from './routes/education.index'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
@@ -401,6 +402,11 @@ const DailyDateRoute = DailyDateRouteImport.update({
   path: '/$date',
   getParentRoute: () => DailyRoute,
 } as any)
+const EducationIndexRoute = EducationIndexRouteImport.update({
+  id: '/education/',
+  path: '/education/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
   id: '/embed/$metric',
   path: '/embed/$metric',
@@ -635,6 +641,7 @@ export interface FileRoutesByFullPath {
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
+  '/education/': typeof EducationIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
@@ -726,6 +733,7 @@ export interface FileRoutesByTo {
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
+  '/education': typeof EducationIndexRoute
   '/regions': typeof RegionsIndexRoute
   '/spending': typeof SpendingIndexRoute
   '/world': typeof WorldIndexRoute
@@ -820,6 +828,7 @@ export interface FileRoutesById {
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
+  '/education/': typeof EducationIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
@@ -915,6 +924,7 @@ export interface FileRouteTypes {
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
+    | '/education/'
     | '/regions/'
     | '/spending/'
     | '/world/'
@@ -1006,6 +1016,7 @@ export interface FileRouteTypes {
     | '/spending/$council'
     | '/world/$iso'
     | '/$country'
+    | '/education'
     | '/regions'
     | '/spending'
     | '/world'
@@ -1099,6 +1110,7 @@ export interface FileRouteTypes {
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
+    | '/education/'
     | '/regions/'
     | '/spending/'
     | '/world/'
@@ -1185,6 +1197,7 @@ export interface RootRouteChildren {
   SSlugRoute: typeof SSlugRoute
   SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
+  EducationIndexRoute: typeof EducationIndexRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
   SSlugBroadcastRoute: typeof SSlugBroadcastRoute
@@ -1613,6 +1626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DailyDateRouteImport
       parentRoute: typeof DailyRoute
     }
+    '/education/': {
+      id: '/education/'
+      path: '/education'
+      fullPath: '/education/'
+      preLoaderRoute: typeof EducationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/$metric': {
       id: '/embed/$metric'
       path: '/embed/$metric'
@@ -1988,6 +2008,7 @@ const rootRouteChildren: RootRouteChildren = {
   SSlugRoute: SSlugRoute,
   SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
+  EducationIndexRoute: EducationIndexRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
   SSlugBroadcastRoute: SSlugBroadcastRoute,
