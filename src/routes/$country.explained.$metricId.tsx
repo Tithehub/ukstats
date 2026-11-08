@@ -6,7 +6,7 @@ import { CountryShell } from '@/components/CountryShell';
 import { CountryMetricDetail } from '@/components/CountryMetricDetail';
 export const Route = createFileRoute('/$country/explained/$metricId')({
   loader: async ({ params, context }) => { const data = await context.queryClient.ensureQueryData(countryQuery(params.country)); if (!data?.metrics.some(m => m.id === params.metricId)) throw notFound(); return data; },
-  head: ({ params }) => countryHead(countryByCode(params.country)?.name ?? params.country, `${params.metricId} — explained`, 'Official statistics, definitions, published observations and source information; nothing estimated.'),
+  head: ({ params }) => countryHead(countryByCode(params.country)?.name ?? params.country, `${params.metricId} — explained`, 'Official statistics, definitions, published observations and source information; nothing estimated.', { country: params.country, metricId: params.metricId }),
   component: Detail,
   errorComponent: () => <main className="p-8">This figure could not be loaded. Please try again.</main>,
   notFoundComponent: () => <main className="p-8">Figure not found.</main>,

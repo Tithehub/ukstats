@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -18,7 +19,8 @@ export const Route = createFileRoute("/spending/")({
       { property: "og:title", content: T },
       { property: "og:description", content: D },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: "https://ukstats.co.uk/spending" },
+      ...ogImageMeta("https://ukstats.co.uk", "spending", "Council spending — UKStats"),
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/spending" }],
   }),

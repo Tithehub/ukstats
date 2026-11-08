@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, ExternalLink, TrendingUp } from "lucide-react";
@@ -71,7 +72,7 @@ export const Route = createFileRoute("/explained/$metricId")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:url", content: `https://ukstats.co.uk/explained/${params.metricId}` },
-        { name: "twitter:card", content: "summary_large_image" },
+        ...ogImageMeta("https://ukstats.co.uk", params.metricId, `${title} — latest official figure`),
       ],
       links: [{ rel: "canonical", href: `https://ukstats.co.uk/explained/${params.metricId}` }],
     };

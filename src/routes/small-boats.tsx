@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -30,7 +31,8 @@ export const Route = createFileRoute("/small-boats")({
       { property: "og:title", content: T },
       { property: "og:description", content: D },
       { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://ukstats.co.uk/small-boats" },
+      ...ogImageMeta("https://ukstats.co.uk", "small-boats", "Small boat arrivals, last 7 days — Home Office"),
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/small-boats" }],
   }),

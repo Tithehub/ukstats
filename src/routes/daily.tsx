@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useMemo, useState } from "react";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/daily")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/daily" },
-      { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta("https://ukstats.co.uk", "daily", "UKStats daily briefing"),
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/daily" }],
   }),

@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -86,7 +87,7 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/" },
-      { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta("https://ukstats.co.uk", "home", "UK public sector net debt — latest official figure"),
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/" }, { rel: "preload", as: "image", href: heroNetwork, fetchPriority: "high" }],
   }),
