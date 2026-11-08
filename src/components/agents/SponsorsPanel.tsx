@@ -2,6 +2,8 @@ import { placeName, rowRegions } from "@/lib/sponsor-regions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listSponsorsAdmin, setSponsorApproval } from "@/lib/sponsor.functions";
+import { listReviewLinksAdmin, setReviewLinkStatus } from "@/lib/review-links.functions";
+import { REVIEW_LABELS, type ReviewPlatform } from "@/lib/review-links";
 
 export function SponsorsPanel() {
   const list = useServerFn(listSponsorsAdmin);
@@ -10,6 +12,10 @@ export function SponsorsPanel() {
   const q = useQuery({ queryKey: ["sponsors-admin"], queryFn: () => list() });
   const sponsors = q.data?.sponsors ?? [];
   const enquiries = q.data?.enquiries ?? [];
+  const listLinks = useServerFn(listReviewLinksAdmin);
+  const setLink = useServerFn(setReviewLinkStatus);
+  const links = useQuery({ queryKey: ["review-links-admin"], queryFn: () => listLinks() }).data ?? [];
+  const nameOf = new Map(sponsors.map((s) => [s.id, s.name]));
   return (
     <section className="mt-8">
       <h2 className="text-xl font-semibold">Sponsors ({sponsors.length})</h2>
@@ -36,6 +42,24 @@ export function SponsorsPanel() {
             >
               {s.approved ? "Turn off" : "Approve"}
             </button>
+          </li>
+        ))}
+      </ul>
+      <h3 className="mt-6 font-semibold">Review links ({links.filter((l) => l.status === "pending").length} waiting)</h3>
+      <p className="mt-1 text-sm text-night-muted">Open each link and check it is the sponsor's own review page before approving.</p>
+      <ul className="mt-2 divide-y divide-night-line rounded-xl border border-night-line text-sm">
+        {links.length === 0 ? <li className="px-4 py-3 text-night-muted">None yet.</li> : null}
+        {links.map((l) => (
+          <li key={l.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">{nameOf.get(l.sponsor_id) ?? "Sponsor"} · {REVIEW_LABELS[l.platform as ReviewPlatform] ?? l.platform} <span className="font-mono text-xs text-night-muted">[{l.status}]</span></p>
+              <a href={l.url} target="_blank" rel="noopener noreferrer nofollow" className="break-all text-electric-soft">{l.url}</a>
+            </div>
+            {(["approved", "rejected"] as const).map((st) => (
+              <button key={st} type="button" disabled={l.status === st}
+                onClick={async () => { await setLink({ data: { id: l.id, status: st } }); qc.invalidateQueries({ queryKey: ["review-links-admin"] }); }}
+                className="rounded-md border border-night-line px-3 py-1.5 disabled:opacity-50">{st === "approved" ? "Approve" : "Reject"}</button>
+            ))}
           </li>
         ))}
       </ul>

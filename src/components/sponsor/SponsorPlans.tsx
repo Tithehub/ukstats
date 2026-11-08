@@ -1,4 +1,5 @@
 import { RegionPicker } from "./RegionPicker";
+import { ReviewLinksForm } from "./ReviewLinksForm";
 import { rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -212,6 +213,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
           </div>
         </form>
       ) : null}
+      {s && s.name !== "Pending details" ? <ReviewLinksForm sponsorId={s.id} /> : null}
     </section>
   );
 }
