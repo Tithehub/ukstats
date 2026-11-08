@@ -23,6 +23,8 @@ export interface ReportInput {
   world: WorldPayload | null;
   travel?: Pick<UnrestPayload, "warnings" | "fcdoAlerts"> | null;
   headlines?: Pick<ReportsPayload, "items"> | null;
+  /** Already filtered to approved, active, paid, in-date sponsors (see directoryEntries). */
+  sponsors?: { name: string; url: string; domain: string; tagline: string | null; regionLabels: string[] }[];
   fonts: ReportFonts;
 }
 
@@ -375,6 +377,29 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     ul.forEach((l, i) => text(p, l, M + 220, y - i * 9, F.m, 7, BLUE));
     y -= rh;
     p.drawLine({ start: { x: M, y: y + 3 }, end: { x: W - M, y: y + 3 }, thickness: 0.3, color: LINE });
+  }
+
+  // ---------- Sponsors (back page, away from the figures) ----------
+  if (input.sponsors?.length) {
+    p = newPage("Our sponsors"); y = sectionTitle(p, "Thank you to our sponsors", H - 92);
+    wrap(F.r, "Sponsors keep UKStats free. They never see or influence any figure. Find them all at ukstats.co.uk/business-directory.", 9.5, W - 2 * M).forEach((l) => { text(p, l, M, y, F.r, 9.5, MUTED); y -= 13; });
+    y -= 12;
+    for (const s of input.sponsors) {
+      const tl = s.tagline ? wrap(F.r, s.tagline, 9, W - 2 * M - 16) : [];
+      const rl = wrap(F.m, s.regionLabels.join("  |  "), 7, W - 2 * M - 16);
+      const rh = 34 + tl.length * 12 + rl.length * 9;
+      if (y - rh < 60) { p = newPage("Our sponsors"); y = H - 92; }
+      p.drawRectangle({ x: M, y: y - rh + 10, width: W - 2 * M, height: rh, color: PALE, borderColor: LINE, borderWidth: 0.6 });
+      p.drawRectangle({ x: M, y: y - rh + 10, width: 3, height: rh, color: NAVY });
+      let yy = y - 6;
+      text(p, s.name, M + 14, yy, F.k, 12, NAVY);
+      const dw = width(F.mb, s.domain, 8);
+      text(p, s.domain, W - M - 12 - dw, yy + 1, F.mb, 8, BLUE); link(p, W - M - 12 - dw, yy - 2, dw, 11, s.url);
+      yy -= 16;
+      tl.forEach((l) => { text(p, l, M + 14, yy, F.r, 9, INK); yy -= 12; });
+      rl.forEach((l) => { text(p, l, M + 14, yy, F.m, 7, MUTED); yy -= 9; });
+      y -= rh + 8;
+    }
   }
 
   async function drawCover() {
