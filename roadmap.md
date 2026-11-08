@@ -9,3 +9,5 @@
 - [ ] 7. Device tidy-up sweep; fill "No live feed" gaps
 - [x] Education section: overview, school finder + pages, universities (England feeds; devolved nations linked as "No live feed")
 - [ ] Education next: KS2 per-school results, HESA student numbers, Scotland/Wales/NI school lists
+
+- [ ] Move-compare: add amenities (DfT journey times) and Scotland/NI crime and NI pay sources

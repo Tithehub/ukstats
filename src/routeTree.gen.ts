@@ -33,8 +33,10 @@ import { Route as GlobeRouteImport } from './routes/globe'
 import { Route as GoldRouteImport } from './routes/gold'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as GroomingGangsInquiryRouteImport } from './routes/grooming-gangs-inquiry'
+import { Route as HappiestPlacesRouteImport } from './routes/happiest-places'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as MapsRouteImport } from './routes/maps'
+import { Route as MoveCompareRouteImport } from './routes/move-compare'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as NewHomeRouteImport } from './routes/new-home'
 import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
@@ -93,6 +95,7 @@ import { Route as CountryHistoryMetricIdRouteImport } from './routes/$country.hi
 import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/agents-tick'
 import { Route as ApiPublicEducationTickRouteImport } from './routes/api/public/education-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
+import { Route as ApiPublicPlacesTickRouteImport } from './routes/api/public/places-tick'
 import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
 import { Route as EducationSchoolsIndexRouteImport } from './routes/education.schools.index'
 import { Route as EducationSchoolsUrnRouteImport } from './routes/education.schools.$urn'
@@ -225,6 +228,11 @@ const GroomingGangsInquiryRoute = GroomingGangsInquiryRouteImport.update({
   path: '/grooming-gangs-inquiry',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HappiestPlacesRoute = HappiestPlacesRouteImport.update({
+  id: '/happiest-places',
+  path: '/happiest-places',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -233,6 +241,11 @@ const LiveRoute = LiveRouteImport.update({
 const MapsRoute = MapsRouteImport.update({
   id: '/maps',
   path: '/maps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoveCompareRoute = MoveCompareRouteImport.update({
+  id: '/move-compare',
+  path: '/move-compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyPagesRoute = MyPagesRouteImport.update({
@@ -526,6 +539,11 @@ const ApiPublicOutreachTickRoute = ApiPublicOutreachTickRouteImport.update({
   path: '/public/outreach-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiPublicPlacesTickRoute = ApiPublicPlacesTickRouteImport.update({
+  id: '/public/places-tick',
+  path: '/public/places-tick',
+  getParentRoute: () => ApiRoute,
+} as any)
 const ApiPublicReportsTickRoute = ApiPublicReportsTickRouteImport.update({
   id: '/public/reports-tick',
   path: '/public/reports-tick',
@@ -610,8 +628,10 @@ export interface FileRoutesByFullPath {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/happiest-places': typeof HappiestPlacesRoute
   '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
+  '/move-compare': typeof MoveCompareRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -670,6 +690,7 @@ export interface FileRoutesByFullPath {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
@@ -706,8 +727,10 @@ export interface FileRoutesByTo {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/happiest-places': typeof HappiestPlacesRoute
   '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
+  '/move-compare': typeof MoveCompareRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -765,6 +788,7 @@ export interface FileRoutesByTo {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
@@ -803,8 +827,10 @@ export interface FileRoutesById {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/happiest-places': typeof HappiestPlacesRoute
   '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
+  '/move-compare': typeof MoveCompareRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -863,6 +889,7 @@ export interface FileRoutesById {
   '/api/public/agents-tick': typeof ApiPublicAgentsTickRoute
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
+  '/api/public/places-tick': typeof ApiPublicPlacesTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
@@ -902,8 +929,10 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/happiest-places'
     | '/live'
     | '/maps'
+    | '/move-compare'
     | '/my-pages'
     | '/new-home'
     | '/online-speech'
@@ -962,6 +991,7 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/places-tick'
     | '/api/public/reports-tick'
     | '/education/schools/$urn'
     | '/s/$slug/broadcast'
@@ -998,8 +1028,10 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/happiest-places'
     | '/live'
     | '/maps'
+    | '/move-compare'
     | '/my-pages'
     | '/new-home'
     | '/online-speech'
@@ -1057,6 +1089,7 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/places-tick'
     | '/api/public/reports-tick'
     | '/education/schools/$urn'
     | '/s/$slug/broadcast'
@@ -1094,8 +1127,10 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/happiest-places'
     | '/live'
     | '/maps'
+    | '/move-compare'
     | '/my-pages'
     | '/new-home'
     | '/online-speech'
@@ -1154,6 +1189,7 @@ export interface FileRouteTypes {
     | '/api/public/agents-tick'
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
+    | '/api/public/places-tick'
     | '/api/public/reports-tick'
     | '/education/schools/$urn'
     | '/s/$slug_/broadcast'
@@ -1192,8 +1228,10 @@ export interface RootRouteChildren {
   GoldRoute: typeof GoldRoute
   GovernmentsRoute: typeof GovernmentsRoute
   GroomingGangsInquiryRoute: typeof GroomingGangsInquiryRoute
+  HappiestPlacesRoute: typeof HappiestPlacesRoute
   LiveRoute: typeof LiveRoute
   MapsRoute: typeof MapsRoute
+  MoveCompareRoute: typeof MoveCompareRoute
   MyPagesRoute: typeof MyPagesRoute
   NewHomeRoute: typeof NewHomeRoute
   OnlineSpeechRoute: typeof OnlineSpeechRoute
@@ -1413,6 +1451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroomingGangsInquiryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/happiest-places': {
+      id: '/happiest-places'
+      path: '/happiest-places'
+      fullPath: '/happiest-places'
+      preLoaderRoute: typeof HappiestPlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/live': {
       id: '/live'
       path: '/live'
@@ -1425,6 +1470,13 @@ declare module '@tanstack/react-router' {
       path: '/maps'
       fullPath: '/maps'
       preLoaderRoute: typeof MapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/move-compare': {
+      id: '/move-compare'
+      path: '/move-compare'
+      fullPath: '/move-compare'
+      preLoaderRoute: typeof MoveCompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-pages': {
@@ -1833,6 +1885,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOutreachTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/api/public/places-tick': {
+      id: '/api/public/places-tick'
+      path: '/public/places-tick'
+      fullPath: '/api/public/places-tick'
+      preLoaderRoute: typeof ApiPublicPlacesTickRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/api/public/reports-tick': {
       id: '/api/public/reports-tick'
       path: '/public/reports-tick'
@@ -1942,6 +2001,7 @@ interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicEducationTickRoute: typeof ApiPublicEducationTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
+  ApiPublicPlacesTickRoute: typeof ApiPublicPlacesTickRoute
   ApiPublicReportsTickRoute: typeof ApiPublicReportsTickRoute
   ApiPublicOgKeyRoute: typeof ApiPublicOgKeyRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1955,6 +2015,7 @@ const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicEducationTickRoute: ApiPublicEducationTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
+  ApiPublicPlacesTickRoute: ApiPublicPlacesTickRoute,
   ApiPublicReportsTickRoute: ApiPublicReportsTickRoute,
   ApiPublicOgKeyRoute: ApiPublicOgKeyRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
@@ -2027,8 +2088,10 @@ const rootRouteChildren: RootRouteChildren = {
   GoldRoute: GoldRoute,
   GovernmentsRoute: GovernmentsRoute,
   GroomingGangsInquiryRoute: GroomingGangsInquiryRoute,
+  HappiestPlacesRoute: HappiestPlacesRoute,
   LiveRoute: LiveRoute,
   MapsRoute: MapsRoute,
+  MoveCompareRoute: MoveCompareRoute,
   MyPagesRoute: MyPagesRoute,
   NewHomeRoute: NewHomeRoute,
   OnlineSpeechRoute: OnlineSpeechRoute,

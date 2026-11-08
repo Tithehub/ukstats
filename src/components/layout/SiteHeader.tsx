@@ -55,6 +55,8 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/education", label: "Education — schools, Ofsted & universities", icon: FileText },
       { to: "/spending", label: "Public spending & FOI", icon: Banknote },
       { to: "/safest-places", label: "City crime rankings", icon: MapIcon },
+      { to: "/happiest-places", label: "Happiest & saddest places", icon: MapIcon },
+      { to: "/move-compare", label: "Thinking of moving? (unofficial)", icon: MapIcon },
       { to: "/world", label: "World rankings (200+ countries)", icon: Globe2 },
       { to: "/countries", label: "Countries", icon: MapIcon },
       { to: "/gold", label: "Gold reserves", icon: Banknote },

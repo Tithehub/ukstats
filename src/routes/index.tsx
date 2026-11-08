@@ -167,6 +167,8 @@ function UkHome() {
         <nav aria-label="More ways to explore" className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-b border-night-line py-3 text-sm text-electric-soft">
           <Link to="/daily" className="inline-flex min-h-11 items-center">Latest releases →</Link>
           <Link to="/safest-places" search={{ country: 'uk' }} className="inline-flex min-h-11 items-center">Safest places →</Link>
+          <Link to="/happiest-places" search={{}} className="inline-flex min-h-11 items-center">Happiest places →</Link>
+          <Link to="/move-compare" search={{}} className="inline-flex min-h-11 items-center">Thinking of moving? →</Link>
           <Link to="/small-boats" className="inline-flex min-h-11 items-center">Small boats since 2018 →</Link>
           <Link to="/world" search={{ figure: undefined }} className="inline-flex min-h-11 items-center">World rankings →</Link>
           <Link to="/parties" search={{ view: "election" }} className="inline-flex min-h-11 items-center">Political parties →</Link>

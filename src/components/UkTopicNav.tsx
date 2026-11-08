@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Anchor, Banknote, FileText, GraduationCap, Scale, ShieldCheck, ShoppingBasket, Stethoscope } from "lucide-react";
+import { Anchor, Banknote, FileText, GraduationCap, Smile, Scale, ShieldCheck, ShoppingBasket, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SpendingTypeLinks } from "@/components/SpendingTypeLinks";
 
@@ -9,6 +9,7 @@ export function UkTopicNav() {
     <Button asChild variant="outline" size="sm"><Link to="/grooming-gangs-inquiry"><Scale />Grooming gangs inquiry</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/scandals"><FileText />Scandals</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/education"><GraduationCap />Education & schools</Link></Button>
+    <Button asChild variant="outline" size="sm"><Link to="/happiest-places" search={{}}><Smile />Happiest places</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/spending"><Banknote />Public spending</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/reports"><FileText />Daily PDF report</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/register" search={{ category: "Cost of living" }}><ShoppingBasket />Cost of living</Link></Button>

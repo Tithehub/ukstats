@@ -1229,6 +1229,14 @@ export type Database = {
         }[]
       }
       rent_slug_available: { Args: { _slug: string }; Returns: boolean }
+      school_quality_by_la: {
+        Args: never
+        Returns: {
+          good: number
+          la: string
+          rated: number
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
