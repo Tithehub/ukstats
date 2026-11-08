@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import cover from "@/assets/grooming-gang-cover-up-book.jpg.asset.json";
+import cover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 
 const ext = { target: "_blank", rel: "noopener noreferrer" } as const;
 const btn = "inline-flex items-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-bold";
@@ -23,7 +23,7 @@ export function IndependentWorksCta() {
         </article>
         <article className="flex gap-4 rounded-2xl border-4 border-primary bg-card p-5">
           <a {...ext} href="https://www.amazon.co.uk/dp/0995584982" className="shrink-0">
-            <img src={cover.url} alt="Cover of The Grooming Gang Cover-Up" width={400} height={511} loading="lazy" className="h-40 w-auto rounded sm:h-48" />
+            <img src={cover.url} alt="Cover of The Grooming Gang Cover-Up" width={342} height={522} loading="lazy" className="h-40 w-auto rounded sm:h-48" />
           </a>
           <div className="flex min-w-0 flex-col justify-between">
             <div>
