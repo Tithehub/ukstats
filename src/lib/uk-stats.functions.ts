@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { HistoryPayload, HistoryPoint, Metric, StatsPayload } from "./uk-stats";
+import { relatedSeries } from "./uk-stats";
 import { checkVerifiedHealthAlerts } from "./health-alerts";
 import { retainUnpublishedCharacteristics } from "./unpublished-characteristics";
 
@@ -3034,6 +3035,7 @@ export const getMetricHistory = createServerFn({ method: "POST" })
       nextDue,
       points,
       fetchedAt: new Date().toISOString(),
+      related: relatedSeries(ONS_DEFS, def.id),
     };
   });
 

@@ -256,6 +256,30 @@ function HistoryPage() {
             </button>
           </div>
         </section>
+
+        {data.related && data.related.length > 0 && (
+          <section className="mt-8" aria-labelledby="related-figures">
+            <h2 id="related-figures" className="mb-3 text-sm font-semibold tracking-tight">
+              Related figures in {data.category}
+            </h2>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {data.related.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    to="/history/$metricId"
+                    params={{ metricId: r.id }}
+                    className="block rounded-lg border border-night-line/60 px-3 py-2 text-sm hover:border-electric hover:text-electric-soft"
+                  >
+                    {r.title} →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link to="/calendar" className="mt-3 inline-block font-mono text-[11px] text-night-muted hover:text-electric-soft">
+              See upcoming official release dates →
+            </Link>
+          </section>
+        )}
       </main>
       <SiteFooter fetchedAt={data.fetchedAt} />
     </div>
