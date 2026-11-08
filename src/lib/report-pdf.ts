@@ -98,11 +98,17 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   const title = `${kindName} ${editionName} Report`;
   const dateLong = longDate(input.date);
 
-  const logo = (p: PDFPage, x: number, y: number, s: number, _light: boolean) => {
-    // Real UKStats mark (traced from the brand logo), drawn all white as vectors.
-    const k = s / 660;
-    const path = "M0 416 L188 310 L188 648 L0 648 Z M237 278 L413 178 L413 648 L237 648 Z M466 111 L660 0 L660 648 L466 648 Z";
-    p.drawSvgPath(path, { x, y: y + 648 * k, scale: k, color: WHITE });
+  // Website lockup: three rounded bars (short, tall, medium) + "UK" bold, "Stats" regular, all white.
+  const logo = (p: PDFPage, x: number, y: number, s: number) => {
+    const bw = s * 0.2, gap = s * 0.13, r = bw / 2;
+    [0.55, 1, 0.75].forEach((h, i) => {
+      const bh = s * h, bx = x + i * (bw + gap);
+      const d = `M0 ${r} A${r} ${r} 0 0 1 ${bw} ${r} L${bw} ${bh - r} A${r} ${r} 0 0 1 0 ${bh - r} Z`;
+      p.drawSvgPath(d, { x: bx, y: y + bh, color: WHITE });
+    });
+    const tx = x + 3 * bw + 2 * gap + s * 0.4, size = s * 1.05;
+    text(p, "UK", tx, y + s * 0.05, F.k, size, WHITE);
+    text(p, "Stats", tx + width(F.k, "UK", size) + size * 0.12, y + s * 0.05, F.b, size, WHITE);
   };
 
   // ---------- Cover (drawn last, see drawCover) ----------
@@ -116,8 +122,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     pages.push(p);
     if (!toc.some((t) => t.section === section)) toc.push({ section, page: pages.length + 1 });
     p.drawRectangle({ x: 0, y: H - 34, width: W, height: 34, color: NAVY });
-    logo(p, M, H - 26, 18, true);
-    text(p, "UKSTATS", M + 22, H - 23, F.k, 11, WHITE);
+    logo(p, M, H - 25, 13);
     text(p, fit(F.mb, `${title.toUpperCase()}  |  ${dateLong.toUpperCase()}`, 7.5, 300), W - M - width(F.mb, fit(F.mb, `${title.toUpperCase()}  |  ${dateLong.toUpperCase()}`, 7.5, 300), 7.5), H - 21, F.mb, 7.5, rgb(0.75, 0.82, 0.92));
     text(p, section.toUpperCase(), M, H - 62, F.mb, 8, BLUE);
     return p;
@@ -379,8 +384,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     c.drawRectangle({ x: 0, y: H - 3, width: W, height: 3, color: RED });
     const L = 56;
     // Masthead
-    logo(c, L, H - 70, 22, true);
-    text(c, "UKSTATS", L + 26, H - 63, F.k, 13, WHITE);
+    logo(c, L, H - 68, 17);
     const [yy, mm, dd] = input.date.split("-").map(Number);
     const doy = Math.round((Date.UTC(yy!, mm! - 1, dd!) - Date.UTC(yy!, 0, 0)) / 864e5);
     const vol = `No. ${doy}  |  ${yy}`;
