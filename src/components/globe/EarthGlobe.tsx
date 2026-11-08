@@ -48,7 +48,7 @@ export interface GlobeProps {
   /** Day/night shading with the sunrise line. */
   dayNight?: boolean;
   /** Pointer and camera readout for the control-room HUD. */
-  onTelemetry?: (t: { lat: number | null; lng: number | null; altKm: number }) => void;
+  onTelemetry?: ((t: { lat: number | null; lng: number | null; altKm: number }) => void) | undefined;
 }
 
 /** Subsolar point for a UTC time (simple solar declination + equation of time). */
