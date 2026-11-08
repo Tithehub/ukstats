@@ -199,6 +199,13 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const down = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
   const [alt, setAlt] = useState(1.9);
+  useEffect(() => {
+    // Window capture listeners run before the globe's own handlers, so a drag is known before any click fires.
+    const dn = (e: PointerEvent) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; };
+    const mv = (e: PointerEvent) => { const d = down.current; if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) moved.current = true; };
+    window.addEventListener("pointerdown", dn, true); window.addEventListener("pointermove", mv, true); window.addEventListener("pointerup", mv, true);
+    return () => { window.removeEventListener("pointerdown", dn, true); window.removeEventListener("pointermove", mv, true); window.removeEventListener("pointerup", mv, true); };
+  }, []);
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const colors = COLORS;
@@ -303,7 +310,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...cams.map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams]);
 
   return (
-    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onPointerUpCapture={(e) => { const d = down.current; moved.current = !!d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6; }} onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDownCapture={(e) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
+    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
       <Globe
         ref={ref}
         width={size.w}
