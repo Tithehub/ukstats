@@ -249,12 +249,29 @@ async function upsert(db: { from: (t: string) => any }, rows: object[]) {
   }
 }
 
-export async function refreshEducation(): Promise<EducationSummary> {
+export type EduStage = "schools" | "providers" | "headlines" | "all";
+
+/**
+ * Runs one stage (or all). Each stage keeps the other stages' last stored
+ * results, so the nightly schedule can call them as separate, shorter requests.
+ */
+export async function refreshEducation(stage: EduStage = "all"): Promise<EducationSummary> {
   const db = await admin();
   const errors: string[] = [];
-  const summary: EducationSummary = { fetchedAt: new Date().toISOString(), gias: null, ofsted: null, headlines: [], ks4: null, providers: null, errors };
   const prev = (await db.from("payload_cache").select("data").eq("id", EDU_CACHE_ID).maybeSingle()).data?.data as EducationSummary | undefined;
+  const summary: EducationSummary = { fetchedAt: new Date().toISOString(), gias: prev?.gias ?? null, ofsted: prev?.ofsted ?? null, headlines: prev?.headlines ?? [], ks4: prev?.ks4 ?? null, providers: prev?.providers ?? null, errors };
+  if (stage === "schools" || stage === "all") await refreshSchools(db, summary, prev, errors);
+  if (stage === "providers" || stage === "all") await refreshProviders(db, summary, prev, errors);
+  if (stage === "headlines" || stage === "all") {
+    const heads = await fetchHeadlines(errors);
+    // A headline that failed this time keeps its last published value and date.
+    summary.headlines = HEADLINES.map((h) => heads.find((x) => x.key === h.key) ?? prev?.headlines.find((x) => x.key === h.key)).filter((x): x is EesHeadline => !!x);
+  }
+  await db.from("payload_cache").upsert({ id: EDU_CACHE_ID, data: summary, updated_at: summary.fetchedAt });
+  return summary;
+}
 
+async function refreshSchools(db: { from: (t: string) => any }, summary: EducationSummary, prev: EducationSummary | undefined, errors: string[]) {
   const [gias, ofsted, ks4] = await Promise.all([
     fetchGias().catch((e) => { errors.push(`gias: ${e.message}`); return null; }),
     fetchOfsted().catch((e) => { errors.push(`ofsted: ${e.message}`); return null; }),
@@ -282,20 +299,15 @@ export async function refreshEducation(): Promise<EducationSummary> {
   } else summary.gias = prev?.gias ?? null;
   summary.ofsted = ofsted ? { asAt: ofsted.asAt, url: ofsted.url, ...summariseOfsted([...ofsted.map.values()]) } : prev?.ofsted ?? null;
   summary.ks4 = ks4 ? { period: ks4.period, schools: ks4.map.size } : prev?.ks4 ?? null;
+}
 
+async function refreshProviders(db: { from: (t: string) => any }, summary: EducationSummary, prev: EducationSummary | undefined, errors: string[]) {
   try {
     const p = await fetchProviders();
     await upsert(db, p.rows);
     await db.from("education_institutions").delete().eq("kind", "provider").neq("source_date", p.date);
     summary.providers = { count: p.rows.length, date: p.date };
   } catch (e) { errors.push(`ofs: ${(e as Error).message}`); summary.providers = prev?.providers ?? null; }
-
-  const heads = await fetchHeadlines(errors);
-  // A headline that failed this time keeps its last published value and date.
-  summary.headlines = HEADLINES.map((h) => heads.find((x) => x.key === h.key) ?? prev?.headlines.find((x) => x.key === h.key)).filter((x): x is EesHeadline => !!x);
-
-  await db.from("payload_cache").upsert({ id: EDU_CACHE_ID, data: summary, updated_at: summary.fetchedAt });
-  return summary;
 }
 
 export async function readEducationSummary(): Promise<EducationSummary | null> {
