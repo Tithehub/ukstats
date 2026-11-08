@@ -409,13 +409,13 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     text(c, "INSIDE", L, ty - 160, F.mb, 7, SOFT);
     wrap(F.r, names.join("   ·   "), 9, W - 2 * L - 50).slice(0, 2).forEach((l, i) => text(c, l, L + 46, ty - 160 - i * 14, F.r, 9, FAINT));
     // Footer
-    c.drawLine({ start: { x: L, y: 96 }, end: { x: W - L, y: 96 }, thickness: 0.4, color: NAVY2 });
+    c.drawLine({ start: { x: L, y: 104 }, end: { x: W - L, y: 104 }, thickness: 0.4, color: NAVY2 });
     text(c, "ukstats.co.uk", L, 70, F.b, 10, WHITE);
     text(c, "Official figures only  |  free forever online", L, 56, F.r, 8, SOFT);
     const qr = qrcode(0, "M");
     qr.addData("https://ukstats.co.uk/?utm_source=report&utm_medium=pdf");
     qr.make();
-    const n = qr.getModuleCount(), qs = 46, cell = qs / n, qx = W - L - qs, qy = 48;
+    const n = qr.getModuleCount(), qs = 46, cell = qs / n, qx = W - L - qs, qy = 44;
     c.drawRectangle({ x: qx - 4, y: qy - 4, width: qs + 8, height: qs + 8, color: WHITE });
     for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.drawRectangle({ x: qx + k * cell, y: qy + (n - 1 - r) * cell, width: cell + 0.15, height: cell + 0.15, color: NAVY });
     const cap = "Live figures";
