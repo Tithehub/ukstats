@@ -58,4 +58,4 @@
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
-- Share pictures are rendered by /api/public/og/$key (pure-JS rasteriser in og-render.server.ts, text rules in og-card.ts) from published snapshots only; route heads add them via ogImageMeta — no native image libraries run on the edge.
+- Share cards: /api/public/og/$key renders PNGs in pure JS from published snapshots (og-card.ts, og-render.server.ts) — no native image libs on the edge.
