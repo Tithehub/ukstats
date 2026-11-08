@@ -168,6 +168,7 @@ function UkHome() {
           <Link to="/daily" className="inline-flex min-h-11 items-center">Latest releases →</Link>
           <Link to="/safest-places" search={{ country: 'uk' }} className="inline-flex min-h-11 items-center">Safest places →</Link>
           <Link to="/happiest-places" search={{}} className="inline-flex min-h-11 items-center">Happiest places →</Link>
+          <Link to="/happiest-places" search={{ view: "countries" }} className="inline-flex min-h-11 items-center">Happiest countries →</Link>
           <Link to="/move-compare" search={{}} className="inline-flex min-h-11 items-center">Thinking of moving? →</Link>
           <Link to="/small-boats" className="inline-flex min-h-11 items-center">Small boats since 2018 →</Link>
           <Link to="/world" search={{ figure: undefined }} className="inline-flex min-h-11 items-center">World rankings →</Link>
