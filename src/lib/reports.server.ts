@@ -7,6 +7,7 @@ import monoBold from "@/assets/fonts/IBMPlexMono-SemiBold.ttf?inline";
 import ukMapPng from "@/assets/report/uk-map.png?inline";
 import globePng from "@/assets/report/globe.png?inline";
 import { buildReportPdf, type ReportFonts } from "@/lib/report-pdf";
+import { directoryEntries } from "@/lib/directory";
 import { reportPath, type ReportEdition, type ReportKind } from "@/lib/reports";
 import type { StatsPayload } from "@/lib/uk-stats";
 import type { WorldPayload } from "@/lib/world";
@@ -29,18 +30,20 @@ const getFonts = () => (fonts ??= { regular: fromDataUrl(regular), bold: fromDat
 export async function generateEdition(edition: ReportEdition, kind: ReportKind, date: string): Promise<string> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const from = (supabaseAdmin.from as (t: string) => any).bind(supabaseAdmin);
-  const [{ data: uk }, { data: world }, { data: travel }, { data: news }] = await Promise.all([
+  const [{ data: uk }, { data: world }, { data: travel }, { data: news }, { data: sponsorRows }] = await Promise.all([
     from("payload_cache").select("data").eq("id", "uk-stats").maybeSingle(),
     edition === "global" ? from("payload_cache").select("data").eq("id", "world-bank-v2").maybeSingle() : Promise.resolve({ data: null }),
     from("payload_cache").select("data").eq("id", "unrest-v1").maybeSingle(),
     from("payload_cache").select("data").eq("id", "news-reports-v1").maybeSingle(),
+    from("sponsors").select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions").limit(200),
   ]);
+  const sponsors = directoryEntries(sponsorRows ?? [], "live");
   const stats = (uk?.data ?? null) as StatsPayload | null;
   if (!stats?.metrics?.length) throw new Error("No saved UK figures to build a report from");
   const { bytes, pages } = await buildReportPdf({
     edition, kind, date, metrics: stats.metrics, ukSavedAt: stats.fetchedAt ?? null,
     world: (world?.data ?? null) as WorldPayload | null,
-    travel: (travel?.data ?? null) as UnrestPayload | null, headlines: (news?.data ?? null) as ReportsPayload | null, fonts: getFonts(),
+    travel: (travel?.data ?? null) as UnrestPayload | null, headlines: (news?.data ?? null) as ReportsPayload | null, sponsors, fonts: getFonts(),
   });
   const path = reportPath(edition, kind, date);
   const up = await supabaseAdmin.storage.from(REPORT_BUCKET).upload(path, bytes, { contentType: "application/pdf", upsert: true });
