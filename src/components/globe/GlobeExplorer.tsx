@@ -34,7 +34,7 @@ import { GlobeKey } from "@/components/globe/GlobeKey";
 import { quakesQuery, tlesQuery } from "@/lib/earth-watch.functions";
 import { QUAKE_SOURCE } from "@/lib/quakes";
 import { publicCamsQuery } from "@/lib/public-cams.functions";
-import { CamViewer } from "./CamViewer";
+import { CamList, CamViewer } from "./CamViewer";
 import { SAT_SOURCE } from "@/lib/satellites";
 import { useSatPositions } from "@/components/globe/useSatPositions";
 import { GlobeHud } from "@/components/globe/GlobeHud";
@@ -184,6 +184,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const { data: camData } = useQuery(publicCamsQuery(!!s.cam));
   const [camId, setCamId] = useState<string | null>(null);
   const globeCams = useMemo(() => (s.cam && camData ? camData.items : []), [s.cam, camData]);
+  useEffect(() => { if (camId && !broadcast) setOnAir(false); }, [camId, broadcast]);
   const cam = camId ? globeCams.find((c) => c.id === camId) ?? null : null;
   const globeSats = useSatPositions(s.st ? tleData?.items ?? null : null);
   const [preset, setPreset] = useState<{ n: number; kind: "world" | "tilt" | "focus" } | null>(null);
@@ -323,14 +324,14 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
     {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
       : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
   </div>{ticker}</>}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "min-h-0 flex-1"}`}>
-    <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
+    <section aria-label="Interactive globe" className={`relative flex-1 ${height}`} onPointerDownCapture={() => { if (!broadcast) setOnAir(false); }} onWheelCapture={() => { if (!broadcast) setOnAir(false); }}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
+        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
-      {cam && <CamViewer cam={cam} onClose={() => setCamId(null)} />}
+      {cam && <CamViewer cam={cam} all={globeCams} onPick={setCamId} onClose={() => setCamId(null)} />}
       <div className={`absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80 ${broadcast ? "hidden" : ""}`}>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur sm:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
@@ -377,6 +378,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={s.dn !== false} onChange={(e) => onChange({ dn: e.target.checked ? undefined : false })} /> <span><b>Day and night</b>: shade the side of the Earth in darkness, with the sunrise and sunset line</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.cam} onChange={(e) => { onChange({ cam: e.target.checked || undefined }); if (!e.target.checked) setCamId(null); }} /> <span><b>Public cameras</b>: road cameras run by public transport authorities{s.cam && camData ? ` — ${camData.items.length.toLocaleString("en-GB")}` : ""}
           {s.cam && <span className="mt-1 block text-night-muted"><Swatch c="#4fd1ff" />Click a dot to view. Transport for London and Caltrans open data; most are still pictures updated every few minutes. Scene only — not a source of figures.</span>}</span></label>
+        {s.cam && camData && <CamList cams={globeCams} country={sel ?? ""} onPick={setCamId} />}
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.st} onChange={(e) => onChange({ st: e.target.checked || undefined })} /> <span><b>Satellites</b>: space stations and Earth-watching satellites{s.st ? ` — ${globeSats.length}` : ""}
           {s.st && <span className="mt-1 block text-night-muted"><Swatch c="#8cf0ff" />Positions worked out from <a className="underline" href={SAT_SOURCE.url} target="_blank" rel="noreferrer noopener">{SAT_SOURCE.name}</a> (refreshed twice a day); line shows the next 90 minutes.</span>}</span></label>
         <div className="mt-2 flex gap-3">
