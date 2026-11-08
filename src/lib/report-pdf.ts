@@ -372,122 +372,54 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   }
 
   async function drawCover() {
-    const SOFT = rgb(0.7, 0.78, 0.9), FAINT = rgb(0.85, 0.89, 0.95);
+    const SOFT = rgb(0.62, 0.71, 0.84), FAINT = rgb(0.85, 0.89, 0.95);
     const c = cover;
     c.drawRectangle({ x: 0, y: 0, width: W, height: H, color: NAVY });
-    // Background depth: faint globe rings and grid, top right.
+    c.drawRectangle({ x: 0, y: H - 3, width: W, height: 3, color: RED });
+    const L = 56;
+    // Masthead
+    logo(c, L, H - 70, 22, true);
+    text(c, "UKSTATS", L + 26, H - 63, F.k, 13, WHITE);
+    const [yy, mm, dd] = input.date.split("-").map(Number);
+    const doy = Math.round((Date.UTC(yy!, mm! - 1, dd!) - Date.UTC(yy!, 0, 0)) / 864e5);
+    const vol = `No. ${doy}  |  ${yy}`;
+    text(c, vol, W - L - width(F.m, vol, 8), H - 61, F.m, 8, SOFT);
+    // Artwork centrepiece
     const art = input.edition === "uk" ? input.fonts.ukMap : input.fonts.globe;
     if (art) {
       const img = await doc.embedPng(art);
-      const bh = input.edition === "uk" ? 215 : 230, bw = (img.width / img.height) * bh;
-      c.drawImage(img, { x: W - M - bw + (input.edition === "uk" ? 10 : 0), y: H - (input.edition === "uk" ? 312 : 300), width: bw, height: bh, opacity: 0.85 });
+      const bh = input.edition === "uk" ? 330 : 300, bw = (img.width / img.height) * bh;
+      c.drawImage(img, { x: (W - bw) / 2, y: H - 120 - bh, width: bw, height: bh, opacity: 0.9 });
     }
-    c.drawRectangle({ x: 0, y: H - 8, width: W, height: 8, color: RED });
-    c.drawRectangle({ x: 0, y: H - 11, width: W, height: 3, color: WHITE });
-    // Masthead
-    logo(c, M, H - 82, 46, true);
-    text(c, "UKSTATS", M + 54, H - 66, F.k, 26, WHITE);
-    text(c, "ukstats.co.uk", M + 56, H - 80, F.m, 8.5, SOFT);
-    const [yy, mm, dd] = input.date.split("-").map(Number);
-    const doy = Math.round((Date.UTC(yy!, mm! - 1, dd!) - Date.UTC(yy!, 0, 0)) / 864e5);
-    const vol = `VOL. ${yy}  |  NO. ${doy}`;
-    text(c, vol, W - M - width(F.mb, vol, 8.5), H - 58, F.mb, 8.5, YELLOW);
-    const dUp = new Date(Date.UTC(yy!, mm! - 1, dd!)).toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" }).toUpperCase();
-    text(c, dUp, W - M - width(F.mb, dUp, 8.5), H - 72, F.mb, 8.5, SOFT);
-    c.drawLine({ start: { x: M, y: H - 100 }, end: { x: W - M, y: H - 100 }, thickness: 0.6, color: SOFT });
     // Title
-    c.drawRectangle({ x: M, y: H - 140, width: width(F.mb, "OFFICIAL FIGURES ONLY", 8.5) + 16, height: 18, color: YELLOW });
-    text(c, "OFFICIAL FIGURES ONLY", M + 8, H - 134, F.mb, 8.5, NAVY);
-    text(c, `${editionName} ${kindName}`, M, H - 186, F.b, 34, WHITE);
-    text(c, "Report", M, H - 222, F.r, 34, FAINT);
-    text(c, dateLong, M, H - 260, F.m, 12, SOFT);
-    c.drawRectangle({ x: M, y: H - 276, width: 60, height: 3, color: RED });
-    // Headline figure panel
-    const byId2 = new Map(input.metrics.map((m) => [m.id, m]));
-    const hm = byId2.get("uk-national-debt");
-    const pt = H - 310, ph = 112, pw = W - 2 * M;
-    c.drawRectangle({ x: M, y: pt - ph, width: pw, height: ph, color: NAVY2 });
-    c.drawRectangle({ x: M, y: pt - ph, width: 5, height: ph, color: RED });
-    text(c, "HEADLINE FIGURE", M + 20, pt - 20, F.mb, 7.5, YELLOW);
-    text(c, fit(F.b, hm?.title ?? "UK public sector net debt", 12, pw - 40), M + 20, pt - 36, F.b, 12, WHITE);
+    const ty = 360;
+    text(c, `${editionName} ${kindName} Report`, L, ty, F.r, 30, WHITE);
+    const dLong = new Date(Date.UTC(yy!, mm! - 1, dd!)).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    text(c, dLong, L, ty - 24, F.r, 11, SOFT);
+    c.drawRectangle({ x: L, y: ty - 42, width: 28, height: 1.5, color: RED });
+    // Single headline figure
+    const hm = input.metrics.find((m) => m.id === "uk-national-debt");
+    text(c, fit(F.r, hm?.title ?? "UK public sector net debt", 9, W - 2 * L), L, ty - 82, F.r, 9, SOFT);
     const hv = hm?.value ?? "Not published";
-    let hs = hm?.value ? 28 : 18; while (hs > 18 && width(F.b, hv, hs) > pw - 40) hs -= 2;
-    text(c, fit(F.b, hv, hs, pw - 40), M + 20, pt - 72, F.b, hs, hm?.value ? WHITE : SOFT);
-    text(c, fit(F.m, `${hm?.source ?? "Source not available"}  |  ${hm?.period ?? "period not stated"}  |  published ${shortDate(hm?.asOf)}`, 7, pw - 40), M + 20, pt - 96, F.m, 7, SOFT);
-    // Key-figure tiles
-    const travel = input.edition === "global" && input.travel ? travelRows(input.travel.warnings, input.travel.fcdoAlerts, new Date(`${input.date}T12:00:00Z`)) : [];
-    type Tile = { label: string; value: string | null; sub: string };
-    const mt = (id: string, label: string): Tile => { const m = byId2.get(id); return { label, value: m?.value ?? null, sub: m ? `${m.period ?? ""}${m.period ? " | " : ""}${m.source}` : "Not published" }; };
-    const tiles: Tile[] = input.edition === "uk"
-      ? [mt("uk-small-boats-week", "Small boats"), mt("uk-cpi", "Inflation (CPI)"), mt("uk-unemployment", "Unemployment"), mt("uk-irregular-migration", "Irregular migration")]
-      : [
-          { label: "Countries", value: input.world ? String(input.world.countries.length) : null, sub: WORLD_SOURCE.name },
-          { label: "Travel advice", value: travel.length ? String(travel.length) : null, sub: "countries, UK FCDO + US State Dept" },
-          mt("uk-small-boats-week", "UK small boats"),
-          mt("uk-cpi", "UK inflation (CPI)"),
-        ];
-    const tt = pt - ph - 12, th = 84, tw = (pw - 3 * 8) / 4;
-    tiles.forEach((t, i) => {
-      const x = M + i * (tw + 8);
-      c.drawRectangle({ x, y: tt - th, width: tw, height: th, borderColor: NAVY2, borderWidth: 1, color: NAVY });
-      c.drawRectangle({ x, y: tt - 3, width: tw, height: 3, color: BLUE });
-      text(c, fit(F.mb, t.label.toUpperCase(), 6.5, tw - 16), x + 8, tt - 18, F.mb, 6.5, SOFT);
-      const v = t.value ?? "Not published";
-      let vs = t.value ? 14 : 10; while (vs > 8 && width(F.b, v, vs) > tw - 16) vs -= 1;
-      text(c, fit(F.b, v, vs, tw - 16), x + 8, tt - 42, F.b, vs, t.value ? WHITE : SOFT);
-      wrap(F.m, t.sub, 5.8, tw - 16).slice(0, 3).forEach((l, j) => text(c, l, x + 8, tt - 60 - j * 7.5, F.m, 5.8, SOFT));
-    });
-    // Contents + warnings
-    const ct = tt - th - 30, colW = (pw - 24) / 2;
-    text(c, "INSIDE THIS EDITION", M, ct, F.mb, 8, YELLOW);
-    c.drawLine({ start: { x: M, y: ct - 7 }, end: { x: M + colW, y: ct - 7 }, thickness: 0.5, color: SOFT });
-    const tocShown = toc.length <= 9 ? toc : toc.filter((t) => !(CATEGORIES as readonly string[]).includes(t.section) || t.section === toc.find((x) => (CATEGORIES as readonly string[]).includes(x.section))?.section).slice(0, 9);
-    tocShown.forEach((e, i) => {
-      const y0 = ct - 24 - i * 17;
-      text(c, String(i + 1).padStart(2, "0"), M, y0, F.mb, 8, BLUE);
-      text(c, fit(F.b, e.section, 9.5, colW - 70), M + 20, y0, F.b, 9.5, WHITE);
-      const pn = `p${e.page}`;
-      text(c, pn, M + colW - width(F.mb, pn, 8), y0, F.mb, 8, SOFT);
-    });
-    const wx = M + colW + 24;
-    text(c, input.edition === "uk" ? "TODAY'S UK WARNINGS" : "TODAY'S WARNINGS", wx, ct, F.mb, 8, YELLOW);
-    c.drawLine({ start: { x: wx, y: ct - 7 }, end: { x: W - M, y: ct - 7 }, thickness: 0.5, color: SOFT });
-    const wl: { t: string; v: string; col: ReturnType<typeof rgb> }[] = ukWarningMetrics(input.metrics).slice(0, input.edition === "uk" ? 6 : 3).map((m) => ({
-      t: m.title, v: m.value ?? "Not published",
-      col: m.value && /red|severe|critical/i.test(m.value) ? RED : m.value && /amber|yellow|substantial/i.test(m.value) ? YELLOW : BLUE,
-    }));
-    if (input.edition === "global" && travel.length) {
-      const ukTop = travel.filter((r) => /against all travel/i.test(r.uk) && !/but essential/i.test(r.uk)).length;
-      const usTop = travel.filter((r) => /level 4/i.test(r.us)).length;
-      const unrest = travel.filter((r) => r.unrest).length;
-      wl.push({ t: "UK FCDO: advise against all travel", v: `${ukTop} countries`, col: RED });
-      wl.push({ t: "US State Dept: Level 4", v: `${usTop} countries`, col: RED });
-      wl.push({ t: "Unrest mentioned, last 30 days", v: `${unrest} countries`, col: YELLOW });
-    }
-    if (!wl.length) text(c, "Not published at time of report", wx, ct - 24, F.r, 9, SOFT);
-    wl.forEach((w, i) => {
-      const y0 = ct - 24 - i * 24;
-      c.drawRectangle({ x: wx, y: y0 - 10, width: 3, height: 20, color: w.col });
-      text(c, fit(F.r, w.t, 7.5, colW - 12), wx + 10, y0 + 2, F.r, 7.5, SOFT);
-      text(c, fit(F.b, w.v, 9.5, colW - 12), wx + 10, y0 - 9, F.b, 9.5, WHITE);
-    });
-    // Footer + QR
+    text(c, hv, L, ty - 112, F.r, 26, hm?.value ? WHITE : SOFT);
+    const meta = `${hm?.source ?? "Source not available"}  |  ${hm?.period ?? "period not stated"}`;
+    text(c, fit(F.m, meta, 7.5, W - 2 * L - width(F.r, hv, 26) - 20), L + width(F.r, hv, 26) + 16, ty - 108, F.m, 7.5, SOFT);
+    // Quiet contents line
+    const names = toc.filter((t) => !(CATEGORIES as readonly string[]).includes(t.section)).map((t) => t.section);
+    text(c, "INSIDE", L, ty - 160, F.mb, 7, SOFT);
+    wrap(F.r, names.join("   ·   "), 9, W - 2 * L - 50).slice(0, 2).forEach((l, i) => text(c, l, L + 46, ty - 160 - i * 14, F.r, 9, FAINT));
+    // Footer
+    c.drawLine({ start: { x: L, y: 96 }, end: { x: W - L, y: 96 }, thickness: 0.4, color: NAVY2 });
+    text(c, "ukstats.co.uk", L, 70, F.b, 10, WHITE);
+    text(c, "Official figures only  |  free forever online", L, 56, F.r, 8, SOFT);
     const qr = qrcode(0, "M");
     qr.addData("https://ukstats.co.uk/?utm_source=report&utm_medium=pdf");
     qr.make();
-    const n = qr.getModuleCount(), qs = 70, cell = qs / n, qx = W - M - qs - 6, qy = 40;
-    c.drawRectangle({ x: qx - 6, y: qy - 6, width: qs + 12, height: qs + 12, color: WHITE });
-    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.drawRectangle({ x: qx + k * cell, y: qy + (n - 1 - r) * cell, width: cell + 0.2, height: cell + 0.2, color: NAVY });
-    text(c, "SCAN FOR LIVE FIGURES", qx - 6, qy + qs + 14, F.mb, 6.5, SOFT);
-    c.drawLine({ start: { x: M, y: 128 }, end: { x: qx - 24, y: 128 }, thickness: 0.5, color: SOFT });
-    text(c, "Built by the people, for the people.", M, 106, F.b, 12, WHITE);
-    const intro = input.kind === "daily"
-      ? "Every figure is copied exactly as the official publisher released it, with source, period, publication date and next release. Nothing estimated."
-      : `Figures published since ${longDate(windowStart(input.date, input.kind))}, plus the full register. Every figure copied exactly as released.`;
-    wrap(F.r, intro, 8, qx - 24 - M).slice(0, 2).forEach((l, i) => text(c, l, M, 90 - i * 11, F.r, 8, FAINT));
-    text(c, fit(F.m, `Compiled ${dateLong}${input.ukSavedAt ? ` from figures saved ${shortDate(input.ukSavedAt)}` : ""}  |  ${pages.length + 1} pages`, 6.8, qx - 24 - M), M, 60, F.m, 6.8, SOFT);
-    text(c, "All viewable statistics stay free forever at ukstats.co.uk.", M, 48, F.m, 6.8, SOFT);
-    c.drawRectangle({ x: 0, y: 0, width: W, height: 6, color: BLUE });
+    const n = qr.getModuleCount(), qs = 46, cell = qs / n, qx = W - L - qs, qy = 48;
+    c.drawRectangle({ x: qx - 4, y: qy - 4, width: qs + 8, height: qs + 8, color: WHITE });
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.drawRectangle({ x: qx + k * cell, y: qy + (n - 1 - r) * cell, width: cell + 0.15, height: cell + 0.15, color: NAVY });
+    const cap = "Live figures";
+    text(c, cap, qx - 12 - width(F.m, cap, 7), qy + 2, F.m, 7, SOFT);
   }
 
   // ---------- Footers ----------
