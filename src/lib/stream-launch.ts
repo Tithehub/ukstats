@@ -46,3 +46,15 @@ export function shareIntents(text: string, link: string): ShareIntent[] {
     { key: "mastodon", label: "Mastodon", url: `https://mastodon.social/share?text=${both}` },
   ];
 }
+
+/** The 11-character video id from a cleaned stream link, or null. */
+export function youtubeIdFromLink(link: string): string | null {
+  const clean = cleanStreamLink(link);
+  return clean ? clean.slice(-11) : null;
+}
+
+/** Thumbnail candidates on YouTube's own image host, best first. */
+export function youtubeThumbnailUrls(id: string): string[] {
+  if (!/^[\w-]{11}$/.test(id)) return [];
+  return ["maxresdefault", "hqdefault"].map((n) => `https://i.ytimg.com/vi/${id}/${n}.jpg`);
+}
