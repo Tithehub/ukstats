@@ -141,7 +141,7 @@ export const getReportDownload = createServerFn({ method: "POST" })
 
 export const createReportPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { returnUrl: string; environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return d; })
+  .inputValidator((d: { returnUrl: string; environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return { ...d, returnUrl: assertReturnUrl(d.returnUrl) }; })
   .handler(async ({ data, context }): Promise<{ url: string } | { error: string }> => {
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
     const { data: sub } = await context.supabase.from("report_subscriptions").select("stripe_customer_id").eq("user_id", context.userId).eq("environment", data.environment).order("created_at", { ascending: false }).limit(1).maybeSingle();
