@@ -33,7 +33,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
   useEffect(() => {
-    if (!voice || !line || busy.current) return;
+    if (!line || busy.current) return;
     const speak = async (text: string) => {
       busy.current = true; lastSpoken.current = text;
       setStatus("preparing");
@@ -66,7 +66,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
   }, [line, voice]);
 
   const speaking = status === "speaking" || miming;
-  const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : speaking ? "Speaking" : "Listening";
+  const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : miming ? "Reading on screen" : "Listening";
   const fit = "absolute inset-x-0 bottom-0 h-full w-full object-contain object-bottom drop-shadow-[0_12px_30px_oklch(0_0_0/0.6)]";
   return <div className="relative h-full w-full">
     <img src={cutout.url} alt="AI presenter" className={fit} />
@@ -77,7 +77,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
         <span className="truncate text-[20px] font-black uppercase leading-tight">UKStats AI presenter</span>
       </div>
       <div className="flex items-center gap-2 bg-primary px-3 py-1 text-primary-foreground">
-        <span className={`inline-block size-3 shrink-0 rounded-full ${speaking ? "bg-destructive motion-safe:animate-pulse" : status === "blocked" ? "bg-destructive" : "bg-night-muted"}`} />
+        <span className={`inline-block size-3 shrink-0 rounded-full ${status === "speaking" ? "bg-destructive motion-safe:animate-pulse" : status === "blocked" ? "bg-destructive" : "bg-night-muted"}`} />
         <span className="truncate font-mono text-[15px] font-bold uppercase tracking-wide">Official figures · {label}</span>
       </div>
     </div>
