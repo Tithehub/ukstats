@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OG_PAGE_METRIC, OG_TITLE_PAGES, ogCardText, type OgFigure } from "@/lib/og-card";
 import { brandFromHost, SITES } from "@/lib/site-host";
 
-const KEY = /^[a-z0-9-]{1,80}(:[a-z]{2}:[a-z0-9-]{1,80})?$/;
+const KEY = /^([a-z]{2}:)?[a-z0-9-]{1,80}$/;
 
 /** Public share picture (1200×630 PNG) for a figure or page. Reads published snapshots only; returns no private data. */
 export const Route = createFileRoute("/api/public/og/$key")({
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/og/$key")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         let fig: OgFigure | null = null;
         if (key.includes(":")) {
-          const [, code, metric] = key.split(":");
+          const [code, metric] = key.split(":");
           const { data } = await supabaseAdmin.from("country_metric_snapshots").select("title, value, period, source, updated_at").eq("code", code!).eq("metric_id", metric!).maybeSingle();
           if (data) fig = { title: data.title ?? metric!, value: data.value, period: data.period, source: data.source, asOf: data.updated_at };
         } else {

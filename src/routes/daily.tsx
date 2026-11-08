@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RestoreSignupCta } from "@/components/RestoreSignupCta";
 import { useMemo, useState } from "react";
