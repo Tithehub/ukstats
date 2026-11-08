@@ -21,3 +21,17 @@ describe("shareIntents", () => {
     for (const s of shareIntents("Live", link)) expect(s.url).toContain(encodeURIComponent(link));
   });
 });
+
+import { youtubeIdFromLink, youtubeThumbnailUrls } from "./stream-launch";
+describe("stream thumbnails", () => {
+  it("reads the id from a live link with tracking", () => {
+    expect(youtubeIdFromLink("https://www.youtube.com/live/j2MJCjRAPHM?si=abc")).toBe("j2MJCjRAPHM");
+  });
+  it("only uses YouTube's own image host, best first", () => {
+    expect(youtubeThumbnailUrls("j2MJCjRAPHM")).toEqual([
+      "https://i.ytimg.com/vi/j2MJCjRAPHM/maxresdefault.jpg",
+      "https://i.ytimg.com/vi/j2MJCjRAPHM/hqdefault.jpg",
+    ]);
+    expect(youtubeThumbnailUrls("../evil")).toEqual([]);
+  });
+});
