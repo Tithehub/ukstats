@@ -17,11 +17,11 @@ describe("scandals", () => {
       { outlet: "A", title: "old", url: "https://a", published: "2024-01-01" },
       { outlet: "B", title: "new", url: "https://b", published: "2026-01-01" },
     ]);
-    expect(h[0].title).toBe("new");
+    expect(h[0]?.title).toBe("new");
   });
   it("official videos come first", () => {
     const v = orderedVideos([{ id: "a", channel: "News", title: "x" }, { id: "b", channel: "Inquiry", title: "y", official: true }]);
-    expect(v[0].id).toBe("b");
+    expect(v[0]?.id).toBe("b");
   });
   it("finds and searches", () => {
     expect(findScandal("post-office-horizon")?.title).toBe("Post Office Horizon");
