@@ -17,7 +17,7 @@ export const Route = createFileRoute("/scandals/$slug")({
     const t = `${loaderData.title} — official records and headlines | UK Stats`;
     const url = `https://ukstats.co.uk/scandals/${params.slug}`;
     return {
-      meta: [{ title: t }, { name: "description", content: loaderData.summary.slice(0, 158) }, { property: "og:title", content: t }, { property: "og:description", content: loaderData.summary.slice(0, 200) }, { property: "og:type", content: "article" }, { property: "og:url", content: url }, { name: "twitter:card", content: "summary_large_image" }, ...(SCANDAL_IMAGES[params.slug] ? [{ property: "og:image", content: `https://ukstats.co.uk${SCANDAL_IMAGES[params.slug].src}` }, { name: "twitter:image", content: `https://ukstats.co.uk${SCANDAL_IMAGES[params.slug].src}` }] : [])],
+      meta: [{ title: t }, { name: "description", content: loaderData.summary.slice(0, 158) }, { property: "og:title", content: t }, { property: "og:description", content: loaderData.summary.slice(0, 200) }, { property: "og:type", content: "article" }, { property: "og:url", content: url }, { name: "twitter:card", content: "summary_large_image" }, ...(SCANDAL_IMAGES[params.slug] ? [{ property: "og:image", content: `https://ukstats.co.uk${SCANDAL_IMAGES[params.slug]!.src}` }, { name: "twitter:image", content: `https://ukstats.co.uk${SCANDAL_IMAGES[params.slug]!.src}` }] : [])],
       links: [{ rel: "canonical", href: url }],
     };
   },

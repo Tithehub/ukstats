@@ -18,7 +18,7 @@ export type ScandalImage = { src: string; alt: string; credit: string; licence: 
 
 const c = (f: string) => `https://commons.wikimedia.org/wiki/File:${f}`;
 
-export const SCANDAL_IMAGES: Record<string, ScandalImage> = {
+export const SCANDAL_IMAGES: Partial<Record<string, ScandalImage>> = {
   "grooming-gangs": { src: grooming.url, alt: "Rotherham town centre", credit: "Ben Sutherland", licence: "CC BY 2.0", sourceUrl: c("Rotherham_town_centre,_May_2010.jpg") },
   "post-office-horizon": { src: postOffice.url, alt: "A Post Office branch in Coventry", credit: "Keith Williams", licence: "CC BY-SA 2.0", sourceUrl: c("Coventry_Post_Office_-_geograph.org.uk_-_761307.jpg") },
   "epstein-files": { src: epstein.url, alt: "Little St James Island, US Virgin Islands", credit: "Navin75", licence: "CC BY-SA 2.0", sourceUrl: c("Little_St_James_Island_(9123420726).jpg") },
