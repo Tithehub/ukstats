@@ -58,4 +58,4 @@
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
-- Education (src/lib/education*.ts, table education_institutions, payload_cache "education-v1", nightly /api/public/education-tick): DfE GIAS register, Ofsted MI, EES national/KS4 data and the OfS Register only; suppressed cells stay "Not published", Ofsted report-card and older graded outcomes are never merged, devolved nations show "No live feed" links — keeps every school figure traceable to its publisher.
+- Education: see src/lib/AGENTS.md.
