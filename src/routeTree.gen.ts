@@ -70,6 +70,7 @@ import { Route as CountryStatusRouteImport } from './routes/$country.status'
 import { Route as AnswersQuestionRouteImport } from './routes/answers.$question'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
 import { Route as EducationIndexRouteImport } from './routes/education.index'
+import { Route as EducationUniversitiesRouteImport } from './routes/education.universities'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
@@ -409,6 +410,11 @@ const EducationIndexRoute = EducationIndexRouteImport.update({
   path: '/education/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EducationUniversitiesRoute = EducationUniversitiesRouteImport.update({
+  id: '/education/universities',
+  path: '/education/universities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbedMetricRoute = EmbedMetricRouteImport.update({
   id: '/embed/$metric',
   path: '/embed/$metric',
@@ -639,6 +645,7 @@ export interface FileRoutesByFullPath {
   '/$country/status': typeof CountryStatusRoute
   '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
+  '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
@@ -733,6 +740,7 @@ export interface FileRoutesByTo {
   '/$country/status': typeof CountryStatusRoute
   '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
+  '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
@@ -830,6 +838,7 @@ export interface FileRoutesById {
   '/$country/status': typeof CountryStatusRoute
   '/answers/$question': typeof AnswersQuestionRoute
   '/daily/$date': typeof DailyDateRoute
+  '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
@@ -928,6 +937,7 @@ export interface FileRouteTypes {
     | '/$country/status'
     | '/answers/$question'
     | '/daily/$date'
+    | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe/broadcast'
@@ -1022,6 +1032,7 @@ export interface FileRouteTypes {
     | '/$country/status'
     | '/answers/$question'
     | '/daily/$date'
+    | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe/broadcast'
@@ -1118,6 +1129,7 @@ export interface FileRouteTypes {
     | '/$country/status'
     | '/answers/$question'
     | '/daily/$date'
+    | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/globe_/broadcast'
@@ -1210,6 +1222,7 @@ export interface RootRouteChildren {
   WidgetRoute: typeof WidgetRoute
   WorldCompareRoute: typeof WorldCompareRoute
   AnswersQuestionRoute: typeof AnswersQuestionRoute
+  EducationUniversitiesRoute: typeof EducationUniversitiesRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
@@ -1659,6 +1672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EducationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/education/universities': {
+      id: '/education/universities'
+      path: '/education/universities'
+      fullPath: '/education/universities'
+      preLoaderRoute: typeof EducationUniversitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/$metric': {
       id: '/embed/$metric'
       path: '/embed/$metric'
@@ -2037,6 +2057,7 @@ const rootRouteChildren: RootRouteChildren = {
   WidgetRoute: WidgetRoute,
   WorldCompareRoute: WorldCompareRoute,
   AnswersQuestionRoute: AnswersQuestionRoute,
+  EducationUniversitiesRoute: EducationUniversitiesRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
