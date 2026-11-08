@@ -3,12 +3,17 @@ import cutout from "@/assets/stream/presenter_cutout.png.asset.json";
 import talking from "@/assets/stream/presenter_cutout_talking.webm.asset.json";
 import { speakLine } from "@/lib/speech.functions";
 
-type Status = "idle" | "preparing" | "speaking" | "blocked";
+import { readVoiceKey } from "@/lib/voice-key";
+
+type Status = "idle" | "preparing" | "speaking" | "blocked" | "unauthorised";
 const cache = new Map<string, Promise<string | null>>();
+let voiceKey: string | null | undefined;
+let unauthorised = false;
 function fetchLine(text: string) {
   let p = cache.get(text);
   if (!p) {
-    p = speakLine({ data: { text } }).then((r) => r.audio).catch(() => null);
+    if (voiceKey === undefined) voiceKey = readVoiceKey();
+    p = speakLine({ data: { text, voiceKey } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
     p.then((a) => { if (!a) cache.delete(text); });
     if (cache.size > 60) cache.delete(cache.keys().next().value!);
     cache.set(text, p);
@@ -32,7 +37,11 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
       busy.current = true; lastSpoken.current = text;
       setStatus("preparing");
       const b64 = await fetchLine(text);
-      if (!b64) { busy.current = false; setStatus("idle"); return; }
+      if (!b64) {
+        busy.current = false; setStatus(unauthorised ? "unauthorised" : "idle");
+        if (unauthorised) try { parent.postMessage({ type: "ukstats-voice", ok: false }, location.origin); } catch { /* ignore */ }
+        return;
+      }
       const a = new Audio(`data:audio/wav;base64,${b64}`);
       a.onended = () => {
         busy.current = false; setStatus("idle");
@@ -45,7 +54,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
   }, [line, voice]);
 
   const speaking = status === "speaking";
-  const label = !voice ? "Voice off" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : speaking ? "Speaking" : "Listening";
+  const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : speaking ? "Speaking" : "Listening";
   const fit = "absolute inset-x-0 bottom-0 h-full w-full object-contain object-bottom drop-shadow-[0_12px_30px_oklch(0_0_0/0.6)]";
   return <div className="relative h-full w-full">
     <img src={cutout.url} alt="AI presenter" className={fit} />

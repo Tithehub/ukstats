@@ -42,6 +42,11 @@ function StudioPage() {
     const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === "ukstats-stream-fit") setFits(!!e.data.ok); };
     addEventListener("message", on); return () => removeEventListener("message", on);
   }, []);
+  const [voiceOk, setVoiceOk] = useState(true);
+  useEffect(() => {
+    const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === "ukstats-voice") setVoiceOk(!!e.data.ok); };
+    addEventListener("message", on); return () => removeEventListener("message", on);
+  }, []);
   const [done, setDone] = useState<boolean[]>(() => STUDIO_CHECKLIST.map(() => false));
 
   useEffect(() => {
@@ -64,6 +69,8 @@ function StudioPage() {
         <Link to="/rent/dashboard" className="rounded border border-border px-3 py-1.5 text-sm hover:bg-muted">Run your own branded stream</Link>
       </div>
     </header>
+    {!voiceOk && <p role="alert" className="mb-3 rounded border border-destructive bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">Voice off — not authorised. Use your private OBS link below, or sign in as admin.</p>}
+    <ObsVoiceLink portrait={portrait} />
     {!fits && <p role="alert" className="mb-3 rounded border border-destructive bg-destructive/10 px-3 py-2 text-sm">Something is cut off in the stream's right panel — tell us which segment and we'll shorten it.</p>}
     <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
       <div ref={wrap} data-portrait={portrait ? "1" : "0"} className={`relative overflow-hidden rounded border border-border bg-muted ${portrait ? "mx-auto w-full max-w-[420px]" : "w-full"}`} style={{ aspectRatio: portrait ? "9 / 16" : "16 / 9" }}>
