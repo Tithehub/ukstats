@@ -4,7 +4,7 @@ import { platformSpec, type SocialPlatform } from "@/lib/social";
 import { publicHttpsUrl } from "@/lib/safe-url";
 import { youtubeIdFromLink, youtubeThumbnailUrls } from "@/lib/stream-launch";
 
-interface Thumb { url: string; bytes: Uint8Array; type: string; title: string }
+interface Thumb { url: string; bytes: Uint8Array<ArrayBuffer>; type: string; title: string }
 
 /** Fetch the stream's thumbnail from YouTube's fixed image host (never arbitrary URLs). */
 async function loadThumb(link: string): Promise<Thumb | null> {
