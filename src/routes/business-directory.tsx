@@ -22,9 +22,9 @@ const directoryQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/business-directory")({
-  validateSearch: (s: Record<string, unknown>): { q?: string; region?: string } => ({
-    q: typeof s.q === "string" && s.q ? s.q.slice(0, 100) : undefined,
-    region: typeof s.region === "string" && s.region ? s.region : undefined,
+  validateSearch: (s: Record<string, unknown>): { q?: string | undefined; region?: string | undefined } => ({
+    q: typeof s["q"] === "string" && s["q"] ? s["q"].slice(0, 100) : undefined,
+    region: typeof s["region"] === "string" && s["region"] ? s["region"] : undefined,
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(directoryQuery),
   head: () => ({
