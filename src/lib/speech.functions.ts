@@ -48,3 +48,13 @@ export const speakLine = createServerFn({ method: "POST" })
     cache.set(data.text, b64);
     return { audio: b64, error: null };
   });
+
+/** Admin only: the private OBS link that switches the presenter's voice on. */
+export const getStreamVoiceLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ query: string | null }> => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    const key = process.env["STREAM_VOICE_KEY"];
+    if (!isAdmin || !key) return { query: null };
+    return { query: `voicekey=${encodeURIComponent(key)}` };
+  });
