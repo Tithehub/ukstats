@@ -62,7 +62,7 @@ export function parseCaltransCams(json: unknown, district: number): PublicCam[] 
 }
 
 /** Cache-buster rounded to the operator's update window so viewers share one copy. */
-export const camImageSrc = (c: PublicCam, now: number) => `${c.image}?t=${Math.floor(now / (c.everyMin * 60_000))}`;
+export const camImageSrc = (c: PublicCam, now: number) => `${c.image}${c.image.includes("?") ? "&" : "?"}t=${Math.floor(now / (c.everyMin * 60_000))}`;
 
 
 export type CamKind = "live" | "loop" | "still";

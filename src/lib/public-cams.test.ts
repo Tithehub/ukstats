@@ -46,3 +46,19 @@ describe("public cameras", () => {
     expect(camsForCountry([a, b], "united states").map((c) => c.id)).toEqual(["b", "a"]);
   });
 });
+
+import { lks94ToLatLng, parseHongKongCams, camImageSrc as camSrc2 } from "./public-cams";
+describe("more countries", () => {
+  it("converts Lithuanian grid to Vilnius", () => {
+    const [lat, lng] = lks94ToLatLng(576154, 6056867);
+    expect(lat).toBeCloseTo(54.64, 1); expect(lng).toBeCloseTo(25.18, 1);
+  });
+  it("reads Hong Kong XML and skips entries without https picture", () => {
+    const xml = "<image-list><image><key>A1</key><description>Road [A1]</description><latitude>22.2</latitude><longitude>114.1</longitude><url>https://x/A1.JPG</url></image><image><key>B</key><latitude>22</latitude><longitude>114</longitude><url>http://x/B.JPG</url></image></image-list>";
+    const r = parseHongKongCams(xml);
+    expect(r).toHaveLength(1); expect(r[0]!.place).toBe("Road, Hong Kong");
+  });
+  it("keeps existing query strings on picture links", () => {
+    expect(camSrc2({ id: "l", lat: 1, lng: 1, place: "", operator: "Lithuanian Road Administration", image: "https://e/last?id=7", everyMin: 10 }, 0)).toBe("https://e/last?id=7&t=0");
+  });
+});
