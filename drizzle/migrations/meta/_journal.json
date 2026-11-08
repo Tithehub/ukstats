@@ -162,6 +162,13 @@
       "when": 1794170746717,
       "tag": "0022_school_quality_by_la",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794173404020,
+      "tag": "0023_citizen_journalists",
+      "breakpoints": true
     }
   ]
 }

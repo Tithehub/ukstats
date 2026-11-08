@@ -57,6 +57,8 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       { to: "/safest-places", label: "City crime rankings", icon: MapIcon },
       { to: "/happiest-places", label: "Happiest & saddest places", icon: MapIcon },
       { to: "/move-compare", label: "Thinking of moving? (unofficial)", icon: MapIcon },
+      { to: "/citizen-journalists", label: "Citizen journalists", icon: FileText },
+      { to: "/politics-explained", label: "Politics explained — terms A–Z", icon: FileText },
       { to: "/world", label: "World rankings (200+ countries)", icon: Globe2 },
       { to: "/countries", label: "Countries", icon: MapIcon },
       { to: "/gold", label: "Gold reserves", icon: Banknote },

@@ -10,6 +10,8 @@ export function UkTopicNav() {
     <Button asChild variant="outline" size="sm"><Link to="/scandals"><FileText />Scandals</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/education"><GraduationCap />Education & schools</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/happiest-places" search={{}}><Smile />Happiest places</Link></Button>
+    <Button asChild variant="outline" size="sm"><Link to="/politics-explained" search={{}}><FileText />Politics explained</Link></Button>
+    <Button asChild variant="outline" size="sm"><Link to="/citizen-journalists" search={{}}><FileText />Citizen journalists</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/spending"><Banknote />Public spending</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/reports"><FileText />Daily PDF report</Link></Button>
     <Button asChild variant="outline" size="sm"><Link to="/register" search={{ category: "Cost of living" }}><ShoppingBasket />Cost of living</Link></Button>
