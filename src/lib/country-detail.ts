@@ -1,3 +1,4 @@
+import { ogImageMeta } from './og-card';
 import type { Country, CountryMetric } from './countries';
 import type { Category } from './uk-stats';
 
