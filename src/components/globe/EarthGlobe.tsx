@@ -283,7 +283,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     else if (preset.kind === "tilt") g.pointOfView({ lat: Math.max(-60, pov.lat - 25), lng: pov.lng, altitude: 0.7 }, 1200);
     else g.pointOfView({ ...(p ?? { lat: pov.lat, lng: pov.lng }), altitude: 0.55 }, 1400);
   }, [preset?.n]);
-  const onMove = (e: React.PointerEvent) => {
+  const onMove = (e: { clientX: number; clientY: number }) => {
     const g = ref.current; if (!g || !onTelemetry || !wrap.current) return;
     const r = wrap.current.getBoundingClientRect();
     const c = g.toGlobeCoords(e.clientX - r.left, e.clientY - r.top);
