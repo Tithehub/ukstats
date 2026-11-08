@@ -187,7 +187,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   useEffect(() => { if (camId && !broadcast) setOnAir(false); }, [camId, broadcast]);
   const cam = camId ? globeCams.find((c) => c.id === camId) ?? null : null;
   const globeSats = useSatPositions(s.st ? tleData?.items ?? null : null);
-  const [preset, setPreset] = useState<{ n: number; kind: "world" | "tilt" | "focus" } | null>(null);
+  const [preset, setPreset] = useState<{ n: number; kind: "world" | "tilt" | "focus" | "in" | "out" } | null>(null);
   const [tele, setTele] = useState<{ lat: number | null; lng: number | null; altKm: number }>({ lat: null, lng: null, altKm: 12000 });
   const { data: boatsData } = useQuery({ ...smallBoatsQuery(), enabled: !!s.mg || s.c === UK_KEY });
   const latestBoatDay = useMemo(() => { const d = boatsData?.days ?? boatsData?.series ?? []; return d.length ? d[d.length - 1]! : null; }, [boatsData]);
@@ -396,6 +396,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           : <ul>{(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => <li key={a} className="truncate"><Swatch c={UK_ALERT_COLOURS[a]} />{FCDO_ALERT_LABEL[a].replace("FCDO advises against ", "Against ")}</li>)}<li className="text-night-muted">UK FCDO</li></ul>}
       </div>}
       {gl && !broadcast && <NewsScreens storageKey={compact ? "ukstats-news-screens-home" : undefined} countries={screenCountries} bulletinFor={bulletinFor} step={stepCountry} defaultCountry={UK_KEY} />}
+      {gl && !broadcast && <div className="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1" aria-label="Zoom">
+        {(["in", "out"] as const).map((k) => <button key={k} type="button" aria-label={k === "in" ? "Zoom in" : "Zoom out"} onClick={() => setPreset((p) => ({ n: (p?.n ?? 0) + 1, kind: k }))} className="grid size-9 place-items-center rounded border border-night-line bg-night-panel/80 text-lg font-bold text-night-fg backdrop-blur hover:bg-night">{k === "in" ? "+" : "−"}</button>)}
+      </div>}
       {gl && !broadcast && !compact && <GlobeHud tele={tele} onPreset={(kind) => setPreset((p) => ({ n: (p?.n ?? 0) + 1, kind }))} canFocus={!!sel} />}
       {gl && !broadcast && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs">
         <button onClick={nextWarning} disabled={!listed.length} aria-label="Next warning" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next warning</span></button>

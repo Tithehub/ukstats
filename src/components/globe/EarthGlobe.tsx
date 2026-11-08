@@ -46,7 +46,7 @@ export interface GlobeProps {
   onCam?: (id: string) => void;
   sats?: { id: string; lat: number; lng: number; alt: number; label: string; path: [number, number, number][] }[];
   /** Camera preset request: bump n to apply. */
-  preset?: { n: number; kind: "world" | "tilt" | "focus" } | null;
+  preset?: { n: number; kind: "world" | "tilt" | "focus" | "in" | "out" } | null;
   /** Day/night shading with the sunrise line. */
   dayNight?: boolean;
   /** Pointer and camera readout for the control-room HUD. */
@@ -293,6 +293,12 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     g.controls().autoRotate = false;
     const pov = g.pointOfView();
     const p = selected ? centre(selected) : null;
+    if (preset.kind === "in" || preset.kind === "out") {
+      const a = Math.min(4, Math.max(0.15, pov.altitude * (preset.kind === "in" ? 0.6 : 1.6)));
+      g.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: a }, 500); setAlt(Math.round(a * 10) / 10);
+      if (onTelemetry) onTelemetry({ lat: null, lng: null, altKm: Math.round(a * 6371) });
+      return;
+    }
     if (preset.kind === "world") g.pointOfView({ lat: 20, lng: pov.lng, altitude: 2.6 }, 1200);
     else if (preset.kind === "tilt") g.pointOfView({ lat: Math.max(-60, pov.lat - 25), lng: pov.lng, altitude: 0.7 }, 1200);
     else g.pointOfView({ ...(p ?? { lat: pov.lat, lng: pov.lng }), altitude: 0.55 }, 1400);
