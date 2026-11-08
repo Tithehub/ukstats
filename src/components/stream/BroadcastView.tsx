@@ -17,6 +17,7 @@ import { STREAM_CAMERAS } from "@/lib/stream-cameras.data";
 import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
+import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
@@ -85,6 +86,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     queryFn: async () => (await getSponsorBannerBoard({ data: { environment: readPaymentsEnvironment() ?? "sandbox" } })).sponsors,
   });
   const sponsors = useMemo(() => brand && !brand.showSponsors ? [] : sponsorsForRegion(sponsorRows ?? [], regionFromPath("/", COUNTRIES.map((c) => c.code))), [sponsorRows, brand]);
+  const slides = useMemo<CornerSlide[]>(() => [...sponsors.map(sponsorSlide), ...(brand ? [] : RECOMMENDED_SLIDES)], [sponsors, brand]);
   const { data: worldData } = useQuery(worldQuery());
   const metrics = stats?.metrics ?? [];
   const emergency = flights?.planes ? flights.planes.filter((p) => p[7] === "7500" || p[7] === "7600" || p[7] === "7700").length : null;
@@ -210,10 +212,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute left-[620px] top-[222px] z-30 h-[450px] w-[420px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
       {boatsChip && <div className="absolute left-[560px] top-[212px] z-30 w-[480px]">{boatsChip}</div>}
-      <div className={`absolute left-6 z-30 ${sponsors.length ? "bottom-[356px] w-[440px]" : "bottom-[232px] w-[540px]"}`}>{clip}</div>
+      <div className={`absolute left-6 z-30 ${slides.length ? "bottom-[356px] w-[440px]" : "bottom-[232px] w-[540px]"}`}>{clip}</div>
       <div className="absolute bottom-[240px] left-[656px] z-30 w-[560px]">{lower}</div>
-      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
-      {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
+      {slides.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={slides} ms={pos.msIntoHour} /></div>}
     </> : <>
       {/* Rented layouts: "split" = half globe / half figures; "data-wall" = figures dominate, smaller globe */}
       <div className="absolute inset-y-0 left-0" style={{ width: V.globe }}><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -227,9 +229,9 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
         <div className="min-h-0 flex-1">{figure}</div>
       </aside>
       <div className="absolute left-6 z-30" style={{ top: 420, width: Math.min(420, V.globe - 48), height: 410 }}>{anchor}</div>
-      <div className="absolute bottom-[240px] z-30" style={sponsors.length ? { left: 656, width: Math.max(360, V.globe - 680) } : { left: Math.min(460, V.globe - 400), width: Math.max(360, V.globe - 484) }}>{lower}</div>
-      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${sponsors.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
-      {sponsors.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>}
+      <div className="absolute bottom-[240px] z-30" style={slides.length ? { left: 656, width: Math.max(360, V.globe - 680) } : { left: Math.min(460, V.globe - 400), width: Math.max(360, V.globe - 484) }}>{lower}</div>
+      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
+      {slides.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={slides} ms={pos.msIntoHour} /></div>}
     </>) : <>
       <div className="absolute inset-x-0 top-[120px] z-40 h-[140px]">{header}</div>
       <div className="absolute inset-x-0 top-[260px] h-[500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -238,7 +240,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute inset-x-6 top-[600px] z-30">{lower}</div>
       <aside data-fit className="absolute inset-x-0 top-[770px] z-30 flex h-[640px] flex-col gap-2 overflow-hidden border-y-2 border-night-line bg-night-panel px-6 py-4">{six}{fresh}<div className="min-h-0 flex-1 overflow-hidden">{figure}</div></aside>
       <div className="absolute right-6 top-[1420px] z-30">{qr}</div>
-      {sponsors.length > 0 ? <div className="absolute left-6 top-[1420px] z-30 h-[220px] w-[640px]"><StreamSponsors rows={sponsors} ms={pos.msIntoHour} /></div>
+      {slides.length > 0 ? <div className="absolute left-6 top-[1420px] z-30 h-[220px] w-[640px]"><StreamSponsors rows={slides} ms={pos.msIntoHour} /></div>
         : <div className="absolute left-6 top-[1416px] z-30 w-[360px]">{clip}</div>}
       <div className="absolute inset-x-0 bottom-[120px] z-40 h-[104px]">{tickers}</div>
     </>}
@@ -391,26 +393,38 @@ function PromoCard() {
   </section>;
 }
 
-/** Paid placement: approved sponsors only, rotating ~10s each, kept apart from figures. */
-function StreamSponsors({ rows, ms }: { rows: SponsorBannerRow[]; ms: number }) {
-  const r = rows[Math.floor(ms / 10_000) % rows.length]!;
-  const img = r.banner_link ?? (r.banner_path ? null : r.banner_url);
+type CornerSlide = { id: string; name: string; img: string | null; label: string; qr: string; tag: string };
+
+function sponsorSlide(r: SponsorBannerRow): CornerSlide {
   const site = sponsorSite(r.url);
+  return { id: r.id, name: r.name, img: r.banner_link ?? (r.banner_path ? null : r.banner_url), label: site.label, qr: site.qr, tag: "Supported by" };
+}
+
+const utm = (u: string) => { const x = new URL(u); x.searchParams.set("utm_source", "youtube"); x.searchParams.set("utm_medium", "ukstats_stream"); return x.toString(); };
+/** Independent works (not sponsors) shown only on the UKStats stream; links only, no figures. */
+const RECOMMENDED_SLIDES: CornerSlide[] = [
+  { id: "rec-inquiry", name: "The Rape Gang Inquiry — Rupert Lowe MP", img: null, label: "therapeganginquiry.org", qr: utm("https://www.therapeganginquiry.org/"), tag: "Recommended" },
+  { id: "rec-book", name: "The Grooming Gang Cover-Up", img: bookCover.url, label: "amazon.co.uk", qr: utm("https://www.amazon.co.uk/dp/0995584982"), tag: "Recommended" },
+];
+
+/** Corner box: approved sponsors plus labelled recommendations, ~10s each, kept apart from figures. */
+function StreamSponsors({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
+  const r = rows[Math.floor(ms / 10_000) % rows.length]!;
   const pct = ((ms % 10_000) / 10_000) * 100;
   return <section data-fit key={r.id} className="relative flex h-full overflow-hidden border-2 border-night-line bg-night-panel text-night-fg motion-safe:animate-in motion-safe:fade-in">
     <div className="flex min-w-0 flex-1 flex-col">
-      <div className="relative aspect-[3/1] w-full shrink-0 overflow-hidden bg-night">
-        {img ? <img src={img} alt={r.name} className="h-full w-full object-contain" />
-          : <span className="flex h-full items-center justify-center px-3 text-center text-[34px] font-black leading-tight">{r.name}</span>}
-        <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">Supported by</span>
+      <div className={`relative aspect-[3/1] w-full shrink-0 overflow-hidden ${r.id === "rec-inquiry" ? "bg-destructive text-destructive-foreground" : "bg-night"}`}>
+        {r.img ? <img src={r.img} alt={r.name} className="h-full w-full object-contain" />
+          : <span className="flex h-full items-center justify-center px-3 pt-4 text-center text-[30px] font-black leading-tight">{r.name}</span>}
+        <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">{r.tag}</span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col justify-center px-3 leading-tight">
         <span className="truncate text-[22px] font-black">{r.name}</span>
-        <span className="truncate font-mono text-[17px] font-bold">{site.label}</span>
+        <span className="truncate font-mono text-[17px] font-bold">{r.label}</span>
       </div>
     </div>
     <div className="flex w-[196px] shrink-0 flex-col items-center justify-center gap-1 bg-[#ffffff] p-2 text-[#000000]">
-      <QRCodeSVG value={site.qr} size={164} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${site.label}`} />
+      <QRCodeSVG value={r.qr} size={164} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} />
       <span className="font-mono text-[13px] font-black uppercase">Scan to visit</span>
     </div>
     <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
