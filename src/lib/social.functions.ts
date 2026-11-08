@@ -152,7 +152,9 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
     case "discord":
     case "slack": {
       const body = text.includes(link) ? text : `${text}\n${link}`;
-      const res = await fetch(discordWebhook(c), { redirect: "error",
+      const hook = platform === "discord" ? discordWebhook(c) : (c["webhookUrl"] ?? "");
+      if (platform === "slack" && !/^https:\/\/hooks\.slack\.com\/services\//.test(hook)) throw new Error("That is not a Slack incoming webhook URL.");
+      const res = await fetch(hook, { redirect: "error",
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(platform === "discord" ? { content: body } : { text: body }),
