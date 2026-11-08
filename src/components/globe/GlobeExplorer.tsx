@@ -184,6 +184,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const { data: camData } = useQuery(publicCamsQuery(!!s.cam));
   const [camId, setCamId] = useState<string | null>(null);
   const globeCams = useMemo(() => (s.cam && camData ? camData.items : []), [s.cam, camData]);
+  useEffect(() => { if (camId && !broadcast) setOnAir(false); }, [camId, broadcast]);
   const cam = camId ? globeCams.find((c) => c.id === camId) ?? null : null;
   const globeSats = useSatPositions(s.st ? tleData?.items ?? null : null);
   const [preset, setPreset] = useState<{ n: number; kind: "world" | "tilt" | "focus" } | null>(null);
@@ -323,7 +324,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
     {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
       : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
   </div>{ticker}</>}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "min-h-0 flex-1"}`}>
-    <section aria-label="Interactive globe" className={`relative flex-1 ${height}`}>
+    <section aria-label="Interactive globe" className={`relative flex-1 ${height}`} onPointerDownCapture={() => { if (!broadcast) setOnAir(false); }} onWheelCapture={() => { if (!broadcast) setOnAir(false); }}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
