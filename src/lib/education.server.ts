@@ -15,7 +15,7 @@ export const EDU_CACHE_ID = "education-v1";
 
 export interface EducationSummary {
   fetchedAt: string;
-  gias: { date: string; open: number; byPhase: Record<string, number>; byTypeGroup: Record<string, number> } | null;
+  gias: { date: string; open: number; byPhase: Record<string, number>; byTypeGroup: Record<string, number>; las: string[] } | null;
   ofsted: ({ asAt: string; url: string } & OfstedSummary) | null;
   headlines: EesHeadline[];
   ks4: { period: string; schools: number } | null;
@@ -278,7 +278,7 @@ export async function refreshEducation(): Promise<EducationSummary> {
     });
     await upsert(db, rows);
     await db.from("education_institutions").delete().eq("kind", "school").neq("source_date", gias.date);
-    summary.gias = { date: gias.date, open: gias.rows.length, byPhase, byTypeGroup };
+    summary.gias = { date: gias.date, open: gias.rows.length, byPhase, byTypeGroup, las: [...new Set(gias.rows.map((s) => s.la).filter((x): x is string => !!x))].sort() };
   } else summary.gias = prev?.gias ?? null;
   summary.ofsted = ofsted ? { asAt: ofsted.asAt, url: ofsted.url, ...summariseOfsted([...ofsted.map.values()]) } : prev?.ofsted ?? null;
   summary.ks4 = ks4 ? { period: ks4.period, schools: ks4.map.size } : prev?.ks4 ?? null;

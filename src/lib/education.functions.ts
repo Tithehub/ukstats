@@ -52,22 +52,6 @@ export const getInstitution = createServerFn({ method: "POST" })
   });
 export const institutionQuery = (id: string) => queryOptions({ queryKey: ["edu-inst", id], queryFn: () => getInstitution({ data: { id } }), staleTime: 30 * 60_000 });
 
-export const listLocalAuthorities = createServerFn({ method: "POST" }).handler(async () => {
-  const { readEducationSummary } = await import("./education.server");
-  void readEducationSummary;
-  const db = await publicDb();
-  const out = new Set<string>();
-  // Paged read of LA names (about 150 distinct values).
-  for (let from = 0; from < 40_000; from += 1000) {
-    const { data } = await db.from("education_institutions").select("la").eq("kind", "school").order("la").range(from, from + 999);
-    if (!data?.length) break;
-    for (const r of data as { la: string | null }[]) if (r.la) out.add(r.la);
-    if (data.length < 1000) break;
-  }
-  return [...out].sort();
-});
-export const localAuthoritiesQuery = () => queryOptions({ queryKey: ["edu-las"], queryFn: () => listLocalAuthorities(), staleTime: 6 * 60 * 60_000 });
-
 import type { OfstedRecord, Ks4Record, ProviderInfo } from "./education";
 export interface InstitutionListRow {
   id: string; kind: string; name: string; phase: string | null; type: string | null; type_group: string | null; la: string | null; town: string | null; postcode: string | null;
