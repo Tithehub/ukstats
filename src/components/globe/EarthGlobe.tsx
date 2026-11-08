@@ -42,7 +42,7 @@ export interface GlobeProps {
   /** USGS earthquakes (past day). */
   quakes?: { id: string; lat: number; lng: number; mag: number; label: string }[];
   /** Satellites: current position (altitude in globe radii) and ground path. */
-  cams?: { id: string; lat: number; lng: number; place: string; operator: string }[];
+  cams?: { id: string; lat: number; lng: number; place: string; operator: string; image?: string; everyMin?: number }[];
   onCam?: (id: string) => void;
   sats?: { id: string; lat: number; lng: number; alt: number; label: string; path: [number, number, number][] }[];
   /** Camera preset request: bump n to apply. */
@@ -195,6 +195,10 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const [gl0, setGl0] = useState(false);
   const lastTele = useRef(0);
+  // A click only counts if the pointer barely moved since it was pressed (trackpad drags never pick).
+  const down = useRef<{ x: number; y: number } | null>(null);
+  const moved = useRef(false);
+  const [alt, setAlt] = useState(1.9);
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const colors = COLORS;
@@ -248,7 +252,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     const p = selected ? centre(selected) : null;
     if (!g || !p) return;
     g.controls().autoRotate = false;
-    g.pointOfView({ ...p, altitude: 1.6 }, 900);
+    g.pointOfView({ ...p, altitude: Math.min(g.pointOfView().altitude, 1.6) }, 900);
   }, [selected]);
 
   const cap = (f: object) => {
@@ -299,7 +303,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...cams.map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams]);
 
   return (
-    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
+    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onPointerUp={(e) => { const d = down.current; moved.current = !!d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6; }} onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(a); }} onPointerDown={(e) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
       <Globe
         ref={ref}
         width={size.w}
@@ -314,17 +318,17 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonSideColor={() => "rgba(0,0,0,0.25)"}
         polygonStrokeColor={() => "rgba(255,255,255,0.35)"}
         polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
-        onPolygonClick={(f) => { const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
+        onPolygonClick={(f) => { if (moved.current) return; const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
         onGlobeReady={() => setGl0(true)}
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}
         pointLng={(e) => (e as { lng: number }).lng}
         pointColor={(e) => { const k = (e as { _k: string })._k; return k === "quake" ? "#c86bff" : k === "cam" ? "#4fd1ff" : "#ffb020"; }}
-        onPointClick={(e) => { const x = e as { _k: string; id: string }; if (x._k === "cam") onCam?.(x.id); }}
+        onPointClick={(e) => { if (moved.current) return; const x = e as { _k: string; id: string }; if (x._k === "cam") onCam?.(x.id); }}
         pointAltitude={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.01 + Math.max(0, (x.mag ?? 0) - 2.5) * 0.025 : x._k === "cam" ? 0.004 : 0.02; }}
-        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? 0.06 : 0.25; }}
-        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string }; return `${c.place} — public camera (${c.operator}). Click to view.`; } return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? Math.max(0.03, Math.min(0.25, alt * 0.12)) : 0.25; }}
+        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string; image?: string; everyMin?: number }; const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!); const src = c.image ? `${c.image}?t=${Math.floor(Date.now() / ((c.everyMin ?? 5) * 60_000))}` : ""; return `<div style="width:220px;background:#051D3F;color:#fff;padding:6px;border-radius:6px;font:12px sans-serif">${src ? `<img src="${esc(src)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#000"/>` : ""}<div style="margin-top:4px;font-weight:600">${esc(c.place)}</div><div style="opacity:.75">${esc(c.operator)} · scene only · click to open</div></div>`; } return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
         customLayerData={satObjs}
         customThreeObject={() => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(1.1), new THREE.MeshBasicMaterial({ color: "#8cf0ff" })); return m; }}
         customThreeObjectUpdate={(o, d) => { const x = d as { lat: number; lng: number; alt: number }; Object.assign((o as THREE.Object3D).position, ref.current?.getCoords(x.lat, x.lng, x.alt) ?? {}); }}
