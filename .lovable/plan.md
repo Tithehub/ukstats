@@ -1,4 +1,8 @@
-No changes needed — this is a list of links for the YouTube profile.
+## YouTube watermark (to build on approval)
+- Make a 150×150 PNG with a transparent background: the UKStats logo (three rounded bars + bold "UK", regular "Stats") in white on a navy #051D3F rounded square, so it shows clearly over any video.
+- Save it to Files as ukstats-youtube-watermark-150.png, ready to upload in YouTube Studio > Customisation > Branding > Video watermark.
+
+## Links for the YouTube profile
 
 Main: https://ukstats.co.uk
 Live stream: https://ukstats.co.uk/live
