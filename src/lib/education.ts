@@ -322,7 +322,7 @@ export function mapOfsRegister(rows: string[][], penalties: string[][], sourceDa
     const addr = (r[c.addr] ?? "").split(/\n/).map((s) => s.trim()).filter(Boolean);
     const postcode = addr.find((l) => /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(l)) ?? null;
     const tefRaw = cleanText(r[c.tef]);
-    const name = trading[0] && trading.length === 1 && trading[0].length < legal.length + 20 ? trading[0] : legal;
+    const name = trading.find((t) => /^(the )?university of /i.test(t)) ?? trading.find((t) => /universit/i.test(t)) ?? trading[0] ?? legal;
     out.push({
       id: `ukprn:${ukprn}`, kind: "provider", nation: "England", name, phase: "Higher education", type: cleanText(r[c.cat]), type_group: "Registered higher education provider",
       la: null, region: null, town: addr.length >= 2 ? addr[addr.length - (postcode ? 3 : 2)] ?? null : null, postcode, website: websiteUrl(r[c.web] ?? null),
