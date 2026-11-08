@@ -23,7 +23,7 @@ export function IndependentWorksCta() {
         </article>
         <article className="flex gap-4 rounded-2xl border-4 border-primary bg-card p-5">
           <a {...ext} href="https://www.amazon.co.uk/dp/0995584982" className="shrink-0">
-            <img src={cover.url} alt="Cover of The Grooming Gang Cover-Up" width={400} height={511} loading="lazy" className="h-40 w-auto rounded sm:h-48" />
+            <img src={cover.url} alt="Cover of The Grooming Gang Cover-Up" width={342} height={522} loading="lazy" className="h-40 w-auto rounded sm:h-48" />
           </a>
           <div className="flex min-w-0 flex-col justify-between">
             <div>
