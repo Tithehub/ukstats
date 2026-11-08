@@ -30,3 +30,15 @@ describe("scandals", () => {
     expect(matchScandal(findScandal("iraq-war")!, "savile")).toBe(false);
   });
 });
+
+import { SCANDAL_IMAGES } from "./scandals.images";
+import { SCANDALS as ALL_SCANDALS } from "./scandals.data";
+import { test as t2, expect as e2 } from "vitest";
+t2("every scandal has a credited, licensed photo", () => {
+  for (const s of ALL_SCANDALS) {
+    const i = SCANDAL_IMAGES[s.slug];
+    e2(i?.src, s.slug).toMatch(/^\/__l5e\/assets-v1\//);
+    e2(i!.credit.length).toBeGreaterThan(0);
+    e2(i!.sourceUrl).toMatch(/^https:\/\/commons\.wikimedia\.org\//);
+  }
+});

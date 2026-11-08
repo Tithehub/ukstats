@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { fmtDate } from "@/lib/uk-stats";
 import { SCANDALS_CHECKED } from "@/lib/scandals.data";
+import { SCANDAL_IMAGES } from "@/lib/scandals.images";
 import { findScandal, orderedVideos, sortedHeadlines, ytThumb, ytUrl } from "@/lib/scandals";
 
 export const Route = createFileRoute("/scandals/$slug")({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/scandals/$slug")({
     const t = `${loaderData.title} — official records and headlines | UK Stats`;
     const url = `https://ukstats.co.uk/scandals/${params.slug}`;
     return {
-      meta: [{ title: t }, { name: "description", content: loaderData.summary.slice(0, 158) }, { property: "og:title", content: t }, { property: "og:description", content: loaderData.summary.slice(0, 200) }, { property: "og:type", content: "article" }, { property: "og:url", content: url }, { name: "twitter:card", content: "summary_large_image" }],
+      meta: [{ title: t }, { name: "description", content: loaderData.summary.slice(0, 158) }, { property: "og:title", content: t }, { property: "og:description", content: loaderData.summary.slice(0, 200) }, { property: "og:type", content: "article" }, { property: "og:url", content: url }, { name: "twitter:card", content: "summary_large_image" }, ...(SCANDAL_IMAGES[params.slug] ? [{ property: "og:image", content: `https://ukstats.co.uk${SCANDAL_IMAGES[params.slug]!.src}` }, { name: "twitter:image", content: `https://ukstats.co.uk${SCANDAL_IMAGES[params.slug]!.src}` }] : [])],
       links: [{ rel: "canonical", href: url }],
     };
   },
@@ -31,6 +32,7 @@ function H({ children }: { children: string }) {
 function Page() {
   const { slug } = Route.useParams();
   const s = findScandal(slug)!;
+  const img = SCANDAL_IMAGES[slug];
   return (
     <div className="min-h-screen bg-night text-night-fg">
       <SiteHeader />
@@ -38,6 +40,12 @@ function Page() {
         <Link to="/scandals" className="font-mono text-xs underline">← All scandals</Link>
         <p className="mt-4 font-mono text-xs uppercase tracking-wider text-night-muted">{s.region}</p>
         <h1 className="mt-1 text-4xl font-semibold tracking-tight">{s.title}</h1>
+        {img && (
+          <figure className="mt-5">
+            <img src={img.src} alt={img.alt} className="aspect-[21/9] w-full rounded-md border border-night-line object-cover" />
+            <figcaption className="mt-1 text-xs text-night-muted">{img.alt}. Photo: <a href={img.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">{img.credit}, {img.licence}, via Wikimedia Commons</a>. Illustrative only.</figcaption>
+          </figure>
+        )}
         <div className="mt-4 inline-block rounded-md border border-night-line bg-night-panel px-3 py-2 text-sm"><span className="font-mono text-xs text-night-muted">Status · </span><span className="font-semibold">{s.status}</span></div>
 
         <H>What happened</H>
