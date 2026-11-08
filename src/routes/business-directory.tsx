@@ -9,6 +9,7 @@ import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import { directoryEntries, filterDirectory } from "@/lib/directory";
 import { placeName } from "@/lib/sponsor-regions";
+import { getDirectoryReviews } from "@/lib/review-links.functions";
 
 const directoryQuery = queryOptions({
   queryKey: ["business-directory"],
@@ -16,7 +17,9 @@ const directoryQuery = queryOptions({
     const env = readPaymentsEnvironment() ?? "sandbox";
     const rows = (await getSponsorBannerBoard({ data: { environment: env } })).sponsors;
     const banners = new Map(rows.flatMap((r) => (r.banner_link || r.banner_url ? [[r.id, (r.banner_link || r.banner_url)!] as [string, string]] : [])));
-    return directoryEntries(rows, env, new Date(), banners);
+    const entries = directoryEntries(rows, env, new Date(), banners);
+    const reviews = entries.length ? await getDirectoryReviews({ data: { ids: entries.map((e) => e.id) } }).catch(() => ({})) : {};
+    return entries.map((e) => ({ ...e, reviews: (reviews as Record<string, { platform: string; label: string; url: string }[]>)[e.id] ?? [] }));
   },
   staleTime: 60_000,
 });
@@ -102,6 +105,20 @@ function DirectoryPage() {
                   <p className="font-mono text-xs text-night-muted">{e.domain}</p>
                   {e.tagline && <p className="mt-2 text-sm">{e.tagline}</p>}
                   <p className="mt-3 text-xs text-night-muted">{e.regionLabels.join(" · ")}</p>
+                  {e.reviews.length > 0 && (
+                    <div className="mt-3">
+                      <ul className="flex flex-wrap gap-2" aria-label={`${e.name} reviews`}>
+                        {e.reviews.map((r) => (
+                          <li key={r.platform}>
+                            <a href={r.url} target="_blank" rel="noopener noreferrer nofollow" referrerPolicy="no-referrer" className="inline-flex items-center gap-1 rounded-full border border-night-line px-2.5 py-1 text-xs hover:border-electric">
+                              {r.label} <ExternalLink className="size-3" />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-1.5 text-[11px] text-night-muted">Reviews are hosted by each review site. UKStats does not check, edit or score them.</p>
+                    </div>
+                  )}
                   <Button asChild variant="outline" size="sm" className="mt-4 self-start">
                     <a href={e.url} target="_blank" rel="sponsored noopener noreferrer">Visit website <ExternalLink className="size-3.5" /></a>
                   </Button>
