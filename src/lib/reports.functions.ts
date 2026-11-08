@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { canDownload, isReportPriceId, REPORT_PRICES, reportFileName, type ReportEdition, type ReportKind, type ReportPriceId, type ReportPurchase, type ReportSub } from "@/lib/reports";
 import type { StripeEnv } from "@/lib/stripe.server";
+import { assertReturnUrl } from "@/lib/safe-url";
 
 const envOk = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
 const dateOk = (d: unknown): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d);
@@ -33,7 +34,7 @@ export interface MyReportAccess { purchases: ReportPurchase[]; subs: (ReportSub 
 
 export const getMyReportAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return d; })
+  .inputValidator((d: { environment: StripeEnv }) => { if (!envOk(d.environment)) throw new Error("Invalid environment"); return { ...d, returnUrl: assertReturnUrl(d.returnUrl) }; })
   .handler(async ({ data, context }): Promise<MyReportAccess> => {
     const [p, s] = await Promise.all([
       context.supabase.from("report_purchases").select("edition,report_date").eq("user_id", context.userId).eq("environment", data.environment),
@@ -62,8 +63,7 @@ export const createReportCheckout = createServerFn({ method: "POST" })
     if (!envOk(d.environment)) throw new Error("Invalid environment");
     if (!isReportPriceId(d.priceId)) throw new Error("Invalid plan");
     if (d.date !== undefined && !dateOk(d.date)) throw new Error("Invalid date");
-    if (typeof d.returnUrl !== "string" || d.returnUrl.length > 500) throw new Error("Invalid return URL");
-    return d;
+    return { ...d, returnUrl: assertReturnUrl(d.returnUrl) };
   })
   .handler(async ({ data, context }): Promise<{ clientSecret: string } | { error: string }> => {
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");

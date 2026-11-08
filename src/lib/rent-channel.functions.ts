@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { clampChannel, isChannelLive, NO_ENTITLEMENT, WISH_ENTITLEMENT, slugify, validSlug, type ChannelSettings, type Entitlement } from "@/lib/rent-entitlements";
 import { FOUNDING_RENT_SLOTS, normalisePlan, RENT_PRICE_IDS, rentLineItems, type RentPlan } from "@/lib/rent-checkout";
 import type { StripeEnv } from "@/lib/stripe.server";
+import { assertReturnUrl } from "@/lib/safe-url";
 
 export type ChannelStatus = "draft" | "pending" | "active" | "paused";
 export interface PublicChannel extends ChannelSettings { live: boolean; preview?: boolean }
@@ -186,8 +187,7 @@ export const createRentCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { plan: RentPlan; returnUrl: string; environment: StripeEnv }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
-    if (typeof d.returnUrl !== "string" || d.returnUrl.length > 500) throw new Error("Invalid return URL");
-    return { ...d, plan: normalisePlan(d.plan) };
+    return { ...d, returnUrl: assertReturnUrl(d.returnUrl), plan: normalisePlan(d.plan) };
   })
   .handler(async ({ data, context }): Promise<{ clientSecret: string } | { error: string }> => {
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
@@ -234,7 +234,7 @@ export const createRentPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { returnUrl: string; environment: StripeEnv }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
-    return d;
+    return { ...d, returnUrl: assertReturnUrl(d.returnUrl) };
   })
   .handler(async ({ data, context }): Promise<{ url: string } | { error: string }> => {
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");

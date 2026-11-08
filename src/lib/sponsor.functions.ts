@@ -7,6 +7,7 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 import { SPONSOR_PRICE_IDS, SPONSOR_SLOT_CAPS, slotFull } from "@/lib/sponsor-plans";
 import { BANNER_BUCKET, BANNER_URL_SECONDS, isOwnBannerPath } from "@/lib/banner-paths";
 import { fundingPaymentError } from "@/lib/funding-policy";
+import { assertReturnUrl } from "@/lib/safe-url";
 
 const envOk = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
 
@@ -42,8 +43,7 @@ export const createSponsorCheckout = createServerFn({ method: "POST" })
   .inputValidator((d: { priceId: string; returnUrl: string; environment: StripeEnv }) => {
     if (!(SPONSOR_PRICE_IDS as readonly string[]).includes(d.priceId)) throw new Error("Invalid plan");
     if (!envOk(d.environment)) throw new Error("Invalid environment");
-    if (typeof d.returnUrl !== "string" || d.returnUrl.length > 500) throw new Error("Invalid return URL");
-    return d;
+    return { ...d, returnUrl: assertReturnUrl(d.returnUrl) };
   })
   .handler(async ({ data, context }): Promise<{ clientSecret: string } | { error: string }> => {
     const paused = fundingPaymentError();
@@ -93,7 +93,7 @@ export const createSponsorPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { returnUrl: string; environment: StripeEnv }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
-    return d;
+    return { ...d, returnUrl: assertReturnUrl(d.returnUrl) };
   })
   .handler(async ({ data, context }): Promise<{ url: string } | { error: string }> => {
     const { data: sub } = await context.supabase
