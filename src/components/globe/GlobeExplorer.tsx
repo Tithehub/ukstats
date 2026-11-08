@@ -2,7 +2,7 @@ import { LIVE_STREAM_URL } from "@/lib/brand";
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon } from "lucide-react";
+import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon, Video, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -121,6 +121,7 @@ function DestLink({ d }: { d: Destination }) {
   }
 }
 
+const TB = "inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night";
 const CTRL = "inline-flex min-h-9 items-center gap-1 rounded border border-night-line bg-night-panel/90 px-2 py-1 backdrop-blur hover:bg-night disabled:opacity-50";
 
 function Swatch({ c }: { c: string }) { return <span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-sm align-middle" style={{ background: c }} />; }
@@ -211,12 +212,17 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
     else for (const [k, a] of Object.entries(unrest.fcdoAlerts ?? {})) { fill.set(k, UK_ALERT_COLOURS[a.status]); labels.set(k, `${unrest.warnings.find((w) => w.key === k && w.source === "FCDO")?.country ?? k}: ${FCDO_ALERT_LABEL[a.status]} (FCDO, ${fmtDate(a.updated)})`); }
     return { fill, labels };
   }, [s.layer, unrest]);
-  const [rotate, setRotate] = useState<boolean | undefined>(undefined);
+  const [rotate, setRotate] = useState<boolean | undefined>(broadcast ? true : undefined);
   const [resetKey, setResetKey] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [layersOpen, setLayersOpen] = useState(false);
-  const [keyOpen, setKeyOpen] = useState(false);
-  useEffect(() => { setSheetOpen(false); }, [s.c]);
+  // One overlay at a time, so panels never pile up over the globe.
+  const [panel, setPanel] = useState<"search" | "layers" | "cams" | "key" | null>(null);
+  const layersOpen = panel === "layers", keyOpen = panel === "key";
+  const setLayersOpen = (o: boolean | ((v: boolean) => boolean)) => setPanel((p) => ((typeof o === "function" ? o(p === "layers") : o) ? "layers" : p === "layers" ? null : p));
+  const setKeyOpen = (o: boolean | ((v: boolean) => boolean)) => setPanel((p) => ((typeof o === "function" ? o(p === "key") : o) ? "key" : p === "key" ? null : p));
+  const openPanel = (k: "search" | "layers" | "cams" | "key") => { setSheetOpen(false); setPanel((p) => (p === k ? null : k)); };
+  useEffect(() => { setSheetOpen(false); if (panel === "search") setPanel(null); }, [s.c]);
+  useEffect(() => { if (sheetOpen) setPanel(null); }, [sheetOpen]);
   const hot = useMemo(() => (unrest && s.official && !s.layer ? unrestHotspots(unrest.warnings, new Date()) : new Map<string, OfficialWarning[]>()), [unrest, s.official, s.layer]);
   const hotKeys = useMemo(() => new Set(hot.keys()), [hot]);
   const events = s.acled && unrest?.acled.connected ? unrest.acled.events : [];
@@ -245,7 +251,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const live = sel ? LIVE_SOURCES[sel] : undefined;
   const selName = (wb?.name ?? warnings[0]?.country ?? sel)?.replace(/(^|[\s-])(\p{Ll})/gu, (_m, a: string, b: string) => a + b.toUpperCase());
   const dests = sel ? countryDestinations(wb?.iso2 ?? (sel === "united kingdom" ? "GB" : ""), wb?.iso3 ?? null, selName ?? "") : [];
-  const [onAir, setOnAir] = useState(true);
+  // The automatic country tour is opt-in, so the globe stays where you put it.
+  const [onAir, setOnAir] = useState(broadcast);
   const order = useMemo(() => buildRunningOrder(names.map((c) => countryKey(c.name)), unrest?.warnings ?? []), [names, unrest]);
   const goNext = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
   const goPrev = useCallback(() => { const n = nextInOrder(order, s.c || UK_KEY, -1); if (n) onChange({ c: n, m: undefined }); }, [order, s.c, onChange]);
@@ -332,10 +339,10 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
       {cam && <CamViewer cam={cam} all={globeCams} onPick={setCamId} onClose={() => setCamId(null)} />}
-      <div className={`absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80 ${broadcast ? "hidden" : ""}`}>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur sm:flex-nowrap">
+      <div className={`absolute inset-x-3 top-3 z-20 flex items-start gap-2 text-xs sm:right-16 ${broadcast ? "hidden" : ""} ${panel === "search" ? "" : "max-sm:hidden"}`}>
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-lg border border-night-line bg-night-panel/90 p-1.5 shadow-lg backdrop-blur sm:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
-        <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1 max-sm:basis-full">
+        <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1 max-sm:basis-full sm:max-w-72">
           <label htmlFor={compact ? "globe-q-home" : "globe-q"} className="sr-only">Find a country</label>
           <div className="relative flex-1"><Search aria-hidden="true" className="absolute left-2 top-2 size-3.5 text-night-muted" />
             <input id={compact ? "globe-q-home" : "globe-q"} list="globe-country-names" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a country…" className="w-full rounded border border-night-line bg-night py-1.5 pr-2 pl-7" />
@@ -343,12 +350,16 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           <Button type="submit" size="sm">Go</Button>
           <datalist id="globe-country-names">{names.map((c) => <option key={c.iso3} value={c.name} />)}</datalist>
         </form>
-          <button type="button" onClick={() => { setLayersOpen((o) => !o); setKeyOpen(false); }} aria-expanded={layersOpen} aria-controls="globe-layers" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Layers className="size-3.5" />Layers</button>
-          <button type="button" onClick={() => { setKeyOpen((o) => !o); setLayersOpen(false); }} aria-expanded={keyOpen} aria-controls="globe-key" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night"><Info className="size-3.5" />Key</button>
+          <span className="flex shrink-0 gap-1 max-sm:hidden">
+          <button type="button" onClick={() => openPanel("layers")} aria-expanded={layersOpen} aria-controls="globe-layers" className={`${TB} ${layersOpen ? "bg-night" : ""}`}><Layers className="size-3.5" />Layers</button>
+          <button type="button" onClick={() => { onChange({ cam: true }); openPanel("cams"); }} aria-expanded={panel === "cams"} aria-controls="globe-cams" className={`${TB} ${panel === "cams" ? "bg-night" : ""}`}><Video className="size-3.5" />Cameras</button>
+          <button type="button" onClick={() => openPanel("key")} aria-expanded={keyOpen} aria-controls="globe-key" className={`${TB} ${keyOpen ? "bg-night" : ""}`}><Info className="size-3.5" />Key</button>
+          <button type="button" onClick={() => { if (!sel) onChange({ c: UK_KEY, m: undefined }); setOnAir((o) => !o); }} aria-pressed={onAir} className={`${TB} ${onAir ? "bg-night" : ""}`}>{onAir ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}{onAir ? "Stop tour" : "Tour"}</button>
+          </span>
           <GlobeShare title={`${selName ? `${selName} — ` : ""}live globe | UKStats`} />
         </div>
       </div>
-      {layersOpen && <div id="globe-layers" role="dialog" aria-label="Globe layers" onKeyDown={(e) => { if (e.key === "Escape") setLayersOpen(false); }} className="z-40 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[55dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[70%] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
+      {layersOpen && <div id="globe-layers" role="dialog" aria-label="Globe layers" onKeyDown={(e) => { if (e.key === "Escape") setLayersOpen(false); }} className="z-40 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[55dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[calc(100%-6rem)] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
         <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Layers</h2><Button variant="ghost" size="icon" aria-label="Close layers" onClick={() => setLayersOpen(false)}><X className="size-4" /></Button></div>
         <label className="mt-2 block">Colour by
           <select value={s.layer ? `@${s.layer}` : s.ind} onChange={(e) => { const v = e.target.value; setLayersOpen(false); onChange(v === "@us" || v === "@uk" ? { layer: v.slice(1) as "us" | "uk" } : { layer: undefined, ind: v }); }} className="ml-2 max-w-[60%] rounded border border-night-line bg-night px-2 py-1">
@@ -378,7 +389,6 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={s.dn !== false} onChange={(e) => onChange({ dn: e.target.checked ? undefined : false })} /> <span><b>Day and night</b>: shade the side of the Earth in darkness, with the sunrise and sunset line</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.cam} onChange={(e) => { onChange({ cam: e.target.checked || undefined }); if (!e.target.checked) setCamId(null); }} /> <span><b>Public cameras</b>: road cameras run by public transport authorities{s.cam && camData ? ` — ${camData.items.length.toLocaleString("en-GB")}` : ""}
           {s.cam && <span className="mt-1 block text-night-muted"><Swatch c="#4fd1ff" />Click a dot to view. Transport for London and Caltrans open data; most are still pictures updated every few minutes. Scene only — not a source of figures.</span>}</span></label>
-        {s.cam && camData && <CamList cams={globeCams} country={sel ?? ""} onPick={setCamId} />}
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.st} onChange={(e) => onChange({ st: e.target.checked || undefined })} /> <span><b>Satellites</b>: space stations and Earth-watching satellites{s.st ? ` — ${globeSats.length}` : ""}
           {s.st && <span className="mt-1 block text-night-muted"><Swatch c="#8cf0ff" />Positions worked out from <a className="underline" href={SAT_SOURCE.url} target="_blank" rel="noreferrer noopener">{SAT_SOURCE.name}</a> (refreshed twice a day); line shows the next 90 minutes.</span>}</span></label>
         <div className="mt-2 flex gap-3">
@@ -388,6 +398,12 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         </div>
         {compact && <Link to="/globe" search={{ ...s, layer: s.layer, gov: s.gov, age: s.age, cmp: s.cmp }} className="mt-2 inline-flex items-center gap-1 text-electric-soft underline"><Maximize2 className="size-3" />Open full-screen globe</Link>}
         {!broadcast && <a href={LIVE_STREAM_URL} target="_blank" rel="noopener" className="mt-2 ml-3 inline-flex items-center gap-1 text-electric-soft underline"><span className="size-2 rounded-full bg-destructive" aria-hidden="true" />Watch the live stream</a>}
+      </div>}
+      {panel === "cams" && <div id="globe-cams" role="dialog" aria-label="Public cameras" onKeyDown={(e) => { if (e.key === "Escape") setPanel(null); }} className="z-40 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[60dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[calc(100%-6rem)] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
+        <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Public cameras</h2><Button variant="ghost" size="icon" aria-label="Close cameras" onClick={() => setPanel(null)}><X className="size-4" /></Button></div>
+        <p className="text-night-muted"><span className="font-bold text-destructive">● Red</span> = live video (Caltrans, California). <span className="font-bold text-electric-soft">● Blue</span> = short loops (London TfL) or still pictures. Road cameras from public transport authorities only. Scene only — not a source of figures.</p>
+        <div className="mt-2 flex gap-1">{[["united kingdom", "London"], ["united states", "California"]].map(([k, l]) => <button key={k} type="button" onClick={() => onChange({ c: k, m: undefined, cam: true })} className={`${TB} min-h-9 ${sel === k ? "bg-night" : ""}`}><MapPin className="size-3.5" />{l}</button>)}</div>
+        {!camData ? <p className="mt-2 text-night-muted">Loading cameras…</p> : <div className="-ml-6"><CamList cams={globeCams} country={sel ?? ""} onPick={(id) => { setCamId(id); if (window.matchMedia("(max-width: 639px)").matches) setPanel(null); }} /></div>}
       </div>}
       {keyOpen && <GlobeKey onClose={() => setKeyOpen(false)} />}
       {(stat && ind || s.layer) && !layersOpen && <div aria-label="Colour key" className="absolute right-3 bottom-14 z-10 max-w-[60%] rounded-md border border-night-line bg-night-panel/90 p-2 text-[10px] backdrop-blur sm:top-3 sm:bottom-auto sm:max-w-56">
@@ -400,7 +416,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {(["in", "out"] as const).map((k) => <button key={k} type="button" aria-label={k === "in" ? "Zoom in" : "Zoom out"} onClick={() => setPreset((p) => ({ n: (p?.n ?? 0) + 1, kind: k }))} className="grid size-9 place-items-center rounded border border-night-line bg-night-panel/80 text-lg font-bold text-night-fg backdrop-blur hover:bg-night">{k === "in" ? "+" : "−"}</button>)}
       </div>}
       {gl && !broadcast && !compact && <GlobeHud tele={tele} onPreset={(kind) => setPreset((p) => ({ n: (p?.n ?? 0) + 1, kind }))} canFocus={!!sel} />}
-      {gl && !broadcast && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs">
+      {!broadcast && <nav aria-label="Globe menu" className="absolute inset-x-2 bottom-2 z-20 grid grid-cols-4 gap-1 rounded-xl border border-night-line bg-night-panel/95 p-1 text-[11px] shadow-lg backdrop-blur sm:hidden">
+        {([["search", Search, "Search"], ["layers", Layers, "Layers"], ["cams", Video, "Cameras"]] as const).map(([k, I, l]) => <button key={k} type="button" aria-expanded={panel === k} onClick={() => { if (k === "cams") onChange({ cam: true }); openPanel(k); }} className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg ${panel === k ? "bg-night text-night-fg" : "text-night-muted"}`}><I className="size-5" />{l}</button>)}
+        <button type="button" aria-expanded={sheetOpen} onClick={() => { if (!sel) openPanel("search"); else { setPanel(null); setSheetOpen((o) => !o); } }} className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg ${sheetOpen ? "bg-night text-night-fg" : "text-night-muted"}`}><Landmark className="size-5" /><span className="max-w-full truncate px-1">{sel ? selName : "Country"}</span></button>
+      </nav>}
+      {gl && !broadcast && <div aria-label="Globe controls" className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1 text-xs max-sm:hidden">
         <button onClick={nextWarning} disabled={!listed.length} aria-label="Next warning" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next warning</span></button>
         <button onClick={nextCountry} aria-label="Next country" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next country</span></button>
         <button onClick={() => setRotate((r) => !r)} aria-pressed={!!rotate} aria-label={rotate ? "Stop spin" : "Spin"} className={CTRL}>{rotate ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}<span className="max-sm:sr-only">{rotate ? "Stop spin" : "Spin"}</span></button>
