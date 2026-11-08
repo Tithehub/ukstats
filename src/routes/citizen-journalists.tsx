@@ -15,7 +15,7 @@ import {
   adminAddCitizen, adminCitizenList, adminReviewCitizen, applyCitizenJournalist, citizenJournalistsQuery, myCitizenApplications,
   type ApplicationInput,
 } from "@/lib/citizen-journalists.functions";
-import { fmtDate } from "@/lib/format";
+import { fmtDate } from "@/lib/uk-stats";
 
 const TITLE = "Citizen Journalists — independent creators directory | UKStats";
 const DESC = "A reviewed directory of independent citizen journalists from every political stance and background, with their latest videos and links.";
