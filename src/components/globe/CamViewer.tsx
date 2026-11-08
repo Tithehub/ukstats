@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { CAM_SOURCES, camImageSrc, camsForCountry, nearestCams, type PublicCam } from "@/lib/public-cams";
+import { CAM_SOURCES, camImageSrc, camsForCountry, stepCam, type PublicCam } from "@/lib/public-cams";
 
 /** Viewer for one public-authority camera. Pictures load straight from the operator. */
 export function CamViewer({ cam, all, onPick, onClose }: { cam: PublicCam; all: PublicCam[]; onPick: (id: string) => void; onClose: () => void }) {
   const [now, setNow] = useState(() => Date.now());
   const [broken, setBroken] = useState(false);
   useEffect(() => { setBroken(false); const t = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(t); }, [cam.id]);
-  const near = useMemo(() => nearestCams(cam, all, 8), [cam, all]);
+  const prev = useMemo(() => stepCam(cam, all, -1), [cam, all]);
+  const next = useMemo(() => stepCam(cam, all, 1), [cam, all]);
   const src = CAM_SOURCES[cam.operator];
   return (
     <aside aria-label="Public camera" className="absolute bottom-3 left-3 z-20 w-[min(22rem,calc(100%-1.5rem))] rounded-md border border-night-line bg-night-panel/95 p-2 text-xs text-night-fg shadow-lg">
@@ -19,8 +20,8 @@ export function CamViewer({ cam, all, onPick, onClose }: { cam: PublicCam; all: 
         : cam.loop ? <video key={cam.id + Math.floor(now / 300_000)} src={cam.loop} poster={camImageSrc(cam, now)} autoPlay muted loop playsInline onError={() => setBroken(true)} className="mt-2 aspect-video w-full rounded bg-night object-cover" />
         : <img key={cam.id} src={camImageSrc(cam, now)} alt={`Camera view: ${cam.place}`} onError={() => setBroken(true)} className="mt-2 aspect-video w-full rounded bg-night object-cover" />}
       <div className="mt-2 flex items-center justify-between gap-2">
-        <button onClick={() => near[1] && onPick(near[1].id)} disabled={!near[1]} className="inline-flex min-h-8 items-center gap-1 rounded border border-night-line px-2 hover:bg-night disabled:opacity-40"><ChevronLeft className="size-3.5" />Previous</button>
-        <button onClick={() => near[2] && onPick(near[2].id)} disabled={!near[2]} className="inline-flex min-h-8 items-center gap-1 rounded border border-night-line px-2 hover:bg-night disabled:opacity-40">Next nearby<ChevronRight className="size-3.5" /></button>
+        <button onClick={() => prev && onPick(prev.id)} disabled={!prev} className="inline-flex min-h-8 items-center gap-1 rounded border border-night-line px-2 hover:bg-night disabled:opacity-40"><ChevronLeft className="size-3.5" />Previous</button>
+        <button onClick={() => next && onPick(next.id)} disabled={!next} className="inline-flex min-h-8 items-center gap-1 rounded border border-night-line px-2 hover:bg-night disabled:opacity-40">Next<ChevronRight className="size-3.5" /></button>
       </div>
       <p className="mt-2 text-night-muted">{cam.loop ? `Short video loop, updated about every ${cam.everyMin} minutes — not live video.` : `Still picture, updates about every ${cam.everyMin} minute${cam.everyMin === 1 ? "" : "s"}.`} Scene only — not a source of figures.</p>
       <p className="mt-1 flex flex-wrap gap-x-3"><a href={cam.loop ?? cam.image} target="_blank" rel="noreferrer noopener" className="underline">Open on operator's site</a><a href={src.licenceUrl} target="_blank" rel="noreferrer noopener" className="underline">{src.licence}</a></p>

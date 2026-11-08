@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { camImageSrc, parseCaltransCams, parseTflCams } from "./public-cams";
+import { camImageSrc, camsForCountry, stepCam, parseCaltransCams, parseTflCams } from "./public-cams";
 
 describe("public cameras", () => {
   it("keeps available TfL cameras with https pictures and coordinates", () => {
@@ -21,5 +21,14 @@ describe("public cameras", () => {
     const c = { id: "a", lat: 0, lng: 0, place: "", operator: "Caltrans" as const, image: "https://c/i.jpg", everyMin: 2 };
     expect(camImageSrc(c, 0)).toBe(camImageSrc(c, 119_000));
     expect(camImageSrc(c, 0)).not.toBe(camImageSrc(c, 120_000));
+  });
+  it("lists cameras by country and steps round in place order", () => {
+    const mk = (id: string, place: string, operator: "Caltrans" | "Transport for London") => ({ id, lat: 1, lng: 1, place, operator, image: "https://x", everyMin: 5 });
+    const cams = [mk("b", "B road", "Caltrans"), mk("a", "A road", "Caltrans"), mk("l", "London", "Transport for London")];
+    expect(camsForCountry(cams, "united states").map((c) => c.id)).toEqual(["a", "b"]);
+    expect(camsForCountry(cams, "france")).toEqual([]);
+    expect(stepCam(cams[1]!, cams, 1)?.id).toBe("b");
+    expect(stepCam(cams[0]!, cams, 1)?.id).toBe("a");
+    expect(stepCam(cams[2]!, cams, 1)).toBeNull();
   });
 });

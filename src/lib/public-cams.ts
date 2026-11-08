@@ -52,3 +52,18 @@ export function parseCaltransCams(json: unknown, district: number): PublicCam[] 
 
 /** Cache-buster rounded to the operator's update window so viewers share one copy. */
 export const camImageSrc = (c: PublicCam, now: number) => `${c.image}?t=${Math.floor(now / (c.everyMin * 60_000))}`;
+
+const OPERATOR_COUNTRY: Record<PublicCam["operator"], string> = { "Transport for London": "united kingdom", Caltrans: "united states" };
+
+/** Cameras in a country (by operator), sorted by place name. */
+export function camsForCountry(cams: PublicCam[], country: string): PublicCam[] {
+  return cams.filter((c) => OPERATOR_COUNTRY[c.operator] === country).sort((a, b) => a.place.localeCompare(b.place));
+}
+
+/** Previous/next camera from the same operator in place-name order (wraps round). */
+export function stepCam(cam: PublicCam, cams: PublicCam[], dir: 1 | -1): PublicCam | null {
+  const list = cams.filter((c) => c.operator === cam.operator).sort((a, b) => a.place.localeCompare(b.place));
+  if (list.length < 2) return null;
+  const i = list.findIndex((c) => c.id === cam.id);
+  return list[(i + dir + list.length) % list.length] ?? null;
+}
