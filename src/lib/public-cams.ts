@@ -40,7 +40,8 @@ export function parseCaltransCams(json: unknown, district: number): PublicCam[] 
   for (const row of data) {
     const c = row.cctv as { index?: string; inService?: string; location?: { locationName?: string; nearbyPlace?: string; latitude?: string; longitude?: string }; imageData?: { static?: { currentImageURL?: string; currentImageUpdateFrequency?: string } } } | undefined;
     if (!c || c.inService !== "true") continue;
-    const lat = Number(c.location?.latitude), lng = Number(c.location?.longitude);
+    if (!c.location?.latitude || !c.location?.longitude) continue;
+    const lat = Number(c.location.latitude), lng = Number(c.location.longitude);
     const image = httpsOnly(c.imageData?.static?.currentImageURL);
     if (!image || !okCoord(lat, lng)) continue;
     const every = Number(c.imageData?.static?.currentImageUpdateFrequency);
