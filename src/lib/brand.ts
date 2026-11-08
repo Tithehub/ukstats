@@ -8,5 +8,5 @@ export const RESTORE_BRITAIN_URL = "https://www.restorebritain.org.uk/";
 export const RESTORE_BRITAIN_JOIN_URL = "https://www.restorebritain.org.uk/join_us";
 
 /** Where "Watch live" buttons go. Swap for the YouTube watch link once the channel is live. */
-export const LIVE_STREAM_ID = "DD4hgjN1KZc";
+export const LIVE_STREAM_ID = "3_oMefI7GL4";
 export const LIVE_STREAM_URL = `https://www.youtube.com/live/${LIVE_STREAM_ID}`;
