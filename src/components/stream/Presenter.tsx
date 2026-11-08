@@ -24,6 +24,7 @@ function fetchLine(text: string) {
 /** AI presenter box: reads the current card's line without cutting off mid-sentence; always labelled as AI. */
 export function Presenter({ line, upcoming = [], voice }: { line: string; upcoming?: string[]; voice: boolean }) {
   const [status, setStatus] = useState<Status>("idle");
+  const [miming, setMiming] = useState(false);
   const busy = useRef(false);
   const latest = useRef(line);
   const lastSpoken = useRef("");
@@ -38,8 +39,9 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
       setStatus("preparing");
       const b64 = await fetchLine(text);
       if (!b64) {
-        busy.current = false; setStatus(unauthorised ? "unauthorised" : "idle");
+        setStatus(unauthorised ? "unauthorised" : "idle");
         if (unauthorised) try { parent.postMessage({ type: "ukstats-voice", ok: false }, location.origin); } catch { /* ignore */ }
+        mime(text);
         return;
       }
       const a = new Audio(`data:audio/wav;base64,${b64}`);
@@ -48,12 +50,22 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
         if (latest.current !== lastSpoken.current) void speak(latest.current);
       };
       try { await a.play(); setStatus("speaking"); }
-      catch { busy.current = false; setStatus("blocked"); }
+      catch { setStatus("blocked"); mime(text); }
     };
-    void speak(line);
+    /** No sound available: she still visibly reads the on-screen line, timed to its length. */
+    const mime = (text: string) => {
+      busy.current = true; setMiming(true);
+      const ms = Math.min(20000, Math.max(2500, text.split(/\s+/).length * 380));
+      window.setTimeout(() => {
+        setMiming(false); busy.current = false;
+        if (latest.current !== lastSpoken.current) void (voice ? speak(latest.current) : mime((lastSpoken.current = latest.current)));
+      }, ms);
+    };
+    if (voice) void speak(line);
+    else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
 
-  const speaking = status === "speaking";
+  const speaking = status === "speaking" || miming;
   const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : speaking ? "Speaking" : "Listening";
   const fit = "absolute inset-x-0 bottom-0 h-full w-full object-contain object-bottom drop-shadow-[0_12px_30px_oklch(0_0_0/0.6)]";
   return <div className="relative h-full w-full">
