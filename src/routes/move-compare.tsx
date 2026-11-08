@@ -42,7 +42,7 @@ function rawLine(p: Place, f: FactorKey): string {
     case "safety": return p.crimeRate == null ? "No comparable figure" : `${p.crimeRate.toFixed(1)} crimes per 1,000`;
     case "cost": return p.housePrice == null || p.weeklyPay == null ? "No comparable figure" : `${gbp(p.housePrice)} avg price · ${(p.housePrice / (p.weeklyPay * 52)).toFixed(1)}× yearly pay`;
     case "happiness": return p.wellbeing?.lifeSatisfaction == null ? "No comparable figure" : `Life satisfaction ${p.wellbeing.lifeSatisfaction.toFixed(2)} · anxiety ${p.wellbeing.anxiety?.toFixed(2) ?? "—"}`;
-    case "schools": return p.goodSchoolsShare == null ? "No comparable figure" : `${p.goodSchoolsShare}% Good or Outstanding`;
+    case "schools": return p.goodSchoolsShare == null ? "No comparable figure" : `${p.goodSchoolsShare}% Good or Outstanding${p.schoolsArea && p.schoolsArea !== p.name ? ` (${p.schoolsArea} county figure)` : ""}`;
     case "retirement": return p.over65Share == null ? "No comparable figure" : `${p.over65Share}% of residents aged 65+`;
     case "pay": return p.weeklyPay == null ? "No comparable figure" : `${gbp(p.weeklyPay)} median weekly pay`;
   }

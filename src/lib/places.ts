@@ -88,6 +88,7 @@ export interface Place {
   weeklyPay: number | null;     // ASHE median gross weekly pay, full-time, residents
   over65Share: number | null;   // % of residents aged 65+
   goodSchoolsShare: number | null; // % of graded schools Good/Outstanding for quality of education (England)
+  schoolsArea?: string | null;     // council the school figure belongs to (the county, for districts)
 }
 export interface PlacesPayload {
   fetchedAt: string;

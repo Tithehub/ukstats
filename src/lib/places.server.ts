@@ -66,6 +66,12 @@ async function fetchHpi() {
   return { map, month };
 }
 
+/** District → county lookup (ONS Open Geography), so two-tier districts use their county's schools. */
+async function fetchCounties() {
+  const r = await (await get("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/LAD23_CTY23_EN_LU/FeatureServer/0/query?where=1%3D1&outFields=LAD23CD,CTY23NM&returnGeometry=false&resultRecordCount=2000&f=json")).json() as { features?: { attributes: { LAD23CD: string; CTY23NM: string } }[] };
+  return new Map((r.features ?? []).map((f) => [f.attributes.LAD23CD, f.attributes.CTY23NM]));
+}
+
 async function fetchSchools(db: Awaited<ReturnType<typeof admin>>) {
   const { data, error } = await db.rpc("school_quality_by_la");
   if (error) throw new Error(error.message);
@@ -85,9 +91,12 @@ export async function refreshPlaces(): Promise<PlacesPayload> {
     safe("wellbeing", fetchWellbeing()), safe("pay", fetchPay()), safe("population", fetchPopulation()),
     safe("house prices", fetchHpi()), safe("schools", fetchSchools(db)), safe("crime", loadCityCrime("uk")),
   ]);
+  const counties = await safe("county lookup", fetchCounties());
   // Any source that failed keeps its last stored figures for every place.
   const prevBy = new Map((prev?.places ?? []).map((p) => [p.code, p]));
-  const crimeMap = new Map((crime?.rows ?? []).map((r) => [r.code, r.value]));
+  // Community Safety Partnerships mostly match a council: join on code, else on the published name.
+  const crimeMap = new Map<string, number>();
+  for (const r of crime?.rows ?? []) { crimeMap.set(r.code, r.value); crimeMap.set(normName(r.name), r.value); }
   const codes = new Set<string>([...(wb?.rows.keys() ?? []), ...(pop?.names.keys() ?? []), ...prevBy.keys()].filter(isLaCode));
   const places: Place[] = [...codes].map((code) => {
     const old = prevBy.get(code);
@@ -95,13 +104,22 @@ export async function refreshPlaces(): Promise<PlacesPayload> {
     return {
       code, name, nation: nationOf(code),
       wellbeing: wb ? wb.rows.get(code)?.wb ?? null : old?.wellbeing ?? null,
-      crimeRate: crime?.rows.length ? crimeMap.get(code) ?? null : old?.crimeRate ?? null,
+      crimeRate: crime?.rows.length ? crimeMap.get(code) ?? crimeMap.get(normName(name)) ?? null : old?.crimeRate ?? null,
       housePrice: hpi ? hpi.map.get(code) ?? null : old?.housePrice ?? null,
       weeklyPay: pay ? pay.map.get(code)?.v ?? null : old?.weeklyPay ?? null,
       over65Share: pop ? pop.share.get(code) ?? null : old?.over65Share ?? null,
-      goodSchoolsShare: nationOf(code) !== "England" ? null : schools ? schools.map.get(normName(name)) ?? null : old?.goodSchoolsShare ?? null,
+      ...schoolsFor(code, name, old),
     };
   }).sort((a, b) => a.name.localeCompare(b.name));
+  function schoolsFor(code: string, name: string, old: Place | undefined): Pick<Place, "goodSchoolsShare" | "schoolsArea"> {
+    if (nationOf(code) !== "England") return { goodSchoolsShare: null, schoolsArea: null };
+    if (!schools) return { goodSchoolsShare: old?.goodSchoolsShare ?? null, schoolsArea: old?.schoolsArea ?? null };
+    const own = schools.map.get(normName(name));
+    if (own != null) return { goodSchoolsShare: own, schoolsArea: name };
+    const county = counties?.get(code);
+    const c = county ? schools.map.get(normName(county)) : undefined;
+    return c != null ? { goodSchoolsShare: c, schoolsArea: county! } : { goodSchoolsShare: null, schoolsArea: null };
+  }
   const ps = prev?.sources;
   const payload: PlacesPayload = {
     fetchedAt: new Date().toISOString(),
