@@ -1,3 +1,4 @@
+import { SCANDAL_IMAGES } from "@/lib/scandals.images";
 import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
 import { useState } from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
