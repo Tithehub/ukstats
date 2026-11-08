@@ -88,6 +88,7 @@ const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
       ...(CHAT_ENABLED ? [{ to: "/chat", label: "Live chat", icon: Bot } as const] : []),
       { to: "/support", label: "Support", icon: LifeBuoy },
       { to: "/sponsors", label: "Our sponsors", icon: LifeBuoy },
+      { to: "/business-directory", label: "Business directory", icon: LifeBuoy },
       { to: "/reports", label: "Daily PDF reports", icon: FileText },
       { to: "/rent", label: "Rent UKStats (your brand)", icon: PlusCircle },
       { to: "/rent/dashboard", label: "My branded stream", icon: FileText },

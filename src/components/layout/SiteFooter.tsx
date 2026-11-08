@@ -28,6 +28,7 @@ const COLUMNS = [
       { to: "/support", label: "Support UKStats", icon: LifeBuoy },
       { to: "/advertise", label: "Sponsor UKStats", icon: LifeBuoy },
       { to: "/sponsors", label: "Our sponsors", icon: LifeBuoy },
+      { to: "/business-directory", label: "Business directory", icon: LifeBuoy },
       { to: "/rent", label: "Rent UKStats for your brand", icon: LifeBuoy },
       { to: "/press", label: "Press kit", icon: Newspaper },
       { to: "/coverage", label: "Media coverage", icon: Newspaper },
