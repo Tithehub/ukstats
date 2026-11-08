@@ -401,7 +401,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     text(c, `${editionName} ${kindName}`, M, H - 186, F.b, 34, WHITE);
     text(c, "Report", M, H - 222, F.r, 34, FAINT);
     text(c, dateLong, M, H - 260, F.m, 12, SOFT);
-    c.drawRectangle({ x: M, y: H - 290, width: 60, height: 3, color: RED });
+    c.drawRectangle({ x: M, y: H - 276, width: 60, height: 3, color: RED });
     // Headline figure panel
     const byId2 = new Map(input.metrics.map((m) => [m.id, m]));
     const hm = byId2.get("uk-national-debt");
