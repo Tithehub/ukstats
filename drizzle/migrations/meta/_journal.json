@@ -141,6 +141,13 @@
       "when": 1794092918871,
       "tag": "0019_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794103531520,
+      "tag": "0020_sponsor_review_links",
+      "breakpoints": true
     }
   ]
 }
