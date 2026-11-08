@@ -1,17 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
+import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { voiceKeyMatches } from "./voice-key";
 
 const cache = new Map<string, string>();
 
-/** Turns one presenter line into WAV audio (base64). Lines are short and cached by exact wording. */
+async function signedIn(): Promise<boolean> {
+  const auth = getRequest()?.headers.get("authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const url = process.env["SUPABASE_URL"], key = process.env["SUPABASE_PUBLISHABLE_KEY"];
+  if (!token || !url || !key) return false;
+  const sb = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await sb.auth.getClaims(token);
+  return !error && !!data?.claims?.sub;
+}
+
+/** Turns one presenter line into WAV audio (base64). Allowed for signed-in users or the private stream voice key. */
 export const speakLine = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: { text: string }) => {
+  .inputValidator((d: { text: string; voiceKey?: string | null }) => {
     const text = String(d?.text ?? "").trim().slice(0, 400);
     if (!text) throw new Error("Empty line");
-    return { text };
+    return { text, voiceKey: typeof d?.voiceKey === "string" ? d.voiceKey.slice(0, 200) : null };
   })
   .handler(async ({ data }): Promise<{ audio: string | null; error: string | null }> => {
+    const ok = voiceKeyMatches(data.voiceKey, process.env["STREAM_VOICE_KEY"]) || (await signedIn().catch(() => false));
+    if (!ok) return { audio: null, error: "Not authorised" };
     const hit = cache.get(data.text);
     if (hit) return { audio: hit, error: null };
     const key = process.env["LOVABLE_API_KEY"];
@@ -33,4 +47,14 @@ export const speakLine = createServerFn({ method: "POST" })
     if (cache.size > 300) cache.clear();
     cache.set(data.text, b64);
     return { audio: b64, error: null };
+  });
+
+/** Admin only: the private OBS link that switches the presenter's voice on. */
+export const getStreamVoiceLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ query: string | null }> => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    const key = process.env["STREAM_VOICE_KEY"];
+    if (!isAdmin || !key) return { query: null };
+    return { query: `voicekey=${encodeURIComponent(key)}` };
   });
