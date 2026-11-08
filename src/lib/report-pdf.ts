@@ -377,7 +377,6 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     c.drawRectangle({ x: 0, y: 0, width: W, height: H, color: NAVY });
     // Background depth: faint globe rings and grid, top right.
     for (let i = 1; i <= 7; i++) c.drawCircle({ x: W - 60, y: H - 250, size: i * 48, borderColor: NAVY2, borderWidth: 0.8 });
-    for (let gx = 0; gx < W; gx += 36) c.drawLine({ start: { x: gx, y: H - 560 }, end: { x: gx, y: H - 120 }, thickness: 0.25, color: NAVY2 });
     c.drawRectangle({ x: 0, y: H - 8, width: W, height: 8, color: RED });
     c.drawRectangle({ x: 0, y: H - 11, width: W, height: 3, color: WHITE });
     // Masthead
@@ -437,7 +436,8 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     const ct = tt - th - 30, colW = (pw - 24) / 2;
     text(c, "INSIDE THIS EDITION", M, ct, F.mb, 8, YELLOW);
     c.drawLine({ start: { x: M, y: ct - 7 }, end: { x: M + colW, y: ct - 7 }, thickness: 0.5, color: SOFT });
-    toc.slice(0, 9).forEach((e, i) => {
+    const tocShown = toc.length <= 9 ? toc : toc.filter((t) => !(CATEGORIES as readonly string[]).includes(t.section) || t.section === toc.find((x) => (CATEGORIES as readonly string[]).includes(x.section))?.section).slice(0, 9);
+    tocShown.forEach((e, i) => {
       const y0 = ct - 24 - i * 17;
       text(c, String(i + 1).padStart(2, "0"), M, y0, F.mb, 8, BLUE);
       text(c, fit(F.b, e.section, 9.5, colW - 70), M + 20, y0, F.b, 9.5, WHITE);
