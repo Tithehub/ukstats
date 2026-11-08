@@ -31,7 +31,7 @@ export function CamViewer({ cam, all, onPick, onClose }: { cam: PublicCam; all: 
   const next = useMemo(() => stepCam(cam, all, 1), [cam, all]);
   const src = CAM_SOURCES[cam.operator];
   return (
-    <aside aria-label="Public camera" className="absolute bottom-3 left-3 z-20 w-[min(22rem,calc(100%-1.5rem))] rounded-md border border-night-line bg-night-panel/95 p-2 text-xs text-night-fg shadow-lg">
+    <aside aria-label="Public camera" className="absolute bottom-3 left-3 z-30 w-[min(24rem,calc(100%-1.5rem))] max-sm:bottom-20 max-sm:left-2 max-sm:w-[calc(100%-1rem)] rounded-md border border-night-line bg-night-panel/95 p-2 text-xs text-night-fg shadow-lg">
       <div className="flex items-start justify-between gap-2">
         <div><p className="font-semibold">{cam.live && !liveDown && <span className="mr-1 rounded bg-destructive px-1 py-0.5 text-[10px] font-bold text-destructive-foreground">● LIVE</span>}{cam.place}</p><p className="text-night-muted">{cam.operator}</p></div>
         <button onClick={onClose} aria-label="Close camera" className="rounded p-1 hover:bg-night"><X className="size-4" /></button>
