@@ -15,6 +15,9 @@ import clinton from "@/assets/scandals/bill-clinton.jpg.asset.json";
 import boats from "@/assets/scandals/boat-crossings.jpg.asset.json";
 import jury from "@/assets/scandals/jury-trials.jpg.asset.json";
 import dei from "@/assets/scandals/dei-arday.jpg.asset.json";
+import kirk from "@/assets/scandals/kirk.jpg.asset.json";
+import dando from "@/assets/scandals/dando.jpg.asset.json";
+import widd from "@/assets/scandals/widd.jpg.asset.json";
 
 export type ScandalImage = { src: string; alt: string; credit: string; licence: string; sourceUrl: string };
 
@@ -36,4 +39,7 @@ export const SCANDAL_IMAGES: Partial<Record<string, ScandalImage>> = {
   "boat-crossings": { src: boats.url, alt: "The English Channel with the white cliffs of Dover", credit: "Timitrius", licence: "CC BY-SA 2.0", sourceUrl: c("Crossing_the_English_Channel_(Le_Manche)._White_cliffs_of_Dover_in_background.jpg") },
   "jury-trials-curbed": { src: jury.url, alt: "The Central Criminal Court (Old Bailey), London", credit: "David Hillas", licence: "CC BY-SA 2.0", sourceUrl: c("Central_Criminal_Court,_Old_Bailey_(1)_-_geograph.org.uk_-_5417080.jpg") },
   "dei-jason-arday": { src: dei.url, alt: "Senate House, University of Cambridge", credit: "The wub", licence: "CC BY-SA 3.0", sourceUrl: c("Senate_House,_Cambridge.jpg") },
+  "charlie-kirk": { src: kirk.url, alt: "Utah Valley University campus building", credit: "An Errant Knight", licence: "CC BY-SA 4.0", sourceUrl: c("East_side_of_Utah_Valley_University_Wasatch_Campus_building,_Apr_16.jpg") },
+  "jill-dando": { src: dando.url, alt: "BBC Television Centre, London", credit: "Panhard", licence: "CC BY 2.5", sourceUrl: c("BBC_TV_Centre.jpg") },
+  "ann-widdecombe": { src: widd.url, alt: "Haytor Rocks, Dartmoor", credit: "Archangel12", licence: "CC BY 2.0", sourceUrl: c("Dartmoor_-_Haytor_Rocks_(6238837326).jpg") },
 };
