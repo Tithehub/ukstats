@@ -166,6 +166,12 @@ function centreOf(name: string) { const n = mapName(name); return n ? centre(cou
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
+/** Zoomed out, draw every live camera but only a share of the others — full detail returns as you zoom in. */
+function thinCams<T extends { live?: string | undefined }>(cams: T[], alt: number): T[] {
+  const step = alt > 1.5 ? 6 : alt > 0.8 ? 2 : 1;
+  return step === 1 ? cams : cams.filter((c, i) => c.live || i % step === 0);
+}
+
 export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [], quakes = [], cams = [], onCam, sats = [], preset = null, dayNight = false, onTelemetry }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
@@ -186,11 +192,16 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [still]);
+  const lastFocus = useRef<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
-    if (!focus) return;
+    if (!focus) { lastFocus.current = null; return; }
     const g = ref.current; if (!g) return;
+    const l = lastFocus.current;
+    // Small drifts (a tracked plane's next position) never move the camera — only a new pick does.
+    if (l && Math.abs(l.lat - focus.lat) < 3 && Math.abs(l.lng - focus.lng) < 3) return;
+    lastFocus.current = focus;
     g.controls().autoRotate = false;
-    g.pointOfView({ ...focus, altitude: 0.9 }, 900);
+    g.pointOfView({ ...focus, altitude: Math.min(g.pointOfView().altitude, 0.9) }, 900);
   }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const [gl0, setGl0] = useState(false);
@@ -239,7 +250,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     const start = selected ? centre(selected) : null;
     g.pointOfView(start ? { ...start, altitude: 1.6 } : { lat: 50, lng: 10, altitude: 1.9 }, 0);
     const c = g.controls();
-    c.autoRotate = !start;
+    c.autoRotate = rotate === true;
     c.autoRotateSpeed = 0.75;
     wrap.current?.setAttribute("data-scene-ready", "true");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -313,7 +324,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const satObjs = useMemo(() => sats.map((x) => ({ ...x })), [sats]);
   const satPaths = useMemo(() => sats.map((x) => ({ pts: x.path, ahead: false, color: "rgba(140,240,255,0.55)", sat: true })), [sats]);
   const allPaths = useMemo(() => [...planePaths, ...satPaths], [planePaths, satPaths]);
-  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...cams.map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams]);
+  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...thinCams(cams, alt).map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams, alt > 1.5 ? 3 : alt > 0.8 ? 2 : 1]);
 
   return (
     <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
