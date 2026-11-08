@@ -33,8 +33,10 @@ import { Route as GlobeRouteImport } from './routes/globe'
 import { Route as GoldRouteImport } from './routes/gold'
 import { Route as GovernmentsRouteImport } from './routes/governments'
 import { Route as GroomingGangsInquiryRouteImport } from './routes/grooming-gangs-inquiry'
+import { Route as HappiestPlacesRouteImport } from './routes/happiest-places'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as MapsRouteImport } from './routes/maps'
+import { Route as MoveCompareRouteImport } from './routes/move-compare'
 import { Route as MyPagesRouteImport } from './routes/my-pages'
 import { Route as NewHomeRouteImport } from './routes/new-home'
 import { Route as OnlineSpeechRouteImport } from './routes/online-speech'
@@ -226,6 +228,11 @@ const GroomingGangsInquiryRoute = GroomingGangsInquiryRouteImport.update({
   path: '/grooming-gangs-inquiry',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HappiestPlacesRoute = HappiestPlacesRouteImport.update({
+  id: '/happiest-places',
+  path: '/happiest-places',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -234,6 +241,11 @@ const LiveRoute = LiveRouteImport.update({
 const MapsRoute = MapsRouteImport.update({
   id: '/maps',
   path: '/maps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoveCompareRoute = MoveCompareRouteImport.update({
+  id: '/move-compare',
+  path: '/move-compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyPagesRoute = MyPagesRouteImport.update({
@@ -616,8 +628,10 @@ export interface FileRoutesByFullPath {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/happiest-places': typeof HappiestPlacesRoute
   '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
+  '/move-compare': typeof MoveCompareRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -713,8 +727,10 @@ export interface FileRoutesByTo {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/happiest-places': typeof HappiestPlacesRoute
   '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
+  '/move-compare': typeof MoveCompareRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -811,8 +827,10 @@ export interface FileRoutesById {
   '/gold': typeof GoldRoute
   '/governments': typeof GovernmentsRoute
   '/grooming-gangs-inquiry': typeof GroomingGangsInquiryRoute
+  '/happiest-places': typeof HappiestPlacesRoute
   '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
+  '/move-compare': typeof MoveCompareRoute
   '/my-pages': typeof MyPagesRoute
   '/new-home': typeof NewHomeRoute
   '/online-speech': typeof OnlineSpeechRoute
@@ -911,8 +929,10 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/happiest-places'
     | '/live'
     | '/maps'
+    | '/move-compare'
     | '/my-pages'
     | '/new-home'
     | '/online-speech'
@@ -1008,8 +1028,10 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/happiest-places'
     | '/live'
     | '/maps'
+    | '/move-compare'
     | '/my-pages'
     | '/new-home'
     | '/online-speech'
@@ -1105,8 +1127,10 @@ export interface FileRouteTypes {
     | '/gold'
     | '/governments'
     | '/grooming-gangs-inquiry'
+    | '/happiest-places'
     | '/live'
     | '/maps'
+    | '/move-compare'
     | '/my-pages'
     | '/new-home'
     | '/online-speech'
@@ -1204,8 +1228,10 @@ export interface RootRouteChildren {
   GoldRoute: typeof GoldRoute
   GovernmentsRoute: typeof GovernmentsRoute
   GroomingGangsInquiryRoute: typeof GroomingGangsInquiryRoute
+  HappiestPlacesRoute: typeof HappiestPlacesRoute
   LiveRoute: typeof LiveRoute
   MapsRoute: typeof MapsRoute
+  MoveCompareRoute: typeof MoveCompareRoute
   MyPagesRoute: typeof MyPagesRoute
   NewHomeRoute: typeof NewHomeRoute
   OnlineSpeechRoute: typeof OnlineSpeechRoute
@@ -1425,6 +1451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroomingGangsInquiryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/happiest-places': {
+      id: '/happiest-places'
+      path: '/happiest-places'
+      fullPath: '/happiest-places'
+      preLoaderRoute: typeof HappiestPlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/live': {
       id: '/live'
       path: '/live'
@@ -1437,6 +1470,13 @@ declare module '@tanstack/react-router' {
       path: '/maps'
       fullPath: '/maps'
       preLoaderRoute: typeof MapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/move-compare': {
+      id: '/move-compare'
+      path: '/move-compare'
+      fullPath: '/move-compare'
+      preLoaderRoute: typeof MoveCompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-pages': {
@@ -2048,8 +2088,10 @@ const rootRouteChildren: RootRouteChildren = {
   GoldRoute: GoldRoute,
   GovernmentsRoute: GovernmentsRoute,
   GroomingGangsInquiryRoute: GroomingGangsInquiryRoute,
+  HappiestPlacesRoute: HappiestPlacesRoute,
   LiveRoute: LiveRoute,
   MapsRoute: MapsRoute,
+  MoveCompareRoute: MoveCompareRoute,
   MyPagesRoute: MyPagesRoute,
   NewHomeRoute: NewHomeRoute,
   OnlineSpeechRoute: OnlineSpeechRoute,
