@@ -89,7 +89,8 @@ export const SCANDALS: Scandal[] = [
     status: "Reviews completed",
     official: [
       { publisher: "Department of Health", title: "Jimmy Savile NHS investigations: lessons learned (Lampard report)", url: "https://www.gov.uk/government/publications/jimmy-savile-nhs-investigations-lessons-learned", published: "2015-02-26" },
-      { publisher: "BBC", title: "The Dame Janet Smith Review", url: "https://www.bbc.co.uk/aboutthebbc/reports/reviews/damejanetsmith", published: "2016-02-25" },
+      { publisher: "BBC Trust", title: "Publication of the Dame Janet Smith review", url: "https://www.bbc.co.uk/bbctrust/news/press_releases/2016/dame_janet_smith.html", published: "2016-02-25" },
+      { publisher: "BBC Trust (Dame Janet Smith)", title: "The Dame Janet Smith Review Report, Volume 1 (PDF)", url: "https://downloads.bbci.co.uk/bbctrust/assets/files/pdf/our_work/dame_janet_smith_review/conclusions_summaries.pdf", published: "2016-02-25" },
     ],
     headlines: [],
     videos: [
@@ -210,7 +211,7 @@ export const SCANDALS: Scandal[] = [
     summary: "Argentina invaded the Falkland Islands on 2 April 1982; British forces retook them and Argentina surrendered on 14 June 1982. The Franks Committee reviewed the government's handling before the invasion and reported in January 1983. Government papers are released through The National Archives.",
     status: "Historic — papers released by The National Archives",
     official: [
-      { publisher: "The National Archives", title: "Falklands War — education resource with original documents", url: "https://www.nationalarchives.gov.uk/education/resources/falklands-war/" },
+      { publisher: "The National Archives", title: "The Falkland Islands Review Committee: The Franks Report: Files", url: "https://discovery.nationalarchives.gov.uk/details/record?catid=69947&catln=3" },
       { publisher: "UK Parliament (Hansard)", title: "Hansard — debates on the Falkland Islands", url: "https://hansard.parliament.uk/search?searchTerm=Falkland%20Islands%201982" },
     ],
     headlines: [],
@@ -226,7 +227,7 @@ export const SCANDALS: Scandal[] = [
     status: "Impeachment concluded 1999; Epstein deposition released 2026",
     official: [
       { publisher: "US Government Publishing Office", title: "Referral from Independent Counsel Kenneth W. Starr (House Document 105-310)", url: "https://www.govinfo.gov/content/pkg/GPO-CDOC-105hdoc310/pdf/GPO-CDOC-105hdoc310.pdf", published: "1998-09-11" },
-      { publisher: "US Senate", title: "Impeachment trial of President William Jefferson Clinton", url: "https://www.senate.gov/about/powers-procedures/impeachment/impeachment-clinton.htm" },
+      { publisher: "US Senate", title: "Roll call vote 17 — Article I, Articles of Impeachment v. President W. J. Clinton (Not Guilty)", url: "https://www.senate.gov/legislative/LIS/roll_call_votes/vote1061/vote_106_1_00017.htm", published: "1999-02-12" },
       { publisher: "House Committee on Oversight", title: "Committee website — Epstein investigation releases", url: "https://oversight.house.gov/" },
     ],
     headlines: [
