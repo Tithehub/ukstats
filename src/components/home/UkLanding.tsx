@@ -56,7 +56,7 @@ function PhotoTile({ img, icon, title, sub, meta, wide, to }: { img: string; ico
   </div>;
 }
 
-const TOPICS: { icon: ReactNode; label: string; category?: Category; to?: "/spending" | "/grooming-gangs-inquiry" | "/preparedness" | "/world" }[] = [
+const TOPICS: { icon: ReactNode; label: string; category?: Category; to?: "/spending" | "/grooming-gangs-inquiry" | "/scandals" | "/preparedness" | "/world" }[] = [
   { icon: <ShoppingCart className="size-5" />, label: "Cost of living", category: "Cost of living" },
   { icon: <Ship className="size-5" />, label: "Irregular immigration", category: "Irregular immigration & cost" },
   { icon: <Siren className="size-5" />, label: "Crime", category: "Crime" },
@@ -66,6 +66,7 @@ const TOPICS: { icon: ReactNode; label: string; category?: Category; to?: "/spen
   { icon: <CloudFog className="size-5" />, label: "Weather", category: "Weather" },
   { icon: <ShieldCheck className="size-5" />, label: "National alerts", category: "National alerts" },
   { icon: <Scale className="size-5" />, label: "Grooming gangs inquiry", to: "/grooming-gangs-inquiry" },
+  { icon: <Scale className="size-5" />, label: "Scandals", to: "/scandals" },
   { icon: <Backpack className="size-5" />, label: "Preparedness", to: "/preparedness" },
   { icon: <Globe2 className="size-5" />, label: "World & countries", to: "/world" },
 ];

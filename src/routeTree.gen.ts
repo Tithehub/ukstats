@@ -51,6 +51,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RestoreBritainRouteImport } from './routes/restore-britain'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SafestPlacesRouteImport } from './routes/safest-places'
+import { Route as ScandalsRouteImport } from './routes/scandals'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SmallBoatsRouteImport } from './routes/small-boats'
 import { Route as SourcesRouteImport } from './routes/sources'
@@ -79,6 +80,7 @@ import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
 import { Route as RentAdminRouteImport } from './routes/rent_.admin'
 import { Route as RentDashboardRouteImport } from './routes/rent_.dashboard'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
+import { Route as ScandalsSlugRouteImport } from './routes/scandals.$slug'
 import { Route as SpendingIndexRouteImport } from './routes/spending.index'
 import { Route as SpendingCouncilRouteImport } from './routes/spending.$council'
 import { Route as WorldIndexRouteImport } from './routes/world.index'
@@ -308,6 +310,11 @@ const SafestPlacesRoute = SafestPlacesRouteImport.update({
   path: '/safest-places',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScandalsRoute = ScandalsRouteImport.update({
+  id: '/scandals',
+  path: '/scandals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -448,6 +455,11 @@ const SSlugRoute = SSlugRouteImport.update({
   path: '/s/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScandalsSlugRoute = ScandalsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ScandalsRoute,
+} as any)
 const SpendingIndexRoute = SpendingIndexRouteImport.update({
   id: '/spending/',
   path: '/spending/',
@@ -586,6 +598,7 @@ export interface FileRoutesByFullPath {
   '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
+  '/scandals': typeof ScandalsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/small-boats': typeof SmallBoatsRoute
   '/sources': typeof SourcesRoute
@@ -612,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/rent/admin': typeof RentAdminRoute
   '/rent/dashboard': typeof RentDashboardRoute
   '/s/$slug': typeof SSlugRoute
+  '/scandals/$slug': typeof ScandalsSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
@@ -674,6 +688,7 @@ export interface FileRoutesByTo {
   '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
+  '/scandals': typeof ScandalsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/small-boats': typeof SmallBoatsRoute
   '/sources': typeof SourcesRoute
@@ -700,6 +715,7 @@ export interface FileRoutesByTo {
   '/rent/admin': typeof RentAdminRoute
   '/rent/dashboard': typeof RentDashboardRoute
   '/s/$slug': typeof SSlugRoute
+  '/scandals/$slug': typeof ScandalsSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
@@ -765,6 +781,7 @@ export interface FileRoutesById {
   '/restore-britain': typeof RestoreBritainRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safest-places': typeof SafestPlacesRoute
+  '/scandals': typeof ScandalsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/small-boats': typeof SmallBoatsRoute
   '/sources': typeof SourcesRoute
@@ -791,6 +808,7 @@ export interface FileRoutesById {
   '/rent_/admin': typeof RentAdminRoute
   '/rent_/dashboard': typeof RentDashboardRoute
   '/s/$slug': typeof SSlugRoute
+  '/scandals/$slug': typeof ScandalsSlugRoute
   '/spending/$council': typeof SpendingCouncilRoute
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
@@ -857,6 +875,7 @@ export interface FileRouteTypes {
     | '/restore-britain'
     | '/robots.txt'
     | '/safest-places'
+    | '/scandals'
     | '/sitemap.xml'
     | '/small-boats'
     | '/sources'
@@ -883,6 +902,7 @@ export interface FileRouteTypes {
     | '/rent/admin'
     | '/rent/dashboard'
     | '/s/$slug'
+    | '/scandals/$slug'
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
@@ -945,6 +965,7 @@ export interface FileRouteTypes {
     | '/restore-britain'
     | '/robots.txt'
     | '/safest-places'
+    | '/scandals'
     | '/sitemap.xml'
     | '/small-boats'
     | '/sources'
@@ -971,6 +992,7 @@ export interface FileRouteTypes {
     | '/rent/admin'
     | '/rent/dashboard'
     | '/s/$slug'
+    | '/scandals/$slug'
     | '/spending/$council'
     | '/world/$iso'
     | '/$country'
@@ -1035,6 +1057,7 @@ export interface FileRouteTypes {
     | '/restore-britain'
     | '/robots.txt'
     | '/safest-places'
+    | '/scandals'
     | '/sitemap.xml'
     | '/small-boats'
     | '/sources'
@@ -1061,6 +1084,7 @@ export interface FileRouteTypes {
     | '/rent_/admin'
     | '/rent_/dashboard'
     | '/s/$slug'
+    | '/scandals/$slug'
     | '/spending/$council'
     | '/world/$iso'
     | '/$country/'
@@ -1126,6 +1150,7 @@ export interface RootRouteChildren {
   RestoreBritainRoute: typeof RestoreBritainRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SafestPlacesRoute: typeof SafestPlacesRoute
+  ScandalsRoute: typeof ScandalsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SmallBoatsRoute: typeof SmallBoatsRoute
   SourcesRoute: typeof SourcesRoute
@@ -1450,6 +1475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SafestPlacesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scandals': {
+      id: '/scandals'
+      path: '/scandals'
+      fullPath: '/scandals'
+      preLoaderRoute: typeof ScandalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1645,6 +1677,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/s/$slug'
       preLoaderRoute: typeof SSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/scandals/$slug': {
+      id: '/scandals/$slug'
+      path: '/$slug'
+      fullPath: '/scandals/$slug'
+      preLoaderRoute: typeof ScandalsSlugRouteImport
+      parentRoute: typeof ScandalsRoute
     }
     '/spending/': {
       id: '/spending/'
@@ -1850,6 +1889,18 @@ const RegionsRouteChildren: RegionsRouteChildren = {
 const RegionsRouteWithChildren =
   RegionsRoute._addFileChildren(RegionsRouteChildren)
 
+interface ScandalsRouteChildren {
+  ScandalsSlugRoute: typeof ScandalsSlugRoute
+}
+
+const ScandalsRouteChildren: ScandalsRouteChildren = {
+  ScandalsSlugRoute: ScandalsSlugRoute,
+}
+
+const ScandalsRouteWithChildren = ScandalsRoute._addFileChildren(
+  ScandalsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountryRoute: CountryRouteWithChildren,
@@ -1893,6 +1944,7 @@ const rootRouteChildren: RootRouteChildren = {
   RestoreBritainRoute: RestoreBritainRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SafestPlacesRoute: SafestPlacesRoute,
+  ScandalsRoute: ScandalsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SmallBoatsRoute: SmallBoatsRoute,
   SourcesRoute: SourcesRoute,
