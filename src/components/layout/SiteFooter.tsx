@@ -16,6 +16,7 @@ const COLUMNS = [
       { to: "/regions", label: "Regional dashboards", icon: Building2 },
       { to: "/widget", label: "Widget builder", icon: LayoutGrid },
       { to: "/daily", label: "Daily statement", icon: CalendarDays },
+      { to: "/scandals", label: "Scandals — official records", icon: FileText },
     ],
   },
   {
