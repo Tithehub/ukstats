@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { STREAM_DESCRIPTION, STREAM_TITLE, STUDIO_CHECKLIST } from "@/lib/stream-copy";
+import { getStreamVoiceLink } from "@/lib/speech.functions";
 
 export const Route = createFileRoute("/globe_/studio")({
   head: () => ({ meta: [
@@ -95,5 +96,19 @@ function StudioPage() {
         </section>
       </aside>
     </div>
+  </div>;
+}
+
+/** Admin only: shows the private OBS link that switches the presenter's voice on. Never rendered for anyone else. */
+function ObsVoiceLink({ portrait }: { portrait: boolean }) {
+  const [query, setQuery] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => { getStreamVoiceLink().then((r) => setQuery(r.query)).catch(() => setQuery(null)); }, []);
+  if (!query) return null;
+  const url = `${location.origin}/globe/broadcast?${portrait ? "layout=portrait&" : ""}${query}`;
+  return <div className="mb-3 rounded border border-border bg-muted/40 px-3 py-2 text-sm">
+    <p className="font-semibold">Private OBS link (voice on) — keep this secret</p>
+    <p className="text-muted-foreground">Paste it into your OBS Browser source, tick "Control audio via OBS", and make sure that source isn't muted in the Audio Mixer.</p>
+    <button type="button" onClick={async () => { await navigator.clipboard.writeText(url); setCopied(true); }} className="mt-2 rounded bg-primary px-3 py-1.5 text-primary-foreground">{copied ? "Copied" : "Copy OBS link"}</button>
   </div>;
 }
