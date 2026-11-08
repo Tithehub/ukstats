@@ -8,7 +8,7 @@ export function parseQuakes(json: unknown): Quake[] {
   const out: Quake[] = [];
   for (const f of feats as { id?: string; properties?: Record<string, unknown>; geometry?: { coordinates?: number[] } }[]) {
     const p = f.properties ?? {}, c = f.geometry?.coordinates ?? [];
-    const mag = Number(p["mag"]), t = Number(p["time"]), lng = Number(c[0]), lat = Number(c[1]);
+    const mag = p["mag"] == null ? NaN : Number(p["mag"]), t = Number(p["time"]), lng = Number(c[0]), lat = Number(c[1]);
     if (!f.id || !Number.isFinite(mag) || !Number.isFinite(t) || !Number.isFinite(lat) || !Number.isFinite(lng)) continue;
     out.push({ id: f.id, mag, place: String(p["place"] ?? "Location not stated"), time: new Date(t).toISOString(), lat, lng, depthKm: Number(c[2]) || 0, url: String(p["url"] ?? QUAKE_SOURCE.url), tsunami: p["tsunami"] === 1 });
   }
