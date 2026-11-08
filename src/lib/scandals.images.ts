@@ -18,6 +18,10 @@ import dei from "@/assets/scandals/dei-arday.jpg.asset.json";
 import kirk from "@/assets/scandals/kirk.jpg.asset.json";
 import dando from "@/assets/scandals/dando.jpg.asset.json";
 import widd from "@/assets/scandals/widd.jpg.asset.json";
+import mccann from "@/assets/scandals/mccann.jpg.asset.json";
+import mcafee from "@/assets/scandals/mcafee.jpg.asset.json";
+import assange from "@/assets/scandals/assange.jpg.asset.json";
+import snowden from "@/assets/scandals/snowden.jpg.asset.json";
 
 export type ScandalImage = { src: string; alt: string; credit: string; licence: string; sourceUrl: string };
 
@@ -42,4 +46,8 @@ export const SCANDAL_IMAGES: Partial<Record<string, ScandalImage>> = {
   "charlie-kirk": { src: kirk.url, alt: "Utah Valley University campus building", credit: "An Errant Knight", licence: "CC BY-SA 4.0", sourceUrl: c("East_side_of_Utah_Valley_University_Wasatch_Campus_building,_Apr_16.jpg") },
   "jill-dando": { src: dando.url, alt: "BBC Television Centre, London", credit: "Panhard", licence: "CC BY 2.5", sourceUrl: c("BBC_TV_Centre.jpg") },
   "ann-widdecombe": { src: widd.url, alt: "Haytor Rocks, Dartmoor", credit: "Archangel12", licence: "CC BY 2.0", sourceUrl: c("Dartmoor_-_Haytor_Rocks_(6238837326).jpg") },
+  "madeleine-mccann": { src: mccann.url, alt: "Praia da Luz, Algarve, Portugal", credit: "Bengt Nyman", licence: "CC BY-SA 4.0", sourceUrl: c("Praia_da_Luz_Portugal_February_2015_11.jpg") },
+  "john-mcafee": { src: mcafee.url, alt: "Sant Esteve Sesrovires, near Barcelona", credit: "Pere López Brosa", licence: "CC BY-SA 4.0", sourceUrl: c("Sant_Esteve_Sesrovires_-_20230122_125655.jpg") },
+  "julian-assange": { src: assange.url, alt: "The Ecuadorian Embassy in London", credit: "Tristan Surtel", licence: "CC BY-SA 4.0", sourceUrl: c("Ecuadorian_Embassy_in_London.jpg") },
+  "edward-snowden": { src: snowden.url, alt: "NSA headquarters, Fort Meade, Maryland", credit: "National Security Agency", licence: "Public domain", sourceUrl: c("National_Security_Agency_headquarters,_Fort_Meade,_Maryland.jpg") },
 };
