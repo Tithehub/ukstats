@@ -55,6 +55,7 @@ function SponsorsPage() {
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-electric">Thank you</p>
         <h1 className="mt-2 text-3xl font-semibold">Our sponsors</h1>
         <Button asChild variant="outline" className="mt-4"><Link to="/sponsor-dashboard">Manage my sponsorship</Link></Button>
+        <Button asChild variant="outline" className="ml-2 mt-4"><Link to="/business-directory">Business directory</Link></Button>
         <p className="mt-3 max-w-2xl text-night-muted">
           These businesses and people keep UKStats free, open and ad-free. Sponsors never see or influence any figure.
         </p>

@@ -16,6 +16,7 @@ import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as ApiRouteImport } from './routes/api'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BusinessDirectoryRouteImport } from './routes/business-directory'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CompareRouteImport } from './routes/compare'
@@ -129,6 +130,11 @@ const ApiDocsRoute = ApiDocsRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessDirectoryRoute = BusinessDirectoryRouteImport.update({
+  id: '/business-directory',
+  path: '/business-directory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarRoute = CalendarRouteImport.update({
@@ -539,6 +545,7 @@ export interface FileRoutesByFullPath {
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
+  '/business-directory': typeof BusinessDirectoryRoute
   '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
@@ -626,6 +633,7 @@ export interface FileRoutesByTo {
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
+  '/business-directory': typeof BusinessDirectoryRoute
   '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
@@ -714,6 +722,7 @@ export interface FileRoutesById {
   '/api': typeof ApiRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
+  '/business-directory': typeof BusinessDirectoryRoute
   '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
@@ -804,6 +813,7 @@ export interface FileRouteTypes {
     | '/api'
     | '/api-docs'
     | '/auth'
+    | '/business-directory'
     | '/calendar'
     | '/chat'
     | '/compare'
@@ -891,6 +901,7 @@ export interface FileRouteTypes {
     | '/api'
     | '/api-docs'
     | '/auth'
+    | '/business-directory'
     | '/calendar'
     | '/chat'
     | '/compare'
@@ -978,6 +989,7 @@ export interface FileRouteTypes {
     | '/api'
     | '/api-docs'
     | '/auth'
+    | '/business-directory'
     | '/calendar'
     | '/chat'
     | '/compare'
@@ -1067,6 +1079,7 @@ export interface RootRouteChildren {
   ApiRoute: typeof ApiRouteWithChildren
   ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
+  BusinessDirectoryRoute: typeof BusinessDirectoryRoute
   CalendarRoute: typeof CalendarRoute
   ChatRoute: typeof ChatRoute
   CompareRoute: typeof CompareRoute
@@ -1178,6 +1191,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business-directory': {
+      id: '/business-directory'
+      path: '/business-directory'
+      fullPath: '/business-directory'
+      preLoaderRoute: typeof BusinessDirectoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendar': {
@@ -1817,6 +1837,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRoute: ApiRouteWithChildren,
   ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
+  BusinessDirectoryRoute: BusinessDirectoryRoute,
   CalendarRoute: CalendarRoute,
   ChatRoute: ChatRoute,
   CompareRoute: CompareRoute,
