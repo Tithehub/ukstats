@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Play } from "lucide-react";
+import { Play, Volume2 } from "lucide-react";
 import { LIVE_STREAM_ID, LIVE_STREAM_URL } from "@/lib/brand";
 import { checkEmbeddable } from "@/lib/embed-check.functions";
 import { ShareRow } from "@/components/ShareRow";
@@ -66,7 +66,7 @@ export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolea
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <span className="h-3 w-3 animate-pulse rounded-full bg-destructive" aria-hidden /> UKStats Live · 24/7
         </h2>
-        <p className="text-sm text-muted-foreground">Plays muted — tap the player for sound. Even London hours cover the UK; odd hours tour other countries.</p>
+        <p className="text-sm text-muted-foreground">Plays with sound — if your browser blocks it, press "Tap for sound". Even London hours cover the UK; odd hours tour other countries.</p>
         <p className="text-sm text-muted-foreground">Every figure on the stream comes from the official publisher, with its source and date.</p>
         <ShareRow path="/live" title="UKStats Live — official UK figures, 24/7" />
         <div className="mt-auto flex flex-wrap gap-2">
