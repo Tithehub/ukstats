@@ -194,6 +194,99 @@ export type Database = {
         }
         Relationships: []
       }
+      education_institutions: {
+        Row: {
+          admissions: string | null
+          capacity: number | null
+          census_date: string | null
+          fsm_pct: number | null
+          gender: string | null
+          high_age: number | null
+          id: string
+          kind: string
+          ks4: Json | null
+          la: string | null
+          low_age: number | null
+          name: string
+          nation: string
+          ofsted: Json | null
+          phase: string | null
+          postcode: string | null
+          provider: Json | null
+          pupils: number | null
+          region: string | null
+          religious: string | null
+          search: string
+          source_date: string | null
+          town: string | null
+          trust: string | null
+          type: string | null
+          type_group: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          admissions?: string | null
+          capacity?: number | null
+          census_date?: string | null
+          fsm_pct?: number | null
+          gender?: string | null
+          high_age?: number | null
+          id: string
+          kind: string
+          ks4?: Json | null
+          la?: string | null
+          low_age?: number | null
+          name: string
+          nation?: string
+          ofsted?: Json | null
+          phase?: string | null
+          postcode?: string | null
+          provider?: Json | null
+          pupils?: number | null
+          region?: string | null
+          religious?: string | null
+          search?: string
+          source_date?: string | null
+          town?: string | null
+          trust?: string | null
+          type?: string | null
+          type_group?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          admissions?: string | null
+          capacity?: number | null
+          census_date?: string | null
+          fsm_pct?: number | null
+          gender?: string | null
+          high_age?: number | null
+          id?: string
+          kind?: string
+          ks4?: Json | null
+          la?: string | null
+          low_age?: number | null
+          name?: string
+          nation?: string
+          ofsted?: Json | null
+          phase?: string | null
+          postcode?: string | null
+          provider?: Json | null
+          pupils?: number | null
+          region?: string | null
+          religious?: string | null
+          search?: string
+          source_date?: string | null
+          town?: string | null
+          trust?: string | null
+          type?: string | null
+          type_group?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       explainer_drafts: {
         Row: {
           created_at: string
@@ -1136,6 +1229,8 @@ export type Database = {
         }[]
       }
       rent_slug_available: { Args: { _slug: string }; Returns: boolean }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
