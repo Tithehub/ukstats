@@ -7,3 +7,5 @@
 - [ ] 5. Media kit + 30-business outreach list
 - [ ] 6. Share images per top stat; widget promotion; recheck Google ~21 Nov
 - [ ] 7. Device tidy-up sweep; fill "No live feed" gaps
+- [x] Education section: overview, school finder + pages, universities (England feeds; devolved nations linked as "No live feed")
+- [ ] Education next: KS2 per-school results, HESA student numbers, Scotland/Wales/NI school lists

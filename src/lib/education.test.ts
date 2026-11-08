@@ -54,7 +54,7 @@ describe("Ofsted outcomes", () => {
 describe("EES filter picking", () => {
   const meta = { filters: [{ id: "f", label: "Absence type", options: [{ id: "a", label: "Persistent absence" }, { id: "t", label: "Total pupils" }] }, { id: "g", label: "School type", options: [{ id: "x", label: "Special" }, { id: "y", label: "Total" }] }], indicators: [], locations: [], timePeriods: [] } as EesMeta;
   it("uses overrides and otherwise the Total option", () => expect(pickFilterOptions(meta, { "Absence type": "Persistent absence" })).toEqual(["a", "y"]));
-  it("gives up rather than guess when no total exists", () => expect(pickFilterOptions({ ...meta, filters: [meta.filters[0]!] })).toEqual(["t"]));
+  it("falls back to a Total-labelled option", () => expect(pickFilterOptions({ ...meta, filters: [meta.filters[0]!] })).toEqual(["t"]));
 });
 
 describe("search", () => {
