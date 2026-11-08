@@ -93,6 +93,8 @@ import { Route as ApiPublicAgentsTickRouteImport } from './routes/api/public/age
 import { Route as ApiPublicEducationTickRouteImport } from './routes/api/public/education-tick'
 import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/outreach-tick'
 import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
+import { Route as EducationSchoolsIndexRouteImport } from './routes/education.schools.index'
+import { Route as EducationSchoolsUrnRouteImport } from './routes/education.schools.$urn'
 import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
 import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
 import { Route as ApiPublicOgKeyRouteImport } from './routes/api/public/og.$key'
@@ -523,6 +525,16 @@ const ApiPublicReportsTickRoute = ApiPublicReportsTickRouteImport.update({
   path: '/public/reports-tick',
   getParentRoute: () => ApiRoute,
 } as any)
+const EducationSchoolsIndexRoute = EducationSchoolsIndexRouteImport.update({
+  id: '/education/schools/',
+  path: '/education/schools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EducationSchoolsUrnRoute = EducationSchoolsUrnRouteImport.update({
+  id: '/education/schools/$urn',
+  path: '/education/schools/$urn',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SSlugBroadcastRoute = SSlugBroadcastRouteImport.update({
   id: '/s/$slug_/broadcast',
   path: '/s/$slug/broadcast',
@@ -652,8 +664,10 @@ export interface FileRoutesByFullPath {
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/education/schools/': typeof EducationSchoolsIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -744,8 +758,10 @@ export interface FileRoutesByTo {
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/education/schools': typeof EducationSchoolsIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -839,8 +855,10 @@ export interface FileRoutesById {
   '/api/public/education-tick': typeof ApiPublicEducationTickRoute
   '/api/public/outreach-tick': typeof ApiPublicOutreachTickRoute
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
+  '/education/schools/$urn': typeof EducationSchoolsUrnRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/education/schools/': typeof EducationSchoolsIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
@@ -935,8 +953,10 @@ export interface FileRouteTypes {
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
     | '/api/public/reports-tick'
+    | '/education/schools/$urn'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
+    | '/education/schools/'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -1027,8 +1047,10 @@ export interface FileRouteTypes {
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
     | '/api/public/reports-tick'
+    | '/education/schools/$urn'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
+    | '/education/schools'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -1121,8 +1143,10 @@ export interface FileRouteTypes {
     | '/api/public/education-tick'
     | '/api/public/outreach-tick'
     | '/api/public/reports-tick'
+    | '/education/schools/$urn'
     | '/s/$slug_/broadcast'
     | '/spending/type/$category'
+    | '/education/schools/'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
@@ -1200,8 +1224,10 @@ export interface RootRouteChildren {
   EducationIndexRoute: typeof EducationIndexRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
+  EducationSchoolsUrnRoute: typeof EducationSchoolsUrnRoute
   SSlugBroadcastRoute: typeof SSlugBroadcastRoute
   SpendingTypeCategoryRoute: typeof SpendingTypeCategoryRoute
+  EducationSchoolsIndexRoute: typeof EducationSchoolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1794,6 +1820,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicReportsTickRouteImport
       parentRoute: typeof ApiRoute
     }
+    '/education/schools/': {
+      id: '/education/schools/'
+      path: '/education/schools'
+      fullPath: '/education/schools/'
+      preLoaderRoute: typeof EducationSchoolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/education/schools/$urn': {
+      id: '/education/schools/$urn'
+      path: '/education/schools/$urn'
+      fullPath: '/education/schools/$urn'
+      preLoaderRoute: typeof EducationSchoolsUrnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/s/$slug_/broadcast': {
       id: '/s/$slug_/broadcast'
       path: '/s/$slug/broadcast'
@@ -2011,8 +2051,10 @@ const rootRouteChildren: RootRouteChildren = {
   EducationIndexRoute: EducationIndexRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
+  EducationSchoolsUrnRoute: EducationSchoolsUrnRoute,
   SSlugBroadcastRoute: SSlugBroadcastRoute,
   SpendingTypeCategoryRoute: SpendingTypeCategoryRoute,
+  EducationSchoolsIndexRoute: EducationSchoolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
