@@ -13,7 +13,7 @@ import { CATEGORIES } from "@/lib/uk-stats";
 import { fmtWorld, rankIndicator, WORLD_INDICATORS, WORLD_SOURCE, type WorldPayload } from "@/lib/world";
 import { windowStart, type ReportEdition, type ReportKind } from "@/lib/reports";
 
-export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array }
+export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array }
 export interface ReportInput {
   edition: ReportEdition;
   kind: ReportKind;
@@ -371,12 +371,17 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     p.drawLine({ start: { x: M, y: y + 3 }, end: { x: W - M, y: y + 3 }, thickness: 0.3, color: LINE });
   }
 
-  function drawCover() {
+  async function drawCover() {
     const SOFT = rgb(0.7, 0.78, 0.9), FAINT = rgb(0.85, 0.89, 0.95);
     const c = cover;
     c.drawRectangle({ x: 0, y: 0, width: W, height: H, color: NAVY });
     // Background depth: faint globe rings and grid, top right.
-    for (let i = 1; i <= 7; i++) c.drawCircle({ x: W - 60, y: H - 250, size: i * 48, borderColor: NAVY2, borderWidth: 0.8 });
+    const art = input.edition === "uk" ? input.fonts.ukMap : input.fonts.globe;
+    if (art) {
+      const img = await doc.embedPng(art);
+      const bh = input.edition === "uk" ? 250 : 230, bw = (img.width / img.height) * bh;
+      c.drawImage(img, { x: W - M - bw + (input.edition === "uk" ? 10 : 0), y: H - 300, width: bw, height: bh, opacity: 0.85 });
+    }
     c.drawRectangle({ x: 0, y: H - 8, width: W, height: 8, color: RED });
     c.drawRectangle({ x: 0, y: H - 11, width: W, height: 3, color: WHITE });
     // Masthead
@@ -393,9 +398,9 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     // Title
     c.drawRectangle({ x: M, y: H - 140, width: width(F.mb, "OFFICIAL FIGURES ONLY", 8.5) + 16, height: 18, color: YELLOW });
     text(c, "OFFICIAL FIGURES ONLY", M + 8, H - 134, F.mb, 8.5, NAVY);
-    text(c, `${editionName.toUpperCase()} ${kindName.toUpperCase()}`, M, H - 196, F.k, 52, WHITE);
-    text(c, "REPORT", M, H - 246, F.k, 52, BLUE);
-    text(c, dateLong, M, H - 276, F.b, 16, WHITE);
+    text(c, `${editionName} ${kindName}`, M, H - 186, F.b, 34, WHITE);
+    text(c, "Report", M, H - 222, F.r, 34, FAINT);
+    text(c, dateLong, M, H - 260, F.m, 12, SOFT);
     c.drawRectangle({ x: M, y: H - 290, width: 60, height: 3, color: RED });
     // Headline figure panel
     const byId2 = new Map(input.metrics.map((m) => [m.id, m]));
@@ -406,8 +411,8 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     text(c, "HEADLINE FIGURE", M + 20, pt - 20, F.mb, 7.5, YELLOW);
     text(c, fit(F.b, hm?.title ?? "UK public sector net debt", 12, pw - 40), M + 20, pt - 36, F.b, 12, WHITE);
     const hv = hm?.value ?? "Not published";
-    let hs = hm?.value ? 38 : 22; while (hs > 18 && width(F.k, hv, hs) > pw - 40) hs -= 2;
-    text(c, fit(F.k, hv, hs, pw - 40), M + 20, pt - 76, F.k, hs, hm?.value ? WHITE : SOFT);
+    let hs = hm?.value ? 28 : 18; while (hs > 18 && width(F.b, hv, hs) > pw - 40) hs -= 2;
+    text(c, fit(F.b, hv, hs, pw - 40), M + 20, pt - 72, F.b, hs, hm?.value ? WHITE : SOFT);
     text(c, fit(F.m, `${hm?.source ?? "Source not available"}  |  ${hm?.period ?? "period not stated"}  |  published ${shortDate(hm?.asOf)}`, 7, pw - 40), M + 20, pt - 96, F.m, 7, SOFT);
     // Key-figure tiles
     const travel = input.edition === "global" && input.travel ? travelRows(input.travel.warnings, input.travel.fcdoAlerts, new Date(`${input.date}T12:00:00Z`)) : [];
@@ -428,8 +433,8 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
       c.drawRectangle({ x, y: tt - 3, width: tw, height: 3, color: BLUE });
       text(c, fit(F.mb, t.label.toUpperCase(), 6.5, tw - 16), x + 8, tt - 18, F.mb, 6.5, SOFT);
       const v = t.value ?? "Not published";
-      let vs = t.value ? 18 : 11; while (vs > 9 && width(F.k, v, vs) > tw - 16) vs -= 1;
-      text(c, fit(F.k, v, vs, tw - 16), x + 8, tt - 44, F.k, vs, t.value ? WHITE : SOFT);
+      let vs = t.value ? 14 : 10; while (vs > 8 && width(F.b, v, vs) > tw - 16) vs -= 1;
+      text(c, fit(F.b, v, vs, tw - 16), x + 8, tt - 42, F.b, vs, t.value ? WHITE : SOFT);
       wrap(F.m, t.sub, 5.8, tw - 16).slice(0, 3).forEach((l, j) => text(c, l, x + 8, tt - 60 - j * 7.5, F.m, 5.8, SOFT));
     });
     // Contents + warnings
@@ -493,7 +498,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     const pn = `Page ${i + 2} of ${total}`;
     text(pg, pn, W - M - width(F.mb, pn, 7), 26, F.mb, 7, NAVY);
   });
-  drawCover();
+  await drawCover();
 
   doc.setTitle(`UKStats ${title} — ${dateLong}`);
   doc.setAuthor("UKStats");
