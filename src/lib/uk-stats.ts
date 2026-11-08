@@ -54,6 +54,21 @@ export interface HistoryPayload {
   nextDue: string | null;
   points: HistoryPoint[];
   fetchedAt: string;
+  /** Other published series in the same category (links only, no figures). */
+  related?: { id: string; title: string }[];
+}
+
+/** Up to `max` other series sharing the category; same-subcategory first. Never includes `id` itself. */
+export function relatedSeries<T extends { id: string; title: string; category: string; subcategory?: string | null }>(
+  defs: readonly T[],
+  id: string,
+  max = 4,
+): { id: string; title: string }[] {
+  const self = defs.find((d) => d.id === id);
+  if (!self) return [];
+  const same = defs.filter((d) => d.id !== id && d.category === self.category);
+  const score = (d: T) => (self.subcategory && d.subcategory === self.subcategory ? 0 : 1);
+  return [...same].sort((a, b) => score(a) - score(b)).slice(0, max).map((d) => ({ id: d.id, title: d.title }));
 }
 
 /** Cost of living groupings, in the order they are shown. */
