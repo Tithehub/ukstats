@@ -1,0 +1,1 @@
+- Share cards (/api/public/og/$key) render in pure JS via og-render.server.ts from published snapshots — no native image libs on the edge.
