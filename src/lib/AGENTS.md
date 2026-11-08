@@ -1,3 +1,4 @@
 - Share cards (/api/public/og/$key) render in pure JS via og-render.server.ts from published snapshots — no native image libs on the edge.
 - Globe quakes/satellites: earth-watch.functions.ts + pure quakes.ts/satellites.ts; natural-event and orbit layers only, never figures.
 - Scandals: scandals.data.ts snapshot; official records separate from labelled news/YouTube; summaries state what an official body found.
+- Globe public cameras: public-cams.ts parsers (TfL JamCams, Caltrans) + public-cams.functions.ts; public-authority open data only, labelled scene only, never figures.

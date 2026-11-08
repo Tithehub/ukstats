@@ -33,6 +33,8 @@ import { buildRunningOrder, nextInOrder, UK_KEY } from "@/lib/globe-broadcast";
 import { GlobeKey } from "@/components/globe/GlobeKey";
 import { quakesQuery, tlesQuery } from "@/lib/earth-watch.functions";
 import { QUAKE_SOURCE } from "@/lib/quakes";
+import { publicCamsQuery } from "@/lib/public-cams.functions";
+import { CamViewer } from "./CamViewer";
 import { SAT_SOURCE } from "@/lib/satellites";
 import { useSatPositions } from "@/components/globe/useSatPositions";
 import { GlobeHud } from "@/components/globe/GlobeHud";
@@ -57,11 +59,11 @@ export type GlobeState = {
   /** News & police reports layer: protests, riots and plane incidents (headlines verbatim, labelled as media). */
   nw?: boolean | undefined;
   /** Earthquakes (USGS) and satellites (CelesTrak) layers. */
-  eq?: boolean | undefined; st?: boolean | undefined;
+  eq?: boolean | undefined; st?: boolean | undefined; cam?: boolean | undefined;
 };
 
 /** Shared search-param parsing for every page that hosts the globe. */
-export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg" | "nw" | "eq" | "st"> {
+export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "layer" | "gov" | "age" | "cmp" | "feed" | "fk" | "fa" | "fl" | "fp" | "mg" | "nw" | "eq" | "st" | "cam"> {
   const age = Number(s["age"]), fa = Number(s["fa"]);
   return {
     layer: s["layer"] === "us" || s["layer"] === "uk" ? s["layer"] : undefined,
@@ -74,6 +76,7 @@ export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "
     mg: s["mg"] === true || s["mg"] === "1" || s["mg"] === "true" ? true : undefined,
     eq: s["eq"] === true || s["eq"] === "1" || s["eq"] === "true" ? true : undefined,
     st: s["st"] === true || s["st"] === "1" || s["st"] === "true" ? true : undefined,
+    cam: s["cam"] === true || s["cam"] === "1" || s["cam"] === "true" ? true : undefined,
     nw: s["nw"] === true || s["nw"] === "1" || s["nw"] === "true" ? true : undefined,
     fp: typeof s["fp"] === "string" && /^[0-9a-z~]{4,8}$/i.test(s["fp"]) ? s["fp"] : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
@@ -177,6 +180,10 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const { data: quakeData } = useQuery(quakesQuery(!!s.eq));
   const { data: tleData } = useQuery(tlesQuery(!!s.st));
   const globeQuakes = useMemo(() => (s.eq && quakeData ? quakeData.items.map((q) => ({ id: q.id, lat: q.lat, lng: q.lng, mag: q.mag, label: `Magnitude ${q.mag.toFixed(1)} — ${q.place}, ${fmtStamp(q.time)}, depth ${Math.round(q.depthKm)} km${q.tsunami ? " · tsunami flag" : ""} (USGS)` })) : []), [s.eq, quakeData]);
+  const { data: camData } = useQuery(publicCamsQuery(!!s.cam));
+  const [camId, setCamId] = useState<string | null>(null);
+  const globeCams = useMemo(() => (s.cam && camData ? camData.items : []), [s.cam, camData]);
+  const cam = camId ? globeCams.find((c) => c.id === camId) ?? null : null;
   const globeSats = useSatPositions(s.st ? tleData?.items ?? null : null);
   const [preset, setPreset] = useState<{ n: number; kind: "world" | "tilt" | "focus" } | null>(null);
   const [tele, setTele] = useState<{ lat: number | null; lng: number | null; altKm: number }>({ lat: null, lng: null, altKm: 12000 });
@@ -320,8 +327,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} sats={globeSats} preset={preset} dayNight={!compact} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
+        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={!compact} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
       </Suspense></ClientOnly>}
+      {cam && <CamViewer cam={cam} onClose={() => setCamId(null)} />}
       <div className={`absolute inset-x-3 top-3 z-10 flex items-start gap-2 text-xs sm:right-auto sm:w-80 ${broadcast ? "hidden" : ""}`}>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-md border border-night-line bg-night-panel/90 p-1.5 backdrop-blur sm:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
@@ -365,6 +373,8 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           {s.nw && <span className="mt-1 block text-night-muted">Headlines from BBC, Guardian, Sky News and other publishers found through Google News, plus Police Scotland notices, shown word for word. News reports are not official warnings.</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.eq} onChange={(e) => onChange({ eq: e.target.checked || undefined })} /> <span><b>Earthquakes</b>: magnitude 2.5+, past 24 hours{s.eq && quakeData ? ` — ${quakeData.items.length}` : ""}
           {s.eq && <span className="mt-1 block text-night-muted"><Swatch c="#c86bff" />Taller and wider = stronger. Source: <a className="underline" href={QUAKE_SOURCE.url} target="_blank" rel="noreferrer noopener">{QUAKE_SOURCE.name}</a>{quakeData ? `, checked ${fmtStamp(new Date(quakeData.at).toISOString())}` : ""}.</span>}</span></label>
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.cam} onChange={(e) => { onChange({ cam: e.target.checked || undefined }); if (!e.target.checked) setCamId(null); }} /> <span><b>Public cameras</b>: road cameras run by public transport authorities{s.cam && camData ? ` — ${camData.items.length.toLocaleString("en-GB")}` : ""}
+          {s.cam && <span className="mt-1 block text-night-muted"><Swatch c="#4fd1ff" />Click a dot to view. Transport for London and Caltrans open data; most are still pictures updated every few minutes. Scene only — not a source of figures.</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.st} onChange={(e) => onChange({ st: e.target.checked || undefined })} /> <span><b>Satellites</b>: space stations and Earth-watching satellites{s.st ? ` — ${globeSats.length}` : ""}
           {s.st && <span className="mt-1 block text-night-muted"><Swatch c="#8cf0ff" />Positions worked out from <a className="underline" href={SAT_SOURCE.url} target="_blank" rel="noreferrer noopener">{SAT_SOURCE.name}</a> (refreshed twice a day); line shows the next 90 minutes.</span>}</span></label>
         <div className="mt-2 flex gap-3">
