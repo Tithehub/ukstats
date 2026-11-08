@@ -23,7 +23,6 @@ import {
   Table2,
   Vote,
   X,
-  Search,
   Globe2,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";

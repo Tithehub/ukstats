@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Globe2, Home, Radio, Table2, Search } from "lucide-react";
+import { Globe2, Home, Radio, Table2, BarChart3 as Search } from "lucide-react";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/register", label: "UK", icon: Table2 },
-  { to: "/world", label: "World", icon: Globe2 },
-  { to: "/globe", label: "Globe", icon: Search },
+  { to: "/world", label: "World", icon: Search },
+  { to: "/globe", label: "Globe", icon: Globe2 },
   { to: "/live", label: "Live", icon: Radio },
 ] as const;
 
@@ -26,7 +26,7 @@ export function MobileTabBar() {
             inactiveProps={{ className: "text-night-muted" }}
             className="flex min-h-14 flex-col items-center justify-center gap-0.5 font-mono text-[10px] uppercase tracking-wider"
           >
-            {t.to === "/globe" ? <Globe2 className="size-5" aria-hidden="true" /> : <t.icon className="size-5" aria-hidden="true" />}
+            <t.icon className="size-5" aria-hidden="true" />
             {t.label}
           </Link>
         ))}
