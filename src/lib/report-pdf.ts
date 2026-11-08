@@ -13,7 +13,7 @@ import { CATEGORIES } from "@/lib/uk-stats";
 import { fmtWorld, rankIndicator, WORLD_INDICATORS, WORLD_SOURCE, type WorldPayload } from "@/lib/world";
 import { windowStart, type ReportEdition, type ReportKind } from "@/lib/reports";
 
-export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array }
+export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array; kitImages?: Record<string, Uint8Array> }
 export interface ReportInput {
   edition: ReportEdition;
   kind: ReportKind;
@@ -24,7 +24,7 @@ export interface ReportInput {
   travel?: Pick<UnrestPayload, "warnings" | "fcdoAlerts"> | null;
   headlines?: Pick<ReportsPayload, "items"> | null;
   /** Already filtered to approved, active, paid, in-date sponsors (see directoryEntries). */
-  sponsors?: { name: string; url: string; domain: string; tagline: string | null; regionLabels: string[] }[];
+  sponsors?: { name: string; url: string; domain: string; tagline: string | null; regionLabels: string[]; banner?: Uint8Array | null }[];
   fonts: ReportFonts;
 }
 
@@ -241,11 +241,24 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   para(`Supplier pages checked ${shortDate(SUPPLIER_LINKS_CHECKED)}.`, F.m, 7, MUTED);
   y -= 4;
   for (const s of PREPAREDNESS_SUPPLIERS) {
-    need(40);
-    para(`${s.supplier}: ${s.name} (${s.category})`, F.b, 8.5);
-    urlLine(s.url, 8);
-    para(s.limitations, F.r, 7.5, MUTED, 8);
-    y -= 4;
+    const bytes = input.fonts.kitImages?.[s.id];
+    let img: Awaited<ReturnType<typeof doc.embedJpg>> | null = null;
+    if (bytes) { try { img = await doc.embedJpg(bytes); } catch { img = null; } }
+    const ind = img ? 92 : 8;
+    need(img ? 96 : 40);
+    const top = y + 9;
+    if (img) {
+      const box = 80, sc = Math.min(box / img.width, box / img.height);
+      p.drawRectangle({ x: M, y: top - box - 4, width: box + 4, height: box + 4, color: WHITE, borderColor: LINE, borderWidth: 0.6 });
+      p.drawImage(img, { x: M + 2 + (box - img.width * sc) / 2, y: top - box - 2 + (box - img.height * sc) / 2, width: img.width * sc, height: img.height * sc });
+      link(p, M, top - box - 4, box + 4, box + 4, s.url);
+    }
+    para(`${s.supplier}: ${s.name} (${s.category})`, F.b, 8.5, INK, ind);
+    para(s.contents.join("  |  "), F.r, 7.5, INK, ind);
+    urlLine(s.url, ind);
+    para(s.limitations, F.r, 7.5, MUTED, ind);
+    if (img) { text(p, "Photo: supplier's website", M + ind, y, F.m, 6, MUTED); y -= 9; y = Math.min(y, top - 92); }
+    y -= 6;
   }
   void SUPPLIER_LINK_POLICY;
   const news = input.headlines?.items ?? [];
@@ -385,6 +398,24 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     wrap(F.r, "Sponsors keep UKStats free. They never see or influence any figure. Find them all at ukstats.co.uk/business-directory.", 9.5, W - 2 * M).forEach((l) => { text(p, l, M, y, F.r, 9.5, MUTED); y -= 13; });
     y -= 12;
     for (const s of input.sponsors) {
+      let img: Awaited<ReturnType<typeof doc.embedJpg>> | null = null;
+      if (s.banner) {
+        const b = s.banner;
+        try { img = b[0] === 0x89 ? await doc.embedPng(b) : b[0] === 0xff ? await doc.embedJpg(b) : null; } catch { img = null; }
+      }
+      if (img) {
+        const bw = W - 2 * M, bh = bw / 3, rh = bh + 30;
+        if (y - rh < 60) { p = newPage("Our sponsors"); y = H - 92; }
+        p.drawImage(img, { x: M, y: y - bh + 10, width: bw, height: bh });
+        p.drawRectangle({ x: M, y: y - bh + 10, width: bw, height: bh, borderColor: LINE, borderWidth: 0.6 });
+        link(p, M, y - bh + 10, bw, bh, s.url);
+        const ny = y - bh - 4;
+        text(p, s.name, M, ny, F.k, 11, NAVY);
+        const dw = width(F.mb, s.domain, 8);
+        text(p, s.domain, W - M - dw, ny + 1, F.mb, 8, BLUE); link(p, W - M - dw, ny - 2, dw, 11, s.url);
+        y -= rh + 6;
+        continue;
+      }
       const tl = s.tagline ? wrap(F.r, s.tagline, 9, W - 2 * M - 16) : [];
       const rl = wrap(F.m, s.regionLabels.join("  |  "), 7, W - 2 * M - 16);
       const rh = 34 + tl.length * 12 + rl.length * 9;
