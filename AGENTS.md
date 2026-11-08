@@ -58,3 +58,4 @@
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
+- Globe earthquakes (USGS 2.5+ day feed) and satellites (CelesTrak TLEs, positions computed in-browser with satellite.js) live in src/lib/earth-watch.functions.ts with pure parsers quakes.ts/satellites.ts; natural-event and orbit layers only, never figures or warnings.

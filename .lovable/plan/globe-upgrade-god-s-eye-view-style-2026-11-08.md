@@ -32,7 +32,7 @@ Goal: make /globe (and the globe on the home page) feel like a live intelligence
 - **Military strikes:** no official live feed exists; stays out.
 - **Switching to Cesium/Mapbox with 3D terrain:** heavy to load on phones and Mapbox costs money at volume. I'll upgrade the current globe engine instead, which keeps loading fast.
 
-## Build order
+## Build order (1–3 done: day/night, HUD, presets, earthquakes, satellites; fires and GDELT not started)
 1. Look and camera (day/night, atmosphere, presets, control-room panels, clocks, pointer readout).
 2. Layer panel with counts + earthquakes + satellites.
 3. Country drawer + search.

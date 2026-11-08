@@ -9,7 +9,7 @@ export function GlobeHud({ tele, onPreset, canFocus }: { tele: { lat: number | n
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => { setNow(new Date()); const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
   const btn = "inline-flex min-h-8 items-center gap-1 rounded border border-night-line bg-night-panel/70 px-2 backdrop-blur hover:bg-night disabled:opacity-40";
-  return <div className="pointer-events-none absolute right-3 top-3 z-10 hidden flex-col items-end gap-2 font-mono text-[11px] text-night-fg sm:flex">
+  return <div className="pointer-events-none absolute bottom-3 right-3 z-10 hidden flex-col-reverse items-end gap-2 font-mono text-[11px] text-night-fg sm:flex">
     <div className="rounded-md border border-night-line bg-night-panel/60 px-3 py-2 text-right backdrop-blur" aria-label="Clocks and position">
       <p><span className="text-night-muted">UTC</span> {now ? fmt(now, "UTC") : "--:--:--"} · <span className="text-night-muted">LDN</span> {now ? fmt(now, "Europe/London") : "--:--:--"}</p>
       <p className="mt-0.5"><span className="text-night-muted">POS</span> {deg(tele.lat, "N", "S")} {deg(tele.lng, "E", "W")}</p>
