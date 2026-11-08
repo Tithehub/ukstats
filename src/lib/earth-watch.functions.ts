@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
 import { parseQuakes, type Quake } from "./quakes";
+import { parseWx, WX_CITIES, type WxReading } from "./weather-globe";
 import { parseTle, SATELLITES, type Tle } from "./satellites";
 
 let quakeCache: { at: number; items: Quake[] } | null = null;
@@ -28,6 +29,20 @@ export const getTles = createServerFn({ method: "POST" }).handler(async () => {
   if (items.length) tleCache = { at: Date.now(), items };
   return tleCache;
 });
+
+let wxCache: { at: number; items: WxReading[] } | null = null;
+export const getWeather = createServerFn({ method: "POST" }).handler(async () => {
+  if (wxCache && Date.now() - wxCache.at < 30 * 60_000) return wxCache;
+  try {
+    const lat = WX_CITIES.map((c) => c[1]).join(","), lng = WX_CITIES.map((c) => c[2]).join(",");
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code,wind_speed_10m&timezone=GMT`);
+    if (!r.ok) throw new Error(String(r.status));
+    const items = parseWx(await r.json());
+    if (items.length) wxCache = { at: Date.now(), items };
+  } catch (e) { console.error("Open-Meteo failed", e); }
+  return wxCache;
+});
+export const weatherQuery = (on: boolean) => queryOptions({ queryKey: ["globe-weather"], queryFn: () => getWeather(), enabled: on, staleTime: 25 * 60_000, refetchInterval: on ? 30 * 60_000 : false });
 
 export const quakesQuery = (on: boolean) => queryOptions({ queryKey: ["quakes"], queryFn: () => getQuakes(), enabled: on, staleTime: 4 * 60_000, refetchInterval: on ? 5 * 60_000 : false });
 export const tlesQuery = (on: boolean) => queryOptions({ queryKey: ["tles"], queryFn: () => getTles(), enabled: on, staleTime: 6 * 3600_000 });

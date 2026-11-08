@@ -41,6 +41,8 @@ export interface GlobeProps {
   flows?: GlobeFlow[];
   /** USGS earthquakes (past day). */
   quakes?: { id: string; lat: number; lng: number; mag: number; label: string }[];
+  /** City weather readings. */
+  wx?: { id: string; lat: number; lng: number; color: string; label: string }[];
   /** Satellites: current position (altitude in globe radii) and ground path. */
   cams?: { id: string; lat: number; lng: number; place: string; operator: string; image?: string; everyMin?: number; live?: string | undefined }[];
   onCam?: (id: string) => void;
@@ -172,7 +174,7 @@ function thinCams<T extends { live?: string | undefined }>(cams: T[], alt: numbe
   return step === 1 ? cams : cams.filter((c, i) => c.live || i % step === 0);
 }
 
-export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [], quakes = [], cams = [], onCam, sats = [], preset = null, dayNight = false, onTelemetry }: GlobeProps) {
+export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [], quakes = [], wx = [], cams = [], onCam, sats = [], preset = null, dayNight = false, onTelemetry }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
   useEffect(() => { setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
@@ -326,7 +328,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const satObjs = useMemo(() => sats.map((x) => ({ ...x })), [sats]);
   const satPaths = useMemo(() => sats.map((x) => ({ pts: x.path, ahead: false, color: "rgba(140,240,255,0.55)", sat: true })), [sats]);
   const allPaths = useMemo(() => [...planePaths, ...satPaths], [planePaths, satPaths]);
-  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...thinCams(cams, alt).map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams, alt > 1.5 ? 3 : alt > 0.8 ? 2 : 1]);
+  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...wx.map((w) => ({ ...w, _k: "wx" as const })), ...thinCams(cams, alt).map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, wx, cams, alt > 1.5 ? 3 : alt > 0.8 ? 2 : 1]);
 
   return (
     <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
@@ -350,11 +352,11 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}
         pointLng={(e) => (e as { lng: number }).lng}
-        pointColor={(e) => { const k = (e as { _k: string })._k; return k === "quake" ? "#c86bff" : k === "cam" ? ((e as { live?: string }).live ? "#ff3b3b" : "#4fd1ff") : "#ffb020"; }}
+        pointColor={(e) => { const k = (e as { _k: string })._k; return k === "wx" ? (e as { color: string }).color : k === "quake" ? "#c86bff" : k === "cam" ? ((e as { live?: string }).live ? "#ff3b3b" : "#4fd1ff") : "#ffb020"; }}
         onPointClick={(e) => { if (moved.current) return; const x = e as { _k: string; id: string }; if (x._k === "cam") onCam?.(x.id); }}
-        pointAltitude={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.01 + Math.max(0, (x.mag ?? 0) - 2.5) * 0.025 : x._k === "cam" ? 0.004 : 0.02; }}
+        pointAltitude={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.01 + Math.max(0, (x.mag ?? 0) - 2.5) * 0.025 : x._k === "cam" ? 0.004 : x._k === "wx" ? 0.006 : 0.02; }}
         pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? Math.max(coarse ? 0.09 : 0.04, Math.min(coarse ? 0.4 : 0.25, alt * (coarse ? 0.2 : 0.12))) : 0.25; }}
-        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string; image?: string; everyMin?: number }; const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!); const src = c.image ? `${c.image}${c.image.includes("?") ? "&" : "?"}t=${Math.floor(Date.now() / ((c.everyMin ?? 5) * 60_000))}` : ""; return `<div style="width:220px;background:#051D3F;color:#fff;padding:6px;border-radius:6px;font:12px sans-serif">${src ? `<img src="${esc(src)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#000"/>` : ""}<div style="margin-top:4px;font-weight:600">${esc(c.place)}</div><div style="opacity:.75">${(c as { live?: string }).live ? "<b style=\"color:#ff6b6b\">● LIVE video</b> · " : ""}${esc(c.operator)} · scene only · click to open</div></div>`; } return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string; image?: string; everyMin?: number }; const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!); const src = c.image ? `${c.image}${c.image.includes("?") ? "&" : "?"}t=${Math.floor(Date.now() / ((c.everyMin ?? 5) * 60_000))}` : ""; return `<div style="width:220px;background:#051D3F;color:#fff;padding:6px;border-radius:6px;font:12px sans-serif">${src ? `<img src="${esc(src)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#000"/>` : ""}<div style="margin-top:4px;font-weight:600">${esc(c.place)}</div><div style="opacity:.75">${(c as { live?: string }).live ? "<b style=\"color:#ff6b6b\">● LIVE video</b> · " : ""}${esc(c.operator)} · scene only · click to open</div></div>`; } return x._k === "quake" || x._k === "wx" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
         customLayerData={satObjs}
         customThreeObject={() => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(1.1), new THREE.MeshBasicMaterial({ color: "#8cf0ff" })); return m; }}
         customThreeObjectUpdate={(o, d) => { const x = d as { lat: number; lng: number; alt: number }; Object.assign((o as THREE.Object3D).position, ref.current?.getCoords(x.lat, x.lng, x.alt) ?? {}); }}
