@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { camImageSrc, camsForCountry, stepCam, parseCaltransCams, parseTflCams } from "./public-cams";
+import { camKind, camKindLabel, camImageSrc, camsForCountry, stepCam, parseCaltransCams, parseTflCams } from "./public-cams";
 
 describe("public cameras", () => {
   it("keeps available TfL cameras with https pictures and coordinates", () => {
@@ -30,5 +30,19 @@ describe("public cameras", () => {
     expect(stepCam(cams[1]!, cams, 1)?.id).toBe("b");
     expect(stepCam(cams[0]!, cams, 1)?.id).toBe("a");
     expect(stepCam(cams[2]!, cams, 1)).toBeNull();
+  });
+  it("marks Caltrans cameras with an https HLS stream as live, and TfL loops never as live", () => {
+    const row = (u?: string) => ({ cctv: { index: "1", inService: "true", location: { latitude: "34", longitude: "-118" }, imageData: { streamingVideoURL: u, static: { currentImageURL: "https://c/i.jpg", currentImageUpdateFrequency: "2" } } } });
+    expect(camKind(parseCaltransCams({ data: [row("https://w/CCTV-1.stream/playlist.m3u8")] }, 7)[0]!)).toBe("live");
+    expect(camKind(parseCaltransCams({ data: [row("http://w/x.m3u8")] }, 7)[0]!)).toBe("still");
+    expect(camKind(parseCaltransCams({ data: [row("")] }, 7)[0]!)).toBe("still");
+    const tfl = parseTflCams([{ id: "J", lat: 51.5, lon: 0.1, additionalProperties: [{ key: "imageUrl", value: "https://x/1.jpg" }, { key: "videoUrl", value: "https://x/1.mp4" }] }])[0]!;
+    expect(camKind(tfl)).toBe("loop");
+    expect(camKindLabel(tfl)).toContain("not live");
+  });
+  it("lists live cameras first", () => {
+    const a = { id: "a", lat: 1, lng: 1, place: "A", operator: "Caltrans" as const, image: "https://i", everyMin: 2 };
+    const b = { ...a, id: "b", place: "Z", live: "https://l.m3u8" };
+    expect(camsForCountry([a, b], "united states").map((c) => c.id)).toEqual(["b", "a"]);
   });
 });

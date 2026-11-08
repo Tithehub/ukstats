@@ -7,6 +7,8 @@ export interface PublicCam {
   image: string;
   /** Short MP4 loop (TfL) — not continuous live video. */
   loop?: string | undefined;
+  /** Continuous live HLS video stream published by the operator (Caltrans). */
+  live?: string | undefined;
   /** Minutes between picture updates, as stated by the operator. */
   everyMin: number;
 }
@@ -38,14 +40,14 @@ export function parseCaltransCams(json: unknown, district: number): PublicCam[] 
   if (!Array.isArray(data)) return [];
   const out: PublicCam[] = [];
   for (const row of data) {
-    const c = row.cctv as { index?: string; inService?: string; location?: { locationName?: string; nearbyPlace?: string; latitude?: string; longitude?: string }; imageData?: { static?: { currentImageURL?: string; currentImageUpdateFrequency?: string } } } | undefined;
+    const c = row.cctv as { index?: string; inService?: string; location?: { locationName?: string; nearbyPlace?: string; latitude?: string; longitude?: string }; imageData?: { streamingVideoURL?: string; static?: { currentImageURL?: string; currentImageUpdateFrequency?: string } } } | undefined;
     if (!c || c.inService !== "true") continue;
     if (!c.location?.latitude || !c.location?.longitude) continue;
     const lat = Number(c.location.latitude), lng = Number(c.location.longitude);
     const image = httpsOnly(c.imageData?.static?.currentImageURL);
     if (!image || !okCoord(lat, lng)) continue;
     const every = Number(c.imageData?.static?.currentImageUpdateFrequency);
-    out.push({ id: `ct${district}-${c.index}`, lat, lng, place: `${c.location?.locationName ?? "Highway camera"}${c.location?.nearbyPlace ? `, ${c.location.nearbyPlace}` : ""}, California`, operator: "Caltrans", image, everyMin: Number.isFinite(every) && every > 0 ? every : 5 });
+    out.push({ id: `ct${district}-${c.index}`, lat, lng, place: `${c.location?.locationName ?? "Highway camera"}${c.location?.nearbyPlace ? `, ${c.location.nearbyPlace}` : ""}, California`, operator: "Caltrans", image, live: httpsOnly(c.imageData?.streamingVideoURL)?.endsWith(".m3u8") ? c.imageData!.streamingVideoURL : undefined, everyMin: Number.isFinite(every) && every > 0 ? every : 5 });
   }
   return out;
 }
@@ -55,9 +57,20 @@ export const camImageSrc = (c: PublicCam, now: number) => `${c.image}?t=${Math.f
 
 const OPERATOR_COUNTRY: Record<PublicCam["operator"], string> = { "Transport for London": "united kingdom", Caltrans: "united states" };
 
-/** Cameras in a country (by operator), sorted by place name. */
+export type CamKind = "live" | "loop" | "still";
+export const camKind = (c: PublicCam): CamKind => (c.live ? "live" : c.loop ? "loop" : "still");
+/** Plain label for what the viewer is actually showing — a loop is never called live. */
+export const camKindLabel = (c: PublicCam): string => {
+  const k = camKind(c);
+  if (k === "live") return "Live video";
+  if (k === "loop") return `Short loop, updated every ${c.everyMin} min — not live`;
+  return `Still picture, updated every ${c.everyMin} min`;
+};
+const byLiveThenPlace = (a: PublicCam, b: PublicCam) => Number(!!b.live) - Number(!!a.live) || a.place.localeCompare(b.place);
+
+/** Cameras in a country (by operator): live video first, then by place name. */
 export function camsForCountry(cams: PublicCam[], country: string): PublicCam[] {
-  return cams.filter((c) => OPERATOR_COUNTRY[c.operator] === country).sort((a, b) => a.place.localeCompare(b.place));
+  return cams.filter((c) => OPERATOR_COUNTRY[c.operator] === country).sort(byLiveThenPlace);
 }
 
 /** Previous/next camera from the same operator in place-name order (wraps round). */

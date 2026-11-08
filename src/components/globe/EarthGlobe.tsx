@@ -42,7 +42,7 @@ export interface GlobeProps {
   /** USGS earthquakes (past day). */
   quakes?: { id: string; lat: number; lng: number; mag: number; label: string }[];
   /** Satellites: current position (altitude in globe radii) and ground path. */
-  cams?: { id: string; lat: number; lng: number; place: string; operator: string; image?: string; everyMin?: number }[];
+  cams?: { id: string; lat: number; lng: number; place: string; operator: string; image?: string; everyMin?: number; live?: string | undefined }[];
   onCam?: (id: string) => void;
   sats?: { id: string; lat: number; lng: number; alt: number; label: string; path: [number, number, number][] }[];
   /** Camera preset request: bump n to apply. */
@@ -166,6 +166,12 @@ function centreOf(name: string) { const n = mapName(name); return n ? centre(cou
 /** Plain country names and keys, for the search box and no-3D fallback. */
 export const GLOBE_COUNTRIES = FEATURES.map((f) => ({ key: countryKey(f.properties.name), name: f.properties.name })).sort((a, b) => a.name.localeCompare(b.name));
 
+/** Zoomed out, draw every live camera but only a share of the others — full detail returns as you zoom in. */
+function thinCams<T extends { live?: string | undefined }>(cams: T[], alt: number): T[] {
+  const step = alt > 1.5 ? 6 : alt > 0.8 ? 2 : 1;
+  return step === 1 ? cams : cams.filter((c, i) => c.live || i % step === 0);
+}
+
 export default function EarthGlobe({ shade, hotspots, events, selected, onSelect, markers = [], onMarker, focus, fill, labels, rotate, resetKey = 0, feedPins = [], onFeedPin, planes = [], onPlane, planePaths = [], boats = [], flows = [], quakes = [], cams = [], onCam, sats = [], preset = null, dayNight = false, onTelemetry }: GlobeProps) {
   const icons = useRef(new Map<string, THREE.Object3D>());
   const [still, setStill] = useState(false);
@@ -186,11 +192,16 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [still]);
+  const lastFocus = useRef<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
-    if (!focus) return;
+    if (!focus) { lastFocus.current = null; return; }
     const g = ref.current; if (!g) return;
+    const l = lastFocus.current;
+    // Small drifts (a tracked plane's next position) never move the camera — only a new pick does.
+    if (l && Math.abs(l.lat - focus.lat) < 3 && Math.abs(l.lng - focus.lng) < 3) return;
+    lastFocus.current = focus;
     g.controls().autoRotate = false;
-    g.pointOfView({ ...focus, altitude: 0.9 }, 900);
+    g.pointOfView({ ...focus, altitude: Math.min(g.pointOfView().altitude, 0.9) }, 900);
   }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const [gl0, setGl0] = useState(false);
@@ -199,6 +210,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const down = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
   const [alt, setAlt] = useState(1.9);
+  // Touch screens get bigger dots so a fingertip can hit them (this module only loads in the browser).
+  const coarse = useMemo(() => typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches, []);
   useEffect(() => {
     // Window capture listeners run before the globe's own handlers, so a drag is known before any click fires.
     const dn = (e: PointerEvent) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; };
@@ -239,7 +252,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     const start = selected ? centre(selected) : null;
     g.pointOfView(start ? { ...start, altitude: 1.6 } : { lat: 50, lng: 10, altitude: 1.9 }, 0);
     const c = g.controls();
-    c.autoRotate = !start;
+    c.autoRotate = rotate === true;
     c.autoRotateSpeed = 0.75;
     wrap.current?.setAttribute("data-scene-ready", "true");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -313,7 +326,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const satObjs = useMemo(() => sats.map((x) => ({ ...x })), [sats]);
   const satPaths = useMemo(() => sats.map((x) => ({ pts: x.path, ahead: false, color: "rgba(140,240,255,0.55)", sat: true })), [sats]);
   const allPaths = useMemo(() => [...planePaths, ...satPaths], [planePaths, satPaths]);
-  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...cams.map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams]);
+  const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...thinCams(cams, alt).map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams, alt > 1.5 ? 3 : alt > 0.8 ? 2 : 1]);
 
   return (
     <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
@@ -337,11 +350,11 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}
         pointLng={(e) => (e as { lng: number }).lng}
-        pointColor={(e) => { const k = (e as { _k: string })._k; return k === "quake" ? "#c86bff" : k === "cam" ? "#4fd1ff" : "#ffb020"; }}
+        pointColor={(e) => { const k = (e as { _k: string })._k; return k === "quake" ? "#c86bff" : k === "cam" ? ((e as { live?: string }).live ? "#ff3b3b" : "#4fd1ff") : "#ffb020"; }}
         onPointClick={(e) => { if (moved.current) return; const x = e as { _k: string; id: string }; if (x._k === "cam") onCam?.(x.id); }}
         pointAltitude={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.01 + Math.max(0, (x.mag ?? 0) - 2.5) * 0.025 : x._k === "cam" ? 0.004 : 0.02; }}
-        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? Math.max(0.03, Math.min(0.25, alt * 0.12)) : 0.25; }}
-        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string; image?: string; everyMin?: number }; const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!); const src = c.image ? `${c.image}?t=${Math.floor(Date.now() / ((c.everyMin ?? 5) * 60_000))}` : ""; return `<div style="width:220px;background:#051D3F;color:#fff;padding:6px;border-radius:6px;font:12px sans-serif">${src ? `<img src="${esc(src)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#000"/>` : ""}<div style="margin-top:4px;font-weight:600">${esc(c.place)}</div><div style="opacity:.75">${esc(c.operator)} · scene only · click to open</div></div>`; } return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
+        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? Math.max(coarse ? 0.09 : 0.04, Math.min(coarse ? 0.4 : 0.25, alt * (coarse ? 0.2 : 0.12))) : 0.25; }}
+        pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string; image?: string; everyMin?: number }; const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!); const src = c.image ? `${c.image}?t=${Math.floor(Date.now() / ((c.everyMin ?? 5) * 60_000))}` : ""; return `<div style="width:220px;background:#051D3F;color:#fff;padding:6px;border-radius:6px;font:12px sans-serif">${src ? `<img src="${esc(src)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#000"/>` : ""}<div style="margin-top:4px;font-weight:600">${esc(c.place)}</div><div style="opacity:.75">${(c as { live?: string }).live ? "<b style=\"color:#ff6b6b\">● LIVE video</b> · " : ""}${esc(c.operator)} · scene only · click to open</div></div>`; } return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
         customLayerData={satObjs}
         customThreeObject={() => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(1.1), new THREE.MeshBasicMaterial({ color: "#8cf0ff" })); return m; }}
         customThreeObjectUpdate={(o, d) => { const x = d as { lat: number; lng: number; alt: number }; Object.assign((o as THREE.Object3D).position, ref.current?.getCoords(x.lat, x.lng, x.alt) ?? {}); }}
