@@ -210,6 +210,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const down = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
   const [alt, setAlt] = useState(1.9);
+  // Touch screens get bigger dots so a fingertip can hit them (this module only loads in the browser).
+  const coarse = useMemo(() => typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches, []);
   useEffect(() => {
     // Window capture listeners run before the globe's own handlers, so a drag is known before any click fires.
     const dn = (e: PointerEvent) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; };
@@ -351,7 +353,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         pointColor={(e) => { const k = (e as { _k: string })._k; return k === "quake" ? "#c86bff" : k === "cam" ? ((e as { live?: string }).live ? "#ff3b3b" : "#4fd1ff") : "#ffb020"; }}
         onPointClick={(e) => { if (moved.current) return; const x = e as { _k: string; id: string }; if (x._k === "cam") onCam?.(x.id); }}
         pointAltitude={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.01 + Math.max(0, (x.mag ?? 0) - 2.5) * 0.025 : x._k === "cam" ? 0.004 : 0.02; }}
-        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? Math.max(0.03, Math.min(0.25, alt * 0.12)) : 0.25; }}
+        pointRadius={(e) => { const x = e as { _k: string; mag?: number }; return x._k === "quake" ? 0.15 + (x.mag ?? 0) * 0.08 : x._k === "cam" ? Math.max(coarse ? 0.09 : 0.04, Math.min(coarse ? 0.4 : 0.25, alt * (coarse ? 0.2 : 0.12))) : 0.25; }}
         pointLabel={(e) => { const x = e as AcledEvent & { _k: string; label?: string }; if (x._k === "cam") { const c = x as unknown as { place: string; operator: string; image?: string; everyMin?: number }; const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!); const src = c.image ? `${c.image}?t=${Math.floor(Date.now() / ((c.everyMin ?? 5) * 60_000))}` : ""; return `<div style="width:220px;background:#051D3F;color:#fff;padding:6px;border-radius:6px;font:12px sans-serif">${src ? `<img src="${esc(src)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#000"/>` : ""}<div style="margin-top:4px;font-weight:600">${esc(c.place)}</div><div style="opacity:.75">${(c as { live?: string }).live ? "<b style=\"color:#ff6b6b\">● LIVE video</b> · " : ""}${esc(c.operator)} · scene only · click to open</div></div>`; } return x._k === "quake" ? x.label! : `${x.subType || x.type} — ${x.location}, ${x.date} (ACLED)`; }}
         customLayerData={satObjs}
         customThreeObject={() => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(1.1), new THREE.MeshBasicMaterial({ color: "#8cf0ff" })); return m; }}
