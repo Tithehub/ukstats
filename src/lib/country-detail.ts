@@ -21,9 +21,10 @@ export function coverageGaps(country: Country, metrics: CountryMetric[]): Countr
     note: 'No verified feed integrated for this topic yet. This does not mean the country publishes no statistics. Use the official source; no UK figure or estimate is substituted.',
   }));
 }
-export function countryHead(code: string, section: string, description: string) {
+export function countryHead(code: string, section: string, description: string, image?: { country: string; metricId: string }) {
   const title = `${section} — ${code} | UKStats`;
-  return { meta: [{ title }, { name: 'description', content: description }, { property: 'og:title', content: title }, { property: 'og:description', content: description }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] };
+  const img = image ? ogImageMeta('https://stats.solutions', `${image.country.toLowerCase()}:${image.metricId}`, title) : [{ name: 'twitter:card', content: 'summary_large_image' }];
+  return { meta: [{ title }, { name: 'description', content: description }, { property: 'og:title', content: title }, { property: 'og:description', content: description }, { property: 'og:type', content: 'website' }, ...img] };
 }
 export function observationsCsv(m: CountryMetric) {
   const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;

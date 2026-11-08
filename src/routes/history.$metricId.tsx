@@ -1,3 +1,4 @@
+import { ogImageMeta } from "@/lib/og-card";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { getMetricHistory } from "@/lib/uk-stats.functions";
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/history/$metricId")({
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary_large_image" },
+        ...ogImageMeta("https://ukstats.co.uk", params.metricId, `${loaderData.title} — latest official figure`),
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [

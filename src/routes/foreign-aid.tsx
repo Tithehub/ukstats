@@ -23,7 +23,7 @@ export const Route = createFileRoute("/foreign-aid")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/foreign-aid" },
-      { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta("https://ukstats.co.uk", "foreign-aid", "Total UK foreign aid spend — official figure"),
     ],
     links: [{ rel: "canonical", href: "https://ukstats.co.uk/foreign-aid" }],
   }),
