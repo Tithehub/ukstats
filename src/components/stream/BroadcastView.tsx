@@ -403,7 +403,7 @@ function sponsorSlide(r: SponsorBannerRow): CornerSlide {
 const utm = (u: string) => { const x = new URL(u); x.searchParams.set("utm_source", "youtube"); x.searchParams.set("utm_medium", "ukstats_stream"); return x.toString(); };
 /** Independent works (not sponsors) shown only on the UKStats stream; links only, no figures. */
 const RECOMMENDED_SLIDES: CornerSlide[] = [
-  { id: "rec-inquiry", name: "The Rape Gang Inquiry — Rupert Lowe MP", img: null, label: "therapeganginquiry.org", qr: utm("https://www.therapeganginquiry.org/"), tag: "Recommended" },
+  { id: "rec-inquiry", name: "The Rape Gang Inquiry", img: null, label: "therapeganginquiry.org", qr: utm("https://www.therapeganginquiry.org/"), tag: "Recommended" },
   { id: "rec-book", name: "The Grooming Gang Cover-Up", img: bookCover.url, label: "amazon.co.uk", qr: utm("https://www.amazon.co.uk/dp/0995584982"), tag: "Recommended" },
 ];
 
