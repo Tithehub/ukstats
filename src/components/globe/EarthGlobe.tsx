@@ -303,7 +303,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const pts = useMemo(() => [...events.map((e) => ({ ...e, _k: "acled" as const })), ...quakes.map((q) => ({ ...q, _k: "quake" as const })), ...cams.map((c) => ({ ...c, _k: "cam" as const }))], [events, quakes, cams]);
 
   return (
-    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onPointerUp={(e) => { const d = down.current; moved.current = !!d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6; }} onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(a); }} onPointerDown={(e) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
+    <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onPointerUpCapture={(e) => { const d = down.current; moved.current = !!d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6; }} onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDownCapture={(e) => { down.current = { x: e.clientX, y: e.clientY }; moved.current = false; const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
       <Globe
         ref={ref}
         width={size.w}
