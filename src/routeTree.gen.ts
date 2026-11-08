@@ -91,6 +91,7 @@ import { Route as ApiPublicOutreachTickRouteImport } from './routes/api/public/o
 import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/reports-tick'
 import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
 import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
+import { Route as ApiPublicOgKeyRouteImport } from './routes/api/public/og.$key'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicV1GoldRouteImport } from './routes/api/public/v1/gold'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
@@ -508,6 +509,11 @@ const SpendingTypeCategoryRoute = SpendingTypeCategoryRouteImport.update({
   path: '/spending/type/$category',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOgKeyRoute = ApiPublicOgKeyRouteImport.update({
+  id: '/public/og/$key',
+  path: '/public/og/$key',
+  getParentRoute: () => ApiRoute,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/public/payments/webhook',
@@ -620,6 +626,7 @@ export interface FileRoutesByFullPath {
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -707,6 +714,7 @@ export interface FileRoutesByTo {
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -797,6 +805,7 @@ export interface FileRoutesById {
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
+  '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
@@ -888,6 +897,7 @@ export interface FileRouteTypes {
     | '/api/public/reports-tick'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
+    | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
@@ -975,6 +985,7 @@ export interface FileRouteTypes {
     | '/api/public/reports-tick'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
+    | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
@@ -1064,6 +1075,7 @@ export interface FileRouteTypes {
     | '/api/public/reports-tick'
     | '/s/$slug_/broadcast'
     | '/spending/type/$category'
+    | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
@@ -1718,6 +1730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SpendingTypeCategoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/og/$key': {
+      id: '/api/public/og/$key'
+      path: '/public/og/$key'
+      fullPath: '/api/public/og/$key'
+      preLoaderRoute: typeof ApiPublicOgKeyRouteImport
+      parentRoute: typeof ApiRoute
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/public/payments/webhook'
@@ -1785,6 +1804,7 @@ interface ApiRouteChildren {
   ApiPublicAgentsTickRoute: typeof ApiPublicAgentsTickRoute
   ApiPublicOutreachTickRoute: typeof ApiPublicOutreachTickRoute
   ApiPublicReportsTickRoute: typeof ApiPublicReportsTickRoute
+  ApiPublicOgKeyRoute: typeof ApiPublicOgKeyRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicV1GoldRoute: typeof ApiPublicV1GoldRoute
   ApiPublicV1MetricsRoute: typeof ApiPublicV1MetricsRoute
@@ -1796,6 +1816,7 @@ const ApiRouteChildren: ApiRouteChildren = {
   ApiPublicAgentsTickRoute: ApiPublicAgentsTickRoute,
   ApiPublicOutreachTickRoute: ApiPublicOutreachTickRoute,
   ApiPublicReportsTickRoute: ApiPublicReportsTickRoute,
+  ApiPublicOgKeyRoute: ApiPublicOgKeyRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicV1GoldRoute: ApiPublicV1GoldRoute,
   ApiPublicV1MetricsRoute: ApiPublicV1MetricsRoute,
