@@ -102,13 +102,29 @@ function StudioPage() {
 /** Admin only: shows the private OBS link that switches the presenter's voice on. Never rendered for anyone else. */
 function ObsVoiceLink({ portrait }: { portrait: boolean }) {
   const [query, setQuery] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
-  useEffect(() => { getStreamVoiceLink().then((r) => setQuery(r.query)).catch(() => setQuery(null)); }, []);
-  if (!query) return null;
+  useEffect(() => { getStreamVoiceLink().then((r) => { setQuery(r.query); setFailed(false); }).catch(() => { setQuery(null); setFailed(true); }); }, []);
+  if (!query) {
+    if (!failed) return null;
+    return <div className="mb-3 rounded border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive">
+      <p className="font-semibold">Private OBS voice link unavailable</p>
+      <p>Sign in as an admin on this site to see the link that switches the presenter's voice on in OBS.</p>
+    </div>;
+  }
   const url = `${location.origin}/globe/broadcast?${portrait ? "layout=portrait&" : ""}${query}`;
   return <div className="mb-3 rounded border border-border bg-muted/40 px-3 py-2 text-sm">
     <p className="font-semibold">Private OBS link (voice on) — keep this secret</p>
-    <p className="text-muted-foreground">Paste it into your OBS Browser source, tick "Control audio via OBS", and make sure that source isn't muted in the Audio Mixer.</p>
-    <button type="button" onClick={async () => { await navigator.clipboard.writeText(url); setCopied(true); }} className="mt-2 rounded bg-primary px-3 py-1.5 text-primary-foreground">{copied ? "Copied" : "Copy OBS link"}</button>
+    <p className="text-muted-foreground">In OBS, open the Browser source's Properties, delete the whole URL and paste this link in its place. Keep "Control audio via OBS" ticked and make sure the Browser source isn't muted in the Audio Mixer.</p>
+    <input
+      readOnly
+      value={url}
+      aria-label="Private OBS link"
+      onFocus={(e) => e.currentTarget.select()}
+      onClick={(e) => e.currentTarget.select()}
+      className="mt-2 w-full rounded border border-border bg-background px-2 py-1 font-mono text-xs"
+    />
+    <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(url); setCopied(true); } catch { setCopied(false); } }} className="mt-2 rounded bg-primary px-3 py-1.5 text-primary-foreground">{copied ? "Copied" : "Copy OBS link"}</button>
+    <p className="mt-2 text-muted-foreground"><span className="font-semibold text-foreground">Check it's working:</span> her name strap should say "Speaking". "Reading on screen" means OBS is still using the old address. Right-click the source and choose "Refresh cache of current page".</p>
   </div>;
 }
