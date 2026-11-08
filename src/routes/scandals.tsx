@@ -41,7 +41,8 @@ function Index() {
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((s) => (
             <li key={s.slug}>
-              <Link to="/scandals/$slug" params={{ slug: s.slug }} className="block h-full rounded-md border border-night-line bg-night-panel p-4 hover:border-electric-soft">
+              <Link to="/scandals/$slug" params={{ slug: s.slug }} className="block h-full overflow-hidden rounded-md border border-night-line bg-night-panel p-4 hover:border-electric-soft">
+                {SCANDAL_IMAGES[s.slug] && <img src={SCANDAL_IMAGES[s.slug].src} alt={SCANDAL_IMAGES[s.slug].alt} loading="lazy" className="-mx-4 -mt-4 mb-3 aspect-[16/9] w-[calc(100%+2rem)] max-w-none object-cover" />}
                 <div className="font-mono text-xs text-night-muted">{s.region}</div>
                 <h2 className="mt-1 text-xl font-semibold">{s.title}</h2>
                 <p className="mt-2 line-clamp-3 text-sm text-night-muted">{s.summary}</p>
