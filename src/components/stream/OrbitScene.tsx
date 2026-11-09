@@ -83,7 +83,7 @@ export function OrbitPulse({ place, scene }: { place: string; scene: OrbitScene 
       {[0, 1, 2].map((i) => <span key={i} className={`absolute inset-0 rounded-full border-4 motion-safe:animate-ping ${red ? "border-destructive" : "border-stream-yellow"}`} style={{ animationDelay: `${i * 0.6}s`, animationDuration: "2.4s", opacity: 0.6 }} />)}
       <span className={`absolute left-1/2 top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full ${red ? "bg-destructive" : "bg-stream-yellow"}`} />
     </div>
-    <span className="mt-2 rounded bg-night/85 px-4 py-1 text-[30px] font-black uppercase tracking-wide motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90">{place}</span>
+    <span className="sr-only">{place}</span>
   </div>;
 }
 
