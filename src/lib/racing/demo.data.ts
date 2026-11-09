@@ -67,7 +67,7 @@ export function demoResults(now = new Date()): ResultRow[] {
   }))));
 }
 
-const past = (now: Date) => demoMeetings(londonDate(now, -60), londonDate(now, -1));
+const past = (now: Date) => demoMeetings(londonDate(now, -90), londonDate(now, -1));
 
 export function demoHorse(id: string, now = new Date()) {
   const i = Number(id.replace("demo-h", "")); if (!(i >= 0 && i < HORSES.length)) return null;
@@ -75,6 +75,9 @@ export function demoHorse(id: string, now = new Date()) {
   for (const m of past(now)) for (const race of m.races) for (const p of placings(race)) if (p.runner.horse?.id === id)
     career.push({ race_id: race.id, off_time: race.off_time, race: race.name, course: m.course?.name ?? null, distance_yards: race.distance_yards, going: race.going, position: p.position, status: "finished", sp: null, weight_lbs: p.runner.weight_lbs, rating: p.runner.official_rating });
   career.sort((a, b) => b.off_time.localeCompare(a.off_time));
+  // A real horse runs every couple of weeks at most: keep one example run per 12 days.
+  const spaced = career.filter((c, k, arr) => k === 0 || arr.slice(0, k).every((p) => Date.parse(p.off_time) - Date.parse(c.off_time) >= 12 * 86_400_000));
+  career.length = 0; career.push(...spaced);
   return { horse: { id, name: HORSES[i]!, foaled: null, sex: SEX[i % SEX.length]!, sire: "Example Sire", dam: "Example Dam", country: "GB", trainer: { id: trainerId(i % 12), name: TRAINERS[i % 12]! }, aliases: [] }, career };
 }
 

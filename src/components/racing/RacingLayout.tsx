@@ -33,7 +33,7 @@ export function RacingLayout({ title, intro, image, children }: { title: string;
       <div className="absolute inset-0 bg-gradient-to-t from-night via-night/40 to-transparent" />
     </div>
     <div className="racing-rail h-1.5" aria-hidden />
-    <main id="main-content" tabIndex={-1} className="mx-auto -mt-16 max-w-6xl px-4 pb-8 sm:px-6 relative">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-racing-gold">UKStats · Horse racing</p>
       <h1 className="mt-1 text-3xl font-bold sm:text-4xl">{title}</h1>
       {intro && <div className="mt-3 max-w-3xl text-sm text-night-muted">{intro}</div>}
