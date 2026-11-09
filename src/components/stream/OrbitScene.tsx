@@ -15,7 +15,9 @@ function CountUp({ value }: { value: string }) {
     let raf = 0; const t0 = performance.now();
     const tick = (t: number) => { const k = Math.min(1, (t - t0) / 1400); setP(k); if (k < 1) raf = requestAnimationFrame(tick); };
     setP(0); raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // Always land on the exact published value, even if animation frames are throttled (slow encoders, background tabs).
+    const done = setTimeout(() => setP(1), 1600);
+    return () => { cancelAnimationFrame(raf); clearTimeout(done); };
   }, [value]);
   return <>{countUp(value, p)}</>;
 }
