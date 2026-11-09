@@ -20,7 +20,7 @@ export function mapRacecards(races: TraRace[]): MeetingRow[] {
     const key = `${course.id}|${r.date}`;
     const m = byMeeting.get(key) ?? { id: `tra-${key}`, meeting_date: r.date, going: r.going || null, surface: r.surface === "AW" ? "All-weather" : r.surface ? "Turf" : null, status: "scheduled", course: { id: course.id, name: course.name }, races: [] };
     const runners: RunnerRow[] = r.runners.map((x) => ({
-      id: `${r.race_id}-${x.horse_id}`, cloth_number: num(x.number), draw: num(x.draw), age: num(x.age), weight_lbs: num(x.lbs), official_rating: num(x.ofr), form: x.form || null, headgear: x.headgear || null, non_runner: false,
+      id: `${r.race_id}-${x.horse_id}`, cloth_number: num(x.number), draw: num(x.draw) || null, age: num(x.age), weight_lbs: num(x.lbs), official_rating: num(x.ofr), form: x.form || null, headgear: x.headgear || null, non_runner: false,
       horse: { id: x.horse_id, name: x.horse, sex: x.sex_code?.toLowerCase() || null }, trainer: x.trainer_id ? { id: x.trainer_id, name: x.trainer ?? "" } : null, jockey: x.jockey_id ? { id: x.jockey_id, name: x.jockey ?? "" } : null,
     }));
     const race: RaceRow = { id: r.race_id, off_time: r.off_dt, name: r.race_name, race_type: r.type || null, distance_yards: furlongsToYards(r.distance_f), class: r.race_class?.replace(/^Class\s*/i, "") || null, prize_gbp: null, going: r.going || null, field_size: num(r.field_size), status: r.race_status === "declared" || !r.race_status ? "scheduled" : r.race_status, runners };
