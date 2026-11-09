@@ -7,7 +7,7 @@
 - Posts refresh every 15 minutes; if X stops answering, the last good set shows with its "last checked" time.
 
 ## What you need to do
-- Connect an X account when the connect card appears. It needs an X developer "Bearer token" (read-only). X charges for reading posts on most plans — the free tier allows very few reads, so a paid Basic plan may be needed. I'll show a clear "feed unavailable" notice rather than anything made up if access is refused.
+- Connect your @ukstatsglobal X developer account when the connect card appears (first build step); it only reads Rupert Lowe's public posts and never posts. It needs an X developer "Bearer token" (read-only). X charges for reading posts on most plans — the free tier allows very few reads, so a paid Basic plan may be needed. I'll show a clear "feed unavailable" notice rather than anything made up if access is refused.
 
 ## Technical details
 - Link X connector (gateway), server function (POST) looks up `@RupertLowe` id then `/users/:id/tweets` (text, created_at, public metrics off).
