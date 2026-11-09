@@ -85,7 +85,7 @@ function Panel({ race, course, day, demo, finished }: { race: RaceRow; course: s
     <h2 id="race-h" className="text-xl font-bold"><span className="font-mono text-racing-gold">{time(race.off_time)}</span> {course} — {race.name}</h2>
     {race.going && <p className="text-sm text-night-muted">Going: {race.going}</p>}
     {!p.ok ? <p className="mt-4 rounded-lg border-2 border-dashed border-night-line bg-night-panel p-5">{p.reason}</p> : <>
-      {(() => { const t = p.ranked[0]; return <div className="mt-4 rounded-xl border-2 border-racing-gold bg-night-panel p-5 shadow-[0_0_40px_-10px_var(--color-racing-gold)]">
+      {(() => { const t = p.ranked[0]!; return <div className="mt-4 rounded-xl border-2 border-racing-gold bg-night-panel p-5 shadow-[0_0_40px_-10px_var(--color-racing-gold)]">
         <p className="font-mono text-xs font-bold uppercase tracking-widest text-racing-gold">AI top pick{p.ranked[1]?.rank === 1 ? " (joint)" : ""}</p>
         <p className="mt-1 text-2xl font-bold">{t.runner.horse && <Silk id={t.runner.horse.id} />}{t.runner.horse?.name ?? "—"}</p>
         <p className="text-sm text-night-muted">No. {t.runner.cloth_number ?? "—"}{t.runner.draw != null ? ` · Draw ${t.runner.draw}` : ""}{t.runner.jockey ? ` · ${t.runner.jockey.name}` : ""}{t.runner.trainer ? ` · ${t.runner.trainer.name}` : ""}</p>
@@ -99,9 +99,9 @@ function Panel({ race, course, day, demo, finished }: { race: RaceRow; course: s
         </div>
       </div>; })()}
 
-      <p className="mt-4 text-sm">{finished ? "This race has started or finished. Result not available on the current data plan." : mine ? <>Your pick is saved on this device. AI vs you: <strong>{p.ranked[0].runner.horse?.name}</strong> vs <strong>{race.runners.find((r) => r.id === mine)?.horse?.name}</strong>.</> : "Tap \"My pick\" on a horse to set your own pick against the AI."}</p>
+      <p className="mt-4 text-sm">{finished ? "This race has started or finished. Result not available on the current data plan." : mine ? <>Your pick is saved on this device. AI vs you: <strong>{p.ranked[0]!.runner.horse?.name}</strong> vs <strong>{race.runners.find((r) => r.id === mine)?.horse?.name}</strong>.</> : "Tap \"My pick\" on a horse to set your own pick against the AI."}</p>
 
-      <ol className="mt-3 space-y-2">{p.ranked.map((x) => { const top = p.ranked[0].score || 1; return <li key={x.runner.id} className={`rounded-lg border bg-night-panel p-3 ${mine === x.runner.id ? "border-electric-soft" : "border-night-line"}`}>
+      <ol className="mt-3 space-y-2">{p.ranked.map((x) => { const top = p.ranked[0]!.score || 1; return <li key={x.runner.id} className={`rounded-lg border bg-night-panel p-3 ${mine === x.runner.id ? "border-electric-soft" : "border-night-line"}`}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-7 font-mono text-lg font-bold text-racing-gold">{x.rank}</span>
           <span className="font-semibold">{x.runner.horse && <Silk id={x.runner.horse.id} />}{x.runner.horse?.name ?? "—"}</span>
