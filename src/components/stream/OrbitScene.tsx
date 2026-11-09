@@ -108,7 +108,9 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
   const label = scene === "world" ? `${place} headline` : seg?.title ?? SCENE_LABEL[scene];
   const red = scene === "warnings" || scene === "migration" || head?.official;
   const sp = card?.metric?.spark?.filter((x) => Number.isFinite(x)) ?? [];
-  const chg = sp.length >= 2 && sp[sp.length - 2] ? ((sp[sp.length - 1]! - sp[sp.length - 2]!) / Math.abs(sp[sp.length - 2]!)) * 100 : null;
+  // No rise/fall percentage: the publisher does not state one, so we never compute it.
+  const lo = sp.length ? Math.min(...sp) : 0, hi = sp.length ? Math.max(...sp) : 0;
+  const bars = scene !== "migration" && sp.length >= 2;
   return <section key={`${seg?.id}-${step}`} data-fit className="relative overflow-hidden rounded-xl border border-electric/40 bg-night/75 p-7 shadow-[0_30px_80px_-20px_oklch(0_0_0/0.8)] backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
     <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,transparent_30%,oklch(1_0_0/0.16)_50%,transparent_70%)] motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" />
     <div className="flex items-center justify-between gap-4">
@@ -120,9 +122,10 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
       <p className="mt-5 line-clamp-2 text-[44px] font-black uppercase leading-[1.05]">{card.title}</p>
       <div className="mt-5 flex items-baseline gap-5">
         <span className="truncate text-[84px] font-black leading-none tabular-nums text-electric-soft drop-shadow-[0_0_24px_var(--electric)]"><CountUp value={card.value} /></span>
-        {chg != null && Number.isFinite(chg) && <span className={`shrink-0 text-[34px] font-black ${chg >= 0 ? "text-stream-green" : "text-destructive"}`}>{chg >= 0 ? "▲" : "▼"} {chg >= 0 ? "+" : ""}{chg.toFixed(1)}%</span>}
+        {(scene === "weather" || scene === "warnings") && <span className="shrink-0 rounded bg-stream-yellow px-3 py-1 text-[26px] font-black uppercase text-night motion-safe:animate-pulse">⚠ Alert</span>}
       </div>
-      {(() => { const d = sp.length >= 2 ? sparkPath(sp, 560, 48) : null; return d ? <svg viewBox="0 0 560 48" preserveAspectRatio="none" className="mt-4 h-[44px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={4} className="stroke-stream-yellow" style={{ strokeDasharray: 1000, animation: "orbit-draw 2s ease-out both" }} /></svg> : null; })()}
+      {bars && <div className="mt-4 flex h-[56px] items-end gap-1.5" aria-hidden>{sp.slice(-16).map((x, i, a) => <span key={i} className={`flex-1 origin-bottom rounded-t ${i === a.length - 1 ? "bg-stream-yellow" : "bg-electric/70"}`} style={{ height: `${15 + ((x - lo) / (hi - lo || 1)) * 85}%`, animation: `orbit-grow 0.9s ${i * 60}ms ease-out both` }} />)}</div>}
+      {(() => { const d = !bars && sp.length >= 2 ? sparkPath(sp, 560, 48) : null; return d ? <svg viewBox="0 0 560 48" preserveAspectRatio="none" className="mt-4 h-[44px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={4} className="stroke-stream-yellow" style={{ strokeDasharray: 1000, animation: "orbit-draw 2s ease-out both" }} /></svg> : null; })()}
       <p className="mt-4 truncate font-mono text-[18px] uppercase tracking-wide text-night-muted">{card.source}{card.period ? ` · ${card.period}` : ""}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</p>
     </> : head ? <>
       <span className={`mt-5 inline-block rounded px-3 py-1 font-mono text-[16px] font-black uppercase tracking-widest ${head.official ? "bg-destructive text-destructive-foreground" : "bg-electric text-night"}`}>{head.official ? "Official warning" : "News report — not official"}</span>
