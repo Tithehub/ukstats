@@ -20,7 +20,7 @@ import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
-import { OrbitPanel, OrbitPulse, OrbitRail } from "@/components/stream/OrbitScene";
+import { OrbitHeroCard, OrbitLowerThird, OrbitMiniTiles, OrbitNextUp, OrbitPulse, OrbitTicker } from "@/components/stream/OrbitScene";
 import { sceneFor } from "@/lib/stream-orbit";
 import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
