@@ -60,3 +60,36 @@ export function topSix(
   });
   return [mig, ...rest];
 }
+
+/** Short publisher tag for overlay chips, taken from the metric's own source line. */
+export function publisherTag(source: string): string {
+  return source.split(/\s+[·|—-]\s+|\s+via\s+|,/)[0]!.trim();
+}
+
+export type KeyFigure = { id: string; label: string; value: string; period: string | null; publisher: string; alert?: boolean };
+
+/**
+ * Orbit stats rail: national debt, small boats, inflation, then official alert levels.
+ * Only figures that are published right now; a missing one is skipped, never shown as 0.
+ */
+export function keyFigures(metrics: Metric[], max = 4): KeyFigure[] {
+  const byId = (id: string) => metrics.find((m) => m.id === id && ok(m)) ?? null;
+  const picks: [Metric | null, string, boolean?][] = [
+    [byId("uk-national-debt"), "National debt"],
+    [boatsYearMetric(metrics), "Small boats"],
+    [byId("uk-cpi"), "Inflation (CPI)"],
+    [byId("uk-metoffice-warnings"), "Weather warnings", true],
+    [byId("uk-threat-level"), "Terror threat", true],
+  ];
+  return picks.filter((p): p is [Metric, string, boolean?] => !!p[0]).slice(0, max)
+    .map(([m, label, alert]) => ({ id: m.id, label, value: m.value!, period: m.period, publisher: publisherTag(m.source), alert: !!alert }));
+}
+
+/** "Checked today" when the register was fetched on the same London day, else the check date. */
+export function checkedLabel(fetchedAt: string | null | undefined, now: Date): string | null {
+  if (!fetchedAt) return null;
+  const d = (x: Date) => x.toLocaleDateString("en-GB", { timeZone: "Europe/London" });
+  const f = new Date(fetchedAt);
+  if (Number.isNaN(f.getTime())) return null;
+  return d(f) === d(now) ? "Checked today" : `Checked ${fmtDate(fetchedAt)}`;
+}
