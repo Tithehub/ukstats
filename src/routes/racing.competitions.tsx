@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import silks from "@/assets/racing/silks.jpg";
 import { RacingLayout } from "@/components/racing/RacingLayout";
 import { spBonus } from "@/lib/racing/racing";
 
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/racing/competitions")({
 });
 
 function Page() {
-  return <RacingLayout title="AI vs human competition" intro="A free competition for signed-in UKStats users aged 18 or over. There's no entry fee, no prize money and no betting.">
+  return <RacingLayout image={silks} title="AI vs human competition" intro="A free competition for signed-in UKStats users aged 18 or over. There's no entry fee, no prize money and no betting.">
     <div className="rounded-lg border border-racing-gold/60 bg-night-panel p-5">
       <p className="font-mono text-xs font-bold uppercase tracking-widest text-racing-gold">Opening soon</p>
       <p className="mt-2">The competition opens once a licensed racing data feed is connected, because picks have to be scored against official results.</p>
