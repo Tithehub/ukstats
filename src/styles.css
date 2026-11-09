@@ -391,3 +391,11 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
+
+@keyframes orbit-breathe {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  30% { transform: translateY(-3px) rotate(0.4deg) scale(1.006); }
+  70% { transform: translateY(-1px) rotate(-0.4deg) scale(1.003); }
+}
+@keyframes orbit-sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes orbit-draw { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
