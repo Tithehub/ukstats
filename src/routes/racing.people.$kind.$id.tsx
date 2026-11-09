@@ -3,7 +3,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { PageLoadError, PageNotFound } from "@/components/layout/PageFeedback";
 import { RacingLayout, Stat } from "@/components/racing/RacingLayout";
 import silks from "@/assets/racing/silks.jpg";
-import { RACING_DEMO } from "@/lib/racing/providers/types";
 
 import { personQuery, type PersonKind } from "@/lib/racing/racing.functions";
 import { winRate } from "@/lib/racing/racing";
@@ -37,7 +36,7 @@ function Page() {
   const recent = done.filter((r) => new Date(r.off_time).getTime() >= since);
   const byCourse = new Map<string, { runs: number; wins: number }>();
   for (const r of done) { const v = byCourse.get(r.course) ?? { runs: 0, wins: 0 }; v.runs++; if (r.position === 1) v.wins++; byCourse.set(r.course, v); }
-  return <RacingLayout image={silks} title={RACING_DEMO ? `${data.person.name} (example)` : data.person.name} intro={kind === "jockey" ? "Jockey" : "Trainer"}>
+  return <RacingLayout demo={data.demo} image={silks} title={data.demo ? `${data.person.name} (example)` : data.person.name} intro={kind === "jockey" ? "Jockey" : "Trainer"}>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <Stat label="Runs with a result" value={done.length} />
       <Stat label="Wins" value={wins} note={winRate(wins, done.length).label} />
