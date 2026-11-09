@@ -3,6 +3,8 @@ import Globe, { type GlobeMethods } from "react-globe.gl";
 import { feature } from "topojson-client";
 import topo from "world-atlas/countries-110m.json";
 import earth from "@/assets/earth-blue-marble.jpg";
+import nightLights from "@/assets/earth-night-lights.jpg";
+import cloudsAlpha from "@/assets/earth-clouds-alpha.jpg";
 import * as THREE from "three";
 import { countryKey, type AcledEvent, type UnrestKind } from "@/lib/unrest";
 import { mapName } from "@/lib/migration-flows";
@@ -288,21 +290,41 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     return `rgba(${Math.round(30 + 200 * s)}, ${Math.round(110 + 80 * s)}, ${Math.round(220 - 150 * s)}, 0.75)`;
   };
 
-  // Night side: a slightly larger dark shell, transparent on the sunlit half.
+  // Day/night: the globe surface itself blends the daylight picture with city lights on the night side,
+  // plus a soft orange glow along the sunrise/sunset line.
   useEffect(() => {
     const g = ref.current; if (!g || !dayNight) return;
+    const load = new THREE.TextureLoader();
+    const day = load.load(earth), night = load.load(nightLights);
+    for (const t of [day, night]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
     const mat = new THREE.ShaderMaterial({
-      transparent: true, depthWrite: false,
-      uniforms: { sun: { value: new THREE.Vector3(1, 0, 0) } },
-      vertexShader: "varying vec3 vN; void main(){ vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform vec3 sun; varying vec3 vN; void main(){ float d = dot(vN, normalize(sun)); float n = smoothstep(0.08, -0.12, d); float edge = (1.0 - smoothstep(0.0, 0.06, abs(d))) * 0.35; gl_FragColor = vec4(mix(vec3(0.0,0.02,0.08), vec3(1.0,0.55,0.2), edge), n * 0.62 + edge * 0.25); }",
+      uniforms: { dayT: { value: day }, nightT: { value: night }, sun: { value: new THREE.Vector3(1, 0, 0) } },
+      vertexShader: "varying vec3 vN; varying vec2 vUv; void main(){ vUv = uv; vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dc = texture2D(dayT, vUv).rgb * (0.55 + 0.6 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(1.25, 1.05, 0.8) + texture2D(dayT, vUv).rgb * 0.06; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
     });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(100.6, 96, 64), mat);
+    const old = g.globeMaterial();
+    const globeMesh = (g.scene().getObjectByProperty("type", "Mesh") as THREE.Mesh | undefined);
+    let target: THREE.Mesh | null = null;
+    g.scene().traverse((o) => { const m = o as THREE.Mesh; if (!target && m.isMesh && m.material === old) target = m; });
+    void globeMesh;
+    const mesh = target as THREE.Mesh | null;
+    if (!mesh) { mat.dispose(); return; }
+    mesh.material = mat;
     const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); mat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
-    set(); g.scene().add(mesh);
+    set();
     const t = setInterval(set, 60_000);
-    return () => { clearInterval(t); g.scene().remove(mesh); mesh.geometry.dispose(); mat.dispose(); };
+    return () => { clearInterval(t); mesh.material = old; mat.dispose(); day.dispose(); night.dispose(); };
   }, [dayNight, gl0]);
+  // Faint drifting clouds — desktop only, never with reduced motion, so phones stay fast.
+  useEffect(() => {
+    const g = ref.current; if (!g || !gl0 || coarse || still) return;
+    const tex = new THREE.TextureLoader().load(cloudsAlpha);
+    const mat = new THREE.MeshLambertMaterial({ color: "#ffffff", alphaMap: tex, transparent: true, opacity: 0.32, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(g.getGlobeRadius() * 1.006, 64, 48), mat);
+    g.scene().add(mesh);
+    let raf = 0; const spin = () => { mesh.rotation.y += 0.00012; raf = requestAnimationFrame(spin); }; raf = requestAnimationFrame(spin);
+    return () => { cancelAnimationFrame(raf); g.scene().remove(mesh); mesh.geometry.dispose(); mat.dispose(); tex.dispose(); };
+  }, [gl0, coarse, still]);
   useEffect(() => {
     const g = ref.current; if (!g || !preset) return;
     g.controls().autoRotate = false;
@@ -340,6 +362,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         globeImageUrl={earth}
         showAtmosphere
         atmosphereColor="#7fb2ff"
+        atmosphereAltitude={0.2}
         polygonsData={FEATURES}
         polygonAltitude={(f) => (countryKey((f as Feat).properties.name) === selected ? 0.03 : 0.008)}
         polygonCapColor={cap}
