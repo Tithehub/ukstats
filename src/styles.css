@@ -431,3 +431,4 @@
 @keyframes orbit-shine { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 @keyframes orbit-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes orbit-head { 0%, 100% { transform: rotate(0deg) translateY(0); } 30% { transform: rotate(-0.6deg) translateY(-2px); } 70% { transform: rotate(0.5deg) translateY(1px); } }
+@keyframes orbit-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }

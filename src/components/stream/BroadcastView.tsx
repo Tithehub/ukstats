@@ -233,7 +233,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute bottom-[96px] left-[360px] z-20 h-[880px] w-[760px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="absolute bottom-[96px] left-[300px] z-20 h-[90px] w-[900px] rounded-t-[40px] border-t-2 border-electric/50 bg-[linear-gradient(180deg,oklch(0.35_0.06_258/0.85),oklch(0.12_0.03_258/0.95))] shadow-[0_-10px_60px_-10px_var(--electric)]" />
       <div className="absolute right-8 top-[180px] z-30 flex w-[640px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} /><OrbitMiniTiles seg={seg} step={step} /></>}</div>
-      <div className="absolute bottom-[118px] left-1/2 z-40 -translate-x-1/2"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : ({ stats: "UK", headlines: "Headlines", weather: "Weather", warnings: "Warnings", migration: "Small boats", flights: "Skies", world: "World" } as const)[sceneFor(seg)]} /></div>
+      <div className="absolute bottom-[118px] left-1/2 z-40 -translate-x-1/2"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
       {/* Globe fills the left; YouTube's title and control zones (top 96px, bottom 120px) show only globe/background */}
