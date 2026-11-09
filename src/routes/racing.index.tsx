@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { PageLoadError, PageNotFound } from "@/components/layout/PageFeedback";
-import { NoFeed, RacingLayout, Stat } from "@/components/racing/RacingLayout";
+import { ExampleBadge, NoFeed, RacingLayout, Silk, Stat } from "@/components/racing/RacingLayout";
+import { RACECOURSES, RACECOURSES_CHECKED, RACECOURSES_SOURCE } from "@/lib/racing/racecourses.data";
+import { RACING_DEMO } from "@/lib/racing/providers/types";
+
 import { racecardsQuery, type MeetingRow, type RaceRow } from "@/lib/racing/racing.functions";
 import { distanceLabel, lastForm, weightLabel, type RaceDay } from "@/lib/racing/racing";
 import { fmtDate } from "@/lib/uk-stats";
@@ -52,14 +56,14 @@ function Page() {
     .filter((m) => m.races.length);
   const connected = data.sources.filter((s) => s.status === "connected");
 
-  return <RacingLayout title="Horse racing" intro="Free UK racing statistics from licensed official data: meetings, racecards, non-runners and results. Every number on this page is counted from imported records.">
+  return <RacingLayout title="Horse racing" intro="Free UK racing statistics: meetings, racecards, non-runners and results, at every licensed UK racecourse.">
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       <Stat label="Meetings" value={data.meetings.length} />
       <Stat label="Races" value={races.length} />
       <Stat label="Declared runners" value={runners.length - nr} />
       <Stat label="Non-runners" value={nr} />
       <Stat label="Next race" value={next ? time(next.r.off_time) : "—"} note={next ? `${next.m.course?.name ?? ""} · ${next.r.name}` : undefined} />
-      <Stat label="Data feed" value={connected.length ? "Connected" : "Not connected"} note={data.latestOdds ? `Odds updated ${fmtDate(data.latestOdds)}` : "No licensed odds feed"} />
+      <Stat label="Data feed" value={RACING_DEMO ? "Example data" : connected.length ? "Connected" : "Not connected"} note={data.latestOdds ? `Odds updated ${fmtDate(data.latestOdds)}` : "No licensed odds feed"} />
     </div>
 
     <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="Choose day">
@@ -81,8 +85,24 @@ function Page() {
       </section>)}
     </div>
 
+    <Courses />
+
     <p className="mt-8 text-sm text-night-muted">AI predictions and the free AI-vs-human competition arrive once a licensed feed is connected. <Link to="/racing/competitions" search={{}} className="text-electric-soft underline">How the competition will work →</Link></p>
   </RacingLayout>;
+}
+
+function Courses() {
+  const [q, setQ] = useState("");
+  const list = RACECOURSES.filter((c) => (c.name + c.town + c.nation).toLowerCase().includes(q.toLowerCase()));
+  return <section className="mt-10" aria-labelledby="courses-h">
+    <h2 id="courses-h" className="text-2xl font-bold">All {RACECOURSES.length} UK racecourses</h2>
+    <p className="mt-1 text-sm text-night-muted">59 licensed courses in Great Britain plus Down Royal and Downpatrick in Northern Ireland. Course facts from the <a href={RACECOURSES_SOURCE} target="_blank" rel="noreferrer" className="underline">British Horseracing Authority</a>, checked {fmtDate(RACECOURSES_CHECKED)}.</p>
+    <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search courses or towns" aria-label="Search racecourses" className="mt-3 min-h-11 w-full max-w-sm rounded-md border border-night-line bg-night-panel px-3 text-sm" />
+    <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{list.map((c) => <li key={c.id} className="rounded-lg border border-night-line bg-night-panel p-3">
+      <div className="font-semibold">{c.name}</div>
+      <div className="text-xs text-night-muted">{c.town}, {c.nation} · {c.code} · {c.surface}</div>
+    </li>)}</ul>
+  </section>;
 }
 
 function Filter({ label, value, options, onChange }: { label: string; value: string | undefined; options: string[]; onChange: (v: string | undefined) => void }) {
@@ -108,7 +128,7 @@ function RaceCard({ r }: { r: RaceRow }) {
         <tbody>{rows.map((x) => <tr key={x.id} className={`border-t border-night-line ${x.non_runner ? "opacity-50" : ""}`}>
           <td className="px-3 py-2 font-mono">{x.cloth_number ?? "—"}</td>
           <td className="px-3 py-2 font-mono">{x.draw ?? "—"}</td>
-          <td className="px-3 py-2 font-semibold">{x.horse ? <Link to="/racing/horses/$id" params={{ id: x.horse.id }} className="hover:underline">{x.horse.name}</Link> : "—"}{x.headgear ? <span className="ml-1 text-xs text-night-muted">({x.headgear})</span> : null}{x.non_runner && <span className="ml-2 rounded bg-destructive px-1.5 text-xs text-destructive-foreground">Non-runner</span>}</td>
+          <td className="px-3 py-2 font-semibold">{x.horse ? <><Silk id={x.horse.id} /><Link to="/racing/horses/$id" params={{ id: x.horse.id }} className="hover:underline">{x.horse.name}</Link>{RACING_DEMO && <ExampleBadge />}</> : "—"}{x.headgear ? <span className="ml-1 text-xs text-night-muted">({x.headgear})</span> : null}{x.non_runner && <span className="ml-2 rounded bg-destructive px-1.5 text-xs text-destructive-foreground">Non-runner</span>}</td>
           <td className="px-3 py-2">{x.age ?? "—"}{x.horse?.sex ? ` ${x.horse.sex}` : ""}</td>
           <td className="px-3 py-2 font-mono">{weightLabel(x.weight_lbs)}</td>
           <td className="px-3 py-2 font-mono">{x.official_rating ?? "—"}</td>
