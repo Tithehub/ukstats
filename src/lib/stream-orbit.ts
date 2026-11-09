@@ -20,6 +20,8 @@ const NUM = /\d[\d,]*(?:\.\d+)?/;
 /** Value shown at progress p (0–1). At p >= 1 — or if no number is found — returns the published string exactly. */
 export function countUp(value: string, p: number): string {
   if (p >= 1) return value;
+  // Strings with several numbers (dates, ranges, "3 of 12") appear exactly as published.
+  if ((value.match(new RegExp(NUM.source, "g")) ?? []).length !== 1) return value;
   const m = value.match(NUM);
   if (!m) return value;
   const raw = m[0];
