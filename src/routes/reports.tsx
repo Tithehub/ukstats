@@ -176,7 +176,7 @@ function ReportsPage() {
           <div className="mt-3 overflow-hidden rounded-lg border border-border">
             <table className="block w-full text-sm sm:table">
               <thead className="sr-only bg-primary text-primary-foreground sm:not-sr-only sm:table-header-group"><tr><th scope="col" className="px-3 py-2 text-left">Date</th><th scope="col" className="px-3 py-2 text-left">UK report</th><th scope="col" className="px-3 py-2 text-left">Global report</th></tr></thead>
-              <tbody>
+              <tbody className="block w-full sm:table-row-group">
                 {dates.map((d) => (
                   <tr key={d} className="grid grid-cols-2 border-t border-border sm:table-row">
                     <th scope="row" className="col-span-2 px-3 py-3 text-left font-semibold sm:py-2">{longDate(d)}{d === today && <span className="ml-2 rounded bg-primary px-1.5 py-0.5 font-mono text-[10px] uppercase text-primary-foreground">Today</span>}</th>
