@@ -84,6 +84,7 @@ import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RacingIndexRouteImport } from './routes/racing.index'
 import { Route as RacingAdminRouteImport } from './routes/racing.admin'
 import { Route as RacingCompetitionsRouteImport } from './routes/racing.competitions'
+import { Route as RacingPredictorRouteImport } from './routes/racing.predictor'
 import { Route as RacingResultsRouteImport } from './routes/racing.results'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
@@ -494,6 +495,11 @@ const RacingCompetitionsRoute = RacingCompetitionsRouteImport.update({
   path: '/racing/competitions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RacingPredictorRoute = RacingPredictorRouteImport.update({
+  id: '/racing/predictor',
+  path: '/racing/predictor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RacingResultsRoute = RacingResultsRouteImport.update({
   id: '/racing/results',
   path: '/racing/results',
@@ -743,6 +749,7 @@ export interface FileRoutesByFullPath {
   '/p/$slug': typeof PSlugRoute
   '/racing/admin': typeof RacingAdminRoute
   '/racing/competitions': typeof RacingCompetitionsRoute
+  '/racing/predictor': typeof RacingPredictorRoute
   '/racing/results': typeof RacingResultsRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/rent/admin': typeof RentAdminRoute
@@ -852,6 +859,7 @@ export interface FileRoutesByTo {
   '/p/$slug': typeof PSlugRoute
   '/racing/admin': typeof RacingAdminRoute
   '/racing/competitions': typeof RacingCompetitionsRoute
+  '/racing/predictor': typeof RacingPredictorRoute
   '/racing/results': typeof RacingResultsRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/rent/admin': typeof RentAdminRoute
@@ -964,6 +972,7 @@ export interface FileRoutesById {
   '/p/$slug': typeof PSlugRoute
   '/racing/admin': typeof RacingAdminRoute
   '/racing/competitions': typeof RacingCompetitionsRoute
+  '/racing/predictor': typeof RacingPredictorRoute
   '/racing/results': typeof RacingResultsRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/rent_/admin': typeof RentAdminRoute
@@ -1077,6 +1086,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/racing/admin'
     | '/racing/competitions'
+    | '/racing/predictor'
     | '/racing/results'
     | '/regions/$slug'
     | '/rent/admin'
@@ -1186,6 +1196,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/racing/admin'
     | '/racing/competitions'
+    | '/racing/predictor'
     | '/racing/results'
     | '/regions/$slug'
     | '/rent/admin'
@@ -1297,6 +1308,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/racing/admin'
     | '/racing/competitions'
+    | '/racing/predictor'
     | '/racing/results'
     | '/regions/$slug'
     | '/rent_/admin'
@@ -1404,6 +1416,7 @@ export interface RootRouteChildren {
   PSlugRoute: typeof PSlugRoute
   RacingAdminRoute: typeof RacingAdminRoute
   RacingCompetitionsRoute: typeof RacingCompetitionsRoute
+  RacingPredictorRoute: typeof RacingPredictorRoute
   RacingResultsRoute: typeof RacingResultsRoute
   RentAdminRoute: typeof RentAdminRoute
   RentDashboardRoute: typeof RentDashboardRoute
@@ -1951,6 +1964,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RacingCompetitionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/racing/predictor': {
+      id: '/racing/predictor'
+      path: '/racing/predictor'
+      fullPath: '/racing/predictor'
+      preLoaderRoute: typeof RacingPredictorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/racing/results': {
       id: '/racing/results'
       path: '/racing/results'
@@ -2353,6 +2373,7 @@ const rootRouteChildren: RootRouteChildren = {
   PSlugRoute: PSlugRoute,
   RacingAdminRoute: RacingAdminRoute,
   RacingCompetitionsRoute: RacingCompetitionsRoute,
+  RacingPredictorRoute: RacingPredictorRoute,
   RacingResultsRoute: RacingResultsRoute,
   RentAdminRoute: RentAdminRoute,
   RentDashboardRoute: RentDashboardRoute,
