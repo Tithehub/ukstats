@@ -86,7 +86,7 @@ function Page() {
 
     <Courses />
 
-    <p className="mt-8 text-sm text-night-muted">AI predictions and the free AI-vs-human competition arrive once a licensed feed is connected. <Link to="/racing/competitions" search={{}} className="text-electric-soft underline">How the competition will work →</Link></p>
+    <p className="mt-8 text-sm text-night-muted"><Link to="/racing/predictor" search={{}} className="font-semibold text-racing-gold underline">See the AI's pick for every race →</Link> · <Link to="/racing/competitions" search={{}} className="text-electric-soft underline">How the free AI-vs-human competition will work</Link></p>
   </RacingLayout>;
 }
 
@@ -117,6 +117,7 @@ function RaceCard({ r, demo }: { r: RaceRow; demo: boolean }) {
     <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-night-line px-4 py-3">
       <span className="font-mono text-lg font-bold text-racing-gold">{time(r.off_time)}</span>
       <span className="font-semibold">{r.name}</span>
+      <Link to="/racing/predictor" search={{ race: r.id }} className="order-last ml-auto text-xs font-semibold text-racing-gold underline">AI prediction →</Link>
       <span className="text-xs text-night-muted">{[distanceLabel(r.distance_yards), r.race_type, r.class && `Class ${r.class}`, r.prize_gbp != null && `£${r.prize_gbp.toLocaleString("en-GB")}`, r.going, `${rows.filter((x) => !x.non_runner).length} runners`, r.status !== "scheduled" && r.status].filter(Boolean).join(" · ")}</span>
     </header>
     <div className="overflow-x-auto">

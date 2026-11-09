@@ -18,6 +18,7 @@ export function Silk({ id }: { id: string }) {
 
 const TABS = [
   { to: "/racing", label: "Dashboard" },
+  { to: "/racing/predictor", label: "AI Predictor" },
   { to: "/racing/horses", label: "Horse database" },
   { to: "/racing/people", label: "Trainers & jockeys" },
   { to: "/racing/results", label: "Results" },
