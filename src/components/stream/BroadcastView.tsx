@@ -225,7 +225,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute inset-y-0 left-[620px] right-0"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_68%_45%,transparent_30%,var(--night)_80%)]" />
       <OrbitBackdrop />
-      <div className="absolute left-[1180px] top-[300px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : "United Kingdom"} scene={sceneFor(seg)} />}</div>
+      <div className="absolute left-[1000px] top-[330px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : "United Kingdom"} scene={sceneFor(seg)} />}</div>
       <div className="absolute left-8 top-8 z-40 flex h-[60px] overflow-hidden rounded shadow-lg"><span className="flex items-center bg-destructive px-5 text-[34px] font-black text-destructive-foreground">{brand?.name?.toUpperCase() ?? "UKSTATS"}</span><span className="flex items-center gap-2 bg-night/90 px-5 text-[34px] font-black"><span className="size-3 rounded-full bg-destructive motion-safe:animate-pulse" />LIVE</span></div>
       <div className="absolute right-8 top-8 z-40 text-right font-mono text-[18px] uppercase leading-snug tracking-widest text-night-muted">{clock}<br />{wc ? "Around the world" : "UK hour"} · Official sources</div>
       <div className="absolute left-8 top-[130px] z-30 w-[380px]"><OrbitNextUp now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
