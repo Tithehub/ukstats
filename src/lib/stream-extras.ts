@@ -63,7 +63,8 @@ export function topSix(
 
 /** Short publisher tag for overlay chips, taken from the metric's own source line. */
 export function publisherTag(source: string): string {
-  return source.split(/\s+[·|—-]\s+|\s+via\s+|,/)[0]!.trim();
+  const t = source.split(/\s+[·|—-]\s+|\s+via\s+|,/)[0]!.trim();
+  return /^office for national statistics$/i.test(t) ? "ONS" : t;
 }
 
 export type KeyFigure = { id: string; label: string; value: string; period: string | null; publisher: string; alert?: boolean };

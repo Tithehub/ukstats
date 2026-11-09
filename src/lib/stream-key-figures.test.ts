@@ -22,6 +22,7 @@ describe("orbit key figures", () => {
   });
   it("tags the publisher from the source line", () => {
     expect(publisherTag("Met Office · NSWWS")).toBe("Met Office");
+    expect(publisherTag("Office for National Statistics")).toBe("ONS");
     expect(publisherTag("MI5 / JTAC via GOV.UK")).toBe("MI5 / JTAC");
   });
   it("says checked today only on the same London day", () => {
