@@ -366,7 +366,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         objectLng={(m) => (m as GlobeMarker).lng}
         objectAltitude={0.035}
         objectFacesSurfaces
-        objectLabel={(m) => (m as GlobeMarker).label}
+        objectLabel={(m) => `<div style="max-width:320px;background:#051D3F;color:#fff;padding:6px 8px;border-radius:6px;font:12px sans-serif;white-space:normal">${(m as GlobeMarker).label.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!).replace(/\n/g, "<br/>")}</div>`}
         objectThreeObject={(m) => { const x = m as GlobeMarker & { boat?: boolean }; const o = icons.current.get(x.id) ?? (x.boat ? makeBoat((x as { color?: string }).color) : makeIcon(x.kind, !!x.research)); icons.current.set(x.id, o); return o; }}
         onObjectClick={(m) => { if (!(m as { boat?: boolean }).boat) onMarker?.((m as GlobeMarker).id); }}
         arcsData={arcs}
