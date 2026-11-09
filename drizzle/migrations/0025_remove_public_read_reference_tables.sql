@@ -1,0 +1,14 @@
+DROP POLICY IF EXISTS "Public read" ON public.race_results;
+DROP POLICY IF EXISTS "Public read" ON public.jockeys;
+DROP POLICY IF EXISTS "Public read" ON public.runners;
+DROP POLICY IF EXISTS "Public read" ON public.odds_snapshots;
+DROP POLICY IF EXISTS "Public read" ON public.horses;
+DROP POLICY IF EXISTS "Public read" ON public.racecourses;
+DROP POLICY IF EXISTS "Public read" ON public.horse_aliases;
+DROP POLICY IF EXISTS "Education register is public" ON public.education_institutions;
+DROP POLICY IF EXISTS "Public read" ON public.races;
+DROP POLICY IF EXISTS "Public read" ON public.meetings;
+DROP POLICY IF EXISTS "Public read" ON public.non_runners;
+DROP POLICY IF EXISTS "Public read" ON public.trainers;
+DROP POLICY IF EXISTS "Public read" ON public.racing_data_sources;
+GRANT ALL ON public.race_results, public.jockeys, public.runners, public.odds_snapshots, public.horses, public.racecourses, public.horse_aliases, public.education_institutions, public.races, public.meetings, public.non_runners, public.trainers, public.racing_data_sources TO service_role;
