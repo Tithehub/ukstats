@@ -47,7 +47,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const surface = new THREE.ShaderMaterial({
       uniforms: { dayT: { value: day }, nightT: { value: night } },
       vertexShader: "varying vec2 vUv; varying vec3 vN; void main(){vUv=uv;vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
-      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 lights=texture2D(nightT,vUv).rgb;float rim=pow(1.0-max(vN.z,0.0),2.8);vec3 c=land*vec3(0.16,0.28,0.48)+lights*vec3(3.1,2.35,1.5);c+=vec3(0.08,0.3,0.72)*rim;gl_FragColor=vec4(c,1.0);}",
+      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),2.8);vec3 c=land*vec3(0.09,0.15,0.26)+vec3(1.0,0.72,0.35)*city*4.5;c+=vec3(0.08,0.3,0.72)*rim;gl_FragColor=vec4(c,1.0);}",
     });
     const group = new THREE.Group();
     const earth = new THREE.Mesh(geometry, surface); earth.rotation.y = -Math.PI / 2;

@@ -457,9 +457,9 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
       <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">{r.tag}</span>
     </div>
     <div className="mx-5 mt-3 h-[4px] w-14 bg-stream-yellow" />
-    <div className="flex min-h-0 flex-1 items-center gap-4 px-5">
-      <div className="shrink-0 rounded bg-[#ffffff] p-1.5"><QRCodeSVG value={r.qr} size={140} level="H" marginSize={1} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
-      <div className="min-w-0"><p className="line-clamp-2 text-[22px] font-black leading-tight">{r.name}</p><p className="mt-1 truncate font-mono text-[14px] font-bold uppercase text-night-muted">Scan · {r.label}</p></div>
+    <div className="flex min-h-0 flex-1 items-center gap-3 px-4">
+      <div className="shrink-0 rounded bg-stream-strap p-1.5"><QRCodeSVG value={r.qr} size={112} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
+      <div className="min-w-0"><p className="text-[18px] font-bold leading-tight">{r.name}</p><p className="mt-2 break-all font-mono text-[12px] text-night-muted">{r.label}</p></div>
     </div>
     <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
   </section>;

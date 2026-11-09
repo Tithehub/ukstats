@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import closed from "@/assets/stream/orbit-presenter-closed.png";
-import open from "@/assets/stream/orbit-presenter-open.png";
+import closed from "@/assets/stream/orbit-presenter-closed-clean.png";
+import open from "@/assets/stream/orbit-presenter-open-clean.png";
 import { speakLine } from "@/lib/speech.functions";
 import { readVoiceKey } from "@/lib/voice-key";
 
