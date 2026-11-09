@@ -439,8 +439,29 @@
 
 /* Orbit stream glass cards: navy glass, thin light border, soft depth. */
 @utility orbit-glass {
-  background: color-mix(in oklab, var(--night) 62%, transparent);
-  border: 1px solid color-mix(in oklab, var(--night-fg) 18%, transparent);
-  box-shadow: 0 24px 60px -24px oklch(0 0 0 / 0.85), inset 0 1px 0 color-mix(in oklab, var(--night-fg) 12%, transparent);
+  background: var(--orbit-panel, var(--night-panel));
+  border: 1px solid color-mix(in oklab, var(--night-fg) 25%, transparent);
+  box-shadow: var(--orbit-shadow, none);
   backdrop-filter: blur(18px) saturate(140%);
 }
+
+/* Scoped newsroom art direction: never changes classic or the public globe. */
+[data-frame][data-variant="orbit"] {
+  --night: oklch(0.16 0.045 258);
+  --night-panel: oklch(0.23 0.055 258);
+  --night-line: oklch(0.52 0.07 252);
+  --night-muted: oklch(0.76 0.025 250);
+  --electric: oklch(0.76 0.12 246);
+  --electric-soft: oklch(0.87 0.07 245);
+  --destructive: oklch(0.55 0.22 27);
+  --orbit-atmosphere: rgb(69 158 255);
+  --orbit-streak: rgb(255 61 84);
+  --orbit-panel: linear-gradient(125deg, color-mix(in oklab, var(--night-panel) 94%, transparent), color-mix(in oklab, var(--night) 78%, transparent));
+  --orbit-shadow: 0 18px 48px -20px oklch(0 0 0 / 0.9), inset 0 1px 0 color-mix(in oklab, var(--electric-soft) 18%, transparent), 0 0 22px -12px var(--electric);
+  --orbit-desk: linear-gradient(180deg, color-mix(in oklab, var(--electric-soft) 40%, var(--night)), var(--night) 28%, color-mix(in oklab, var(--electric-soft) 16%, var(--night)) 65%, var(--night));
+  --orbit-shine: linear-gradient(100deg, transparent 40%, color-mix(in oklab, var(--night-fg) 22%, transparent) 50%, transparent 60%);
+  --orbit-scrim: linear-gradient(90deg, var(--night) 0%, transparent 35%, transparent 78%, color-mix(in oklab, var(--night) 35%, transparent) 100%), linear-gradient(0deg, var(--night), transparent 22%);
+}
+.orbit-desk { background: var(--orbit-desk); box-shadow: 0 -8px 32px -18px var(--electric); }
+.orbit-shine { background: var(--orbit-shine); }
+.orbit-scrim { background: var(--orbit-scrim); }
