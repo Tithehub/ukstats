@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classify, mergeReports, parsePoliceScotland, parseRss, toReports } from "./news-reports";
+import { classify, clusterReports, mergeReports, parsePoliceScotland, parseRss, toReports } from "./news-reports";
 
 const PLACES: [string, string, number, number, 0 | 1][] = [["United Kingdom", "Glasgow", 55.88, -4.25, 0], ["France", "Paris", 48.87, 2.33, 1]];
 const now = new Date("2026-11-03T22:00:00Z");
@@ -28,5 +28,18 @@ describe("news reports", () => {
   it("shows a headline once per publisher", () => {
     const a = toReports([{ title: "Glasgow protest", summary: "", link: "a", published: "2026-11-03T10:00:00Z" }], "BBC News", false, PLACES, now);
     expect(mergeReports([a, a])).toHaveLength(1);
+  });
+  it("groups located stories by place, riot wins, aviation and unlocated skipped", () => {
+    const base = { summary: "", link: "x", published: "2026-11-03T20:00:00Z", publisher: "BBC", official: false };
+    const items = [
+      { ...base, id: "1", kind: "protest" as const, title: "a", place: "Paris, France", lat: 1, lng: 2 },
+      { ...base, id: "2", kind: "riot" as const, title: "b", place: "Paris, France", lat: 1, lng: 2 },
+      { ...base, id: "3", kind: "protest" as const, title: "c", place: "Glasgow, United Kingdom", lat: 3, lng: 4 },
+      { ...base, id: "4", kind: "aviation" as const, title: "d", place: "Glasgow, United Kingdom", lat: 3, lng: 4 },
+      { ...base, id: "5", kind: "protest" as const, title: "e", place: null, lat: null, lng: null },
+    ];
+    const c = clusterReports(items);
+    expect(c.map((x) => [x.place, x.items.length, x.kind])).toEqual([["Paris, France", 2, "riot"], ["Glasgow, United Kingdom", 1, "protest"]]);
+    expect(clusterReports(items, (k) => k !== "riot")[0]!.items.length).toBe(1);
   });
 });

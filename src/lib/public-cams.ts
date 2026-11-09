@@ -21,6 +21,7 @@ export const CAM_SOURCES = {
   "Icelandic Road Administration": { country: "iceland", region: "Iceland", name: "Vegagerðin road cameras (open data)", url: "https://www.vegagerdin.is/", licence: "Vegagerðin open data", licenceUrl: "https://gagnaveita.vegagerdin.is/" },
   "Hong Kong Transport Department": { country: "china", region: "Hong Kong", name: "Traffic snapshot images (DATA.GOV.HK)", url: "https://data.gov.hk/en-data/dataset/hk-td-tis_2-traffic-snapshot-images", licence: "DATA.GOV.HK terms", licenceUrl: "https://data.gov.hk/en/terms-and-conditions" },
   "NZ Transport Agency": { country: "new zealand", region: "New Zealand", name: "NZTA traffic cameras (trafficnz.info)", url: "https://trafficnz.info/", licence: "CC BY 4.0, NZ Transport Agency Waka Kotahi", licenceUrl: "https://www.nzta.govt.nz/about-us/about-this-site/copyright/" },
+  "Oregon DOT": { country: "united states", region: "Oregon", name: "ODOT TripCheck road cameras", url: "https://tripcheck.com/", licence: "Oregon Department of Transportation, TripCheck", licenceUrl: "https://tripcheck.com/Pages/Terms-of-Use" },
   "Lithuanian Road Administration": { country: "lithuania", region: "Lithuania", name: "Eismoinfo road cameras", url: "https://eismoinfo.lt/", licence: "Lietuvos automobilių kelių direkcija", licenceUrl: "https://eismoinfo.lt/" },
 } as const;
 export type CamOperator = keyof typeof CAM_SOURCES;
@@ -177,6 +178,20 @@ export function parseLithuaniaCams(json: unknown): PublicCam[] {
     const [lat, lng] = lks94ToLatLng(Number(c.x), Number(c.y));
     if (!okCoord(lat, lng)) continue;
     out.push({ id: `lt-${c.id}`, lat, lng, place: `${c.name ?? "Road camera"}${c.roadName ? ` (${c.roadName})` : ""}, Lithuania`, operator: "Lithuanian Road Administration", image, everyMin: 10 });
+  }
+  return out;
+}
+
+/** Oregon DOT TripCheck camera inventory (Esri JSON, lat/lng given in attributes). Stills refreshed by ODOT. */
+export function parseOregonCams(json: unknown): PublicCam[] {
+  const f = (json as { features?: unknown[] })?.features;
+  if (!Array.isArray(f)) return [];
+  const out: PublicCam[] = []; const seen = new Set<string>();
+  for (const x of f as { attributes?: { cameraId?: number; filename?: string; latitude?: number; longitude?: number; title?: string } }[]) {
+    const a = x.attributes; const file = a?.filename;
+    if (!a || !file || !/^[\w.-]+\.jpe?g$/i.test(file) || seen.has(file) || !okCoord(Number(a.latitude), Number(a.longitude))) continue;
+    seen.add(file);
+    out.push({ id: `or-${file.replace(/\.jpe?g$/i, "")}`, lat: Number(a.latitude), lng: Number(a.longitude), place: `${(a.title ?? "Road camera").trim()}, Oregon`, operator: "Oregon DOT", image: `https://tripcheck.com/RoadCams/cams/${file}`, everyMin: 5 });
   }
   return out;
 }

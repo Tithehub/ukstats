@@ -3,6 +3,8 @@ import Globe, { type GlobeMethods } from "react-globe.gl";
 import { feature } from "topojson-client";
 import topo from "world-atlas/countries-110m.json";
 import earth from "@/assets/earth-blue-marble.jpg";
+import nightLights from "@/assets/earth-night-lights.jpg";
+import cloudsAlpha from "@/assets/earth-clouds-alpha.jpg";
 import * as THREE from "three";
 import { countryKey, type AcledEvent, type UnrestKind } from "@/lib/unrest";
 import { mapName } from "@/lib/migration-flows";
@@ -288,21 +290,36 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     return `rgba(${Math.round(30 + 200 * s)}, ${Math.round(110 + 80 * s)}, ${Math.round(220 - 150 * s)}, 0.75)`;
   };
 
-  // Night side: a slightly larger dark shell, transparent on the sunlit half.
+  // Day/night: the globe surface itself blends the daylight picture with city lights on the night side,
+  // plus a soft orange glow along the sunrise/sunset line.
+  const dayNightMat = useMemo(() => {
+    const load = new THREE.TextureLoader();
+    const day = load.load(earth), night = load.load(nightLights);
+    for (const t of [day, night]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
+    return new THREE.ShaderMaterial({
+      uniforms: { dayT: { value: day }, nightT: { value: night }, sun: { value: new THREE.Vector3(1, 0, 0) } },
+      vertexShader: "varying vec3 vN; varying vec2 vUv; void main(){ vUv = uv; vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dt = texture2D(dayT, vUv).rgb; vec3 dc = dt * (0.6 + 0.55 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(2.4, 2.0, 1.4) + dt * 0.07; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
+    });
+  }, []);
+  const plainMat = useMemo(() => new THREE.MeshPhongMaterial({ shininess: 6 }), []);
   useEffect(() => {
     const g = ref.current; if (!g || !dayNight) return;
-    const mat = new THREE.ShaderMaterial({
-      transparent: true, depthWrite: false,
-      uniforms: { sun: { value: new THREE.Vector3(1, 0, 0) } },
-      vertexShader: "varying vec3 vN; void main(){ vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform vec3 sun; varying vec3 vN; void main(){ float d = dot(vN, normalize(sun)); float n = smoothstep(0.08, -0.12, d); float edge = (1.0 - smoothstep(0.0, 0.06, abs(d))) * 0.35; gl_FragColor = vec4(mix(vec3(0.0,0.02,0.08), vec3(1.0,0.55,0.2), edge), n * 0.62 + edge * 0.25); }",
-    });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(100.6, 96, 64), mat);
-    const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); mat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
-    set(); g.scene().add(mesh);
+    const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); dayNightMat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
+    set();
     const t = setInterval(set, 60_000);
-    return () => { clearInterval(t); g.scene().remove(mesh); mesh.geometry.dispose(); mat.dispose(); };
-  }, [dayNight, gl0]);
+    return () => clearInterval(t);
+  }, [dayNight, gl0, dayNightMat]);
+  // Faint drifting clouds — desktop only, never with reduced motion, so phones stay fast.
+  useEffect(() => {
+    const g = ref.current; if (!g || !gl0 || coarse || still) return;
+    const tex = new THREE.TextureLoader().load(cloudsAlpha);
+    const mat = new THREE.MeshLambertMaterial({ color: "#ffffff", alphaMap: tex, transparent: true, opacity: 0.32, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(g.getGlobeRadius() * 1.006, 64, 48), mat);
+    g.scene().add(mesh);
+    let raf = 0; const spin = () => { mesh.rotation.y += 0.00012; raf = requestAnimationFrame(spin); }; raf = requestAnimationFrame(spin);
+    return () => { cancelAnimationFrame(raf); g.scene().remove(mesh); mesh.geometry.dispose(); mat.dispose(); tex.dispose(); };
+  }, [gl0, coarse, still]);
   useEffect(() => {
     const g = ref.current; if (!g || !preset) return;
     g.controls().autoRotate = false;
@@ -338,8 +355,10 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         height={size.h}
         backgroundColor="rgba(0,0,0,0)"
         globeImageUrl={earth}
+        globeMaterial={dayNight ? dayNightMat : plainMat}
         showAtmosphere
         atmosphereColor="#7fb2ff"
+        atmosphereAltitude={0.2}
         polygonsData={FEATURES}
         polygonAltitude={(f) => (countryKey((f as Feat).properties.name) === selected ? 0.03 : 0.008)}
         polygonCapColor={cap}
@@ -348,7 +367,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
         onPolygonClick={(f) => { if (moved.current) return; const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
-        onGlobeReady={() => setGl0(true)}
+        onGlobeReady={() => { ref.current?.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)); setGl0(true); }}
+        rendererConfig={{ antialias: !coarse, powerPreference: "high-performance" }}
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}
         pointLng={(e) => (e as { lng: number }).lng}
@@ -366,7 +386,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         objectLng={(m) => (m as GlobeMarker).lng}
         objectAltitude={0.035}
         objectFacesSurfaces
-        objectLabel={(m) => (m as GlobeMarker).label}
+        objectLabel={(m) => `<div style="max-width:320px;background:#051D3F;color:#fff;padding:6px 8px;border-radius:6px;font:12px sans-serif;white-space:normal">${(m as GlobeMarker).label.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!).replace(/\n/g, "<br/>")}</div>`}
         objectThreeObject={(m) => { const x = m as GlobeMarker & { boat?: boolean }; const o = icons.current.get(x.id) ?? (x.boat ? makeBoat((x as { color?: string }).color) : makeIcon(x.kind, !!x.research)); icons.current.set(x.id, o); return o; }}
         onObjectClick={(m) => { if (!(m as { boat?: boolean }).boat) onMarker?.((m as GlobeMarker).id); }}
         arcsData={arcs}

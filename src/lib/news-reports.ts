@@ -53,6 +53,19 @@ export function toReports(raw: RawItem[], publisher: string, official: boolean, 
   });
 }
 
+export interface ReportCluster { id: string; place: string; lat: number; lng: number; kind: "riot" | "protest"; items: ReportItem[] }
+/** Group located protest/riot headlines by place: one globe marker per place. Riot wins the icon if any story is a riot. Biggest groups first. */
+export function clusterReports(items: ReportItem[], keep: (k: ReportKind) => boolean = () => true): ReportCluster[] {
+  const by = new Map<string, ReportCluster>();
+  for (const r of items) {
+    if (r.lat === null || r.lng === null || !r.place || r.kind === "aviation" || !keep(r.kind)) continue;
+    const c = by.get(r.place) ?? { id: `news|${r.place}`, place: r.place, lat: r.lat, lng: r.lng, kind: "protest" as const, items: [] };
+    c.items.push(r); if (r.kind === "riot") c.kind = "riot";
+    by.set(r.place, c);
+  }
+  return [...by.values()].sort((a, b) => b.items.length - a.items.length || a.place.localeCompare(b.place));
+}
+
 /** Newest first; the same headline from two feeds of one publisher appears once. */
 export function mergeReports(lists: ReportItem[][]): ReportItem[] {
   const seen = new Set<string>();
