@@ -14,6 +14,9 @@ One MP4 file in Files, about 3–4 minutes long, made by recording the new strea
 
 The brunette presenter moves her mouth and sways throughout, and her voice reads the real scripts, so you can hear her in the video.
 
+## Backdrop
+Right now the new stream uses the site's real live globe, not the 32-second video. Before recording, I'll bring that video's look onto the stream: the same navy and red colours, twinkling city lights, red streaks sweeping round the orbit lines, pulse rings, and the shine across the title bar. It stays a real globe, so it can still turn to each country being reported.
+
 ## Notes
 - Only real published figures and headlines appear, because it records the real stream.
 - The live stream and the site stay unchanged.
