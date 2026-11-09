@@ -299,7 +299,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     return new THREE.ShaderMaterial({
       uniforms: { dayT: { value: day }, nightT: { value: night }, sun: { value: new THREE.Vector3(1, 0, 0) } },
       vertexShader: "varying vec3 vN; varying vec2 vUv; void main(){ vUv = uv; vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dt = texture2D(dayT, vUv).rgb; vec3 dc = dt * (0.6 + 0.55 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(1.3, 1.08, 0.8) + dt * 0.07; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
+      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dt = texture2D(dayT, vUv).rgb; vec3 dc = dt * (0.6 + 0.55 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(2.4, 2.0, 1.4) + dt * 0.07; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
     });
   }, []);
   const plainMat = useMemo(() => new THREE.MeshPhongMaterial({ shininess: 6 }), []);
