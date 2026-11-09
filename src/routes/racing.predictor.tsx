@@ -8,9 +8,9 @@ import { reasoningQuery } from "@/lib/racing/predictor.functions";
 
 type Day = "today" | "tomorrow";
 export const Route = createFileRoute("/racing/predictor")({
-  validateSearch: (s: Record<string, unknown>): { day?: Day; race?: string } => ({
-    day: s.day === "tomorrow" ? "tomorrow" : undefined,
-    race: typeof s.race === "string" ? s.race.slice(0, 120) : undefined,
+  validateSearch: (s: Record<string, unknown>): { day?: Day | undefined; race?: string | undefined } => ({
+    day: s["day"] === "tomorrow" ? "tomorrow" : undefined,
+    race: typeof s["race"] === "string" ? s["race"].slice(0, 120) : undefined,
   }),
   loaderDeps: ({ search }) => ({ day: search.day ?? "today" }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(racecardsQuery(deps.day)),
@@ -58,7 +58,7 @@ function Page() {
   </RacingLayout>;
 }
 
-function Picker({ meetings, selected, nextId, onPick }: { meetings: MeetingRow[]; selected?: string; nextId?: string; onPick: (id: string) => void }) {
+function Picker({ meetings, selected, nextId, onPick }: { meetings: MeetingRow[]; selected?: string | undefined; nextId?: string | undefined; onPick: (id: string) => void }) {
   return <nav aria-label="Choose a race" className="space-y-3">
     {meetings.map((m) => <div key={m.id} className="rounded-lg border border-night-line bg-night-panel p-3">
       <p className="font-semibold">{m.course?.name}</p>
