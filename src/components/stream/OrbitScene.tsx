@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { BarChart3, CloudSun, Globe2, Plane, Scale, ShieldAlert, Ship, ChevronRight } from "lucide-react";
 import { fmtDate } from "@/lib/uk-stats";
-import { countUp, sparkPath, tilePage, type OrbitScene } from "@/lib/stream-orbit";
+import { sparkPath, tilePage, type OrbitScene } from "@/lib/stream-orbit";
 import type { Headline, Segment, StreamCard } from "@/lib/stream-rundown";
 
 const SCENE_LABEL: Record<OrbitScene, string> = {
@@ -10,16 +10,8 @@ const SCENE_LABEL: Record<OrbitScene, string> = {
 
 /** Counts up to the exact published string; non-numeric values appear as published. */
 function CountUp({ value }: { value: string }) {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    let raf = 0; const t0 = performance.now();
-    const tick = (t: number) => { const k = Math.min(1, (t - t0) / 1400); setP(k); if (k < 1) raf = requestAnimationFrame(tick); };
-    setP(0); raf = requestAnimationFrame(tick);
-    // Always land on the exact published value, even if animation frames are throttled (slow encoders, background tabs).
-    const done = setTimeout(() => setP(1), 1600);
-    return () => { cancelAnimationFrame(raf); clearTimeout(done); };
-  }, [value]);
-  return <>{countUp(value, p)}</>;
+  // Animate the panel, never an intermediate number that could be mistaken for a real figure.
+  return <>{value}</>;
 }
 
 function Tile({ card, active, i }: { card: StreamCard; active: boolean; i: number }) {
@@ -47,7 +39,7 @@ export function OrbitPanel({ seg, scene, step, place }: { seg: Segment | undefin
   const heads = seg?.headlines ?? [];
   const { idx, start } = tilePage(cards.length, step);
   const page = cards.slice(start, start + 8);
-  const head = heads.length ? heads[step % heads.length]! : null;
+  const head = heads[step % heads.length] ?? null;
   const active = cards[idx];
   return <section data-fit className="relative flex h-full flex-col gap-3 overflow-hidden">
     <div key={`sweep-${seg?.id}`} aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(100deg,transparent_30%,oklch(1_0_0/0.14)_50%,transparent_70%)] motion-safe:animate-[orbit-sweep_1.2s_ease-out_both]" />
@@ -103,30 +95,30 @@ export function OrbitRail({ now, items }: { now: string; items: string[] }) {
 export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | undefined; scene: OrbitScene; step: number; place: string }) {
   const cards = seg?.cards ?? [];
   const heads = seg?.headlines ?? [];
-  const card = cards.length ? cards[step % cards.length]! : null;
-  const head = !card && heads.length ? heads[step % heads.length]! : null;
-  const label = scene === "world" ? `${place} headline` : seg?.title ?? SCENE_LABEL[scene];
+  const card = cards[step % cards.length] ?? null;
+  const head = !card ? heads[step % heads.length] ?? null : null;
+  const label = scene === "world" ? `${place} · official figures` : seg?.title ?? SCENE_LABEL[scene];
   const red = scene === "warnings" || scene === "migration" || head?.official;
   const sp = card?.metric?.spark?.filter((x) => Number.isFinite(x)) ?? [];
   // No rise/fall percentage: the publisher does not state one, so we never compute it.
   const lo = sp.length ? Math.min(...sp) : 0, hi = sp.length ? Math.max(...sp) : 0;
   const bars = scene !== "migration" && sp.length >= 2;
-  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-xl p-7 motion-safe:animate-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
-    <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,transparent_30%,oklch(1_0_0/0.16)_50%,transparent_70%)] motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" />
+  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-lg p-7 motion-safe:animate-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
+    <div aria-hidden className="orbit-shine pointer-events-none absolute inset-0 motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" />
     <div className="flex items-center justify-between gap-4">
-      <span className="truncate text-[26px] font-black uppercase tracking-wide">{label}</span>
-      <span className="size-9 shrink-0 rounded-full border-2 border-night-fg/70 motion-safe:animate-[spin_12s_linear_infinite] [background:repeating-linear-gradient(90deg,transparent_0_6px,oklch(1_0_0/0.4)_6px_8px)]" aria-hidden />
+      <span className="min-w-0 text-[22px] font-bold uppercase leading-tight">{label}</span>
+      <Globe2 className="size-9 shrink-0 text-electric-soft" aria-hidden />
     </div>
-    <div className={`mt-3 h-[5px] w-28 rounded ${red ? "bg-destructive" : "bg-stream-yellow"} motion-safe:animate-in motion-safe:slide-in-from-left-10 motion-safe:duration-700`} />
+    <div className="mt-4 h-px bg-night-fg/20"><div className={`h-[3px] w-44 ${red ? "bg-destructive" : "bg-destructive"} motion-safe:animate-in motion-safe:slide-in-from-left-10 motion-safe:duration-700`} /></div>
     {card ? <>
-      <p className="mt-5 line-clamp-2 text-[44px] font-black uppercase leading-[1.05]">{card.title}</p>
+      <p className="mt-7 line-clamp-3 text-[42px] font-bold uppercase leading-[1.1]">{card.title}</p>
       <div className="mt-5 flex items-baseline gap-5">
-        <span className="truncate text-[84px] font-black leading-none tabular-nums text-electric-soft drop-shadow-[0_0_24px_var(--electric)]"><CountUp value={card.value} /></span>
+        <span className={`min-w-0 font-bold leading-none tabular-nums text-electric-soft ${card.value.length > 12 ? "text-[48px]" : card.value.length > 8 ? "text-[62px]" : "text-[80px]"}`}><CountUp value={card.value} /></span>
         {(scene === "weather" || scene === "warnings") && <span className="shrink-0 rounded bg-stream-yellow px-3 py-1 text-[26px] font-black uppercase text-night motion-safe:animate-pulse">⚠ Alert</span>}
       </div>
       {bars && <div className="mt-4 flex h-[56px] items-end gap-1.5" aria-hidden>{sp.slice(-16).map((x, i, a) => <span key={i} className={`flex-1 origin-bottom rounded-t ${i === a.length - 1 ? "bg-stream-yellow" : "bg-electric/70"}`} style={{ height: `${15 + ((x - lo) / (hi - lo || 1)) * 85}%`, animation: `orbit-grow 0.9s ${i * 60}ms ease-out both` }} />)}</div>}
       {(() => { const d = !bars && sp.length >= 2 ? sparkPath(sp, 560, 48) : null; return d ? <svg viewBox="0 0 560 48" preserveAspectRatio="none" className="mt-4 h-[44px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={4} className="stroke-stream-yellow" style={{ strokeDasharray: 1000, animation: "orbit-draw 2s ease-out both" }} /></svg> : null; })()}
-      <p className="mt-4 truncate font-mono text-[18px] uppercase tracking-wide text-night-muted">{card.source}{card.period ? ` · ${card.period}` : ""}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</p>
+      <p className="mt-6 border-t border-night-fg/15 pt-4 font-mono text-[15px] leading-relaxed text-night-muted">{card.source}{card.period ? ` · ${card.period}` : ""}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</p>
     </> : head ? <>
       <span className={`mt-5 inline-block rounded px-3 py-1 font-mono text-[16px] font-black uppercase tracking-widest ${head.official ? "bg-destructive text-destructive-foreground" : "bg-electric text-night"}`}>{head.official ? "Official warning" : "News report — not official"}</span>
       <p className="mt-4 line-clamp-4 text-[40px] font-black leading-[1.12]">{head.text}</p>
@@ -139,29 +131,28 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
 export function OrbitMiniTiles({ seg, step }: { seg: Segment | undefined; step: number }) {
   const cards = seg?.cards ?? [];
   if (cards.length < 2) return null;
-  const pick = [1, 2, 3].map((i) => cards[(step + i) % cards.length]!).filter((c, i, a) => a.findIndex((x) => x.title === c.title) === i && c !== cards[step % cards.length]);
-  return <div key={`${seg?.id}-${step}`} className="grid grid-cols-3 gap-3">
-    {pick.slice(0, 3).map((c, i) => <div key={c.title} className="min-w-0 rounded-lg border border-night-line bg-night/75 px-3 py-2 backdrop-blur-md motion-safe:animate-in motion-safe:slide-in-from-bottom-6" style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: "both" }}>
-      <div className="truncate font-mono text-[13px] font-bold uppercase tracking-widest text-electric">{c.title}</div>
+  const pick = [1, 2, 3].flatMap((i) => { const c = cards[(step + i) % cards.length]; return c ? [c] : []; }).filter((c, i, a) => a.findIndex((x) => x.title === c.title) === i && c !== cards[step % cards.length]);
+  return <div key={`${seg?.id}-${step}`} className="grid grid-cols-2 gap-3">
+    {pick.slice(0, 2).map((c, i) => <div key={c.title} className="orbit-glass min-w-0 rounded-lg px-4 py-3 motion-safe:animate-in motion-safe:slide-in-from-bottom-6" style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: "both" }}>
+      <div className="line-clamp-2 min-h-[36px] text-[15px] font-bold uppercase leading-tight text-night-muted">{c.title}</div>
       <div className="truncate text-[28px] font-black tabular-nums"><CountUp value={c.value} /></div>
       <div className="truncate font-mono text-[12px] text-night-muted">{c.source}</div>
     </div>)}
   </div>;
 }
 
-const ICON: [RegExp, string][] = [[/debt|borrow|spend|tax|gdp|inflation|price/i, "▮▮▮"], [/boat|migra|asylum|cross/i, "⛴"], [/weather|rain|wind|storm/i, "☁"], [/warn|alert/i, "⚠"], [/crime|police/i, "⚖"], [/flight|sky/i, "✈"], [/world|around|countr/i, "◍"]];
-const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? "▸";
+const ICON = [[/debt|borrow|spend|tax|gdp|inflation|price/i, BarChart3], [/boat|migra|asylum|cross/i, Ship], [/weather|rain|wind|storm/i, CloudSun], [/warn|alert/i, ShieldAlert], [/crime|police/i, Scale], [/flight|sky/i, Plane], [/world|around|countr/i, Globe2]] as const;
+const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? ChevronRight;
 
 /** NEXT UP rail like the reference: icon, title and real start time, the next item highlighted. */
 export function OrbitNextUp({ now, items }: { now: string; items: { title: string; time: string | null }[] }) {
-  return <section className="orbit-glass overflow-hidden rounded-xl">
+  return <section className="orbit-glass overflow-hidden rounded-lg">
     <div className="flex items-center gap-2 px-4 pt-3"><span className="h-5 w-1 bg-destructive" /><span className="font-mono text-[20px] font-black uppercase tracking-widest">Next up</span></div>
     <div key={now} className="mx-3 mt-2 truncate rounded border-l-4 border-destructive bg-destructive/15 px-3 py-1.5 text-[18px] font-bold motion-safe:animate-in motion-safe:slide-in-from-left-4">
       <span className="mr-2 font-mono text-[13px] uppercase text-destructive">On air</span>{now}</div>
     <ol className="space-y-1 p-3">{items.slice(0, 3).map((u, i) => <li key={u.title} className={`flex items-center gap-3 rounded px-2 py-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 ${i === 0 ? "border-l-4 border-stream-yellow bg-stream-yellow/15" : ""}`} style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
-      <span className="w-10 shrink-0 text-center text-[24px] text-electric-soft" aria-hidden>{iconFor(u.title)}</span>
-      <span className="min-w-0 flex-1"><span className="block truncate text-[20px] font-black uppercase">{u.title}</span>{u.time && <span className="font-mono text-[16px] text-night-muted">{u.time}</span>}</span>
-      {i === 0 && <span className="shrink-0 rounded bg-stream-yellow px-1.5 font-mono text-[12px] font-black uppercase text-night">On next</span>}
+      <span className="w-10 shrink-0 text-electric-soft" aria-hidden>{(() => { const Icon = iconFor(u.title); return <Icon className="size-8" />; })()}</span>
+      <span className="min-w-0 flex-1"><span className="block text-[19px] font-bold uppercase leading-tight">{u.title}</span>{u.time && <span className="font-mono text-[16px] text-night-muted">{u.time}</span>}</span>
     </li>)}</ol>
   </section>;
 }
