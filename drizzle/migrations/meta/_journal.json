@@ -176,6 +176,13 @@
       "when": 1794203606394,
       "tag": "0024_racing_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794214327305,
+      "tag": "0025_remove_public_read_reference_tables",
+      "breakpoints": true
     }
   ]
 }
