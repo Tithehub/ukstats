@@ -135,10 +135,10 @@ function ReportsPage() {
                   {([monthly, yearly] as const).map((id) => {
                     const p = REPORT_PRICES[id] as { edition: ReportEdition; pence: number; interval: "month" | "year"; label: string };
                     return (
-                      <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-                        <div><p className="font-bold">{gbp(p.pence)} <span className="text-sm font-normal text-muted-foreground">/ {p.interval}</span></p>
+                      <div key={id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border p-3">
+                        <div className="min-w-0"><p className="font-bold">{gbp(p.pence)} <span className="text-sm font-normal text-muted-foreground">/ {p.interval}</span></p>
                           <p className="text-xs text-muted-foreground"><s>{gbp(dailyEquivalent(p.edition, p.interval))}</s> bought daily · save {savingPercent(id)}% · daily, weekly and monthly editions</p></div>
-                        <Button size="sm" variant="secondary" onClick={() => buy(id)} disabled={!env || !!activeSub}>Subscribe</Button>
+                        <Button className="min-h-11 shrink-0" size="sm" variant="secondary" onClick={() => buy(id)} disabled={!env || !!activeSub}>Subscribe</Button>
                       </div>
                     );
                   })}
@@ -173,14 +173,14 @@ function ReportsPage() {
 
         <section className="mt-8" aria-labelledby="archive">
           <h2 id="archive" className="text-2xl font-black">Report archive</h2>
-          <div className="mt-3 overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-primary text-primary-foreground"><tr><th className="px-3 py-2 text-left">Date</th><th className="px-3 py-2 text-left">UK report</th><th className="px-3 py-2 text-left">Global report</th></tr></thead>
-              <tbody>
+          <div className="mt-3 overflow-hidden rounded-lg border border-border">
+            <table className="block w-full text-sm sm:table">
+              <thead className="sr-only bg-primary text-primary-foreground sm:not-sr-only sm:table-header-group"><tr><th scope="col" className="px-3 py-2 text-left">Date</th><th scope="col" className="px-3 py-2 text-left">UK report</th><th scope="col" className="px-3 py-2 text-left">Global report</th></tr></thead>
+              <tbody className="block w-full sm:table-row-group">
                 {dates.map((d) => (
-                  <tr key={d} className="border-t border-border">
-                    <td className="px-3 py-2 font-semibold">{longDate(d)}{d === today && <span className="ml-2 rounded bg-primary px-1.5 py-0.5 font-mono text-[10px] uppercase text-primary-foreground">Today</span>}</td>
-                    {(["uk", "global"] as const).map((ed) => <td key={ed} className="px-3 py-2">{d === today || built(ed, d) ? <Action edition={ed} kind="daily" date={d} /> : <span className="text-xs text-muted-foreground">Not built</span>}</td>)}
+                  <tr key={d} className="grid grid-cols-2 border-t border-border sm:table-row">
+                    <th scope="row" className="col-span-2 px-3 py-3 text-left font-semibold sm:py-2">{longDate(d)}{d === today && <span className="ml-2 rounded bg-primary px-1.5 py-0.5 font-mono text-[10px] uppercase text-primary-foreground">Today</span>}</th>
+                    {(["uk", "global"] as const).map((ed) => <td key={ed} className="min-w-0 px-3 pb-3 sm:py-2"><span aria-hidden="true" className="mb-2 block text-xs font-semibold sm:hidden">{ed === 'uk' ? 'UK report' : 'Global report'}</span>{d === today || built(ed, d) ? <Action edition={ed} kind="daily" date={d} /> : <span className="text-xs text-muted-foreground">Not built</span>}</td>)}
                   </tr>
                 ))}
                 {periodic.map((e) => (

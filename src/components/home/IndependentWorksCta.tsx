@@ -17,7 +17,7 @@ export function IndependentWorksCta() {
             <p className="mt-1 text-sm text-muted-foreground">Rupert Lowe MP and Restore Britain</p>
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
-            <a {...ext} href="https://www.therapeganginquiry.org/" className={`${btn} bg-onair text-onair-foreground`}>Visit the inquiry <ExternalLink className="size-4" /></a>
+            <a {...ext} href="https://www.therapeganginquiry.org/" className={`${btn} bg-onair-readable text-desk-fg`}>Visit the inquiry <ExternalLink className="size-4" /></a>
             <a {...ext} href="https://restorebritain.substack.com/p/an-important-announcement-from-rupert" className={`${btn} border border-border`}>Restore Britain announcement</a>
           </div>
         </article>

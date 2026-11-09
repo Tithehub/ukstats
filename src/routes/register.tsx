@@ -216,8 +216,8 @@ function Dashboard() {
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-5 font-mono text-[11px] text-steel">
-          <span className="font-semibold uppercase tracking-[0.14em] text-steel/70">Data age</span>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-5 font-mono text-[11px] text-night-muted">
+          <span className="font-semibold uppercase tracking-[0.14em] text-night-muted">Data age</span>
           <span className="inline-flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-fresh" />Fresh · updated &lt;7d
           </span>
@@ -227,7 +227,7 @@ function Dashboard() {
           <span className="inline-flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-overdue" />Overdue · past due date
           </span>
-          <span className="ml-auto hidden text-steel/50 sm:inline">
+          <span className="ml-auto hidden text-night-muted sm:inline">
             Figures are reproduced verbatim from the issuing body; nothing is estimated.
           </span>
         </div>
@@ -256,14 +256,14 @@ function Dashboard() {
 
         {costGroups.some((g) => g.metrics.length) ? (
           <section className="mt-10">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">Cost of living</h2>
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-night-muted">Cost of living</h2>
             {costGroups
               .filter((g) => g.metrics.length)
               .map((g) => (
                 <div key={g.title} className="mt-5">
                   <div className="flex flex-wrap items-baseline gap-x-3">
                     <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
-                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
+                    <p className="font-mono text-[11px] text-night-muted">{g.blurb}</p>
                   </div>
                   <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {g.metrics.map((m) => (
@@ -277,14 +277,14 @@ function Dashboard() {
 
         {crimeGroups.some((g) => g.metrics.length) ? (
           <section className="mt-10">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">Crime</h2>
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-night-muted">Crime</h2>
             {crimeGroups
               .filter((g) => g.metrics.length)
               .map((g) => (
                 <div key={g.title} className="mt-5">
                   <div className="flex flex-wrap items-baseline gap-x-3">
                     <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
-                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
+                    <p className="font-mono text-[11px] text-night-muted">{g.blurb}</p>
                   </div>
                   <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {g.metrics.map((m, i) => (
@@ -299,7 +299,7 @@ function Dashboard() {
 
         {irregularGroups.some((g) => g.metrics.length) ? (
           <section className="mt-10">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-night-muted">
               Irregular immigration &amp; cost
             </h2>
             {irregularGroups
@@ -308,7 +308,7 @@ function Dashboard() {
                 <div key={g.title} className="mt-5">
                   <div className="flex flex-wrap items-baseline gap-x-3">
                     <h3 className="text-sm font-semibold tracking-tight">{g.title}</h3>
-                    <p className="font-mono text-[11px] text-steel/60">{g.blurb}</p>
+                    <p className="font-mono text-[11px] text-night-muted">{g.blurb}</p>
                   </div>
                   <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {g.metrics.map((m, i) => (

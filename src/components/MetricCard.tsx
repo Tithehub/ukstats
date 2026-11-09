@@ -20,7 +20,7 @@ const freshText: Record<Freshness, string> = {
   fresh: "text-fresh",
   ageing: "text-ageing",
   overdue: "text-overdue",
-  unknown: "text-steel/60",
+  unknown: "text-muted-foreground",
 };
 const freshBg: Record<Freshness, string> = {
   fresh: "bg-fresh",
@@ -74,7 +74,7 @@ function Breakdown({ parts }: { parts: NonNullable<Metric["breakdown"]> }) {
           />
         ))}
       </div>
-      <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] text-steel/70">
+      <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] text-muted-foreground">
         {parts.map((p) => (
           <li key={p.label} className={p.highlight ? "text-ink" : undefined}>
             <span className={`mr-1 inline-block size-1.5 rounded-full align-middle ${p.highlight ? "bg-brand" : "bg-steel/35"}`} />
@@ -97,7 +97,7 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
       <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent" />
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-steel/60">
+          <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             {(() => {
               const Icon = categoryIcon(metric.category);
               return <Icon className="size-3.5 shrink-0" aria-hidden="true" />;
@@ -122,11 +122,11 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
           {metric.value ? (
             <span className="font-mono text-[2.1rem] font-semibold tracking-tighter tabular-nums">{metric.value}</span>
           ) : (
-            <span className="font-mono text-[1.35rem] font-semibold tracking-tight text-steel/70">
+            <span className="font-mono text-[1.35rem] font-semibold tracking-tight text-muted-foreground">
               {metric.emptyLabel ?? (metric.status === "no-feed" ? "No live feed" : "Unavailable")}
             </span>
           )}
-          <p className="mt-1 font-mono text-[11px] text-steel/70">
+          <p className="mt-1 font-mono text-[11px] text-muted-foreground">
             {metric.period ?? metric.sub}
             {metric.change ? (
               <>
@@ -152,14 +152,14 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
           <span className={`size-1.5 rounded-full ${freshBg[tone]} ${tone === "fresh" ? "pulse-dot" : ""}`} />
           {freshLabel[tone]} · as of {fmtDate(metric.asOf)}
         </span>
-        <span className={tone === "overdue" ? "text-overdue/80" : "text-steel/60"}><ClockText>{dueLabel(metric.nextDue)}</ClockText></span>
+        <span className={tone === "overdue" ? "text-overdue/80" : "text-muted-foreground"}><ClockText>{dueLabel(metric.nextDue)}</ClockText></span>
       </div>
 
-      <p className="mt-1 font-mono text-[10px] text-steel/50">
+      <p className="mt-1 font-mono text-[10px] text-muted-foreground">
         <ClockText>{ageLabel(metric.asOf)}</ClockText> · {metric.cadence}
       </p>
       {metric.covers || metric.unknownFrom ? (
-        <div className="mt-2 rounded-md bg-ink/[0.04] px-2 py-1.5 font-mono text-[10px] leading-relaxed text-steel/70">
+        <div className="mt-2 rounded-md bg-ink/[0.04] px-2 py-1.5 font-mono text-[10px] leading-relaxed text-muted-foreground">
           {metric.covers ? <p>Covers: {metric.covers}</p> : null}
           {metric.unknownFrom ? (
             <p className="text-overdue/80">
@@ -206,7 +206,7 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
           <CircleHelp className="size-4" aria-hidden="true" />
           Explained
         </Link>
-        <code className="ml-auto hidden font-mono text-[10px] text-steel/50 lg:block">{metric.id}</code>
+        <code className="ml-auto hidden font-mono text-[10px] text-muted-foreground lg:block">{metric.id}</code>
       </div>
 
 
@@ -233,16 +233,16 @@ export function MetricCard({ metric, origin }: { metric: Metric; origin: string 
       {panel === "provenance" ? (
         <div className="mt-3 rounded-md bg-ink/5 p-3 font-mono text-[11px] text-steel">
           <p>
-            <span className="text-steel/60">Issuing body:</span> {metric.source}
+            <span className="text-muted-foreground">Issuing body:</span> {metric.source}
           </p>
           <p className="mt-1">
-            <span className="text-steel/60">Reference period:</span> {metric.period ?? "—"}
+            <span className="text-muted-foreground">Reference period:</span> {metric.period ?? "—"}
           </p>
           <p className="mt-1">
-            <span className="text-steel/60">Next scheduled release:</span>{" "}
+            <span className="text-muted-foreground">Next scheduled release:</span>{" "}
             {metric.nextDue ? fmtDate(metric.nextDue) : "not announced by the publisher"}
           </p>
-          {metric.note ? <p className="mt-2 text-pretty text-steel/80">{metric.note}</p> : null}
+          {metric.note ? <p className="mt-2 text-pretty text-muted-foreground">{metric.note}</p> : null}
           <a
             href={metric.sourceUrl}
             target="_blank"

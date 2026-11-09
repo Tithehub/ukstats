@@ -39,6 +39,8 @@
   --color-desk-muted: var(--desk-muted);
   --color-desk-line: var(--desk-line);
   --color-onair: var(--onair);
+  --color-onair-readable: var(--onair-readable);
+  --color-alert-red-readable: var(--alert-red-readable);
   --color-night-panel: var(--night-panel);
   --color-night-line: var(--night-line);
   --color-night-fg: var(--night-fg);
@@ -122,6 +124,8 @@
   --desk-muted: oklch(0.78 0.025 254);
   --desk-line: oklch(0.36 0.05 257.5);
   --onair: oklch(0.58 0.22 27);
+  --onair-readable: oklch(0.53 0.2 27);
+  --alert-red-readable: oklch(0.52 0.2 27);
   --electric: oklch(0.9 0.025 257.5);
   --electric-soft: oklch(0.83 0.035 257.5);
   --dedication: oklch(0.985 0.003 257.5);

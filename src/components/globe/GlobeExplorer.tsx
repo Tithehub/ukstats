@@ -347,11 +347,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
       </Suspense></ClientOnly>}
       {cam && <CamViewer cam={cam} all={globeCams} onPick={setCamId} onClose={() => setCamId(null)} />}
       <div className={`absolute inset-x-3 top-3 z-20 flex items-start gap-2 text-xs sm:right-16 ${broadcast ? "hidden" : ""} ${panel === "search" ? "" : "max-sm:hidden"}`}>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-lg border border-night-line bg-night-panel/90 p-1.5 shadow-lg backdrop-blur sm:flex-nowrap">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-lg border border-night-line bg-night-panel/90 p-1.5 shadow-lg backdrop-blur min-[1280px]:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
         <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1 max-sm:basis-full sm:max-w-72">
           <label htmlFor={compact ? "globe-q-home" : "globe-q"} className="sr-only">Find a country</label>
-          <div className="relative flex-1"><Search aria-hidden="true" className="absolute left-2 top-2 size-3.5 text-night-muted" />
+          <div className="relative min-w-0 flex-1"><Search aria-hidden="true" className="absolute left-2 top-2 size-3.5 text-night-muted" />
             <input id={compact ? "globe-q-home" : "globe-q"} list="globe-country-names" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a country…" className="w-full rounded border border-night-line bg-night py-1.5 pr-2 pl-7" />
           </div>
           <Button type="submit" size="sm">Go</Button>

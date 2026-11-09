@@ -1,6 +1,7 @@
 import { LIVE_STREAM_URL } from "@/lib/brand";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { CHAT_ENABLED } from "@/lib/chat-flag";
 import {
   Activity,
@@ -150,20 +151,8 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
   const pathname = useRouterState({ select: state => state.location.pathname });
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Lock the page behind the drawer and close it on Escape.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
   return (
+    <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
     <header className="sticky top-0 z-40 border-b border-night-line/60 bg-night/85 backdrop-blur-md">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-3 focus:text-primary-foreground">Skip to content</a>
       <div className="mx-auto flex max-w-[1280px] items-center gap-3 2xl:max-w-[1536px] px-4 py-2.5 sm:px-6">
@@ -230,34 +219,30 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             <LayoutGrid className="size-4" aria-hidden="true" />
             Embed figures
           </Link>
-          <Button
+          <DialogPrimitive.Trigger asChild><Button
             variant="ghost"
             type="button"
-            onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-controls="site-menu"
             aria-label={open ? "Close menu" : "Open menu"}
             className={iconBtn()}
           >
             {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
-          </Button>
+          </Button></DialogPrimitive.Trigger>
         </div>
       </div>
 
-      {open ? (
-        <>
-          <Button
-            variant="ghost"
-            type="button"
-            aria-hidden="true"
-            tabIndex={-1}
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 top-[65px] z-30 h-auto w-auto rounded-none cursor-default bg-night/70 backdrop-blur-sm"
-          />
+      <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-night/80 backdrop-blur-sm" />
+          <DialogPrimitive.Content aria-describedby={undefined} className="fixed inset-x-0 top-0 z-[60] max-h-[100dvh] overflow-y-auto border-b border-night-line bg-night text-night-fg shadow-xl">
+          <div className="mx-auto flex max-w-[1280px] items-center justify-between border-b border-night-line px-4 py-3 sm:px-6">
+            <DialogPrimitive.Title className="text-lg font-semibold">Explore UKStats</DialogPrimitive.Title>
+            <DialogPrimitive.Close asChild><Button variant="ghost" size="icon" aria-label="Close menu" className="min-h-11 min-w-11"><X aria-hidden="true" /></Button></DialogPrimitive.Close>
+          </div>
           <nav
             id="site-menu"
             aria-label="All pages"
-            className="relative z-40 max-h-[calc(100dvh-65px)] overflow-y-auto border-t border-night-line/60 bg-night px-4 pb-6 pt-4 sm:px-6"
+            className="px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5 sm:px-6"
           >
             <div className="mx-auto grid max-w-[1280px] gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[...NAV_GROUPS, ...(signedIn ? [{ name: "Your account", items: ACCOUNT_ITEMS }] : [])].map((g) => (
@@ -322,8 +307,9 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
               <p className="mt-4 flex items-center gap-2 font-mono text-[11px] text-night-muted xl:hidden">{status}</p>
             ) : null}
           </nav>
-        </>
-      ) : null}
+          </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
     </header>
+    </DialogPrimitive.Root>
   );
 }

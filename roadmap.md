@@ -1,4 +1,7 @@
 # Roadmap
+- [x] Cleanup first pass: tablet overflow, phone report archive, homepage hierarchy, menu/search focus; 72 layout checks and 4 keyboard/search journeys passed
+- [ ] Audit remaining: 200% zoom, full priority journeys, light/dark checks and field speed evidence; live-player/globe label contrast left unchanged within stream boundaries
+- [ ] Rupert Lowe X feed / Socials (paused: Marco retrying X login)
 - [x] 1. Publish waiting changes
 - [ ] 1b. Real £1 purchase by Marco (blocked: needs his card)
 - [ ] 2. 24/7 cloud stream + watchdog (blocked: cloud server account + YouTube access)
