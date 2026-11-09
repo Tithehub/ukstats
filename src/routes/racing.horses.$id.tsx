@@ -42,6 +42,11 @@ function Page() {
   const ratings = career.filter((r) => r.rating != null).reverse();
   const max = Math.max(1, ...ratings.map((r) => r.rating!)), min = Math.min(...ratings.map((r) => r.rating!), max);
   return <RacingLayout demo={data.demo} image={fence} title={data.demo ? `${horse.name} (example)` : horse.name} intro={<>{[horse.sex, horse.foaled && `foaled ${fmtDate(horse.foaled)}`, horse.country, horse.sire && `by ${horse.sire}`, horse.dam && `out of ${horse.dam}`].filter(Boolean).join(" · ") || "Breeding not published"}{horse.trainer && <> · Trainer <Link to="/racing/people/$kind/$id" params={{ kind: "trainer", id: horse.trainer.id }} className="underline">{horse.trainer.name}</Link></>}{horse.aliases.length ? ` · Also known as ${horse.aliases.map((a) => a.alias).join(", ")}` : ""}</>}>
+    {data.entries.length > 0 && <section className="mb-6 rounded-lg border border-racing-gold bg-night-panel p-4">
+      <h2 className="font-semibold">Declared to run</h2>
+      <ul className="mt-2 space-y-1 text-sm">{data.entries.map((e) => <li key={e.race.id}>{fmtDate(e.date)} · {new Date(e.race.off_time).toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" })} · {e.course} · {e.race.name}{e.runner.jockey ? ` · ridden by ${e.runner.jockey.name}` : ""}</li>)}</ul>
+      <p className="mt-2 text-xs text-night-muted">Past results need The Racing API Standard plan, so race history stays empty on the current plan.</p>
+    </section>}
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <Stat label="Starts with a result" value={ran.length} />
       <Stat label="Wins" value={wins} note={winRate(wins, ran.length).label} />
