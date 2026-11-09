@@ -444,6 +444,24 @@ const RECOMMENDED_SLIDES: CornerSlide[] = [
 ];
 
 /** Corner box: approved sponsors plus labelled recommendations, ~10s each, kept apart from figures. */
+/** Orbit sponsor card (left column, like the reference): one at a time, big QR. */
+function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
+  const r = rows[Math.floor(ms / 10_000) % rows.length]!;
+  const pct = ((ms % 10_000) / 10_000) * 100;
+  return <section data-fit key={r.id} className="relative flex h-full flex-col overflow-hidden rounded-lg border border-night-line bg-night/85 backdrop-blur-md motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-6 motion-safe:duration-500">
+    <div className="relative h-[120px] shrink-0 overflow-hidden bg-night">
+      {r.img ? <img src={r.img} alt={r.name} className="h-full w-full object-contain" /> : <span className="flex h-full items-center px-5 text-[30px] font-black leading-tight">{r.name}</span>}
+      <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">{r.tag}</span>
+    </div>
+    <div className="mx-5 mt-3 h-[4px] w-14 bg-stream-yellow" />
+    <div className="flex min-h-0 flex-1 items-center gap-4 px-5">
+      <div className="shrink-0 rounded bg-[#ffffff] p-1.5"><QRCodeSVG value={r.qr} size={140} level="H" marginSize={1} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
+      <div className="min-w-0"><p className="line-clamp-2 text-[22px] font-black leading-tight">{r.name}</p><p className="mt-1 truncate font-mono text-[14px] font-bold uppercase text-night-muted">Scan · {r.label}</p></div>
+    </div>
+    <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
+  </section>;
+}
+
 function StreamSponsors({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
   const r = rows[Math.floor(ms / 10_000) % rows.length]!;
   const pct = ((ms % 10_000) / 10_000) * 100;
