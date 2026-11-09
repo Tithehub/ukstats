@@ -15,19 +15,21 @@ function CountUp({ value }: { value: string }) {
     let raf = 0; const t0 = performance.now();
     const tick = (t: number) => { const k = Math.min(1, (t - t0) / 1400); setP(k); if (k < 1) raf = requestAnimationFrame(tick); };
     setP(0); raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // Always land on the exact published value, even if animation frames are throttled (slow encoders, background tabs).
+    const done = setTimeout(() => setP(1), 1600);
+    return () => { cancelAnimationFrame(raf); clearTimeout(done); };
   }, [value]);
   return <>{countUp(value, p)}</>;
 }
 
 function Tile({ card, active, i }: { card: StreamCard; active: boolean; i: number }) {
-  return <div className={`flex min-w-0 flex-col rounded-lg border-2 px-4 py-3 backdrop-blur-md transition-all duration-500 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 ${active ? "scale-[1.03] border-stream-yellow bg-night/90 shadow-[0_0_40px_-6px_var(--stream-yellow)]" : "border-night-line bg-night/70"}`}
+  return <div className={`flex min-w-0 flex-col overflow-hidden rounded-lg border-2 px-4 py-2 backdrop-blur-md transition-all duration-500 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 ${active ? "scale-[1.03] border-stream-yellow bg-night/90 shadow-[0_0_40px_-6px_var(--stream-yellow)]" : "border-night-line bg-night/70"}`}
     style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
-    <div className={`truncate font-mono text-[16px] font-bold uppercase tracking-widest ${active ? "text-stream-yellow" : "text-electric"}`}>{card.kicker}</div>
-    <div className="line-clamp-1 text-[20px] font-semibold leading-tight">{card.title}</div>
-    <div className={`mt-1 truncate font-black leading-none tabular-nums ${active ? "text-[44px] text-stream-yellow" : "text-[34px]"}`}><CountUp value={card.value} /></div>
-    {(() => { const d = card.metric?.spark ? sparkPath(card.metric.spark, 200, 28) : null; return d ? <svg viewBox="0 0 200 28" className="mt-1 h-[24px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={3} className={active ? "stroke-stream-yellow" : "stroke-electric"} style={{ strokeDasharray: 1000, animation: "orbit-draw 1.8s ease-out both" }} /></svg> : null; })()}
-    <div className="mt-auto truncate pt-1 font-mono text-[15px] text-night-muted">{card.source}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</div>
+    <div className={`truncate font-mono text-[14px] font-bold uppercase leading-tight tracking-widest ${active ? "text-stream-yellow" : "text-electric"}`}>{card.kicker}</div>
+    <div className="truncate text-[19px] font-semibold leading-tight">{card.title}</div>
+    <div className={`truncate py-0.5 font-black leading-[1.1] tabular-nums ${active ? "text-[38px] text-stream-yellow" : "text-[30px]"}`}><CountUp value={card.value} /></div>
+    {(() => { const d = card.metric?.spark ? sparkPath(card.metric.spark, 200, 28) : null; return d ? <svg viewBox="0 0 200 28" preserveAspectRatio="none" className="h-[16px] w-full shrink-0 overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={3} className={active ? "stroke-stream-yellow" : "stroke-electric"} style={{ strokeDasharray: 1000, animation: "orbit-draw 1.8s ease-out both" }} /></svg> : null; })()}
+    <div className="mt-auto truncate font-mono text-[14px] leading-tight text-night-muted">{card.source}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</div>
   </div>;
 }
 

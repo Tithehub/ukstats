@@ -22,6 +22,7 @@ import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
 import { OrbitPanel, OrbitPulse, OrbitRail } from "@/components/stream/OrbitScene";
 import { sceneFor } from "@/lib/stream-orbit";
+import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
@@ -73,8 +74,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   }, [W, H]);
 
   useEffect(() => {
-    setNow(new Date());
-    const c = setInterval(() => setNow(new Date()), 1000);
+    // Dev-only: a recorder can shift the stream clock (window.__streamOffset ms) to step through segments.
+    const clockNow = () => new Date(Date.now() + (import.meta.env.DEV ? Number((window as unknown as { __streamOffset?: number }).__streamOffset ?? 0) : 0));
+    setNow(clockNow());
+    const c = setInterval(() => setNow(clockNow()), import.meta.env.DEV ? 250 : 1000);
     // Watchdog: reload every few hours, and soon after any uncaught error, so the stream never freezes.
     const r = setTimeout(() => location.reload(), RELOAD_MS);
     const onErr = () => setTimeout(() => location.reload(), 60_000);
@@ -98,6 +101,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     metrics, warnings: unrest?.warnings ?? [], reports: news?.items ?? [], emergencyPlanes: emergency, now: now ?? new Date(0),
   }), [metrics, unrest, news, emergency, tenMin]);
   const ukHour = useMemo(() => buildUkHour(rundown), [rundown]);
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __ukHour?: unknown }).__ukHour = ukHour.map((x) => ({ id: x.seg.id, title: x.seg.title, start: x.start, end: x.end })); }, [ukHour]);
 
   // Clock-driven position: even London hours = UK hour, odd hours = other countries five minutes each.
   const rawPos = now ? positionAt(now) : { mode: "uk" as const, hourIndex: 0, msIntoHour: 0 };
@@ -209,10 +213,11 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
       <div className="absolute inset-y-0 left-[260px] w-[1500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_62%_50%,transparent_35%,var(--night)_85%)]" />
+      <OrbitBackdrop />
       <div className="absolute left-[1010px] top-[410px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : sceneFor(seg) === "weather" ? "United Kingdom · weather" : "United Kingdom"} scene={sceneFor(seg)} />}</div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[400px]"><OrbitRail now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={upNext} /></div>
-      <div className="absolute left-[440px] top-[226px] z-30 h-[500px] w-[420px]">{orbitAnchor}</div>
+      <div className="absolute left-[440px] top-[212px] z-30 h-[470px] w-[420px]">{orbitAnchor}</div>
       <div className="absolute right-6 top-[212px] z-30 h-[640px] w-[720px]">{!brand && promo.active ? <PromoCard /> : <OrbitPanel seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />}</div>
       {!seg?.cards.length ? null : <div className="absolute bottom-[240px] left-[660px] z-30 w-[520px]">{lower}</div>}
       <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
@@ -393,7 +398,7 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
   return <div className={`flex h-[52px] items-center overflow-hidden ${cls}`}>
     <span className="z-10 flex h-full shrink-0 items-center bg-stream-strap px-4 font-mono text-[24px] font-black text-stream-strap-fg">{label}</span>
     <div className="relative flex-1 overflow-hidden">
-      <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
+      <div className="inline-block whitespace-nowrap pl-[100%] motion-reduce:pl-4 text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
     </div>
   </div>;
 }
