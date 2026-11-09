@@ -217,7 +217,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute left-[1010px] top-[410px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : sceneFor(seg) === "weather" ? "United Kingdom · weather" : "United Kingdom"} scene={sceneFor(seg)} />}</div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[400px]"><OrbitRail now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={upNext} /></div>
-      <div className="absolute left-[440px] top-[226px] z-30 h-[500px] w-[420px]">{orbitAnchor}</div>
+      <div className="absolute left-[440px] top-[212px] z-30 h-[470px] w-[420px]">{orbitAnchor}</div>
       <div className="absolute right-6 top-[212px] z-30 h-[640px] w-[720px]">{!brand && promo.active ? <PromoCard /> : <OrbitPanel seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />}</div>
       {!seg?.cards.length ? null : <div className="absolute bottom-[240px] left-[660px] z-30 w-[520px]">{lower}</div>}
       <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
@@ -398,7 +398,7 @@ function Ticker({ label, items, cls, speed }: { label: string; items: string[]; 
   return <div className={`flex h-[52px] items-center overflow-hidden ${cls}`}>
     <span className="z-10 flex h-full shrink-0 items-center bg-stream-strap px-4 font-mono text-[24px] font-black text-stream-strap-fg">{label}</span>
     <div className="relative flex-1 overflow-hidden">
-      <div className="inline-block whitespace-nowrap pl-[100%] text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
+      <div className="inline-block whitespace-nowrap pl-[100%] motion-reduce:pl-4 text-[30px] font-bold motion-safe:animate-[stream-ticker_linear_infinite]" style={{ animationDuration: `${Math.max(40, text.length / 5) * (speed / 100)}s` }}>{text}</div>
     </div>
   </div>;
 }
