@@ -49,7 +49,7 @@ function Page() {
       <Stat label="Placed (1st–3rd)" value={places} note={winRate(places, ran.length).label} />
       <Stat label="Latest official rating" value={ratings.at(-1)?.rating ?? "—"} />
     </div>
-    <p className="mt-2 text-xs text-night-muted">Counts and percentages are UKStats calculations from the official results we hold; they are not official figures.</p>
+    <p className="mt-2 text-xs text-night-muted">{RACING_DEMO ? "Example figures calculated from invented placings — not real results." : "Counts and percentages are UKStats calculations from the official results we hold; they are not official figures."}</p>
 
     {ratings.length > 1 && <section className="mt-6 rounded-lg border border-night-line bg-night-panel p-4">
       <h2 className="font-semibold">Official rating over time</h2>
