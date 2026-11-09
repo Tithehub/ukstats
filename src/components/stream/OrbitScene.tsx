@@ -96,3 +96,96 @@ export function OrbitRail({ now, items }: { now: string; items: string[] }) {
     <ol className="space-y-0.5 px-4 pb-2 text-[21px]">{items.map((u) => <li key={u} className="truncate text-night-muted">▸ {u}</li>)}</ol>
   </section>;
 }
+
+/* ---------- Reference-video layout pieces (Globe Orbit v3) ---------- */
+
+/** Big hero card on the right: the figure being read, counting up to the exact published value. */
+export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | undefined; scene: OrbitScene; step: number; place: string }) {
+  const cards = seg?.cards ?? [];
+  const heads = seg?.headlines ?? [];
+  const card = cards.length ? cards[step % cards.length]! : null;
+  const head = !card && heads.length ? heads[step % heads.length]! : null;
+  const label = scene === "world" ? `${place} headline` : seg?.title ?? SCENE_LABEL[scene];
+  const red = scene === "warnings" || scene === "migration" || head?.official;
+  const sp = card?.metric?.spark?.filter((x) => Number.isFinite(x)) ?? [];
+  const chg = sp.length >= 2 && sp[sp.length - 2] ? ((sp[sp.length - 1]! - sp[sp.length - 2]!) / Math.abs(sp[sp.length - 2]!)) * 100 : null;
+  return <section key={`${seg?.id}-${step}`} data-fit className="relative overflow-hidden rounded-xl border border-electric/40 bg-night/75 p-7 shadow-[0_30px_80px_-20px_oklch(0_0_0/0.8)] backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
+    <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,transparent_30%,oklch(1_0_0/0.16)_50%,transparent_70%)] motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" />
+    <div className="flex items-center justify-between gap-4">
+      <span className="truncate text-[26px] font-black uppercase tracking-wide">{label}</span>
+      <span className="size-9 shrink-0 rounded-full border-2 border-night-fg/70 motion-safe:animate-[spin_12s_linear_infinite] [background:repeating-linear-gradient(90deg,transparent_0_6px,oklch(1_0_0/0.4)_6px_8px)]" aria-hidden />
+    </div>
+    <div className={`mt-3 h-[5px] w-28 rounded ${red ? "bg-destructive" : "bg-stream-yellow"} motion-safe:animate-in motion-safe:slide-in-from-left-10 motion-safe:duration-700`} />
+    {card ? <>
+      <p className="mt-5 line-clamp-2 text-[44px] font-black uppercase leading-[1.05]">{card.title}</p>
+      <div className="mt-5 flex items-baseline gap-5">
+        <span className="truncate text-[84px] font-black leading-none tabular-nums text-electric-soft drop-shadow-[0_0_24px_var(--electric)]"><CountUp value={card.value} /></span>
+        {chg != null && Number.isFinite(chg) && <span className={`shrink-0 text-[34px] font-black ${chg >= 0 ? "text-stream-green" : "text-destructive"}`}>{chg >= 0 ? "▲" : "▼"} {chg >= 0 ? "+" : ""}{chg.toFixed(1)}%</span>}
+      </div>
+      {(() => { const d = sp.length >= 2 ? sparkPath(sp, 560, 48) : null; return d ? <svg viewBox="0 0 560 48" preserveAspectRatio="none" className="mt-4 h-[44px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={4} className="stroke-stream-yellow" style={{ strokeDasharray: 1000, animation: "orbit-draw 2s ease-out both" }} /></svg> : null; })()}
+      <p className="mt-4 truncate font-mono text-[18px] uppercase tracking-wide text-night-muted">{card.source}{card.period ? ` · ${card.period}` : ""}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</p>
+    </> : head ? <>
+      <span className={`mt-5 inline-block rounded px-3 py-1 font-mono text-[16px] font-black uppercase tracking-widest ${head.official ? "bg-destructive text-destructive-foreground" : "bg-electric text-night"}`}>{head.official ? "Official warning" : "News report — not official"}</span>
+      <p className="mt-4 line-clamp-4 text-[40px] font-black leading-[1.12]">{head.text}</p>
+      <p className="mt-4 truncate font-mono text-[18px] text-night-muted">{head.publisher}{head.time ? ` · ${fmtDate(head.time)}` : ""}</p>
+    </> : <p className="mt-5 text-[28px] text-night-muted">No figure is published for this item.</p>}
+  </section>;
+}
+
+/** Small tiles that slide in under the hero card with the segment's other figures. */
+export function OrbitMiniTiles({ seg, step }: { seg: Segment | undefined; step: number }) {
+  const cards = seg?.cards ?? [];
+  if (cards.length < 2) return null;
+  const pick = [1, 2, 3].map((i) => cards[(step + i) % cards.length]!).filter((c, i, a) => a.findIndex((x) => x.title === c.title) === i && c !== cards[step % cards.length]);
+  return <div key={`${seg?.id}-${step}`} className="grid grid-cols-3 gap-3">
+    {pick.slice(0, 3).map((c, i) => <div key={c.title} className="min-w-0 rounded-lg border border-night-line bg-night/75 px-3 py-2 backdrop-blur-md motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6" style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: "both" }}>
+      <div className="truncate font-mono text-[13px] font-bold uppercase tracking-widest text-electric">{c.title}</div>
+      <div className="truncate text-[28px] font-black tabular-nums"><CountUp value={c.value} /></div>
+      <div className="truncate font-mono text-[12px] text-night-muted">{c.source}</div>
+    </div>)}
+  </div>;
+}
+
+const ICON: [RegExp, string][] = [[/debt|borrow|spend|tax|gdp|inflation|price/i, "▮▮▮"], [/boat|migra|asylum|cross/i, "⛴"], [/weather|rain|wind|storm/i, "☁"], [/warn|alert/i, "⚠"], [/crime|police/i, "⚖"], [/flight|sky/i, "✈"], [/world|around|countr/i, "◍"]];
+const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? "▸";
+
+/** NEXT UP rail like the reference: icon, title and real start time, the next item highlighted. */
+export function OrbitNextUp({ now, items }: { now: string; items: { title: string; time: string | null }[] }) {
+  return <section className="overflow-hidden rounded-lg border border-night-line bg-night/80 backdrop-blur-md">
+    <div className="flex items-center gap-2 px-4 pt-3"><span className="h-5 w-1 bg-destructive" /><span className="font-mono text-[20px] font-black uppercase tracking-widest">Next up</span></div>
+    <div key={now} className="mx-3 mt-2 truncate rounded border-l-4 border-destructive bg-destructive/15 px-3 py-1.5 text-[18px] font-bold motion-safe:animate-in motion-safe:slide-in-from-left-4">
+      <span className="mr-2 font-mono text-[13px] uppercase text-destructive">On air</span>{now}</div>
+    <ol className="space-y-1 p-3">{items.slice(0, 3).map((u, i) => <li key={u.title} className={`flex items-center gap-3 rounded px-2 py-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 ${i === 0 ? "border-l-4 border-stream-yellow bg-stream-yellow/15" : ""}`} style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
+      <span className="w-10 shrink-0 text-center text-[24px] text-electric-soft" aria-hidden>{iconFor(u.title)}</span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-[20px] font-black uppercase">{u.title}</span>{u.time && <span className="font-mono text-[16px] text-night-muted">{u.time}</span>}</span>
+      {i === 0 && <span className="shrink-0 rounded bg-stream-yellow px-1.5 font-mono text-[12px] font-black uppercase text-night">On next</span>}
+    </li>)}</ol>
+  </section>;
+}
+
+/** Centre lower-third: "UK STATS LIVE • SEGMENT" with a wipe on every change and a running shine. */
+export function OrbitLowerThird({ tag }: { tag: string }) {
+  return <div className="relative flex h-[72px] overflow-hidden rounded shadow-[0_10px_40px_-10px_oklch(0_0_0/0.9)]">
+    <span className="flex items-center bg-destructive px-6 text-[40px] font-black uppercase text-destructive-foreground">UK Stats Live</span>
+    <span key={tag} className="flex items-center gap-4 bg-night/90 px-6 text-[40px] font-black uppercase text-stream-yellow motion-safe:animate-in motion-safe:slide-in-from-left-full motion-safe:duration-500">
+      <span aria-hidden>•</span>{tag}</span>
+    <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,transparent_40%,oklch(1_0_0/0.25)_50%,transparent_60%)] motion-safe:animate-[orbit-shine_4s_ease-in-out_infinite]" />
+    <span aria-hidden className="absolute inset-x-0 bottom-0 h-[4px] bg-stream-yellow" />
+  </div>;
+}
+
+/** Bottom bar: BREAKING NEWS tab, non-stop ticker of real items (official ones red), London clock. */
+export function OrbitTicker({ items, clock }: { items: { text: string; official: boolean }[]; clock: string }) {
+  const list = items.length ? items : [{ text: "Official UK statistics with sources and dates · ukstats.co.uk", official: false }];
+  const secs = Math.max(40, list.reduce((n, x) => n + x.text.length, 0) / 9);
+  return <div className="flex h-full items-stretch border-t border-night-line bg-night/95">
+    <span className="flex shrink-0 items-center bg-stream-yellow px-6 text-[26px] font-black uppercase text-night [clip-path:polygon(0_0,100%_0,92%_100%,0_100%)] pr-10">Breaking news</span>
+    <div className="relative min-w-0 flex-1 overflow-hidden">
+      <div className="absolute inset-y-0 flex w-max items-center whitespace-nowrap motion-safe:animate-[orbit-marquee_linear_infinite]" style={{ animationDuration: `${secs}s` }}>
+        {[0, 1].map((k) => <span key={k} className="flex items-center">{list.map((x, i) => <span key={i} className="flex items-center px-6 text-[24px] font-bold uppercase">
+          {x.official && <span className="mr-3 rounded bg-destructive px-2 font-mono text-[14px] text-destructive-foreground">Official</span>}{x.text}<span className="ml-12 text-stream-yellow" aria-hidden>|</span></span>)}</span>)}
+      </div>
+    </div>
+    <span className="flex shrink-0 items-center bg-destructive px-6 font-mono text-[32px] font-black tabular-nums text-destructive-foreground">{clock}<span className="motion-safe:animate-pulse">&nbsp;</span></span>
+  </div>;
+}
