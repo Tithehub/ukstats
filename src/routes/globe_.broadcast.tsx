@@ -5,7 +5,8 @@ import { unrestQuery } from "@/lib/unrest.functions";
 
 /** TV news-channel page captured by an external streamer (ffmpeg / OBS) for YouTube Live. */
 export const Route = createFileRoute("/globe_/broadcast")({
-  validateSearch: (s: Record<string, unknown>): { layout?: Layout } => (s["layout"] === "portrait" ? { layout: "portrait" } : {}),
+  validateSearch: (s: Record<string, unknown>): { layout?: Layout | "orbit" } =>
+    s["layout"] === "portrait" ? { layout: "portrait" } : s["layout"] === "orbit" ? { layout: "orbit" } : {},
   loader: ({ context }) => Promise.all([
     context.queryClient.ensureQueryData(worldQuery()),
     context.queryClient.ensureQueryData(unrestQuery()),
@@ -24,5 +25,6 @@ export const Route = createFileRoute("/globe_/broadcast")({
 });
 
 function BroadcastPage() {
-  return <BroadcastView layout={Route.useSearch().layout ?? "landscape"} />;
+  const l = Route.useSearch().layout;
+  return l === "orbit" ? <BroadcastView layout="landscape" variant="orbit" /> : <BroadcastView layout={l ?? "landscape"} />;
 }
