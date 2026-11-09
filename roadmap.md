@@ -1,4 +1,6 @@
 # Roadmap
+- [ ] Measured cleanup: responsive layouts, homepage hierarchy, menu/search accessibility and repeatable audit scorecard
+- [ ] Rupert Lowe X feed / Socials (paused: Marco retrying X login)
 - [x] 1. Publish waiting changes
 - [ ] 1b. Real £1 purchase by Marco (blocked: needs his card)
 - [ ] 2. 24/7 cloud stream + watchdog (blocked: cloud server account + YouTube access)

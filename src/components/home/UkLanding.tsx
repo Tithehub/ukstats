@@ -19,7 +19,7 @@ type HomeSearch = { c?: string | undefined; ind?: string | undefined };
 type GlobeProps = { search: HomeSearch; onSearchChange: (search: HomeSearch) => void };
 
 const TONE: Record<BlockTone, string> = {
-  red: "bg-alert-red text-desk-fg border-transparent",
+  red: "bg-alert-red-readable text-desk-fg border-transparent",
   yellow: "bg-alert-yellow text-night border-transparent",
   plain: "bg-card text-card-foreground border-border",
 };
@@ -39,7 +39,7 @@ function Tile({ m, icon, label, link }: { m?: Metric | undefined; icon: ReactNod
     <div className="min-w-0">
       <div className="font-mono text-2xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl">{m?.value ?? "Not published"}</div>
       <div className="mt-0.5 text-sm font-bold">{label}</div>
-      <div className="mt-1 font-mono text-[11px] opacity-80 [overflow-wrap:anywhere]"><Meta m={m} /></div>
+      <div className="mt-1 font-mono text-xs leading-relaxed [overflow-wrap:anywhere]"><Meta m={m} /></div>
     </div>
   </div>;
   return link ? <Link to="/register" search={{ category: link.category, q: undefined }} className="block">{body}</Link> : body;
@@ -87,14 +87,14 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
   const ticker = [boats && `Home Office: ${boats.value} irregular arrivals detected (${boats.period ?? fmtDate(boats.asOf)})`, met && `Met Office: ${met.value}`, terror && `Terror threat level: ${terror.value}`, cpih && `ONS: CPIH inflation ${cpih.value}`, debt && `ONS: net debt ${debt.value}`].filter(Boolean) as string[];
 
   return <div className="min-h-screen bg-background text-foreground">
-    <div aria-label="Latest official figures" className="flex h-9 items-center overflow-hidden bg-onair text-sm font-semibold text-desk-fg">
-      <span className="flex h-full shrink-0 items-center gap-1.5 bg-desk-fg px-3 font-black tracking-widest text-onair">● LIVE</span>
+    <div aria-label="Latest official figures" className="flex h-9 items-center overflow-hidden bg-onair-readable text-sm font-semibold text-desk-fg">
+      <span className="flex h-full shrink-0 items-center gap-1.5 bg-desk-fg px-3 font-black tracking-widest text-onair-readable">● LIVE</span>
       <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{ticker.map((t) => <span key={t} className="shrink-0 border-r border-desk-fg/30 px-5">{t}</span>)}</div>)}</div></div>
     </div>
     <SiteHeader />
 
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-7xl px-4 sm:px-6">
-      <section className="relative mt-5 overflow-hidden rounded-3xl bg-night text-night-fg">
+      <section className="relative mt-5 overflow-hidden border-b border-night-line bg-night text-night-fg">
         <img src={heroNetwork} alt="" fetchPriority="high" width={1408} height={1024} className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-70 sm:w-[62%]" />
         <div className="absolute inset-0 bg-linear-to-r from-night via-night/90 to-night/20" />
         <div className="relative grid gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:max-w-[65%]">
@@ -113,8 +113,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
             <Button asChild><a href="#new-home-globe"><Globe2 />Open interactive globe<ArrowRight /></a></Button>
             <Button asChild variant="outline"><Link to="/register">All UK statistics<ArrowRight /></Link></Button>
             <Button asChild variant="ghost"><Link to="/countries"><Globe2 />Explore countries</Link></Button>
-            <Button asChild variant="ghost"><Link to="/safest-places" search={{ country: "uk" }}><ShieldCheck />Safest places</Link></Button>
-            <Button asChild variant="outline"><Link to="/reports"><FileText />Daily, monthly & yearly PDF reports</Link></Button>
+            <Button asChild variant="ghost"><Link to="/live"><Tv />Watch live</Link></Button>
           </div>
           <p className="max-w-xl text-sm text-night-muted">Every stat you can see on UKStats stays completely free, forever. Reports are an optional download-ready PDF from £1.</p>
         </div>
@@ -127,7 +126,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
         <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-alert-green/50 bg-alert-green/15 px-4 py-1.5 text-sm font-semibold"><ShieldCheck className="size-4" />Free forever · official sources only · no account</p>
       </section>
 
-      <section aria-label="The UK right now" className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
+      <section aria-label="The UK right now" className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 lg:grid-cols-3">
         <Tile m={terror} icon={<ShieldCheck className="size-5" />} label="National terrorism threat level" link={{ category: "National alerts" }} />
         <Tile m={met} icon={<CloudFog className="size-5" />} label="Met Office weather warnings" link={{ category: "National alerts" }} />
         <Tile m={flood} icon={<Waves className="size-5" />} label="Flood alerts and warnings" link={{ category: "National alerts" }} />
@@ -143,7 +142,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
         <img src={channel.url} alt="The white cliffs of Dover at dusk" width={1280} height={720} className="absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/10" />
         <div className="relative max-w-2xl p-6 sm:p-12">
-          <span className="inline-flex items-center gap-2 rounded-md bg-onair px-3 py-1 text-xs font-black uppercase tracking-widest text-desk-fg"><Ship className="size-4" />Borders · latest figure</span>
+          <span className="inline-flex items-center gap-2 rounded-md bg-onair-readable px-3 py-1 text-xs font-black uppercase tracking-widest text-desk-fg"><Ship className="size-4" />Borders · latest figure</span>
           <h2 className="mt-4 text-4xl font-black leading-none tracking-tight sm:text-6xl">Small-boat arrivals</h2>
           <div className="mt-3 font-mono text-7xl font-semibold tracking-tighter sm:text-8xl">{boats?.value ?? "Not published"}</div>
           <p className="mt-3 text-base">{week ? `${week.value} in the last 7 days (${week.period ?? ""}).` : "Seven-day total not published."}</p>
@@ -171,16 +170,16 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
         </div>
       </section>
 
-      <section aria-label="Live stream" className="mt-12">
+      <section id="home-live" aria-label="Live stream" className="mt-12 scroll-mt-24">
         <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight sm:text-3xl"><Tv className="size-6" />UKStats Live</h2>
         <div className="mt-4"><LiveStreamPanel /></div>
       </section>
 
       <HomeGlobe search={search} onSearchChange={onSearchChange} />
 
-      <section id="new-home-services" className="mt-12 flex scroll-mt-20 flex-col gap-4 border-t-4 border-onair pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <section id="new-home-services" className="mt-12 grid min-w-0 scroll-mt-20 gap-5 border-t-4 border-onair pt-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-center">
         <div><p className="text-xl font-black">Stats are free. Your brand on them is what keeps them free.</p><p className="mt-1 text-muted-foreground">Branded widgets, dashboards and stream backdrops from £9/month. Sponsor the 24/7 live stream.</p></div>
-        <div className="flex shrink-0 flex-wrap gap-2"><Link to="/rent" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">See paid services <ArrowRight className="size-4" /></Link><Link to="/reports" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Daily PDF report £1</Link><Link to="/rent/dashboard" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Brand your stream</Link><Link to="/advertise" className="inline-flex items-center rounded-xl border border-border px-5 py-3 font-bold">Sponsor</Link></div>
+        <div className="flex min-w-0 flex-wrap gap-2"><Button asChild><Link to="/rent">See paid services <ArrowRight /></Link></Button><Button asChild variant="outline"><Link to="/reports">Daily PDF report £1</Link></Button><Button asChild variant="outline"><Link to="/rent/dashboard">Brand your stream</Link></Button><Button asChild variant="outline"><Link to="/advertise">Sponsor</Link></Button></div>
       </section>
       <p className="mt-6 pb-10 font-mono text-[11px] text-muted-foreground">Figures checked {fmtDate(data.fetchedAt)} · photos are decoration only.</p>
       {additionalContent}
