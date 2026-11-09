@@ -25,7 +25,7 @@ import { GlobeShare } from "@/components/globe/GlobeShare";
 import { flightsQuery } from "@/lib/flights.functions";
 import { flightStatus, projectAhead, SQUAWK_MEANING, type AreaAdvice } from "@/lib/flights";
 import { newsReportsQuery } from "@/lib/news-reports.functions";
-import type { ReportItem } from "@/lib/news-reports";
+import { clusterReports, type ReportItem } from "@/lib/news-reports";
 import { migrationFlowsQuery } from "@/lib/migration-flows.functions";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatHistory, buildFlows, MIGRATION_SOURCES } from "@/lib/migration-flows";
@@ -243,7 +243,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
     return [{ id: `acled|${e.id}`, kind: k, lat: e.lat, lng: e.lng, label: `${e.subType || e.type} — ${e.location}, ${e.date} (ACLED research, not official)`, research: true }];
   }).slice(0, 150);
   const markers: GlobeMarker[] = [...visible.map((m) => ({ id: m.id, kind: m.kind, lat: m.lat, lng: m.lng, label: `${KIND_LABEL[m.kind]} warning — ${m.place}, ${m.country} (${m.warning.source})` })), ...research,
-    ...(s.nw ? (reports?.items ?? []).flatMap((r): GlobeMarker[] => r.lat !== null && r.lng !== null && r.kind !== "aviation" && shows(r.kind) ? [{ id: `news|${r.id}`, kind: r.kind, lat: r.lat, lng: r.lng, label: `${r.title} — ${r.publisher}, ${fmtStamp(r.published)} (${r.official ? "police notice" : "news report, not official"})`, research: true }] : []) : [])];
+    ...(s.nw ? clusterReports(reports?.items ?? [], (k) => k !== "aviation" && shows(k)).map((c): GlobeMarker => ({ id: c.id, kind: c.kind, lat: c.lat, lng: c.lng, label: `${c.items.length === 1 ? "1 story" : `${c.items.length} stories`} — ${c.place}${c.items.slice(0, 5).map((r) => `\n• ${r.title} — ${r.publisher}, ${fmtStamp(r.published)} (${r.official ? "police notice" : "news report, not official"})`).join("")}${c.items.length > 5 ? `\n+${c.items.length - 5} more in the reports list` : ""}`, research: true })) : [])];
   const listed = filterWarningMarkers(official, { gov: s.gov ?? "all", riots: showRiots, protests: showProtests, military: showMil, days: s.age ?? 30 }, new Date());
   const nextWarning = () => { if (!listed.length) return; const i = listed.findIndex((m) => m.id === s.m); pick(listed[(i + 1) % listed.length]!); };
   const nextCountry = () => { if (!names.length) return; const i = names.findIndex((c) => countryKey(c.name) === s.c); onChange({ c: countryKey(names[(i + 1) % names.length]!.name), m: undefined }); };
