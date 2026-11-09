@@ -10,9 +10,11 @@ let inflight: Promise<LiveCards> | null = null;
 
 export const racingApiConfigured = () => !!(process.env["RACING_API_USERNAME"] && process.env["RACING_API_PASSWORD"]);
 
-async function fetchDay(day: "today" | "tomorrow"): Promise<TraRace[]> {
+const wait = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
+async function fetchDay(day: "today" | "tomorrow", tries = 3): Promise<TraRace[]> {
   const auth = btoa(`${process.env["RACING_API_USERNAME"]}:${process.env["RACING_API_PASSWORD"]}`);
   const res = await fetch(`https://api.theracingapi.com/v1/racecards/free?day=${day}&region_codes=gb&region_codes=ire`, { headers: { Authorization: `Basic ${auth}` }, signal: AbortSignal.timeout(15_000) });
+  if (res.status === 429 && tries > 1) { await res.body?.cancel(); await wait(2_000); return fetchDay(day, tries - 1); }
   if (!res.ok) { await res.body?.cancel(); throw new Error(`Racing API ${res.status}`); }
   return ((await res.json()) as { racecards?: TraRace[] }).racecards ?? [];
 }
@@ -28,6 +30,7 @@ function refresh(prev: LiveCards | null): Promise<LiveCards> {
   inflight = (async () => {
     try {
       const today = await fetchDay("today");
+      await wait(1_200);
       const tomorrow = await fetchDay("tomorrow"); // sequential: the free plan rate-limits parallel calls
       const d: LiveCards = { fetchedAt: new Date().toISOString(), meetings: mapRacecards([...today, ...tomorrow]), error: null };
       mem = d;
@@ -35,7 +38,8 @@ function refresh(prev: LiveCards | null): Promise<LiveCards> {
       return d;
     } catch {
       if (prev) return (mem = { ...prev, error: "The Racing API did not answer; showing the last racecards received" });
-      return { fetchedAt: new Date().toISOString(), meetings: [], error: "The Racing API did not answer" };
+      // Remember the failure briefly (TTL minus 5 min) so visitors don't hammer the API.
+      return (mem = { fetchedAt: new Date(Date.now() - TTL + 5 * 60_000).toISOString(), meetings: [], error: "The Racing API did not answer" });
     }
   })().finally(() => { inflight = null; });
   return inflight;
