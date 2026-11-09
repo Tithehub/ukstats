@@ -436,3 +436,11 @@
 @keyframes orbit-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes orbit-head { 0%, 100% { transform: rotate(0deg) translateY(0); } 30% { transform: rotate(-0.6deg) translateY(-2px); } 70% { transform: rotate(0.5deg) translateY(1px); } }
 @keyframes orbit-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* Orbit stream glass cards: navy glass, thin light border, soft depth. */
+@utility orbit-glass {
+  background: color-mix(in oklab, var(--night) 62%, transparent);
+  border: 1px solid color-mix(in oklab, var(--night-fg) 18%, transparent);
+  box-shadow: 0 24px 60px -24px oklch(0 0 0 / 0.85), inset 0 1px 0 color-mix(in oklab, var(--night-fg) 12%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+}
