@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fmtDate } from "@/lib/uk-stats";
-import { countUp, type OrbitScene } from "@/lib/stream-orbit";
+import { countUp, sparkPath, tilePage, type OrbitScene } from "@/lib/stream-orbit";
 import type { Headline, Segment, StreamCard } from "@/lib/stream-rundown";
 
 const SCENE_LABEL: Record<OrbitScene, string> = {
@@ -24,8 +24,9 @@ function Tile({ card, active, i }: { card: StreamCard; active: boolean; i: numbe
   return <div className={`flex min-w-0 flex-col rounded-lg border-2 px-4 py-3 backdrop-blur-md transition-all duration-500 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 ${active ? "scale-[1.03] border-stream-yellow bg-night/90 shadow-[0_0_40px_-6px_var(--stream-yellow)]" : "border-night-line bg-night/70"}`}
     style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
     <div className={`truncate font-mono text-[16px] font-bold uppercase tracking-widest ${active ? "text-stream-yellow" : "text-electric"}`}>{card.kicker}</div>
-    <div className="line-clamp-2 min-h-[52px] text-[21px] font-semibold leading-tight">{card.title}</div>
-    <div className={`mt-1 truncate font-black leading-none tabular-nums ${active ? "text-[54px] text-stream-yellow" : "text-[40px]"}`}><CountUp value={card.value} /></div>
+    <div className="line-clamp-1 text-[20px] font-semibold leading-tight">{card.title}</div>
+    <div className={`mt-1 truncate font-black leading-none tabular-nums ${active ? "text-[44px] text-stream-yellow" : "text-[34px]"}`}><CountUp value={card.value} /></div>
+    {(() => { const d = card.metric?.spark ? sparkPath(card.metric.spark, 200, 28) : null; return d ? <svg viewBox="0 0 200 28" className="mt-1 h-[24px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={3} className={active ? "stroke-stream-yellow" : "stroke-electric"} style={{ strokeDasharray: 1000, animation: "orbit-draw 1.8s ease-out both" }} /></svg> : null; })()}
     <div className="mt-auto truncate pt-1 font-mono text-[15px] text-night-muted">{card.source}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</div>
   </div>;
 }
@@ -42,18 +43,18 @@ function HeadlineCard({ head, warning }: { head: Headline; warning: boolean }) {
 export function OrbitPanel({ seg, scene, step, place }: { seg: Segment | undefined; scene: OrbitScene; step: number; place: string }) {
   const cards = seg?.cards ?? [];
   const heads = seg?.headlines ?? [];
-  const idx = cards.length ? step % cards.length : 0;
-  const start = Math.floor(idx / 6) * 6;
-  const page = cards.slice(start, start + 6);
+  const { idx, start } = tilePage(cards.length, step);
+  const page = cards.slice(start, start + 8);
   const head = heads.length ? heads[step % heads.length]! : null;
   const active = cards[idx];
-  return <section data-fit className="flex h-full flex-col gap-3 overflow-hidden">
+  return <section data-fit className="relative flex h-full flex-col gap-3 overflow-hidden">
+    <div key={`sweep-${seg?.id}`} aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(100deg,transparent_30%,oklch(1_0_0/0.14)_50%,transparent_70%)] motion-safe:animate-[orbit-sweep_1.2s_ease-out_both]" />
     <div key={seg?.id} className="flex items-center gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4">
       <span className={`h-8 w-2 ${scene === "warnings" || scene === "migration" ? "bg-destructive" : "bg-stream-yellow"}`} />
       <span className="truncate font-mono text-[22px] font-black uppercase tracking-widest">{SCENE_LABEL[scene]} · {place}</span>
     </div>
     {page.length ? <>
-      <div key={`${seg?.id}-${start}`} className="grid min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-3">
+      <div key={`${seg?.id}-${start}`} className="grid min-h-0 flex-1 grid-cols-2 grid-rows-4 gap-3">
         {page.map((c, i) => <Tile key={`${c.title}-${i}`} card={c} i={i} active={start + i === idx} />)}
       </div>
       {active && <div className="shrink-0 truncate rounded bg-night/80 px-3 py-1.5 font-mono text-[17px] text-night-muted">

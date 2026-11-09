@@ -33,3 +33,18 @@ export function countUp(value: string, p: number): string {
     : n.toFixed(decimals);
   return value.slice(0, m.index) + s + value.slice(m.index! + raw.length);
 }
+
+/** SVG path for a published series (oldest first); null when fewer than two points. Draws only what was published. */
+export function sparkPath(values: number[], w: number, h: number): string | null {
+  const v = values.filter((x) => Number.isFinite(x));
+  if (v.length < 2) return null;
+  const lo = Math.min(...v), hi = Math.max(...v), span = hi - lo || 1;
+  return v.map((x, i) => `${i ? "L" : "M"}${((i / (v.length - 1)) * w).toFixed(1)},${(h - ((x - lo) / span) * h).toFixed(1)}`).join(" ");
+}
+
+/** Tile page holding the active card: pages of `per`, so the card being read is always on screen. */
+export function tilePage(count: number, step: number, per = 8): { idx: number; start: number } {
+  if (!count) return { idx: 0, start: 0 };
+  const idx = step % count;
+  return { idx, start: Math.floor(idx / per) * per };
+}
