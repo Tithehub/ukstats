@@ -18,3 +18,5 @@
 - [ ] Phase B: home page rework, lazy-load globe/YouTube, mobile fixes on top pages
 - [ ] Phase C: design consistency, accessibility, speed
 - [ ] Phase D: trust page + corrections log, foreign-aid fixes, per-figure share links, structured data
+
+- Horse racing Stage 2: connect a licensed provider (waiting on Marco to choose and pay); Stage 3 AI predictions; Stage 4 free competition; Stage 5 testing
