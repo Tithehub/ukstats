@@ -41,3 +41,9 @@ describe("orbit extras", () => {
     expect(tilePage(12, 13)).toEqual({ idx: 1, start: 0 });
   });
 });
+
+describe("countUp with several numbers", () => {
+  it("shows dates and ranges exactly as published, never mid-count", () => {
+    for (const v of ["12 Mar 2026", "3 of 12", "2024-25: 1,200"]) expect(countUp(v, 0.4)).toBe(v);
+  });
+});

@@ -20,7 +20,7 @@ import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
-import { OrbitPanel, OrbitPulse, OrbitRail } from "@/components/stream/OrbitScene";
+import { OrbitHeroCard, OrbitLowerThird, OrbitMiniTiles, OrbitNextUp, OrbitPulse, OrbitTicker } from "@/components/stream/OrbitScene";
 import { sceneFor } from "@/lib/stream-orbit";
 import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
@@ -177,6 +177,16 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const orbitLine = promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
   const orbitUp = promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
   const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} />;
+  const hourStart = now ? now.getTime() - pos.msIntoHour : 0;
+  const orbitNext: { title: string; time: string | null }[] = !wc && ukHour.length && now
+    ? [1, 2, 3].map((i) => ukHour[ukSlotAt(ukHour, pos.msIntoHour).index + i]).filter((x): x is NonNullable<typeof x> => !!x)
+      .map((x) => ({ title: x.seg.title, time: london(new Date(hourStart + x.start), { hour: "2-digit", minute: "2-digit" }) }))
+    : upNext.map((t) => ({ title: t, time: null }));
+  if (orbitNext.length < 3 && !wc) orbitNext.push(...upNext.slice(orbitNext.length).map((t) => ({ title: t, time: null })));
+  const orbitTicker = [
+    ...(unrest?.warnings ?? []).filter((w) => w.mentionsUnrest).slice(0, 6).map((w) => ({ text: `${w.source} · ${w.country}: ${w.text}`, official: true })),
+    ...(news?.items ?? []).slice(0, 10).map((r) => ({ text: `${r.publisher}: ${r.title}`, official: false })),
+  ];
   const lower = head ? <LowerThird head={head} /> : null;
   const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);
@@ -211,17 +221,20 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     style={{ width: W, height: H, transform: `scale(${scale})`, left: offset.x, top: offset.y }}>
     {layout === "landscape" && variant === "orbit" ? <>
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
-      <div className="absolute inset-y-0 left-[260px] w-[1500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_62%_50%,transparent_35%,var(--night)_85%)]" />
+      {/* Globe Orbit v3 — laid out like the 32s reference video */}
+      <div className="absolute inset-y-0 left-[620px] right-0"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_68%_45%,transparent_30%,var(--night)_80%)]" />
       <OrbitBackdrop />
-      <div className="absolute left-[1010px] top-[410px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : sceneFor(seg) === "weather" ? "United Kingdom · weather" : "United Kingdom"} scene={sceneFor(seg)} />}</div>
-      <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
-      <div className="absolute left-6 top-[212px] z-30 w-[400px]"><OrbitRail now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={upNext} /></div>
-      <div className="absolute left-[440px] top-[212px] z-30 h-[470px] w-[420px]">{orbitAnchor}</div>
-      <div className="absolute right-6 top-[212px] z-30 h-[640px] w-[720px]">{!brand && promo.active ? <PromoCard /> : <OrbitPanel seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />}</div>
-      {!seg?.cards.length ? null : <div className="absolute bottom-[240px] left-[660px] z-30 w-[520px]">{lower}</div>}
-      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
-      {slides.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={slides} ms={pos.msIntoHour} /></div>}
+      <div className="absolute left-[1000px] top-[330px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : "United Kingdom"} scene={sceneFor(seg)} />}</div>
+      <div className="absolute left-8 top-8 z-40 flex h-[60px] overflow-hidden rounded shadow-lg"><span className="flex items-center bg-destructive px-5 text-[34px] font-black text-destructive-foreground">{brand?.name?.toUpperCase() ?? "UKSTATS"}</span><span className="flex items-center gap-2 bg-night/90 px-5 text-[34px] font-black"><span className="size-3 rounded-full bg-destructive motion-safe:animate-pulse" />LIVE</span></div>
+      <div className="absolute right-8 top-8 z-40 text-right font-mono text-[18px] uppercase leading-snug tracking-widest text-night-muted">{clock}<br />{wc ? "Around the world" : "UK hour"} · Official sources</div>
+      <div className="absolute left-8 top-[130px] z-30 w-[380px]"><OrbitNextUp now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
+      {slides.length > 0 && <div className="absolute bottom-[110px] left-8 z-30 h-[340px] w-[380px]"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
+      <div className="absolute bottom-[96px] left-[360px] z-20 h-[880px] w-[760px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
+      <div aria-hidden className="absolute bottom-[96px] left-[300px] z-20 h-[90px] w-[900px] rounded-t-[40px] border-t-2 border-electric/50 bg-[linear-gradient(180deg,oklch(0.35_0.06_258/0.85),oklch(0.12_0.03_258/0.95))] shadow-[0_-10px_60px_-10px_var(--electric)]" />
+      <div className="absolute right-8 top-[180px] z-30 flex w-[640px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} /><OrbitMiniTiles seg={seg} step={step} /></>}</div>
+      <div className="absolute bottom-[118px] left-1/2 z-40 -translate-x-1/2"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : ({ stats: "UK", headlines: "Headlines", weather: "Weather", warnings: "Warnings", migration: "Small boats", flights: "Skies", world: "World" } as const)[sceneFor(seg)]} /></div>
+      <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
       {/* Globe fills the left; YouTube's title and control zones (top 96px, bottom 120px) show only globe/background */}
       <div className="absolute inset-y-0 left-0 w-[1240px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
@@ -431,6 +444,24 @@ const RECOMMENDED_SLIDES: CornerSlide[] = [
 ];
 
 /** Corner box: approved sponsors plus labelled recommendations, ~10s each, kept apart from figures. */
+/** Orbit sponsor card (left column, like the reference): one at a time, big QR. */
+function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
+  const r = rows[Math.floor(ms / 10_000) % rows.length]!;
+  const pct = ((ms % 10_000) / 10_000) * 100;
+  return <section data-fit key={r.id} className="relative flex h-full flex-col overflow-hidden rounded-lg border border-night-line bg-night/85 backdrop-blur-md motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-6 motion-safe:duration-500">
+    <div className="relative h-[120px] shrink-0 overflow-hidden bg-night">
+      {r.img ? <img src={r.img} alt={r.name} className="h-full w-full object-contain" /> : <span className="flex h-full items-center px-5 text-[30px] font-black leading-tight">{r.name}</span>}
+      <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">{r.tag}</span>
+    </div>
+    <div className="mx-5 mt-3 h-[4px] w-14 bg-stream-yellow" />
+    <div className="flex min-h-0 flex-1 items-center gap-4 px-5">
+      <div className="shrink-0 rounded bg-[#ffffff] p-1.5"><QRCodeSVG value={r.qr} size={140} level="H" marginSize={1} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
+      <div className="min-w-0"><p className="line-clamp-2 text-[22px] font-black leading-tight">{r.name}</p><p className="mt-1 truncate font-mono text-[14px] font-bold uppercase text-night-muted">Scan · {r.label}</p></div>
+    </div>
+    <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
+  </section>;
+}
+
 function StreamSponsors({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
   const r = rows[Math.floor(ms / 10_000) % rows.length]!;
   const pct = ((ms % 10_000) / 10_000) * 100;

@@ -47,6 +47,7 @@ import { Route as PoliticsExplainedRouteImport } from './routes/politics-explain
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as PreparednessRouteImport } from './routes/preparedness'
 import { Route as PressRouteImport } from './routes/press'
+import { Route as RacingRouteImport } from './routes/racing'
 import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RentRouteImport } from './routes/rent'
@@ -310,6 +311,11 @@ const PressRoute = PressRouteImport.update({
   path: '/press',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RacingRoute = RacingRouteImport.update({
+  id: '/racing',
+  path: '/racing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegionsRoute = RegionsRouteImport.update({
   id: '/regions',
   path: '/regions',
@@ -481,29 +487,29 @@ const PSlugRoute = PSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RacingIndexRoute = RacingIndexRouteImport.update({
-  id: '/racing/',
-  path: '/racing/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RacingAdminRoute = RacingAdminRouteImport.update({
-  id: '/racing/admin',
-  path: '/racing/admin',
-  getParentRoute: () => rootRouteImport,
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RacingCompetitionsRoute = RacingCompetitionsRouteImport.update({
-  id: '/racing/competitions',
-  path: '/racing/competitions',
-  getParentRoute: () => rootRouteImport,
+  id: '/competitions',
+  path: '/competitions',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RacingPredictorRoute = RacingPredictorRouteImport.update({
-  id: '/racing/predictor',
-  path: '/racing/predictor',
-  getParentRoute: () => rootRouteImport,
+  id: '/predictor',
+  path: '/predictor',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RacingResultsRoute = RacingResultsRouteImport.update({
-  id: '/racing/results',
-  path: '/racing/results',
-  getParentRoute: () => rootRouteImport,
+  id: '/results',
+  path: '/results',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RegionsIndexRoute = RegionsIndexRouteImport.update({
   id: '/',
@@ -613,19 +619,19 @@ const EducationSchoolsUrnRoute = EducationSchoolsUrnRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RacingHorsesIndexRoute = RacingHorsesIndexRouteImport.update({
-  id: '/racing/horses/',
-  path: '/racing/horses/',
-  getParentRoute: () => rootRouteImport,
+  id: '/horses/',
+  path: '/horses/',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RacingHorsesIdRoute = RacingHorsesIdRouteImport.update({
-  id: '/racing/horses/$id',
-  path: '/racing/horses/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/horses/$id',
+  path: '/horses/$id',
+  getParentRoute: () => RacingRoute,
 } as any)
 const RacingPeopleIndexRoute = RacingPeopleIndexRouteImport.update({
-  id: '/racing/people/',
-  path: '/racing/people/',
-  getParentRoute: () => rootRouteImport,
+  id: '/people/',
+  path: '/people/',
+  getParentRoute: () => RacingRoute,
 } as any)
 const SSlugBroadcastRoute = SSlugBroadcastRouteImport.update({
   id: '/s/$slug_/broadcast',
@@ -659,9 +665,9 @@ const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
   getParentRoute: () => ApiRoute,
 } as any)
 const RacingPeopleKindIdRoute = RacingPeopleKindIdRouteImport.update({
-  id: '/racing/people/$kind/$id',
-  path: '/racing/people/$kind/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/people/$kind/$id',
+  path: '/people/$kind/$id',
+  getParentRoute: () => RacingRoute,
 } as any)
 const ApiPublicV1CountriesCodeMetricsRoute =
   ApiPublicV1CountriesCodeMetricsRouteImport.update({
@@ -715,6 +721,7 @@ export interface FileRoutesByFullPath {
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
+  '/racing': typeof RacingRouteWithChildren
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/rent': typeof RentRoute
@@ -938,6 +945,7 @@ export interface FileRoutesById {
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
+  '/racing': typeof RacingRouteWithChildren
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
   '/rent': typeof RentRoute
@@ -1052,6 +1060,7 @@ export interface FileRouteTypes {
     | '/polling'
     | '/preparedness'
     | '/press'
+    | '/racing'
     | '/regions'
     | '/register'
     | '/rent'
@@ -1274,6 +1283,7 @@ export interface FileRouteTypes {
     | '/polling'
     | '/preparedness'
     | '/press'
+    | '/racing'
     | '/regions'
     | '/register'
     | '/rent'
@@ -1387,6 +1397,7 @@ export interface RootRouteChildren {
   PollingRoute: typeof PollingRoute
   PreparednessRoute: typeof PreparednessRoute
   PressRoute: typeof PressRoute
+  RacingRoute: typeof RacingRouteWithChildren
   RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   RentRoute: typeof RentRoute
@@ -1414,27 +1425,18 @@ export interface RootRouteChildren {
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
-  RacingAdminRoute: typeof RacingAdminRoute
-  RacingCompetitionsRoute: typeof RacingCompetitionsRoute
-  RacingPredictorRoute: typeof RacingPredictorRoute
-  RacingResultsRoute: typeof RacingResultsRoute
   RentAdminRoute: typeof RentAdminRoute
   RentDashboardRoute: typeof RentDashboardRoute
   SSlugRoute: typeof SSlugRoute
   SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
   EducationIndexRoute: typeof EducationIndexRoute
-  RacingIndexRoute: typeof RacingIndexRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
   EducationSchoolsUrnRoute: typeof EducationSchoolsUrnRoute
-  RacingHorsesIdRoute: typeof RacingHorsesIdRoute
   SSlugBroadcastRoute: typeof SSlugBroadcastRoute
   SpendingTypeCategoryRoute: typeof SpendingTypeCategoryRoute
   EducationSchoolsIndexRoute: typeof EducationSchoolsIndexRoute
-  RacingHorsesIndexRoute: typeof RacingHorsesIndexRoute
-  RacingPeopleIndexRoute: typeof RacingPeopleIndexRoute
-  RacingPeopleKindIdRoute: typeof RacingPeopleKindIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1705,6 +1707,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PressRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/racing': {
+      id: '/racing'
+      path: '/racing'
+      fullPath: '/racing'
+      preLoaderRoute: typeof RacingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/regions': {
       id: '/regions'
       path: '/regions'
@@ -1945,38 +1954,38 @@ declare module '@tanstack/react-router' {
     }
     '/racing/': {
       id: '/racing/'
-      path: '/racing'
+      path: '/'
       fullPath: '/racing/'
       preLoaderRoute: typeof RacingIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/racing/admin': {
       id: '/racing/admin'
-      path: '/racing/admin'
+      path: '/admin'
       fullPath: '/racing/admin'
       preLoaderRoute: typeof RacingAdminRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/racing/competitions': {
       id: '/racing/competitions'
-      path: '/racing/competitions'
+      path: '/competitions'
       fullPath: '/racing/competitions'
       preLoaderRoute: typeof RacingCompetitionsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/racing/predictor': {
       id: '/racing/predictor'
-      path: '/racing/predictor'
+      path: '/predictor'
       fullPath: '/racing/predictor'
       preLoaderRoute: typeof RacingPredictorRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/racing/results': {
       id: '/racing/results'
-      path: '/racing/results'
+      path: '/results'
       fullPath: '/racing/results'
       preLoaderRoute: typeof RacingResultsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/regions/': {
       id: '/regions/'
@@ -2127,24 +2136,24 @@ declare module '@tanstack/react-router' {
     }
     '/racing/horses/': {
       id: '/racing/horses/'
-      path: '/racing/horses'
+      path: '/horses'
       fullPath: '/racing/horses/'
       preLoaderRoute: typeof RacingHorsesIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/racing/horses/$id': {
       id: '/racing/horses/$id'
-      path: '/racing/horses/$id'
+      path: '/horses/$id'
       fullPath: '/racing/horses/$id'
       preLoaderRoute: typeof RacingHorsesIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/racing/people/': {
       id: '/racing/people/'
-      path: '/racing/people'
+      path: '/people'
       fullPath: '/racing/people/'
       preLoaderRoute: typeof RacingPeopleIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/s/$slug_/broadcast': {
       id: '/s/$slug_/broadcast'
@@ -2190,10 +2199,10 @@ declare module '@tanstack/react-router' {
     }
     '/racing/people/$kind/$id': {
       id: '/racing/people/$kind/$id'
-      path: '/racing/people/$kind/$id'
+      path: '/people/$kind/$id'
       fullPath: '/racing/people/$kind/$id'
       preLoaderRoute: typeof RacingPeopleKindIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RacingRoute
     }
     '/api/public/v1/countries/$code/metrics': {
       id: '/api/public/v1/countries/$code/metrics'
@@ -2280,6 +2289,33 @@ const DailyRouteChildren: DailyRouteChildren = {
 
 const DailyRouteWithChildren = DailyRoute._addFileChildren(DailyRouteChildren)
 
+interface RacingRouteChildren {
+  RacingAdminRoute: typeof RacingAdminRoute
+  RacingCompetitionsRoute: typeof RacingCompetitionsRoute
+  RacingPredictorRoute: typeof RacingPredictorRoute
+  RacingResultsRoute: typeof RacingResultsRoute
+  RacingIndexRoute: typeof RacingIndexRoute
+  RacingHorsesIdRoute: typeof RacingHorsesIdRoute
+  RacingHorsesIndexRoute: typeof RacingHorsesIndexRoute
+  RacingPeopleIndexRoute: typeof RacingPeopleIndexRoute
+  RacingPeopleKindIdRoute: typeof RacingPeopleKindIdRoute
+}
+
+const RacingRouteChildren: RacingRouteChildren = {
+  RacingAdminRoute: RacingAdminRoute,
+  RacingCompetitionsRoute: RacingCompetitionsRoute,
+  RacingPredictorRoute: RacingPredictorRoute,
+  RacingResultsRoute: RacingResultsRoute,
+  RacingIndexRoute: RacingIndexRoute,
+  RacingHorsesIdRoute: RacingHorsesIdRoute,
+  RacingHorsesIndexRoute: RacingHorsesIndexRoute,
+  RacingPeopleIndexRoute: RacingPeopleIndexRoute,
+  RacingPeopleKindIdRoute: RacingPeopleKindIdRoute,
+}
+
+const RacingRouteWithChildren =
+  RacingRoute._addFileChildren(RacingRouteChildren)
+
 interface RegionsRouteChildren {
   RegionsSlugRoute: typeof RegionsSlugRoute
   RegionsIndexRoute: typeof RegionsIndexRoute
@@ -2344,6 +2380,7 @@ const rootRouteChildren: RootRouteChildren = {
   PollingRoute: PollingRoute,
   PreparednessRoute: PreparednessRoute,
   PressRoute: PressRoute,
+  RacingRoute: RacingRouteWithChildren,
   RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   RentRoute: RentRoute,
@@ -2371,27 +2408,18 @@ const rootRouteChildren: RootRouteChildren = {
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
-  RacingAdminRoute: RacingAdminRoute,
-  RacingCompetitionsRoute: RacingCompetitionsRoute,
-  RacingPredictorRoute: RacingPredictorRoute,
-  RacingResultsRoute: RacingResultsRoute,
   RentAdminRoute: RentAdminRoute,
   RentDashboardRoute: RentDashboardRoute,
   SSlugRoute: SSlugRoute,
   SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
   EducationIndexRoute: EducationIndexRoute,
-  RacingIndexRoute: RacingIndexRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
   EducationSchoolsUrnRoute: EducationSchoolsUrnRoute,
-  RacingHorsesIdRoute: RacingHorsesIdRoute,
   SSlugBroadcastRoute: SSlugBroadcastRoute,
   SpendingTypeCategoryRoute: SpendingTypeCategoryRoute,
   EducationSchoolsIndexRoute: EducationSchoolsIndexRoute,
-  RacingHorsesIndexRoute: RacingHorsesIndexRoute,
-  RacingPeopleIndexRoute: RacingPeopleIndexRoute,
-  RacingPeopleKindIdRoute: RacingPeopleKindIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
