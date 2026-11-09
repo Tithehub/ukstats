@@ -71,15 +71,6 @@ export const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
     ],
   },
   {
-    name: "Sport",
-    items: [
-      { to: "/racing", label: "Horse racing — racecards & results", icon: Table2 },
-      { to: "/racing/horses", label: "Horse database", icon: Table2 },
-      { to: "/racing/people", label: "Trainers & jockeys", icon: Table2 },
-      { to: "/racing/competitions", label: "Free AI vs human competition", icon: Table2 },
-    ],
-  },
-  {
     name: "Investigations",
     items: [
       { to: "/scandals", label: "Scandals — official records", icon: FileText },
