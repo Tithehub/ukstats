@@ -208,7 +208,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute left-[1010px] top-[410px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : sceneFor(seg) === "weather" ? "United Kingdom · weather" : "United Kingdom"} scene={sceneFor(seg)} />}</div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[400px]"><OrbitRail now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={upNext} /></div>
-      <div className="absolute left-[430px] top-[300px] z-30 h-[540px] w-[440px]">{anchor}</div>
+      <div className="absolute left-[440px] top-[226px] z-30 h-[500px] w-[420px]">{anchor}</div>
       <div className="absolute right-6 top-[212px] z-30 h-[640px] w-[720px]">{!brand && promo.active ? <PromoCard /> : <OrbitPanel seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />}</div>
       {!seg?.cards.length ? null : <div className="absolute bottom-[240px] left-[660px] z-30 w-[520px]">{lower}</div>}
       <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
