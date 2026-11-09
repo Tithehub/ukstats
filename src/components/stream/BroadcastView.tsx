@@ -178,7 +178,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const orbitUp = promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
   const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} />;
   const hourStart = now ? now.getTime() - pos.msIntoHour : 0;
-  const orbitNext = !wc && ukHour.length && now
+  const orbitNext: { title: string; time: string | null }[] = !wc && ukHour.length && now
     ? [1, 2, 3].map((i) => ukHour[ukSlotAt(ukHour, pos.msIntoHour).index + i]).filter((x): x is NonNullable<typeof x> => !!x)
       .map((x) => ({ title: x.seg.title, time: london(new Date(hourStart + x.start), { hour: "2-digit", minute: "2-digit" }) }))
     : upNext.map((t) => ({ title: t, time: null }));
