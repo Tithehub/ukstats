@@ -4,7 +4,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { PageLoadError, PageNotFound } from "@/components/layout/PageFeedback";
 import { ExampleBadge, NoFeed, RacingLayout, Silk, Stat } from "@/components/racing/RacingLayout";
 import { RACECOURSES, RACECOURSES_CHECKED, RACECOURSES_SOURCE } from "@/lib/racing/racecourses.data";
-import { RACING_DEMO } from "@/lib/racing/providers/types";
 
 import { racecardsQuery, type MeetingRow, type RaceRow } from "@/lib/racing/racing.functions";
 import { distanceLabel, lastForm, weightLabel, type RaceDay } from "@/lib/racing/racing";
@@ -56,14 +55,14 @@ function Page() {
     .filter((m) => m.races.length);
   const connected = data.sources.filter((s) => s.status === "connected");
 
-  return <RacingLayout title="Horse racing" intro="Free UK racing statistics: meetings, racecards, non-runners and results, at every licensed UK racecourse.">
+  return <RacingLayout demo={data.demo} title="Horse racing" intro="Free UK racing statistics: meetings, racecards, non-runners and results, at every licensed UK racecourse.">
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       <Stat label="Meetings" value={data.meetings.length} />
       <Stat label="Races" value={races.length} />
       <Stat label="Declared runners" value={runners.length - nr} />
       <Stat label="Non-runners" value={nr} />
       <Stat label="Next race" value={next ? time(next.r.off_time) : "—"} note={next ? `${next.m.course?.name ?? ""} · ${next.r.name}` : undefined} />
-      <Stat label="Data feed" value={RACING_DEMO ? "Example data" : connected.length ? "Connected" : "Not connected"} note={data.latestOdds ? `Odds updated ${fmtDate(data.latestOdds)}` : "No licensed odds feed"} />
+      <Stat label="Data feed" value={data.demo ? "Example data" : data.provider ? "The Racing API" : connected.length ? "Connected" : "Not connected"} note={data.fetchedAt ? `Updated ${new Date(data.fetchedAt).toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" })}${data.error ? " · " + data.error : ""} · no odds on current plan` : "No licensed odds feed"} />
     </div>
 
     <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="Choose day">
@@ -81,7 +80,7 @@ function Page() {
     <div className="mt-6 space-y-8">
       {data.error ? <NoFeed sources={data.sources} what="racecards" /> : !shown.length ? <NoFeed sources={data.sources} what="racecards" /> : shown.map((m) => <section key={m.id}>
         <h2 className="text-xl font-bold">{m.course?.name ?? "Racecourse"} <span className="text-sm font-normal text-night-muted">· {fmtDate(m.meeting_date)}{m.going ? ` · Going: ${m.going}` : ""}{m.surface ? ` · ${m.surface}` : ""}{m.status !== "scheduled" ? ` · ${m.status}` : ""}</span></h2>
-        <div className="mt-3 space-y-4">{m.races.map((r) => <RaceCard key={r.id} r={r} />)}</div>
+        <div className="mt-3 space-y-4">{m.races.map((r) => <RaceCard key={r.id} r={r} demo={data.demo} />)}</div>
       </section>)}
     </div>
 
@@ -112,7 +111,7 @@ function Filter({ label, value, options, onChange }: { label: string; value: str
     </select></label>;
 }
 
-function RaceCard({ r }: { r: RaceRow }) {
+function RaceCard({ r, demo }: { r: RaceRow; demo: boolean }) {
   const rows = [...r.runners].sort((a, b) => (a.cloth_number ?? 99) - (b.cloth_number ?? 99));
   return <article className="overflow-hidden rounded-lg border border-night-line bg-night-panel">
     <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-night-line px-4 py-3">
@@ -128,7 +127,7 @@ function RaceCard({ r }: { r: RaceRow }) {
         <tbody>{rows.map((x) => <tr key={x.id} className={`border-t border-night-line ${x.non_runner ? "opacity-50" : ""}`}>
           <td className="px-3 py-2 font-mono">{x.cloth_number ?? "—"}</td>
           <td className="px-3 py-2 font-mono">{x.draw ?? "—"}</td>
-          <td className="px-3 py-2 font-semibold">{x.horse ? <><Silk id={x.horse.id} /><Link to="/racing/horses/$id" params={{ id: x.horse.id }} className="hover:underline">{x.horse.name}</Link>{RACING_DEMO && <ExampleBadge />}</> : "—"}{x.headgear ? <span className="ml-1 text-xs text-night-muted">({x.headgear})</span> : null}{x.non_runner && <span className="ml-2 rounded bg-destructive px-1.5 text-xs text-destructive-foreground">Non-runner</span>}</td>
+          <td className="px-3 py-2 font-semibold">{x.horse ? <><Silk id={x.horse.id} /><Link to="/racing/horses/$id" params={{ id: x.horse.id }} className="hover:underline">{x.horse.name}</Link>{demo && <ExampleBadge />}</> : "—"}{x.headgear ? <span className="ml-1 text-xs text-night-muted">({x.headgear})</span> : null}{x.non_runner && <span className="ml-2 rounded bg-destructive px-1.5 text-xs text-destructive-foreground">Non-runner</span>}</td>
           <td className="px-3 py-2">{x.age ?? "—"}{x.horse?.sex ? ` ${x.horse.sex}` : ""}</td>
           <td className="px-3 py-2 font-mono">{weightLabel(x.weight_lbs)}</td>
           <td className="px-3 py-2 font-mono">{x.official_rating ?? "—"}</td>

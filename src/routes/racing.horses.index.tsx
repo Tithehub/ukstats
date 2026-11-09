@@ -27,7 +27,7 @@ function Page() {
   const { q } = Route.useSearch();
   const nav = useNavigate({ from: "/racing/horses/" });
   const { data } = useSuspenseQuery(horsesQuery(q ?? ""));
-  return <RacingLayout title="Horse database" intro="Every horse is identified by its data provider's own ID, not just its name, so horses with the same name are never mixed up.">
+  return <RacingLayout demo={data.demo} title="Horse database" intro="Every horse is identified by its data provider's own ID, not just its name, so horses with the same name are never mixed up.">
     <form onSubmit={(e) => { e.preventDefault(); const v = new FormData(e.currentTarget).get("q"); nav({ search: { q: typeof v === "string" && v ? v : undefined } }); }} className="flex gap-2">
       <input name="q" defaultValue={q ?? ""} placeholder="Search horses by name" aria-label="Search horses" className="min-h-11 flex-1 rounded-md border border-night-line bg-night-panel px-3 text-night-fg" />
       <button className="min-h-11 rounded-md bg-racing-gold px-4 font-semibold text-night">Search</button>

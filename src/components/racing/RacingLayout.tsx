@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import type { Source } from "@/lib/racing/racing.functions";
-import { RACING_DEMO } from "@/lib/racing/providers/types";
 import gallops from "@/assets/racing/gallops.jpg";
 
 export function ExampleBadge() {
@@ -25,7 +24,7 @@ const TABS = [
   { to: "/racing/competitions", label: "Competitions" },
 ] as const;
 
-export function RacingLayout({ title, intro, image, children }: { title: string; intro?: ReactNode; image?: string; children: ReactNode }) {
+export function RacingLayout({ title, intro, image, demo = false, children }: { title: string; intro?: ReactNode; image?: string; demo?: boolean; children: ReactNode }) {
   return <div className="racing min-h-screen bg-night text-night-fg">
     <SiteHeader />
     <div className="relative h-40 overflow-hidden sm:h-56">
@@ -37,7 +36,8 @@ export function RacingLayout({ title, intro, image, children }: { title: string;
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-racing-gold">UKStats · Horse racing</p>
       <h1 className="mt-1 text-3xl font-bold sm:text-4xl">{title}</h1>
       {intro && <div className="mt-3 max-w-3xl text-sm text-night-muted">{intro}</div>}
-      {RACING_DEMO && <div role="note" className="mt-4 rounded-lg border-2 border-racing-gold bg-night-panel p-3 text-sm">
+      {!demo && <p className="mt-2 text-xs text-night-muted">Racecards supplied by <a href="https://www.theracingapi.com/" target="_blank" rel="noreferrer" className="underline">The Racing API</a>.</p>}
+      {demo && <div role="note" className="mt-4 rounded-lg border-2 border-racing-gold bg-night-panel p-3 text-sm">
         <strong className="text-racing-gold">EXAMPLE — not real racing data.</strong> Horses, trainers, jockeys, form and placings here are invented to show how the section works. Racecourses are real. No odds are shown. Real racecards replace these once a licensed data feed is connected.
       </div>}
       <nav aria-label="Horse racing sections" className="mt-5 flex gap-1 overflow-x-auto border-b border-night-line pb-px">

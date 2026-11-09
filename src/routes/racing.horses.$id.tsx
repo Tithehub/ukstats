@@ -3,7 +3,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { PageLoadError, PageNotFound } from "@/components/layout/PageFeedback";
 import { RacingLayout, Stat } from "@/components/racing/RacingLayout";
 import fence from "@/assets/racing/fence.jpg";
-import { RACING_DEMO } from "@/lib/racing/providers/types";
 
 import { horseQuery, type CareerRun } from "@/lib/racing/racing.functions";
 import { distanceLabel, weightLabel, winRate } from "@/lib/racing/racing";
@@ -42,14 +41,14 @@ function Page() {
   const wins = ran.filter((r) => r.position === 1).length, places = ran.filter((r) => r.position != null && r.position <= 3).length;
   const ratings = career.filter((r) => r.rating != null).reverse();
   const max = Math.max(1, ...ratings.map((r) => r.rating!)), min = Math.min(...ratings.map((r) => r.rating!), max);
-  return <RacingLayout image={fence} title={RACING_DEMO ? `${horse.name} (example)` : horse.name} intro={<>{[horse.sex, horse.foaled && `foaled ${fmtDate(horse.foaled)}`, horse.country, horse.sire && `by ${horse.sire}`, horse.dam && `out of ${horse.dam}`].filter(Boolean).join(" · ") || "Breeding not published"}{horse.trainer && <> · Trainer <Link to="/racing/people/$kind/$id" params={{ kind: "trainer", id: horse.trainer.id }} className="underline">{horse.trainer.name}</Link></>}{horse.aliases.length ? ` · Also known as ${horse.aliases.map((a) => a.alias).join(", ")}` : ""}</>}>
+  return <RacingLayout demo={data.demo} image={fence} title={data.demo ? `${horse.name} (example)` : horse.name} intro={<>{[horse.sex, horse.foaled && `foaled ${fmtDate(horse.foaled)}`, horse.country, horse.sire && `by ${horse.sire}`, horse.dam && `out of ${horse.dam}`].filter(Boolean).join(" · ") || "Breeding not published"}{horse.trainer && <> · Trainer <Link to="/racing/people/$kind/$id" params={{ kind: "trainer", id: horse.trainer.id }} className="underline">{horse.trainer.name}</Link></>}{horse.aliases.length ? ` · Also known as ${horse.aliases.map((a) => a.alias).join(", ")}` : ""}</>}>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <Stat label="Starts with a result" value={ran.length} />
       <Stat label="Wins" value={wins} note={winRate(wins, ran.length).label} />
       <Stat label="Placed (1st–3rd)" value={places} note={winRate(places, ran.length).label} />
       <Stat label="Latest official rating" value={ratings.at(-1)?.rating ?? "—"} />
     </div>
-    <p className="mt-2 text-xs text-night-muted">{RACING_DEMO ? "Example figures calculated from invented placings — not real results." : "Counts and percentages are UKStats calculations from the official results we hold; they are not official figures."}</p>
+    <p className="mt-2 text-xs text-night-muted">{data.demo ? "Example figures calculated from invented placings — not real results." : "Counts and percentages are UKStats calculations from the official results we hold; they are not official figures."}</p>
 
     {ratings.length > 1 && <section className="mt-6 rounded-lg border border-night-line bg-night-panel p-4">
       <h2 className="font-semibold">Official rating over time</h2>
