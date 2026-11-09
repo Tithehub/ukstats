@@ -50,7 +50,7 @@ export function NoFeed({ sources, what }: { sources: Source[]; what: string }) {
   </div>;
 }
 
-export function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
+export function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string | undefined }) {
   return <div className="rounded-lg border border-night-line bg-night-panel p-4">
     <div className="font-mono text-[11px] uppercase tracking-widest text-night-muted">{label}</div>
     <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
