@@ -410,6 +410,83 @@ export type Database = {
         }
         Relationships: []
       }
+      horse_aliases: {
+        Row: {
+          alias: string
+          horse_id: string
+        }
+        Insert: {
+          alias: string
+          horse_id: string
+        }
+        Update: {
+          alias?: string
+          horse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_aliases_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horses: {
+        Row: {
+          country: string | null
+          dam: string | null
+          foaled: string | null
+          id: string
+          name: string
+          sex: string | null
+          sire: string | null
+          source_id: string | null
+          trainer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          country?: string | null
+          dam?: string | null
+          foaled?: string | null
+          id: string
+          name: string
+          sex?: string | null
+          sire?: string | null
+          source_id?: string | null
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country?: string | null
+          dam?: string | null
+          foaled?: string | null
+          id?: string
+          name?: string
+          sex?: string | null
+          sire?: string | null
+          source_id?: string | null
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horses_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       improvement_plans: {
         Row: {
           created_at: string
@@ -433,6 +510,35 @@ export type Database = {
           tasks?: Json
         }
         Relationships: []
+      }
+      jockeys: {
+        Row: {
+          id: string
+          name: string
+          source_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          source_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          source_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jockeys_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       media_mentions: {
         Row: {
@@ -463,6 +569,54 @@ export type Database = {
           url?: string
         }
         Relationships: []
+      }
+      meetings: {
+        Row: {
+          going: string | null
+          id: string
+          meeting_date: string
+          racecourse_id: string
+          source_id: string | null
+          status: string
+          surface: string | null
+          updated_at: string
+        }
+        Insert: {
+          going?: string | null
+          id: string
+          meeting_date: string
+          racecourse_id: string
+          source_id?: string | null
+          status?: string
+          surface?: string | null
+          updated_at?: string
+        }
+        Update: {
+          going?: string | null
+          id?: string
+          meeting_date?: string
+          racecourse_id?: string
+          source_id?: string | null
+          status?: string
+          surface?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_racecourse_id_fkey"
+            columns: ["racecourse_id"]
+            isOneToOne: false
+            referencedRelation: "racecourses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       metric_changes: {
         Row: {
@@ -578,6 +732,107 @@ export type Database = {
         }
         Relationships: []
       }
+      non_runners: {
+        Row: {
+          declared_at: string
+          horse_id: string
+          id: string
+          race_id: string
+          reason: string | null
+          source_id: string | null
+        }
+        Insert: {
+          declared_at?: string
+          horse_id: string
+          id?: string
+          race_id: string
+          reason?: string | null
+          source_id?: string | null
+        }
+        Update: {
+          declared_at?: string
+          horse_id?: string
+          id?: string
+          race_id?: string
+          reason?: string | null
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "non_runners_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "non_runners_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "non_runners_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      odds_snapshots: {
+        Row: {
+          bookmaker: string
+          captured_at: string
+          decimal_odds: number
+          horse_id: string
+          id: string
+          race_id: string
+          source_id: string | null
+        }
+        Insert: {
+          bookmaker: string
+          captured_at?: string
+          decimal_odds: number
+          horse_id: string
+          id?: string
+          race_id: string
+          source_id?: string | null
+        }
+        Update: {
+          bookmaker?: string
+          captured_at?: string
+          decimal_odds?: number
+          horse_id?: string
+          id?: string
+          race_id?: string
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "odds_snapshots_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "odds_snapshots_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "odds_snapshots_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payload_cache: {
         Row: {
           data: Json
@@ -616,6 +871,252 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      race_results: {
+        Row: {
+          beaten_lengths: number | null
+          horse_id: string
+          official: boolean
+          position: number | null
+          race_id: string
+          recorded_at: string
+          starting_price_decimal: number | null
+          status: string
+        }
+        Insert: {
+          beaten_lengths?: number | null
+          horse_id: string
+          official?: boolean
+          position?: number | null
+          race_id: string
+          recorded_at?: string
+          starting_price_decimal?: number | null
+          status?: string
+        }
+        Update: {
+          beaten_lengths?: number | null
+          horse_id?: string
+          official?: boolean
+          position?: number | null
+          race_id?: string
+          recorded_at?: string
+          starting_price_decimal?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_results_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_results_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      racecourses: {
+        Row: {
+          country: string
+          id: string
+          name: string
+          source_id: string | null
+          surface: string | null
+        }
+        Insert: {
+          country?: string
+          id: string
+          name: string
+          source_id?: string | null
+          surface?: string | null
+        }
+        Update: {
+          country?: string
+          id?: string
+          name?: string
+          source_id?: string | null
+          surface?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "racecourses_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      races: {
+        Row: {
+          class: string | null
+          distance_yards: number | null
+          field_size: number | null
+          going: string | null
+          id: string
+          meeting_id: string
+          name: string
+          off_time: string
+          prize_gbp: number | null
+          race_type: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          class?: string | null
+          distance_yards?: number | null
+          field_size?: number | null
+          going?: string | null
+          id: string
+          meeting_id: string
+          name: string
+          off_time: string
+          prize_gbp?: number | null
+          race_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          class?: string | null
+          distance_yards?: number | null
+          field_size?: number | null
+          going?: string | null
+          id?: string
+          meeting_id?: string
+          name?: string
+          off_time?: string
+          prize_gbp?: number | null
+          race_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "races_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      racing_audit_logs: {
+        Row: {
+          action: string
+          actor: string | null
+          created_at: string
+          entity: string
+          entity_id: string
+          id: string
+          original: Json | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          created_at?: string
+          entity: string
+          entity_id: string
+          id?: string
+          original?: Json | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          created_at?: string
+          entity?: string
+          entity_id?: string
+          id?: string
+          original?: Json | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      racing_data_sources: {
+        Row: {
+          id: string
+          kind: string
+          last_error: string | null
+          last_error_at: string | null
+          last_success_at: string | null
+          licence_note: string | null
+          name: string
+          records_imported: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          kind: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
+          licence_note?: string | null
+          name: string
+          records_imported?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
+          licence_note?: string | null
+          name?: string
+          records_imported?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      racing_import_logs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          id: string
+          job: string
+          records: number
+          source_id: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          job: string
+          records?: number
+          source_id?: string | null
+          started_at?: string
+          status: string
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          job?: string
+          records?: number
+          source_id?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "racing_import_logs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rent_channels: {
         Row: {
@@ -832,6 +1333,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      runners: {
+        Row: {
+          age: number | null
+          cloth_number: number | null
+          draw: number | null
+          form: string | null
+          headgear: string | null
+          horse_id: string
+          id: string
+          jockey_id: string | null
+          non_runner: boolean
+          official_rating: number | null
+          race_id: string
+          trainer_id: string | null
+          updated_at: string
+          weight_lbs: number | null
+        }
+        Insert: {
+          age?: number | null
+          cloth_number?: number | null
+          draw?: number | null
+          form?: string | null
+          headgear?: string | null
+          horse_id: string
+          id: string
+          jockey_id?: string | null
+          non_runner?: boolean
+          official_rating?: number | null
+          race_id: string
+          trainer_id?: string | null
+          updated_at?: string
+          weight_lbs?: number | null
+        }
+        Update: {
+          age?: number | null
+          cloth_number?: number | null
+          draw?: number | null
+          form?: string | null
+          headgear?: string | null
+          horse_id?: string
+          id?: string
+          jockey_id?: string | null
+          non_runner?: boolean
+          official_rating?: number | null
+          race_id?: string
+          trainer_id?: string | null
+          updated_at?: string
+          weight_lbs?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "runners_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runners_jockey_id_fkey"
+            columns: ["jockey_id"]
+            isOneToOne: false
+            referencedRelation: "jockeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runners_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "runners_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shared_pages: {
         Row: {
@@ -1098,6 +1679,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trainers: {
+        Row: {
+          id: string
+          name: string
+          source_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          source_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          source_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainers_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "racing_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

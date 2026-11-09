@@ -169,6 +169,13 @@
       "when": 1794173404020,
       "tag": "0023_citizen_journalists",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794203606394,
+      "tag": "0024_racing_foundation",
+      "breakpoints": true
     }
   ]
 }

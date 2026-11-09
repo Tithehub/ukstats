@@ -81,6 +81,10 @@ import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
 import { Route as GlobeStudioRouteImport } from './routes/globe_.studio'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as RacingIndexRouteImport } from './routes/racing.index'
+import { Route as RacingAdminRouteImport } from './routes/racing.admin'
+import { Route as RacingCompetitionsRouteImport } from './routes/racing.competitions'
+import { Route as RacingResultsRouteImport } from './routes/racing.results'
 import { Route as RegionsIndexRouteImport } from './routes/regions.index'
 import { Route as RegionsSlugRouteImport } from './routes/regions.$slug'
 import { Route as RentAdminRouteImport } from './routes/rent_.admin'
@@ -102,12 +106,16 @@ import { Route as ApiPublicReportsTickRouteImport } from './routes/api/public/re
 import { Route as ApiPublicWorldWellbeingTickRouteImport } from './routes/api/public/world-wellbeing-tick'
 import { Route as EducationSchoolsIndexRouteImport } from './routes/education.schools.index'
 import { Route as EducationSchoolsUrnRouteImport } from './routes/education.schools.$urn'
+import { Route as RacingHorsesIndexRouteImport } from './routes/racing.horses.index'
+import { Route as RacingHorsesIdRouteImport } from './routes/racing.horses.$id'
+import { Route as RacingPeopleIndexRouteImport } from './routes/racing.people.index'
 import { Route as SSlugBroadcastRouteImport } from './routes/s.$slug_.broadcast'
 import { Route as SpendingTypeCategoryRouteImport } from './routes/spending.type.$category'
 import { Route as ApiPublicOgKeyRouteImport } from './routes/api/public/og.$key'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicV1GoldRouteImport } from './routes/api/public/v1/gold'
 import { Route as ApiPublicV1MetricsRouteImport } from './routes/api/public/v1/metrics'
+import { Route as RacingPeopleKindIdRouteImport } from './routes/racing.people.$kind.$id'
 import { Route as ApiPublicV1CountriesCodeMetricsRouteImport } from './routes/api/public/v1/countries/$code.metrics'
 import { Route as ApiPublicV1CountriesCodeHistoryMetricIdRouteImport } from './routes/api/public/v1/countries/$code.history.$metricId'
 
@@ -471,6 +479,26 @@ const PSlugRoute = PSlugRouteImport.update({
   path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RacingIndexRoute = RacingIndexRouteImport.update({
+  id: '/racing/',
+  path: '/racing/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacingAdminRoute = RacingAdminRouteImport.update({
+  id: '/racing/admin',
+  path: '/racing/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacingCompetitionsRoute = RacingCompetitionsRouteImport.update({
+  id: '/racing/competitions',
+  path: '/racing/competitions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacingResultsRoute = RacingResultsRouteImport.update({
+  id: '/racing/results',
+  path: '/racing/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegionsIndexRoute = RegionsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -578,6 +606,21 @@ const EducationSchoolsUrnRoute = EducationSchoolsUrnRouteImport.update({
   path: '/education/schools/$urn',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RacingHorsesIndexRoute = RacingHorsesIndexRouteImport.update({
+  id: '/racing/horses/',
+  path: '/racing/horses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacingHorsesIdRoute = RacingHorsesIdRouteImport.update({
+  id: '/racing/horses/$id',
+  path: '/racing/horses/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacingPeopleIndexRoute = RacingPeopleIndexRouteImport.update({
+  id: '/racing/people/',
+  path: '/racing/people/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SSlugBroadcastRoute = SSlugBroadcastRouteImport.update({
   id: '/s/$slug_/broadcast',
   path: '/s/$slug/broadcast',
@@ -608,6 +651,11 @@ const ApiPublicV1MetricsRoute = ApiPublicV1MetricsRouteImport.update({
   id: '/public/v1/metrics',
   path: '/public/v1/metrics',
   getParentRoute: () => ApiRoute,
+} as any)
+const RacingPeopleKindIdRoute = RacingPeopleKindIdRouteImport.update({
+  id: '/racing/people/$kind/$id',
+  path: '/racing/people/$kind/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicV1CountriesCodeMetricsRoute =
   ApiPublicV1CountriesCodeMetricsRouteImport.update({
@@ -693,6 +741,9 @@ export interface FileRoutesByFullPath {
   '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/racing/admin': typeof RacingAdminRoute
+  '/racing/competitions': typeof RacingCompetitionsRoute
+  '/racing/results': typeof RacingResultsRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/rent/admin': typeof RentAdminRoute
   '/rent/dashboard': typeof RentDashboardRoute
@@ -702,6 +753,7 @@ export interface FileRoutesByFullPath {
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/education/': typeof EducationIndexRoute
+  '/racing/': typeof RacingIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
@@ -715,13 +767,17 @@ export interface FileRoutesByFullPath {
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/api/public/world-wellbeing-tick': typeof ApiPublicWorldWellbeingTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
+  '/racing/horses/$id': typeof RacingHorsesIdRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/education/schools/': typeof EducationSchoolsIndexRoute
+  '/racing/horses/': typeof RacingHorsesIndexRoute
+  '/racing/people/': typeof RacingPeopleIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
+  '/racing/people/$kind/$id': typeof RacingPeopleKindIdRoute
   '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
   '/api/public/v1/countries/$code/history/$metricId': typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
@@ -794,6 +850,9 @@ export interface FileRoutesByTo {
   '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/racing/admin': typeof RacingAdminRoute
+  '/racing/competitions': typeof RacingCompetitionsRoute
+  '/racing/results': typeof RacingResultsRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/rent/admin': typeof RentAdminRoute
   '/rent/dashboard': typeof RentDashboardRoute
@@ -803,6 +862,7 @@ export interface FileRoutesByTo {
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
   '/education': typeof EducationIndexRoute
+  '/racing': typeof RacingIndexRoute
   '/regions': typeof RegionsIndexRoute
   '/spending': typeof SpendingIndexRoute
   '/world': typeof WorldIndexRoute
@@ -816,13 +876,17 @@ export interface FileRoutesByTo {
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/api/public/world-wellbeing-tick': typeof ApiPublicWorldWellbeingTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
+  '/racing/horses/$id': typeof RacingHorsesIdRoute
   '/s/$slug/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/education/schools': typeof EducationSchoolsIndexRoute
+  '/racing/horses': typeof RacingHorsesIndexRoute
+  '/racing/people': typeof RacingPeopleIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
+  '/racing/people/$kind/$id': typeof RacingPeopleKindIdRoute
   '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
   '/api/public/v1/countries/$code/history/$metricId': typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
@@ -898,6 +962,9 @@ export interface FileRoutesById {
   '/globe_/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
   '/p/$slug': typeof PSlugRoute
+  '/racing/admin': typeof RacingAdminRoute
+  '/racing/competitions': typeof RacingCompetitionsRoute
+  '/racing/results': typeof RacingResultsRoute
   '/regions/$slug': typeof RegionsSlugRoute
   '/rent_/admin': typeof RentAdminRoute
   '/rent_/dashboard': typeof RentDashboardRoute
@@ -907,6 +974,7 @@ export interface FileRoutesById {
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/education/': typeof EducationIndexRoute
+  '/racing/': typeof RacingIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
   '/world/': typeof WorldIndexRoute
@@ -920,13 +988,17 @@ export interface FileRoutesById {
   '/api/public/reports-tick': typeof ApiPublicReportsTickRoute
   '/api/public/world-wellbeing-tick': typeof ApiPublicWorldWellbeingTickRoute
   '/education/schools/$urn': typeof EducationSchoolsUrnRoute
+  '/racing/horses/$id': typeof RacingHorsesIdRoute
   '/s/$slug_/broadcast': typeof SSlugBroadcastRoute
   '/spending/type/$category': typeof SpendingTypeCategoryRoute
   '/education/schools/': typeof EducationSchoolsIndexRoute
+  '/racing/horses/': typeof RacingHorsesIndexRoute
+  '/racing/people/': typeof RacingPeopleIndexRoute
   '/api/public/og/$key': typeof ApiPublicOgKeyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/gold': typeof ApiPublicV1GoldRoute
   '/api/public/v1/metrics': typeof ApiPublicV1MetricsRoute
+  '/racing/people/$kind/$id': typeof RacingPeopleKindIdRoute
   '/api/public/v1/countries/$code/metrics': typeof ApiPublicV1CountriesCodeMetricsRoute
   '/api/public/v1/countries/$code/history/$metricId': typeof ApiPublicV1CountriesCodeHistoryMetricIdRoute
 }
@@ -1003,6 +1075,9 @@ export interface FileRouteTypes {
     | '/globe/studio'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/racing/admin'
+    | '/racing/competitions'
+    | '/racing/results'
     | '/regions/$slug'
     | '/rent/admin'
     | '/rent/dashboard'
@@ -1012,6 +1087,7 @@ export interface FileRouteTypes {
     | '/world/$iso'
     | '/$country/'
     | '/education/'
+    | '/racing/'
     | '/regions/'
     | '/spending/'
     | '/world/'
@@ -1025,13 +1101,17 @@ export interface FileRouteTypes {
     | '/api/public/reports-tick'
     | '/api/public/world-wellbeing-tick'
     | '/education/schools/$urn'
+    | '/racing/horses/$id'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
     | '/education/schools/'
+    | '/racing/horses/'
+    | '/racing/people/'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
+    | '/racing/people/$kind/$id'
     | '/api/public/v1/countries/$code/metrics'
     | '/api/public/v1/countries/$code/history/$metricId'
   fileRoutesByTo: FileRoutesByTo
@@ -1104,6 +1184,9 @@ export interface FileRouteTypes {
     | '/globe/studio'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/racing/admin'
+    | '/racing/competitions'
+    | '/racing/results'
     | '/regions/$slug'
     | '/rent/admin'
     | '/rent/dashboard'
@@ -1113,6 +1196,7 @@ export interface FileRouteTypes {
     | '/world/$iso'
     | '/$country'
     | '/education'
+    | '/racing'
     | '/regions'
     | '/spending'
     | '/world'
@@ -1126,13 +1210,17 @@ export interface FileRouteTypes {
     | '/api/public/reports-tick'
     | '/api/public/world-wellbeing-tick'
     | '/education/schools/$urn'
+    | '/racing/horses/$id'
     | '/s/$slug/broadcast'
     | '/spending/type/$category'
     | '/education/schools'
+    | '/racing/horses'
+    | '/racing/people'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
+    | '/racing/people/$kind/$id'
     | '/api/public/v1/countries/$code/metrics'
     | '/api/public/v1/countries/$code/history/$metricId'
   id:
@@ -1207,6 +1295,9 @@ export interface FileRouteTypes {
     | '/globe_/studio'
     | '/history/$metricId'
     | '/p/$slug'
+    | '/racing/admin'
+    | '/racing/competitions'
+    | '/racing/results'
     | '/regions/$slug'
     | '/rent_/admin'
     | '/rent_/dashboard'
@@ -1216,6 +1307,7 @@ export interface FileRouteTypes {
     | '/world/$iso'
     | '/$country/'
     | '/education/'
+    | '/racing/'
     | '/regions/'
     | '/spending/'
     | '/world/'
@@ -1229,13 +1321,17 @@ export interface FileRouteTypes {
     | '/api/public/reports-tick'
     | '/api/public/world-wellbeing-tick'
     | '/education/schools/$urn'
+    | '/racing/horses/$id'
     | '/s/$slug_/broadcast'
     | '/spending/type/$category'
     | '/education/schools/'
+    | '/racing/horses/'
+    | '/racing/people/'
     | '/api/public/og/$key'
     | '/api/public/payments/webhook'
     | '/api/public/v1/gold'
     | '/api/public/v1/metrics'
+    | '/racing/people/$kind/$id'
     | '/api/public/v1/countries/$code/metrics'
     | '/api/public/v1/countries/$code/history/$metricId'
   fileRoutesById: FileRoutesById
@@ -1306,18 +1402,26 @@ export interface RootRouteChildren {
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
   PSlugRoute: typeof PSlugRoute
+  RacingAdminRoute: typeof RacingAdminRoute
+  RacingCompetitionsRoute: typeof RacingCompetitionsRoute
+  RacingResultsRoute: typeof RacingResultsRoute
   RentAdminRoute: typeof RentAdminRoute
   RentDashboardRoute: typeof RentDashboardRoute
   SSlugRoute: typeof SSlugRoute
   SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
   EducationIndexRoute: typeof EducationIndexRoute
+  RacingIndexRoute: typeof RacingIndexRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
   EducationSchoolsUrnRoute: typeof EducationSchoolsUrnRoute
+  RacingHorsesIdRoute: typeof RacingHorsesIdRoute
   SSlugBroadcastRoute: typeof SSlugBroadcastRoute
   SpendingTypeCategoryRoute: typeof SpendingTypeCategoryRoute
   EducationSchoolsIndexRoute: typeof EducationSchoolsIndexRoute
+  RacingHorsesIndexRoute: typeof RacingHorsesIndexRoute
+  RacingPeopleIndexRoute: typeof RacingPeopleIndexRoute
+  RacingPeopleKindIdRoute: typeof RacingPeopleKindIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1826,6 +1930,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/racing/': {
+      id: '/racing/'
+      path: '/racing'
+      fullPath: '/racing/'
+      preLoaderRoute: typeof RacingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/racing/admin': {
+      id: '/racing/admin'
+      path: '/racing/admin'
+      fullPath: '/racing/admin'
+      preLoaderRoute: typeof RacingAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/racing/competitions': {
+      id: '/racing/competitions'
+      path: '/racing/competitions'
+      fullPath: '/racing/competitions'
+      preLoaderRoute: typeof RacingCompetitionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/racing/results': {
+      id: '/racing/results'
+      path: '/racing/results'
+      fullPath: '/racing/results'
+      preLoaderRoute: typeof RacingResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/regions/': {
       id: '/regions/'
       path: '/'
@@ -1973,6 +2105,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EducationSchoolsUrnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/racing/horses/': {
+      id: '/racing/horses/'
+      path: '/racing/horses'
+      fullPath: '/racing/horses/'
+      preLoaderRoute: typeof RacingHorsesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/racing/horses/$id': {
+      id: '/racing/horses/$id'
+      path: '/racing/horses/$id'
+      fullPath: '/racing/horses/$id'
+      preLoaderRoute: typeof RacingHorsesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/racing/people/': {
+      id: '/racing/people/'
+      path: '/racing/people'
+      fullPath: '/racing/people/'
+      preLoaderRoute: typeof RacingPeopleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/s/$slug_/broadcast': {
       id: '/s/$slug_/broadcast'
       path: '/s/$slug/broadcast'
@@ -2014,6 +2167,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/v1/metrics'
       preLoaderRoute: typeof ApiPublicV1MetricsRouteImport
       parentRoute: typeof ApiRoute
+    }
+    '/racing/people/$kind/$id': {
+      id: '/racing/people/$kind/$id'
+      path: '/racing/people/$kind/$id'
+      fullPath: '/racing/people/$kind/$id'
+      preLoaderRoute: typeof RacingPeopleKindIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/v1/countries/$code/metrics': {
       id: '/api/public/v1/countries/$code/metrics'
@@ -2191,18 +2351,26 @@ const rootRouteChildren: RootRouteChildren = {
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
   PSlugRoute: PSlugRoute,
+  RacingAdminRoute: RacingAdminRoute,
+  RacingCompetitionsRoute: RacingCompetitionsRoute,
+  RacingResultsRoute: RacingResultsRoute,
   RentAdminRoute: RentAdminRoute,
   RentDashboardRoute: RentDashboardRoute,
   SSlugRoute: SSlugRoute,
   SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
   EducationIndexRoute: EducationIndexRoute,
+  RacingIndexRoute: RacingIndexRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
   EducationSchoolsUrnRoute: EducationSchoolsUrnRoute,
+  RacingHorsesIdRoute: RacingHorsesIdRoute,
   SSlugBroadcastRoute: SSlugBroadcastRoute,
   SpendingTypeCategoryRoute: SpendingTypeCategoryRoute,
   EducationSchoolsIndexRoute: EducationSchoolsIndexRoute,
+  RacingHorsesIndexRoute: RacingHorsesIndexRoute,
+  RacingPeopleIndexRoute: RacingPeopleIndexRoute,
+  RacingPeopleKindIdRoute: RacingPeopleKindIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
