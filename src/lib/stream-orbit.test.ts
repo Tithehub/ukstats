@@ -28,3 +28,16 @@ describe("countUp", () => {
     expect(countUp("Amber", 0.3)).toBe("Amber");
   });
 });
+
+import { sparkPath, tilePage } from "./stream-orbit";
+describe("orbit extras", () => {
+  it("no trend line without at least two published points", () => {
+    expect(sparkPath([], 100, 20)).toBeNull();
+    expect(sparkPath([5], 100, 20)).toBeNull();
+    expect(sparkPath([1, 3], 100, 20)).toBe("M0.0,20.0 L100.0,0.0");
+  });
+  it("the card being read is always on the visible page of eight", () => {
+    expect(tilePage(12, 9)).toEqual({ idx: 9, start: 8 });
+    expect(tilePage(12, 13)).toEqual({ idx: 1, start: 0 });
+  });
+});
