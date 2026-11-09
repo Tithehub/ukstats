@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
-import { CALTRANS_DISTRICTS, parseCaltransCams, parseDriveBcCams, parseFintrafficCams, parseHongKongCams, parseIcelandCams, parseLithuaniaCams, parseNztaCams, parseTflCams, type PublicCam } from "./public-cams";
+import { CALTRANS_DISTRICTS, parseCaltransCams, parseDriveBcCams, parseFintrafficCams, parseHongKongCams, parseIcelandCams, parseLithuaniaCams, parseNztaCams, parseOregonCams, parseTflCams, type PublicCam } from "./public-cams";
 
 let cache: { at: number; items: PublicCam[]; failed: string[] } | null = null;
 
@@ -22,6 +22,7 @@ export const getPublicCams = createServerFn({ method: "POST" }).handler(async ()
     grab("Vegagerðin", "https://gagnaveita.vegagerdin.is/api/vefmyndavelar2014_1", parseIcelandCams),
     grab("Hong Kong Transport Department", "https://static.data.gov.hk/td/traffic-snapshot-images/code/Traffic_Camera_Locations_En.xml", parseHongKongCams, true),
     grab("NZ Transport Agency", "https://trafficnz.info/service/traffic/rest/4/cameras/all", parseNztaCams, true),
+    grab("Oregon DOT", "https://tripcheck.com/Scripts/map/data/cctvinventory.js", parseOregonCams),
     grab("Eismoinfo", "https://eismoinfo.lt/eismoinfo-backend/camera-info-table", parseLithuaniaCams),
   ]);
   const items = lists.flat();

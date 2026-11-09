@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { parseOregonCams, describe, expect, it } from "vitest";
 import { camKind, camKindLabel, camImageSrc, camsForCountry, stepCam, parseCaltransCams, parseTflCams } from "./public-cams";
 
 describe("public cameras", () => {
@@ -60,5 +60,9 @@ describe("more countries", () => {
   });
   it("keeps existing query strings on picture links", () => {
     expect(camSrc2({ id: "l", lat: 1, lng: 1, place: "", operator: "Lithuanian Road Administration", image: "https://e/last?id=7", everyMin: 10 }, 0)).toBe("https://e/last?id=7&t=0");
+  });
+  it("reads Oregon TripCheck stills and skips bad filenames", () => {
+    const j = { features: [{ attributes: { filename: "Astoria_pid392.jpg", latitude: 46.18, longitude: -123.85, title: "US101 at Astoria " } }, { attributes: { filename: "../x.jpg", latitude: 45, longitude: -122 } }] };
+    expect(parseOregonCams(j)).toEqual([{ id: "or-Astoria_pid392", lat: 46.18, lng: -123.85, place: "US101 at Astoria, Oregon", operator: "Oregon DOT", image: "https://tripcheck.com/RoadCams/cams/Astoria_pid392.jpg", everyMin: 5 }]);
   });
 });
