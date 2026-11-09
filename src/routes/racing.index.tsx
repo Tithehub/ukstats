@@ -78,7 +78,7 @@ function Page() {
     </div>}
 
     <div className="mt-6 space-y-8">
-      {data.error ? <NoFeed sources={data.sources} what="racecards" /> : !shown.length ? <NoFeed sources={data.sources} what="racecards" /> : shown.map((m) => <section key={m.id}>
+      {data.error ? <NoFeed sources={data.sources} what="racecards" /> : !shown.length ? (data.provider && day === "upcoming" ? <p className="rounded-lg border border-night-line bg-night-panel p-4 text-sm">The Racing API free plan covers today and tomorrow only. Racecards for later days need a paid plan.</p> : <NoFeed sources={data.sources} what="racecards" />) : shown.map((m) => <section key={m.id}>
         <h2 className="text-xl font-bold">{m.course?.name ?? "Racecourse"} <span className="text-sm font-normal text-night-muted">· {fmtDate(m.meeting_date)}{m.going ? ` · Going: ${m.going}` : ""}{m.surface ? ` · ${m.surface}` : ""}{m.status !== "scheduled" ? ` · ${m.status}` : ""}</span></h2>
         <div className="mt-3 space-y-4">{m.races.map((r) => <RaceCard key={r.id} r={r} demo={data.demo} />)}</div>
       </section>)}

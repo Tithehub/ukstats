@@ -47,6 +47,7 @@ function Page() {
       <ul className="mt-2 space-y-1 text-sm">{data.entries.map((e) => <li key={e.race.id}>{fmtDate(e.date)} · {new Date(e.race.off_time).toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" })} · {e.course} · {e.race.name}{e.runner.jockey ? ` · ridden by ${e.runner.jockey.name}` : ""}</li>)}</ul>
       <p className="mt-2 text-xs text-night-muted">Past results need The Racing API Standard plan, so race history stays empty on the current plan.</p>
     </section>}
+    {(data.entries.length === 0 || career.length > 0) && <>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <Stat label="Starts with a result" value={ran.length} />
       <Stat label="Wins" value={wins} note={winRate(wins, ran.length).label} />
@@ -85,5 +86,6 @@ function Page() {
         </table></div>}
       {career.length > 0 && <p className="mt-2 text-xs text-night-muted">The last five races are highlighted. SP is the official starting price in decimal form, shown for history only.</p>}
     </section>
+    </>}
   </RacingLayout>;
 }
