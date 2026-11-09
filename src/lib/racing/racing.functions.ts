@@ -4,14 +4,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { dayWindow, londonDate, type RaceDay } from "./racing";
 import { demoHorse, demoHorseList, demoMeetings, demoPeople, demoPerson, demoResults } from "./demo.data";
 
+// Server-only reads of public reference data; tables have no anon/authenticated read policy.
 async function db() {
-  const { createClient } = await import("@supabase/supabase-js");
-  const url = process.env["SUPABASE_URL"]!;
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient(url, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    global: { fetch: (input, init) => { const h = new Headers(init?.headers); if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization"); h.set("apikey", key); return fetch(input, { ...init, headers: h }); } },
-  }) as unknown as { from: (t: string) => any };
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin as unknown as { from: (t: string) => any };
 }
 
 export interface Source { id: string; name: string; kind: string; status: string; last_success_at: string | null; last_error: string | null; records_imported: number }
