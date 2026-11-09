@@ -111,7 +111,7 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
   // No rise/fall percentage: the publisher does not state one, so we never compute it.
   const lo = sp.length ? Math.min(...sp) : 0, hi = sp.length ? Math.max(...sp) : 0;
   const bars = scene !== "migration" && sp.length >= 2;
-  return <section key={`${seg?.id}-${step}`} data-fit className="relative overflow-hidden rounded-xl border border-electric/40 bg-night/75 p-7 shadow-[0_30px_80px_-20px_oklch(0_0_0/0.8)] backdrop-blur-xl motion-safe:animate-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
+  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-xl p-7 motion-safe:animate-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
     <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,transparent_30%,oklch(1_0_0/0.16)_50%,transparent_70%)] motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" />
     <div className="flex items-center justify-between gap-4">
       <span className="truncate text-[26px] font-black uppercase tracking-wide">{label}</span>
@@ -154,7 +154,7 @@ const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? "▸";
 
 /** NEXT UP rail like the reference: icon, title and real start time, the next item highlighted. */
 export function OrbitNextUp({ now, items }: { now: string; items: { title: string; time: string | null }[] }) {
-  return <section className="overflow-hidden rounded-lg border border-night-line bg-night/80 backdrop-blur-md">
+  return <section className="orbit-glass overflow-hidden rounded-xl">
     <div className="flex items-center gap-2 px-4 pt-3"><span className="h-5 w-1 bg-destructive" /><span className="font-mono text-[20px] font-black uppercase tracking-widest">Next up</span></div>
     <div key={now} className="mx-3 mt-2 truncate rounded border-l-4 border-destructive bg-destructive/15 px-3 py-1.5 text-[18px] font-bold motion-safe:animate-in motion-safe:slide-in-from-left-4">
       <span className="mr-2 font-mono text-[13px] uppercase text-destructive">On air</span>{now}</div>

@@ -20,7 +20,7 @@ import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
-import { OrbitHeroCard, OrbitLowerThird, OrbitNextUp, OrbitPulse, OrbitTicker } from "@/components/stream/OrbitScene";
+import { OrbitHeroCard, OrbitLowerThird, OrbitMiniTiles, OrbitNextUp, OrbitPulse, OrbitTicker } from "@/components/stream/OrbitScene";
 import { sceneFor } from "@/lib/stream-orbit";
 import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { OrbitStatsRail } from "@/components/stream/OrbitStatsRail";
@@ -235,7 +235,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       {slides.length > 0 && <div className="absolute bottom-[110px] left-8 z-30 h-[340px] w-[380px]"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
       <div className="absolute bottom-[96px] left-[360px] z-20 h-[880px] w-[760px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="absolute bottom-[96px] left-[300px] z-20 h-[90px] w-[900px] rounded-t-[40px] border-t-2 border-electric/50 bg-[linear-gradient(180deg,oklch(0.35_0.06_258/0.85),oklch(0.12_0.03_258/0.95))] shadow-[0_-10px_60px_-10px_var(--electric)]" />
-      <div className="absolute right-8 top-[180px] z-30 flex w-[640px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />{!wc && <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-8 top-[180px] z-30 flex w-[640px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[118px] left-1/2 z-40 -translate-x-1/2"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : seg?.title ?? "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
