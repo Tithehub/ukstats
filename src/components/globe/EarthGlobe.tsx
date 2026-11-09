@@ -303,10 +303,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
       fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dc = texture2D(dayT, vUv).rgb * (0.55 + 0.6 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(1.25, 1.05, 0.8) + texture2D(dayT, vUv).rgb * 0.06; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
     });
     const old = g.globeMaterial();
-    const globeMesh = (g.scene().getObjectByProperty("type", "Mesh") as THREE.Mesh | undefined);
     let target: THREE.Mesh | null = null;
     g.scene().traverse((o) => { const m = o as THREE.Mesh; if (!target && m.isMesh && m.material === old) target = m; });
-    void globeMesh;
     const mesh = target as THREE.Mesh | null;
     if (!mesh) { mat.dispose(); return; }
     mesh.material = mat;
@@ -371,7 +369,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
         onPolygonClick={(f) => { if (moved.current) return; const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
-        onGlobeReady={() => setGl0(true)}
+        onGlobeReady={() => { ref.current?.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)); setGl0(true); }}
+        rendererConfig={{ antialias: !coarse, powerPreference: "high-performance" }}
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}
         pointLng={(e) => (e as { lng: number }).lng}
