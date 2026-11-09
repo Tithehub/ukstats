@@ -1,30 +1,41 @@
-# Hide horse racing from the live site, then polish the new Globe Orbit stream
+# Hide horse racing from the live site, then rebuild the new stream to match your Globe Orbit video
 
 ## Part 1 — Keep horse racing off the live site until you say so
 - Remove every racing link from the menu, the UK topic bar and the home page on the live site.
-- On ukstats.co.uk, stats.solutions and the published lovable.app address, every /racing page shows "Page not found" and is kept out of Google: removed from the sitemap and marked noindex.
-- In the preview, racing keeps working exactly as now (dashboard, racecards, AI Predictor), so you can keep building it.
-- One switch turns racing on. When you say "launch racing", I flip it, and all the links and pages come back in one go.
+- On ukstats.co.uk, stats.solutions and the published lovable.app address, every /racing page shows "Page not found". The pages are also removed from the sitemap and marked so Google doesn't index them.
+- In the preview, racing keeps working exactly as now (dashboard, racecards, AI Predictor).
+- One switch turns racing back on when you say "launch racing".
 
-## Part 2 — Get the Globe Orbit stream nailed and modernised
-This is the new stream at /globe/broadcast?layout=orbit only. The current live stream stays untouched.
+## Part 2 — The new stream, built to look exactly like your 32-second video
+Applies only to the new stream at /globe/broadcast?layout=orbit. The old live stream is not touched or mixed in.
 
-Fixes for the known faults:
-- **Figures mid-count or showing 0** (like "17.870"): numbers count up only once the tile is on screen. They land on the exact published figure within a second, and a slow recorder or OBS can never freeze them part-way. Any figure that can't count cleanly (dates, percentages with words, "Not published") simply appears as published.
-- **Overlaps:** the tiles, the presenter box, the lower-third strap, the sponsor card and the ticker each get fixed zones on the 1920×1080 frame, so nothing overlaps or gets cut off. The on-screen overflow checker in Stream Studio flags anything that breaks.
+The frame is 1920×1080 and laid out like the video:
+- **Top left:** a red "UKSTATS" badge with "LIVE" beside it.
+- **Left column:**
+  - A "NEXT UP" rail with an icon and time for each item (UK debt, small boats, weather and so on, from the real running order). The current item gets a yellow highlight and an "ON NEXT" tag, and they slide up as the show moves on.
+  - Below it, the sponsor card with a large QR code. It flips between real approved sponsors and the recommended cards, one at a time.
+- **Centre:** the brunette presenter behind the glass desk. She's animated the whole time: her mouth moves in time with her voice (or a speaking rhythm when muted), she breathes, sways gently, blinks and her head moves slightly. She reads the real scripts.
+- **Background right:** a full 3D globe that never stops moving:
+  - It rotates slowly, twinkling city lights shine on the night side, and a glowing blue rim surrounds it.
+  - Red light streaks sweep around orbit lines, and pulse rings pop over the place being reported.
+  - It flies to each country in the world segment and back to the UK for UK segments, while the live coordinates in the top corner update.
+- **Right:** the "WORLD HEADLINE" card (it becomes "UK DEBT", "SMALL BOATS", "WEATHER" and so on per segment).
+  - A title and the real figure count up and land exactly on the published value, with the change versus last period in green or red only when the publisher gives it.
+  - A source and date line sits underneath.
+  - The card flips to the next figure or headline every few seconds, with a light sweep.
+  - Extra figures appear as small animated tiles that slide in beneath it.
+- **Lower third:** a red "UK STATS LIVE" block, then a yellow segment name (WORLD / UK / WEATHER / WARNINGS) that wipes in on each change, with a shine running across it.
+- **Bottom:** a yellow "BREAKING NEWS" tab with a non-stop scrolling ticker of real headlines (official warnings marked red), and a red box with the live London clock.
 
-Modernised look, same navy/red/yellow brand:
-- **Cleaner tiles:** fewer at a time (max 6), larger numbers, a thin glass card, a source line and a small trend line, with a smooth slide-and-glow on the figure being read.
-- **Segment transitions:** a short red/yellow wipe with the segment title (e.g. "UK DEBT", "SMALL BOATS", "WEATHER") between topics, so viewers always know what's on.
-- **Globe:** a smoother fly-to between countries, a soft vignette and twinkling city lights, with the pulse ring timed to her reading.
-- **Presenter:** framed lower-left in a clean glass panel with a name strap ("AI presenter"), and lip movement kept in time with her voice.
-- **Ticker and clock:** a slim bottom ticker with official warnings in red and headlines in white, plus a live London clock and LIVE badge.
-- **Sponsor and recommended cards:** one at a time, bottom-right, with a large QR code, never covering figures.
+Everything keeps moving for the whole loop. There are no frozen or static frames, every panel has an entrance, idle motion and an exit, and nothing shows placeholder text. If a segment has no published figure, it shows a headline or is skipped, as now.
 
-How I'll check it, cheaply: I'll take still screenshots of each segment type (stats, headlines, weather, warnings, migration, world, sponsor break) at 1920×1080 and check them for overlaps, blank tiles and mid-count figures. I won't make another long video recording unless you ask.
+How I'll check it: 8 still screenshots across the loop (UK, debt, boats, weather, warnings, world ×2, sponsor), checked against your video for layout, overlaps, blank panels and mid-count figures. I'll also do one short 20-second screen recording to confirm the motion and her talking. No long recordings unless you ask.
 
 ## Technical details
-- Add a `RACING_PUBLIC = false` flag in src/lib/racing/visibility.ts, with `racingVisible(host)` true on preview hosts or when the flag is on. This gates the links in SiteHeader, UkTopicNav and index.tsx, the sitemap entries, and a shared `beforeLoad` on racing routes that throws notFound() on public hosts, plus a noindex head. Read the host via site-host.ts.
-- Orbit: CountUp starts on IntersectionObserver/mount and also snaps to the final value through a wall-clock timeout, never frame-dependent. countUp() returns the exact string for values with more than one number. Add a test to stream-orbit tests asserting that p=1 returns the exact value and that multi-number strings pass through unchanged.
-- Layout zones as fixed CSS grid areas in BroadcastView's orbit variant. tilePage is capped at 6.
-- Update AGENTS.md: racing is hidden on public hosts behind one flag.
+- Racing: add `src/lib/racing/visibility.ts` with `RACING_PUBLIC=false` and a strict preview-host classifier (id-preview/preview/live-- patterns on lovable.app). This gates links in SiteHeader, UkTopicNav and index.tsx, adds a shared racing route `beforeLoad` that throws notFound() on public hosts, a noindex head, and excludes racing from the sitemap. Record the rule in AGENTS.md.
+- Orbit: restructure the BroadcastView orbit variant into fixed grid zones matching the reference.
+  - OrbitBackdrop gets night lights, rim glow, orbit-line streaks and a vignette over the existing three-globe globe, keeping the fly-to-country behaviour.
+  - New OrbitHeadlineCard replaces the tile grid as the hero card, with a mini-tile strip.
+  - The OrbitRail gets icons and times and the ON NEXT highlight, plus a sponsor card component, lower-third and ticker components.
+  - CountUp snaps to the final value on a wall-clock timer, and countUp() passes multi-number strings through unchanged (with tests).
+  - Add blink and head-motion to OrbitPresenter.
