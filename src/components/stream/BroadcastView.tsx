@@ -22,6 +22,7 @@ import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
 import { OrbitPanel, OrbitPulse, OrbitRail } from "@/components/stream/OrbitScene";
 import { sceneFor } from "@/lib/stream-orbit";
+import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
@@ -73,8 +74,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   }, [W, H]);
 
   useEffect(() => {
-    setNow(new Date());
-    const c = setInterval(() => setNow(new Date()), 1000);
+    // Dev-only: a recorder can shift the stream clock (window.__streamOffset ms) to step through segments.
+    const clockNow = () => new Date(Date.now() + (import.meta.env.DEV ? Number((window as unknown as { __streamOffset?: number }).__streamOffset ?? 0) : 0));
+    setNow(clockNow());
+    const c = setInterval(() => setNow(clockNow()), import.meta.env.DEV ? 250 : 1000);
     // Watchdog: reload every few hours, and soon after any uncaught error, so the stream never freezes.
     const r = setTimeout(() => location.reload(), RELOAD_MS);
     const onErr = () => setTimeout(() => location.reload(), 60_000);
@@ -98,6 +101,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     metrics, warnings: unrest?.warnings ?? [], reports: news?.items ?? [], emergencyPlanes: emergency, now: now ?? new Date(0),
   }), [metrics, unrest, news, emergency, tenMin]);
   const ukHour = useMemo(() => buildUkHour(rundown), [rundown]);
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __ukHour?: unknown }).__ukHour = ukHour.map((x) => ({ id: x.seg.id, title: x.seg.title, start: x.start, end: x.end })); }, [ukHour]);
 
   // Clock-driven position: even London hours = UK hour, odd hours = other countries five minutes each.
   const rawPos = now ? positionAt(now) : { mode: "uk" as const, hourIndex: 0, msIntoHour: 0 };
@@ -209,6 +213,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
       <div className="absolute inset-y-0 left-[260px] w-[1500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_62%_50%,transparent_35%,var(--night)_85%)]" />
+      <OrbitBackdrop />
       <div className="absolute left-[1010px] top-[410px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : sceneFor(seg) === "weather" ? "United Kingdom · weather" : "United Kingdom"} scene={sceneFor(seg)} />}</div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
       <div className="absolute left-6 top-[212px] z-30 w-[400px]"><OrbitRail now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={upNext} /></div>
