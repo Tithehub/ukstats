@@ -1,5 +1,5 @@
-import { parseOregonCams, describe, expect, it } from "vitest";
-import { camKind, camKindLabel, camImageSrc, camsForCountry, stepCam, parseCaltransCams, parseTflCams } from "./public-cams";
+import { describe, expect, it } from "vitest";
+import { parseOregonCams, camKind, camKindLabel, camImageSrc, camsForCountry, stepCam, parseCaltransCams, parseTflCams } from "./public-cams";
 
 describe("public cameras", () => {
   it("keeps available TfL cameras with https pictures and coordinates", () => {
