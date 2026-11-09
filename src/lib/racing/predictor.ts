@@ -46,8 +46,8 @@ export function predictRace(race: RaceRow): Prediction {
     return { runner: r, score, rank: 0, why };
   }).sort((a, b) => b.score - a.score || (a.runner.cloth_number ?? 99) - (b.runner.cloth_number ?? 99));
 
-  scored.forEach((s, i) => { s.rank = i > 0 && s.score === scored[i - 1].score ? scored[i - 1].rank : i + 1; });
-  const gap = scored[0].score - scored[1].score;
+  scored.forEach((s, i) => { s.rank = i > 0 && s.score === scored[i - 1]!.score ? scored[i - 1]!.rank : i + 1; });
+  const gap = scored[0]!.score - scored[1]!.score;
   const confidence: Confidence = gap >= 1.5 ? "High" : gap >= 0.5 ? "Medium" : "Low";
   return { ok: true, ranked: scored, nonRunners, confidence };
 }
