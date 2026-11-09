@@ -19,6 +19,8 @@ import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCar
 import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
+import { OrbitPanel, OrbitPulse, OrbitRail } from "@/components/stream/OrbitScene";
+import { sceneFor } from "@/lib/stream-orbit";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
@@ -39,8 +41,8 @@ const hhmm = (iso: string | null) => iso ? london(new Date(iso), { day: "numeric
 const FRESH: Record<string, string> = { fresh: "bg-fresh", ageing: "bg-ageing", overdue: "bg-overdue", unknown: "bg-night-muted" };
 
 /** TV news-channel frame captured by OBS. `brand` turns it into a rented, customer-branded channel (figures unchanged). */
-export type Variant = "classic" | "split" | "data-wall";
-const VARIANTS: Record<Exclude<Variant, "classic">, { globe: number }> = { split: { globe: 960 }, "data-wall": { globe: 840 } };
+export type Variant = "classic" | "split" | "data-wall" | "orbit";
+const VARIANTS: Record<Exclude<Variant, "classic">, { globe: number }> = { split: { globe: 960 }, "data-wall": { globe: 840 }, orbit: { globe: 1920 } };
 
 export function BroadcastView({ layout, brand, variant = "classic", watermark }: { layout: Layout; brand?: StreamBrand; variant?: Variant; watermark?: string | undefined }) {
   const V = variant === "classic" ? { globe: 1240 } : VARIANTS[variant];
@@ -199,7 +201,19 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   return <div className="fixed inset-0 overflow-hidden bg-night">
   <div data-frame data-layout={layout} className="absolute left-0 top-0 origin-top-left overflow-hidden bg-night font-sans text-night-fg"
     style={{ width: W, height: H, transform: `scale(${scale})`, left: offset.x, top: offset.y }}>
-    {layout === "landscape" ? (variant === "classic" ? <>
+    {layout === "landscape" && variant === "orbit" ? <>
+      {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
+      <div className="absolute inset-y-0 left-[260px] w-[1500px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_62%_50%,transparent_35%,var(--night)_85%)]" />
+      <div className="absolute left-[1010px] top-[410px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : sceneFor(seg) === "weather" ? "United Kingdom · weather" : "United Kingdom"} scene={sceneFor(seg)} />}</div>
+      <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
+      <div className="absolute left-6 top-[212px] z-30 w-[400px]"><OrbitRail now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={upNext} /></div>
+      <div className="absolute left-[440px] top-[226px] z-30 h-[500px] w-[420px]">{anchor}</div>
+      <div className="absolute right-6 top-[212px] z-30 h-[640px] w-[720px]">{!brand && promo.active ? <PromoCard /> : <OrbitPanel seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />}</div>
+      {!seg?.cards.length ? null : <div className="absolute bottom-[240px] left-[660px] z-30 w-[520px]">{lower}</div>}
+      <div className={`absolute bottom-[120px] right-0 z-40 h-[104px] ${slides.length ? "left-[640px]" : "left-0"}`}>{tickers}</div>
+      {slides.length > 0 && <div className="absolute bottom-[120px] left-0 z-40 h-[220px] w-[640px]"><StreamSponsors rows={slides} ms={pos.msIntoHour} /></div>}
+    </> : layout === "landscape" ? (variant === "classic" ? <>
       {/* Globe fills the left; YouTube's title and control zones (top 96px, bottom 120px) show only globe/background */}
       <div className="absolute inset-y-0 left-0 w-[1240px]"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
       <div className="absolute inset-x-0 top-[96px] z-40 h-[96px]">{header}</div>
