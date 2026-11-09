@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { dayWindow, londonDate, type RaceDay } from "./racing";
+import { RACING_DEMO } from "./providers/types";
+import { demoHorse, demoHorseList, demoMeetings, demoPeople, demoPerson, demoResults } from "./demo.data";
 
 async function db() {
   const { createClient } = await import("@supabase/supabase-js");
@@ -24,6 +26,7 @@ const RACE_SEL = "id,off_time,name,race_type,distance_yards,class,prize_gbp,goin
 export const getRacecards = createServerFn({ method: "POST" })
   .inputValidator((d: { day: RaceDay }) => ({ day: (["today", "tomorrow", "upcoming"] as const).includes(d.day) ? d.day : "today" as RaceDay }))
   .handler(async ({ data }): Promise<Racecards> => {
+    if (RACING_DEMO) { const w = dayWindow(data.day, new Date()); return { sources: [], meetings: demoMeetings(w.from, w.to), latestOdds: null, error: null }; }
     try {
       const c = await db();
       const w = dayWindow(data.day, new Date());
@@ -40,6 +43,7 @@ export const racecardsQuery = (day: RaceDay) => queryOptions({ queryKey: ["racin
 
 export interface ResultRow { race_id: string; position: number | null; status: string; starting_price_decimal: number | null; horse: { id: string; name: string } | null; race: { name: string; off_time: string; meeting: { course: { name: string } | null } | null } | null }
 export const getResults = createServerFn({ method: "POST" }).handler(async () => {
+  if (RACING_DEMO) return { rows: demoResults(), error: null };
   try {
     const c = await db();
     const since = londonDate(new Date(), -7);
@@ -53,6 +57,7 @@ export interface CareerRun { race_id: string; off_time: string; race: string; co
 export const getHorse = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => ({ id: String(d.id).slice(0, 80) }))
   .handler(async ({ data }) => {
+    if (RACING_DEMO) return demoHorse(data.id);
     const c = await db();
     const { data: h } = await c.from("horses").select("id,name,foaled,sex,sire,dam,country,trainer:trainers(id,name),aliases:horse_aliases(alias)").eq("id", data.id).maybeSingle();
     if (!h) return null;
@@ -72,6 +77,7 @@ export const horseQuery = (id: string) => queryOptions({ queryKey: ["racing", "h
 export const searchHorses = createServerFn({ method: "POST" })
   .inputValidator((d: { q: string }) => ({ q: String(d.q ?? "").replace(/[%_,()]/g, "").slice(0, 60) }))
   .handler(async ({ data }) => {
+    if (RACING_DEMO) return { rows: demoHorseList(data.q), error: null };
     try {
       const c = await db();
       let q = c.from("horses").select("id,name,sex,foaled,trainer:trainers(name)").order("name").limit(100);
@@ -86,6 +92,7 @@ export type PersonKind = "trainer" | "jockey";
 export const getPerson = createServerFn({ method: "POST" })
   .inputValidator((d: { kind: PersonKind; id: string }) => ({ kind: d.kind === "jockey" ? "jockey" as const : "trainer" as const, id: String(d.id).slice(0, 80) }))
   .handler(async ({ data }) => {
+    if (RACING_DEMO) return demoPerson(data.kind, data.id);
     const c = await db();
     const { data: p } = await c.from(data.kind === "jockey" ? "jockeys" : "trainers").select("id,name").eq("id", data.id).maybeSingle();
     if (!p) return null;
@@ -103,6 +110,7 @@ export const personQuery = (kind: PersonKind, id: string) => queryOptions({ quer
 export const searchPeople = createServerFn({ method: "POST" })
   .inputValidator((d: { q: string }) => ({ q: String(d.q ?? "").replace(/[%_,()]/g, "").slice(0, 60) }))
   .handler(async ({ data }) => {
+    if (RACING_DEMO) return { ...demoPeople(data.q), error: null };
     try {
       const c = await db();
       const run = (t: string) => { let q = c.from(t).select("id,name").order("name").limit(60); if (data.q) q = q.ilike("name", `%${data.q}%`); return q; };

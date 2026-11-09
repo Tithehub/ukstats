@@ -25,3 +25,6 @@ export interface RacingProvider {
 
 /** Registry: providers are added here once a licence and key exist. Empty until then. */
 export const PROVIDERS: RacingProvider[] = [];
+
+/** True while no licensed provider is registered: pages show clearly labelled EXAMPLE data. */
+export const RACING_DEMO = PROVIDERS.length === 0;
