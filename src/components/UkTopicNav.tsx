@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Anchor, Banknote, FileText, GraduationCap, Smile, Scale, ShieldCheck, ShoppingBasket, Stethoscope, Trophy } from "lucide-react";
+import { Anchor, Banknote, FileText, GraduationCap, Smile, Scale, ShieldCheck, ShoppingBasket, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SpendingTypeLinks } from "@/components/SpendingTypeLinks";
 
