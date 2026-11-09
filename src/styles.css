@@ -48,6 +48,7 @@
   --color-stream-strap: var(--stream-strap);
   --color-stream-strap-fg: var(--stream-strap-fg);
   --color-stream-yellow: var(--stream-yellow);
+  --color-stream-green: var(--stream-green);
   --color-racing-gold: var(--racing-gold);
   --color-stream-yellow-fg: var(--stream-yellow-fg);
   --color-dedication: var(--dedication);
@@ -390,6 +391,7 @@
   --stream-strap: oklch(1 0 0);
   --stream-strap-fg: oklch(0.15 0.03 258);
   --stream-yellow: oklch(0.88 0.18 95);
+  --stream-green: oklch(0.78 0.2 150);
   --stream-yellow-fg: oklch(0.15 0.03 258);
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
