@@ -292,27 +292,24 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
 
   // Day/night: the globe surface itself blends the daylight picture with city lights on the night side,
   // plus a soft orange glow along the sunrise/sunset line.
-  useEffect(() => {
-    const g = ref.current; if (!g || !dayNight) return;
+  const dayNightMat = useMemo(() => {
     const load = new THREE.TextureLoader();
     const day = load.load(earth), night = load.load(nightLights);
     for (const t of [day, night]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
-    const mat = new THREE.ShaderMaterial({
+    return new THREE.ShaderMaterial({
       uniforms: { dayT: { value: day }, nightT: { value: night }, sun: { value: new THREE.Vector3(1, 0, 0) } },
       vertexShader: "varying vec3 vN; varying vec2 vUv; void main(){ vUv = uv; vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dc = texture2D(dayT, vUv).rgb * (0.55 + 0.6 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(1.25, 1.05, 0.8) + texture2D(dayT, vUv).rgb * 0.06; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
+      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dt = texture2D(dayT, vUv).rgb; vec3 dc = dt * (0.6 + 0.55 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(1.3, 1.08, 0.8) + dt * 0.07; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
     });
-    const old = g.globeMaterial();
-    let target: THREE.Mesh | null = null;
-    g.scene().traverse((o) => { const m = o as THREE.Mesh; if (!target && m.isMesh && m.material === old) target = m; });
-    const mesh = target as THREE.Mesh | null;
-    if (!mesh) { mat.dispose(); return; }
-    mesh.material = mat;
-    const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); mat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
+  }, []);
+  const plainMat = useMemo(() => new THREE.MeshPhongMaterial({ shininess: 6 }), []);
+  useEffect(() => {
+    const g = ref.current; if (!g || !dayNight) return;
+    const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); dayNightMat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
     set();
     const t = setInterval(set, 60_000);
-    return () => { clearInterval(t); mesh.material = old; mat.dispose(); day.dispose(); night.dispose(); };
-  }, [dayNight, gl0]);
+    return () => clearInterval(t);
+  }, [dayNight, gl0, dayNightMat]);
   // Faint drifting clouds — desktop only, never with reduced motion, so phones stay fast.
   useEffect(() => {
     const g = ref.current; if (!g || !gl0 || coarse || still) return;
@@ -358,6 +355,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         height={size.h}
         backgroundColor="rgba(0,0,0,0)"
         globeImageUrl={earth}
+        globeMaterial={dayNight ? dayNightMat : plainMat}
         showAtmosphere
         atmosphereColor="#7fb2ff"
         atmosphereAltitude={0.2}
