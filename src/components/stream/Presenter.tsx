@@ -38,8 +38,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
   const recent = useRef<string[]>([]);
   /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
   const nextLine = () => !recent.current.includes(latest.current) ? latest.current
-    : queue.current.find((t) => t && !recent.current.includes(t))
-    ?? (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE);
+    : (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE);
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
