@@ -30,7 +30,7 @@ let ctx: AudioContext | null = null;
 const MOUTH_MASK = "radial-gradient(ellipse 9% 5.5% at 50.2% 33.4%, #000 55%, transparent 100%)";
 
 /** Orbit-layout AI presenter: mouth follows the real voice loudness; idle breathing and sway. Always labelled AI. */
-export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: string; upcoming?: string[]; voice: boolean; onSpeak?: (text: string) => void }) {
+export function OrbitPresenter({ line, upcoming = [], voice, onSpeak, onBusy }: { line: string; upcoming?: string[]; voice: boolean; onSpeak?: (text: string) => void; onBusy?: (speaking: boolean) => void }) {
   const said = useRef(onSpeak); said.current = onSpeak;
   const [status, setStatus] = useState<"idle" | "preparing" | "speaking" | "blocked" | "unauthorised" | "miming">("idle");
   const mouth = useRef<HTMLImageElement>(null);
@@ -39,6 +39,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
   const busy = useRef(false);
   const cur = useRef<(() => void) | null>(null);
   const gen = useRef(0);
+  const busyCb = useRef(onBusy); busyCb.current = onBusy;
   const latest = useRef(line);
   const lastSpoken = useRef("");
   const statusRef = useRef(status);
@@ -105,18 +106,18 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       } catch { analyser.current = null; }
       let done = false;
       const finish = () => {
-        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok);
+        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok); busyCb.current?.(false);
         busy.current = false; analyser.current = null; setStatus("idle");
         { const n = nextLine(); if (n) void speak(n); }
       };
       // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
       const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
       el.onended = finish; el.onerror = finish;
-      const stopEl = () => { done = true; window.clearTimeout(guard); el.onended = null; el.onerror = null; el.pause(); analyser.current = null; };
+      const stopEl = () => { busyCb.current?.(false); done = true; window.clearTimeout(guard); el.onended = null; el.onerror = null; el.pause(); analyser.current = null; };
       const tok = claimVoice(stopEl);
       cur.current = () => { stopEl(); releaseVoice(tok); };
       if (g !== gen.current) { cur.current(); return; }
-      try { await el.play(); if (g !== gen.current) { stopEl(); releaseVoice(tok); return; } setStatus("speaking"); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
+      try { await el.play(); if (g !== gen.current) { stopEl(); releaseVoice(tok); return; } setStatus("speaking"); busyCb.current?.(true); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);

@@ -102,3 +102,13 @@ describe("dates in spoken English", () => {
   it("reads month and year", () => expect(speakable("Period Sep 2026")).toBe("Period September twenty twenty-six"));
   it("reads early-2000s years", () => expect(speakable("3/2/2005")).toBe("the third of February, two thousand and five"));
 });
+
+import { heldStep, spokenWords } from "./stream-script";
+describe("screen waits for the presenter", () => {
+  const hold = { segId: "debt", step: 2, since: 1_000 };
+  it("keeps the stat she is reading while she speaks", () => expect(heldStep(3, "debt", hold, true, 5_000)).toBe(2));
+  it("rejoins the clock once she finishes", () => expect(heldStep(4, "debt", hold, false, 5_000)).toBe(4));
+  it("never stalls longer than 25 seconds", () => expect(heldStep(3, "debt", hold, true, 27_000)).toBe(3));
+  it("a new slot is never held back", () => expect(heldStep(0, "boats", hold, true, 5_000)).toBe(0));
+  it("counts figures as the words she says", () => expect(spokenWords("Debt £2.8tn")).toBeGreaterThan(3));
+});

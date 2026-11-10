@@ -2,7 +2,7 @@ import { StreamScandalPanel } from "./StreamScandalPanel";
 import { StreamGoldBoard } from "./StreamGoldBoard";
 import { goldQuery } from "@/lib/gold.functions";
 import { goldSegment } from "@/lib/stream-rundown";
-import { lineAt } from "@/lib/stream-script";
+import { lineAt, heldStep, type LineHold } from "@/lib/stream-script";
 import { FEATURED_STORY } from "@/lib/featured-story.data";
 import type { StreamBrand } from "@/components/stream/stream-brand";
 import { useQuery } from "@tanstack/react-query";
@@ -138,6 +138,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const { data: countryData } = useQuery({ ...countryQuery(wc?.code ?? "fr"), enabled: !!wc });
   useQuery({ ...countryQuery(world ? WORLD[world.next]!.code : "fr"), enabled: !!world });
 
+  const [busySpeaking, setBusySpeaking] = useState(false);
   let seg: Segment | undefined; let msIn = 0; let upNext: string[] = [];
   if (wc && world) {
     seg = countrySegment(wc.key, countryData, unrest?.warnings ?? [], now ?? new Date(0), news?.items ?? []);
@@ -155,7 +156,16 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   }
   // One timetable for screen and voice: each line stays up for its own speaking time, so they can't drift.
   const reads0 = readingList(seg, !wc && pos.ukPart === 2);
-  const step = lineAt(reads0, msIn).index;
+  const clockStep = lineAt(reads0, msIn).index;
+  // Screen waits for the voice: a stat isn't replaced while she's still reading it; afterwards the clock position resumes.
+  const segKey = `${seg?.id ?? ""}|${pos.ukPart ?? ""}`;
+  const nowMs = now?.getTime() ?? 0;
+  const prevStep = useRef<{ segKey: string; step: number } | null>(null);
+  const holdRef = useRef<LineHold | null>(null);
+  if (!busySpeaking || holdRef.current?.segId !== segKey) holdRef.current = null;
+  if (busySpeaking && !holdRef.current && prevStep.current?.segKey === segKey && prevStep.current.step !== clockStep) holdRef.current = { segId: segKey, step: prevStep.current.step, since: nowMs };
+  const step = heldStep(clockStep, segKey, holdRef.current, busySpeaking, nowMs);
+  prevStep.current = { segKey, step };
   const ri = reads0.length ? step % reads0.length : 0;
   const nCards = seg?.cards.length ?? 0;
   const card = nCards ? seg!.cards[Math.min(ri, nCards - 1)]! : null;
@@ -228,12 +238,12 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     ? <Presenter line={sbVoice.line} upcoming={sbVoice.upcoming} voice={voice} />
     : promo.active
     ? <Presenter line={promoLines[promoStep]!} upcoming={promoLines.slice(promoStep + 1, promoStep + 4)} voice={voice} />
-    : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? lineQueue : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
+    : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? lineQueue : [reads[0] ?? ""].filter(Boolean)} voice={voice} onBusy={setBusySpeaking} />;
   const walk = ex?.chapter.id === "walkthrough" ? ex : null;
   const noCamLine = !!ex0 && tourOn && !liveCam && GLOBE_TOUR[ex0.line]?.key === "cams";
   const orbitLine = ex0 ? (noCamLine ? GLOBE_NO_CAM_LINE : ex0.chapter.lines[ex0.line]!) : sbVoice ? sbVoice.line : promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
   const orbitUp = ex0 ? ex0.chapter.lines.slice(ex0.line + 1) : sbVoice ? sbVoice.upcoming : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : lineQueue;
-  const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} onSpeak={onSpeak} />;
+  const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} onSpeak={onSpeak} onBusy={setBusySpeaking} />;
   const orbitItem = itemForSpoken(seg, reads, spoken.text, step);
   const globeCountry = ex ? ex.country ?? "united kingdom" : spoken.country ?? seg?.country ?? "united kingdom";
   const hourStart = now ? now.getTime() - pos.msIntoHour : 0;
