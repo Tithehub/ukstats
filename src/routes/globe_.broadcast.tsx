@@ -5,8 +5,8 @@ import { unrestQuery } from "@/lib/unrest.functions";
 
 /** TV news-channel page captured by an external streamer (ffmpeg / OBS) for YouTube Live. */
 export const Route = createFileRoute("/globe_/broadcast")({
-  validateSearch: (s: Record<string, unknown>): { layout?: Layout | "orbit" } =>
-    s["layout"] === "portrait" ? { layout: "portrait" } : s["layout"] === "orbit" ? { layout: "orbit" } : {},
+  validateSearch: (s: Record<string, unknown>): { layout?: Layout | "orbit" | "classic" } =>
+    s["layout"] === "portrait" ? { layout: "portrait" } : s["layout"] === "classic" ? { layout: "classic" } : s["layout"] === "orbit" ? { layout: "orbit" } : {},
   loader: ({ context }) => Promise.all([
     context.queryClient.ensureQueryData(worldQuery()),
     context.queryClient.ensureQueryData(unrestQuery()),
@@ -26,5 +26,8 @@ export const Route = createFileRoute("/globe_/broadcast")({
 
 function BroadcastPage() {
   const l = Route.useSearch().layout;
-  return l === "orbit" ? <BroadcastView layout="landscape" variant="orbit" /> : <BroadcastView layout={l ?? "landscape"} />;
+  // Orbit is the default landscape stream; ?layout=classic keeps the old design as a fallback.
+  if (l === "portrait") return <BroadcastView layout="portrait" />;
+  if (l === "classic") return <BroadcastView layout="landscape" />;
+  return <BroadcastView layout="landscape" variant="orbit" />;
 }
