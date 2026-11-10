@@ -5,8 +5,10 @@ import { unrestQuery } from "@/lib/unrest.functions";
 
 /** TV news-channel page captured by an external streamer (ffmpeg / OBS) for YouTube Live. */
 export const Route = createFileRoute("/globe_/broadcast")({
-  validateSearch: (s: Record<string, unknown>): { layout?: Layout | "orbit" | "classic" } =>
-    s["layout"] === "portrait" ? { layout: "portrait" } : s["layout"] === "classic" ? { layout: "classic" } : s["layout"] === "orbit" ? { layout: "orbit" } : {},
+  validateSearch: (s: Record<string, unknown>): { layout?: Layout | "orbit" | "classic"; segment?: "explainer" } => ({
+    ...(s["layout"] === "portrait" ? { layout: "portrait" as const } : s["layout"] === "classic" ? { layout: "classic" as const } : s["layout"] === "orbit" ? { layout: "orbit" as const } : {}),
+    ...(s["segment"] === "explainer" ? { segment: "explainer" as const } : {}),
+  }),
   loader: ({ context }) => Promise.all([
     context.queryClient.ensureQueryData(worldQuery()),
     context.queryClient.ensureQueryData(unrestQuery()),
