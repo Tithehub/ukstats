@@ -1,3 +1,4 @@
+- [x] Orbit draft: reference-level NEXT UP rail and recommended card, gold city glow, city light network, presenter/figure sync; preview only
 # Roadmap
 - [x] Orbit draft: closer globe effects (halo, flare, wider orbit streaks, dust, country pulse) and animated tiles; preview only
 - [x] Bring Orbit closer to the supplied studio reference: illuminated Earth, studio architecture and reflective desk; UK/world stills and capture sizes checked, preview only

@@ -1,4 +1,4 @@
-import { BarChart3, CloudSun, Globe2, Plane, Scale, ShieldAlert, Ship, ChevronRight } from "lucide-react";
+import { BarChart3, CloudSun, Globe2, Plane, Scale, ShieldAlert, Ship, HeartPulse, Users, Home, Briefcase, Siren, Newspaper } from "lucide-react";
 import { fmtDate } from "@/lib/uk-stats";
 import { sparkPath, tilePage, type OrbitScene } from "@/lib/stream-orbit";
 import type { Headline, Segment, StreamCard } from "@/lib/stream-rundown";
@@ -146,18 +146,29 @@ export function OrbitMiniTiles({ seg, step }: { seg: Segment | undefined; step: 
   </div>;
 }
 
-const ICON = [[/debt|borrow|spend|tax|gdp|inflation|price/i, BarChart3], [/boat|migra|asylum|cross/i, Ship], [/weather|rain|wind|storm/i, CloudSun], [/warn|alert/i, ShieldAlert], [/crime|police/i, Scale], [/flight|sky/i, Plane], [/world|around|countr/i, Globe2]] as const;
-const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? ChevronRight;
+const ICON = [[/debt|borrow|spend|tax|gdp|inflation|price/i, BarChart3], [/boat|migra|asylum|cross/i, Ship], [/weather|rain|wind|storm/i, CloudSun], [/warn|alert/i, ShieldAlert], [/crime|police/i, Scale], [/flight|sky/i, Plane], [/world|around|countr/i, Globe2], [/nhs|health|hospital|a&e/i, HeartPulse], [/population|people|census/i, Users], [/hous|rent|home/i, Home], [/job|employ|wage|earn/i, Briefcase], [/terror|threat/i, Siren], [/headline|news|ukstats/i, Newspaper]] as const;
+const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? Globe2;
 
-/** NEXT UP rail like the reference: icon, title and real start time, the next item highlighted. */
+/** Short topic name for the rail: text before a dash/colon, never a full sentence. */
+export const shortTitle = (t: string) => t.split(/\s[—–-]\s|:/)[0]!.trim();
+
+function RailIcon({ title, on }: { title: string; on?: boolean }) {
+  const Icon = iconFor(title);
+  return <span aria-hidden className={`flex size-[58px] shrink-0 items-center justify-center rounded-md border ${on ? "border-destructive/70 bg-destructive/20 text-night-fg" : "border-night-fg/15 bg-electric/10 text-electric-soft"}`}><Icon className="size-8" /></span>;
+}
+
+/** NEXT UP rail like the reference: icon tile, bold one-line title, real start time; on-air row marked red. */
 export function OrbitNextUp({ now, items }: { now: string; items: { title: string; time: string | null }[] }) {
   return <section className="orbit-glass overflow-hidden rounded-lg">
-    <div className="flex items-center gap-2 px-4 pt-3"><span className="h-5 w-1 bg-destructive" /><span className="font-mono text-[20px] font-black uppercase tracking-widest">Next up</span></div>
-    <div key={now} className="mx-3 mt-2 truncate rounded border-l-4 border-destructive bg-destructive/15 px-3 py-1.5 text-[18px] font-bold motion-safe:animate-in motion-safe:slide-in-from-left-4">
-      <span className="mr-2 font-mono text-[13px] uppercase text-destructive">On air</span>{now}</div>
-    <ol className="space-y-1 p-3">{items.slice(0, 3).map((u, i) => <li key={u.title} className={`flex items-center gap-3 rounded px-2 py-2 transition-colors duration-700 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 ${i === 0 ? "border-l-4 border-stream-yellow bg-stream-yellow/15 shadow-[0_0_24px_-8px_var(--stream-yellow)] motion-safe:animate-[orbit-glow_3s_ease-in-out_infinite]" : ""}`} style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
-      <span className="w-10 shrink-0 text-electric-soft" aria-hidden>{(() => { const Icon = iconFor(u.title); return <Icon className="size-8" />; })()}</span>
-      <span className="min-w-0 flex-1"><span className="block text-[19px] font-bold uppercase leading-tight">{u.title}</span>{u.time && <span className="font-mono text-[16px] text-night-muted">{u.time}</span>}</span>
+    <div className="flex items-center gap-3 px-5 pb-2 pt-4"><span className="h-6 w-1 bg-destructive" /><span className="text-[24px] font-black uppercase tracking-wide">Next up</span></div>
+    <div key={now} className="relative flex items-center gap-4 border-y border-night-fg/10 bg-destructive/10 px-5 py-3 motion-safe:animate-in motion-safe:slide-in-from-left-4">
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-destructive shadow-[0_0_18px_var(--destructive)]" />
+      <RailIcon title={now} on />
+      <span className="min-w-0 flex-1"><span className="block truncate text-[20px] font-bold uppercase leading-tight">{shortTitle(now)}</span><span className="font-mono text-[15px] font-bold uppercase tracking-widest text-destructive">On air</span></span>
+    </div>
+    <ol>{items.slice(0, 3).map((u, i) => <li key={u.title} className="flex items-center gap-4 border-b border-night-fg/10 px-5 py-3 last:border-b-0 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3" style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
+      <RailIcon title={u.title} />
+      <span className="min-w-0 flex-1"><span className="block truncate text-[20px] font-bold uppercase leading-tight">{shortTitle(u.title)}</span><span className="font-mono text-[17px] text-night-muted">{u.time ?? "Next"}</span></span>
     </li>)}</ol>
   </section>;
 }
