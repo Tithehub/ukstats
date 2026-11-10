@@ -489,6 +489,8 @@
 @media (prefers-reduced-motion: no-preference) { .orbit-tilt-left { animation: orbit-drift 12s ease-in-out infinite; } }
 
 .orbit-sponsor-img { opacity: 1; }
+/* Cancels the card tilt so phone cameras see the QR face-on. */
+.orbit-qr-flat { transform: perspective(1400px) rotateY(-14deg); transform-origin: center; }
 .orbit-sponsor-fallback { background: radial-gradient(circle at 70% 40%, color-mix(in oklab, var(--destructive) 55%, transparent), transparent 60%), linear-gradient(135deg, var(--night), color-mix(in oklab, var(--electric) 25%, var(--night))); }
 
 /* Orbit draft: subtle glass-slab depth on every panel */
