@@ -27,6 +27,7 @@ import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { OrbitStatsRail } from "@/components/stream/OrbitStatsRail";
 import { checkedLabel, keyFigures } from "@/lib/stream-extras";
 import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
+import { itemForSpoken } from "@/lib/stream-sync";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { readPaymentsEnvironment } from "@/lib/payments-env";
 import { regionFromPath, sponsorsForRegion, type SponsorBannerRow } from "@/lib/sponsor-visibility";
