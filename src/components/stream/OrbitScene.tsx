@@ -159,7 +159,7 @@ function RailIcon({ title, on }: { title: string; on?: boolean }) {
 
 /** NEXT UP rail like the reference: icon tile, bold one-line title, real start time; on-air row marked red. */
 export function OrbitNextUp({ now, items }: { now: string; items: { title: string; time: string | null }[] }) {
-  return <section className="orbit-glass overflow-hidden rounded-lg">
+  return <section className="orbit-glass relative overflow-hidden rounded-lg">
     <div className="flex items-center gap-3 px-5 pb-2 pt-4"><span className="h-6 w-1 bg-destructive" /><span className="text-[24px] font-black uppercase tracking-wide">Next up</span></div>
     <div key={now} className="relative flex items-center gap-4 border-y border-night-fg/10 bg-destructive/10 px-5 py-3 motion-safe:animate-in motion-safe:slide-in-from-left-4">
       <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-destructive shadow-[0_0_18px_var(--destructive)]" />

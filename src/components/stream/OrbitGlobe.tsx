@@ -73,7 +73,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
       uniforms: { dayT: { value: day }, nightT: { value: night }, sweep: { value: -2 } },
       vertexShader: "varying vec2 vUv; varying vec3 vN; void main(){vUv=uv;vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
       // Colourful newsroom look: land lifted to electric blue/teal, oceans deep navy, warm gold city glow, moving light sweep.
-      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;uniform float sweep;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),3.2);float light=0.5+0.5*max(dot(normalize(vN),normalize(vec3(0.45,0.7,0.6))),0.0);vec3 c=land*vec3(0.26,0.44,0.8)*light+vec3(1.0,0.74,0.34)*pow(city,0.7)*16.0;float s=exp(-pow((vN.x+vN.y*0.4-sweep)*3.5,2.0));c+=vec3(0.3,0.55,1.0)*s*0.18;float sun=pow(max(dot(normalize(vN),normalize(vec3(0.6,0.65,0.45))),0.0),6.0);c+=vec3(1.0,0.78,0.45)*sun*0.18;c+=vec3(0.15,0.5,1.0)*rim*1.4;gl_FragColor=vec4(c,1.0);}",
+      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;uniform float sweep;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),3.2);float light=0.5+0.5*max(dot(normalize(vN),normalize(vec3(0.45,0.7,0.6))),0.0);vec3 c=land*vec3(0.18,0.34,0.72)*light+vec3(1.0,0.78,0.38)*min(vec3(1.4,1.0,0.5),vec3(1.0,0.72,0.3)*pow(city,0.75)*12.0)+vec3(1.0,0.6,0.25)*smoothstep(0.02,0.25,city)*0.35;float s=exp(-pow((vN.x+vN.y*0.4-sweep)*3.5,2.0));c+=vec3(0.3,0.55,1.0)*s*0.18;float sun=pow(max(dot(normalize(vN),normalize(vec3(0.6,0.65,0.45))),0.0),6.0);c+=vec3(1.0,0.8,0.5)*sun*0.32;c+=vec3(0.2,0.58,1.0)*pow(rim,0.9)*1.9;gl_FragColor=vec4(c,1.0);}",
     });
     const group = new THREE.Group();
     const earth = new THREE.Mesh(geometry, surface); earth.rotation.y = -Math.PI / 2;
@@ -90,7 +90,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("rgba(90,170,255,0.55)", "rgba(20,60,160,0)"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
     halo.scale.setScalar(3.4); halo.position.z = -0.6; scene.add(halo);
     const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("rgba(255,235,210,0.9)", "rgba(255,120,80,0)"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-    flare.scale.setScalar(0.7); flare.position.set(-0.78, 0.74, -0.3); scene.add(flare);
+    flare.scale.setScalar(1.1); flare.position.set(0.82, 0.8, -0.3); scene.add(flare);
     const headTex = glowTex("rgba(255,255,255,1)", "rgba(255,40,70,0)");
     const dustGeo = new THREE.BufferGeometry(); const dust = new Float32Array(900);
     for (let i = 0; i < 900; i += 3) { dust[i] = (Math.random() - 0.5) * 8; dust[i + 1] = (Math.random() - 0.5) * 5; dust[i + 2] = -1 - Math.random() * 3; }
@@ -125,7 +125,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const bloomTex = glowTex("rgba(255,215,140,0.95)", "rgba(255,150,60,0)");
     const arcs: { pts: THREE.Vector3[]; head: THREE.Sprite; off: number }[] = [];
     const vec = (c: [number, number]) => new THREE.Vector3(...(onSphere(c[0], c[1], 1) as [number, number, number]));
-    for (const c of CITIES) { const b = new THREE.Sprite(new THREE.SpriteMaterial({ map: bloomTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.8 })); b.position.copy(vec(c).multiplyScalar(1.006)); b.scale.setScalar(0.07); group.add(b); }
+    for (const c of CITIES) { const b = new THREE.Sprite(new THREE.SpriteMaterial({ map: bloomTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.95 })); b.position.copy(vec(c).multiplyScalar(1.006)); b.scale.setScalar(0.11); group.add(b); }
     PAIRS.forEach(([i, j], k) => {
       const A = vec(CITIES[i]!), B = vec(CITIES[j]!); const ang = A.angleTo(B);
       const pts = Array.from({ length: 65 }, (_, n) => { const t = n / 64; const p = A.clone().multiplyScalar(Math.sin((1 - t) * ang)).add(B.clone().multiplyScalar(Math.sin(t * ang))).divideScalar(Math.sin(ang)); return p.normalize().multiplyScalar(1.004 + Math.sin(t * Math.PI) * ang * 0.09); });

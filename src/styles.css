@@ -488,3 +488,10 @@
 
 .orbit-sponsor-img { -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%), linear-gradient(180deg, #000 55%, transparent); mask-image: linear-gradient(90deg, transparent, #000 45%); opacity: .9; }
 .orbit-sponsor-fallback { background: radial-gradient(circle at 70% 40%, color-mix(in oklab, var(--destructive) 55%, transparent), transparent 60%), linear-gradient(135deg, var(--night), color-mix(in oklab, var(--electric) 25%, var(--night))); }
+
+/* Orbit draft: subtle glass-slab depth on every panel */
+[data-variant="orbit"] .orbit-glass { border-color: color-mix(in oklab, var(--electric-soft) 30%, transparent); box-shadow: 0 26px 40px -22px oklch(0 0 0 / .95), 0 0 0 1px color-mix(in oklab, var(--night) 60%, transparent), inset 0 1px 0 color-mix(in oklab, var(--electric-soft) 55%, transparent), inset 1px 0 0 color-mix(in oklab, var(--electric-soft) 18%, transparent), inset -1px 0 0 color-mix(in oklab, var(--night) 70%, transparent), inset 0 -3px 0 color-mix(in oklab, var(--night) 75%, transparent), inset 0 0 30px color-mix(in oklab, var(--electric) 12%, transparent); }
+[data-variant="orbit"] .orbit-glass::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: linear-gradient(180deg, color-mix(in oklab, var(--electric-soft) 10%, transparent), transparent 30%), var(--orbit-shine); background-size: 100% 100%, 250% 100%; animation: orbit-slab 9s linear infinite; }
+@keyframes orbit-slab { from { background-position: 0 0, 150% 0; } to { background-position: 0 0, -150% 0; } }
+@media (prefers-reduced-motion: reduce) { [data-variant="orbit"] .orbit-glass::after { animation: none; } }
+[data-variant="orbit"] .orbit-sponsor-img { -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%); mask-image: linear-gradient(90deg, transparent, #000 40%); opacity: 1; }
