@@ -19,6 +19,7 @@
  */
 
 @theme inline {
+  --color-sponsor-tag: oklch(0.78 0.15 235);
   --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --color-ground: var(--ground);
