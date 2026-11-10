@@ -20,7 +20,7 @@ import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
-import bookStream from "@/assets/grooming-gang-cover-up-stream-4x3.jpg.asset.json";
+import bookStream from "@/assets/grooming-gang-cover-up-stream-4x3-v2.jpg.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
 import { OrbitHeroCard, OrbitLowerThird, OrbitMiniTiles, OrbitNextUp, OrbitPulse, OrbitTicker } from "@/components/stream/OrbitScene";
