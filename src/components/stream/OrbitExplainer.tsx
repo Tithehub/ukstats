@@ -21,9 +21,9 @@ export function UkStatsMark({ size = 56 }: { size?: number }) {
 }
 const Wordmark = ({ big }: { big?: boolean }) => <div className="flex items-center gap-3"><UkStatsMark size={big ? 72 : 44} /><span className={`${big ? "text-[64px]" : "text-[38px]"} leading-none tracking-tight`}><b className="font-black">UK</b>Stats</span></div>;
 
-function Qr({ path, label }: { path: string; label: string }) {
+function Qr({ path, label, small }: { path: string; label: string; small?: boolean }) {
   return <div className="flex shrink-0 flex-col items-center gap-1 rounded-lg bg-background p-3 text-foreground">
-    <QRCodeSVG value={QR(path)} size={150} level="M" marginSize={2} />
+    <QRCodeSVG value={QR(path)} size={small ? 120 : 150} level="M" marginSize={2} />
     <span className="font-mono text-[18px] font-bold">{label}</span>
   </div>;
 }
@@ -36,7 +36,7 @@ export function OrbitExplainer({ chapter, index, line, msInChapter }: { chapter:
   const p = Math.min(1, msInChapter / chapter.ms);
   return <div className="orbit-glass relative overflow-hidden rounded-xl border border-night-fg/15 p-6 shadow-2xl">
     <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.25em] text-electric-soft">
-      <span>About UKStats · {index + 1}/{all.length}</span><span>Not news · not statistics</span>
+      <span className="whitespace-nowrap">About UKStats · {index + 1}/{all.length}</span><span className="whitespace-nowrap text-night-muted">Site guide</span>
     </div>
     <h2 key={chapter.id} className="mt-2 text-[44px] font-black leading-tight motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-6">{chapter.title}</h2>
     <div className="mt-3 h-[5px] overflow-hidden rounded bg-night-fg/10"><div className="h-full bg-destructive transition-[width] duration-300" style={{ width: `${p * 100}%` }} /></div>
@@ -61,30 +61,30 @@ function body(c: Chapter, line: number) {
       </div>
     </div>;
     case "reports": return <div className="flex items-center gap-5">
-      <div className="relative h-[250px] w-[300px] shrink-0">
-        <img src={globalCover} alt="Global report cover" className="absolute right-0 top-0 h-[230px] rotate-6 rounded shadow-2xl" />
-        <img src={ukCover} alt="UK report cover" className="absolute left-0 top-4 h-[230px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
+      <div className="relative h-[230px] w-[210px] shrink-0">
+        <img src={globalCover} alt="Global report cover" className="absolute right-0 top-0 h-[190px] rotate-6 rounded shadow-2xl" />
+        <img src={ukCover} alt="UK report cover" className="absolute left-0 top-4 h-[190px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2 text-[22px]">
         <Price k="UK daily" v={gbp(REPORT_PRICES.report_uk_daily.pence)} />
         <Price k="Global daily" v={gbp(REPORT_PRICES.report_global_daily.pence)} />
-        <Price k="UK month / year" v={`${gbp(REPORT_PRICES.report_uk_monthly.pence)} / ${gbp(REPORT_PRICES.report_uk_yearly.pence)}`} />
-        <Price k="Global month / year" v={`${gbp(REPORT_PRICES.report_global_monthly.pence)} / ${gbp(REPORT_PRICES.report_global_yearly.pence)}`} />
+        <Price k="UK mo / yr" v={`${gbp(REPORT_PRICES.report_uk_monthly.pence)} / ${gbp(REPORT_PRICES.report_uk_yearly.pence)}`} />
+        <Price k="Global mo / yr" v={`${gbp(REPORT_PRICES.report_global_monthly.pence)} / ${gbp(REPORT_PRICES.report_global_yearly.pence)}`} />
       </div>
     </div>;
     case "rent": {
       const shots = [rentDash, rentStream, rentWidget];
       return <div className="flex flex-col gap-4">
-        <div className="relative h-[230px] overflow-hidden rounded-lg border border-night-fg/15">
+        <div className="relative h-[170px] overflow-hidden rounded-lg border border-night-fg/15">
           {shots.map((s, i) => <img key={s} src={s} alt="Rent UKStats example" className={`absolute inset-0 size-full object-cover object-top transition-opacity duration-1000 ${i === line % shots.length ? "opacity-100" : "opacity-0"}`} />)}
         </div>
         <div className="flex items-center justify-between gap-4 text-[22px]">
           <div className="flex flex-col gap-1">
             <Price k="Widgets" v={`${rentGbp(PRODUCT_PRICES.widgets.pence)}/mo`} />
             <Price k="Dashboard" v={`${rentGbp(PRODUCT_PRICES.dashboard.pence)}/mo`} />
-            <Price k="Stream · AI presenter" v={`${rentGbp(PRODUCT_PRICES.stream.pence)} + ${rentGbp(AI_PRESENTER_PENCE)}/mo`} />
+            <Price k="Stream + AI" v={`${rentGbp(PRODUCT_PRICES.stream.pence)} + ${rentGbp(AI_PRESENTER_PENCE)}/mo`} />
           </div>
-          <Qr path="/rent" label="/rent" />
+          <Qr path="/rent" label="/rent" small />
         </div>
       </div>;
     }
@@ -99,4 +99,4 @@ function body(c: Chapter, line: number) {
   }
 }
 
-const Price = ({ k, v }: { k: string; v: string }) => <div className="flex justify-between gap-4 border-b border-night-fg/10 pb-1"><span className="text-night-muted">{k}</span><span className="font-mono font-bold tabular-nums">{v}</span></div>;
+const Price = ({ k, v }: { k: string; v: string }) => <div className="flex justify-between gap-4 whitespace-nowrap border-b border-night-fg/10 pb-1"><span className="text-night-muted">{k}</span><span className="font-mono font-bold tabular-nums">{v}</span></div>;
