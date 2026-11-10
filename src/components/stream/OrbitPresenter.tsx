@@ -4,6 +4,7 @@ import open from "@/assets/stream/orbit-presenter-open-clean.png";
 import { speakLine } from "@/lib/speech.functions";
 import { readVoiceKey } from "@/lib/voice-key";
 
+const BRIDGE = "Full figures, sources and dates are on ukstats.co.uk.";
 const cache = new Map<string, Promise<string | null>>();
 let voiceKey: string | null | undefined;
 let unauthorised = false;
@@ -11,7 +12,9 @@ function fetchLine(text: string) {
   let p = cache.get(text);
   if (!p) {
     if (voiceKey === undefined) voiceKey = readVoiceKey();
-    p = speakLine({ data: { text, voiceKey } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
+    const once = () => speakLine({ data: { text, voiceKey: voiceKey ?? null } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
+    // One retry so a single failed clip doesn't leave a silent gap on air.
+    p = once().then((a) => a ?? (unauthorised ? null : once()));
     p.then((a) => { if (!a) cache.delete(text); });
     if (cache.size > 60) cache.delete(cache.keys().next().value!);
     cache.set(text, p);
@@ -34,7 +37,13 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
   const latest = useRef(line);
   const lastSpoken = useRef("");
   const statusRef = useRef(status);
-  latest.current = line; statusRef.current = status;
+  latest.current = line;
+  const queue = useRef<string[]>([]); queue.current = upcoming;
+  const recent = useRef<string[]>([]);
+  /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
+  const nextLine = () => !recent.current.includes(latest.current) ? latest.current
+    : queue.current.find((t) => t && !recent.current.includes(t))
+    ?? (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE); statusRef.current = status;
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
@@ -70,7 +79,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       }, ms);
     };
     const speak = async (text: string) => {
-      busy.current = true; lastSpoken.current = text; setStatus("preparing");
+      busy.current = true; lastSpoken.current = text; recent.current = [text, ...recent.current].slice(0, 8); setStatus("preparing");
       const b64 = await fetchLine(text);
       if (!b64) { setStatus(unauthorised ? "unauthorised" : "idle"); mime(text); return; }
       const el = new Audio(`data:audio/wav;base64,${b64}`);
@@ -84,7 +93,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       } catch { analyser.current = null; }
       el.onended = () => {
         busy.current = false; analyser.current = null; setStatus("idle");
-        if (latest.current !== lastSpoken.current) void speak(latest.current);
+        { const n = nextLine(); if (n) void speak(n); }
       };
       try { await el.play(); setStatus("speaking"); said.current?.(text); } catch { setStatus("blocked"); mime(text); }
     };

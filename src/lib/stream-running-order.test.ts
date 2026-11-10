@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildRundown, scandalsSegment } from "./stream-rundown";
 import { buildUkHour, SPONSOR_BREAK_MS, SPONSOR_BREAK_STARTS } from "./stream-schedule";
-import { readingList } from "./stream-script";
+import { readingList, scriptForCard } from "./stream-script";
 import type { Metric } from "./uk-stats";
 
 const m = (id: string, title: string): Metric => ({ id, title, value: "£1bn", status: "ok", category: "Finance", source: "ONS", period: "2025", asOf: null, nextDue: null, sub: null } as unknown as Metric);
@@ -17,8 +17,8 @@ describe("UK hour running order", () => {
     expect(SPONSOR_BREAK_STARTS).toHaveLength(2);
     expect(SPONSOR_BREAK_MS).toBe(60_000);
   });
-  it("alternates education and happiest places by UK hour", () => {
-    const a = buildUkHour(own, 0).map((s) => s.seg.id), b = buildUkHour(own, 2).map((s) => s.seg.id);
+  it("alternates education and happiest places by UK block", () => {
+    const a = buildUkHour(own, 0).map((s) => s.seg.id), b = buildUkHour(own, 3).map((s) => s.seg.id);
     expect(a).toContain("education"); expect(a).not.toContain("happiest");
     expect(b).toContain("happiest"); expect(b).not.toContain("education");
   });
@@ -34,5 +34,14 @@ describe("UK hour running order", () => {
   it("rented channels get no scandals or site sections", () => {
     const ids = buildRundown({ ...base, metrics: [] }).map((s) => s.id);
     expect(ids).not.toContain("scandals"); expect(ids).not.toContain("gold");
+  });
+});
+
+describe("UK part 2 goes deeper", () => {
+  it("reads the card's period, publication and next-release dates", () => {
+    const card = { kicker: "", title: "Net debt", value: "£2.8tn", sub: null, source: "ONS", period: "Sep 2026", asOf: "21 Oct 2026", nextDue: "21 Nov 2026", metric: null };
+    const deep = scriptForCard(card, true);
+    expect(deep).toContain("Sep 2026"); expect(deep).toContain("21 Oct 2026"); expect(deep).toContain("21 Nov 2026");
+    expect(scriptForCard(card)).not.toContain("21 Nov 2026");
   });
 });

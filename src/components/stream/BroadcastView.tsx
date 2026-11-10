@@ -121,7 +121,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const ukHour = useMemo(() => buildUkHour(rundown, ukHourIndex), [rundown, ukHourIndex]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __ukHour?: unknown }).__ukHour = ukHour.map((x) => ({ id: x.seg.id, title: x.seg.title, start: x.start, end: x.end })); }, [ukHour]);
 
-  // Clock-driven position: even London hours = UK hour, odd hours = other countries five minutes each.
+  // Clock-driven position: 3-hour cycle — UK part 1, UK part 2 (deeper), then other countries five minutes each.
   const rawPos = now ? positionAt(now) : { mode: "uk" as const, hourIndex: 0, msIntoHour: 0 };
   // Rented channels: only their chosen countries — UK-only stays on the UK hour, no-UK stays on world rotation.
   const pos = !hasUk ? { ...rawPos, mode: "world" as const } : WORLD.length === 0 ? { ...rawPos, mode: "uk" as const } : rawPos;
@@ -201,7 +201,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
   const sb = brand ? null : sponsorBreakAt(pos.msIntoHour);
   const sbVoice = sb?.active ? scriptForSponsorBreak(sponsors.map(sponsorSlide), sb.msIntoBreak) : null;
-  const reads0 = readingList(seg);
+  const reads0 = readingList(seg, !wc && pos.ukPart === 2);
   // Pointer slots read each line once and hold the last one, so short sections never loop.
   const held = seg?.pointer && reads0.length ? reads0[Math.min(step, reads0.length - 1)]! : null;
   const reads = held ? [held] : reads0;

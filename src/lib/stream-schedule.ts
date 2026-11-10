@@ -1,5 +1,5 @@
-// Pure clock-driven schedule for the 24/7 stream: even London hours are the UK hour,
-// odd London hours rotate through other countries five minutes each.
+// Pure clock-driven schedule for the 24/7 stream: a three-hour London-clock cycle —
+// two UK hours (part 1, then part 2 going deeper into the same figures), then one hour rotating other countries five minutes each.
 import { CARD_MS, type Segment, type StreamCard } from "./stream-rundown";
 
 const MIN = 60_000;
@@ -43,7 +43,7 @@ export function buildUkHour(segments: Segment[], hourIndex = 0): Slot[] {
   const by = new Map(segments.map((s) => [s.id, s]));
   const recapExtra = segments.filter((s) => s.id !== "boats" && s.cards.some((c) => c.metric)).map((s) => s.cards[0]!).slice(0, 3);
   const picked = UK_HOUR.flatMap((t) => {
-    const base = (t.odd && Math.floor(hourIndex / 2) % 2 === 1 ? by.get(t.odd) : by.get(t.base)) ?? (t.alt ? by.get(t.alt) : undefined);
+    const base = (t.odd && Math.floor(hourIndex / CYCLE_HOURS) % 2 === 1 ? by.get(t.odd) : by.get(t.base)) ?? (t.alt ? by.get(t.alt) : undefined);
     if (!base) return [];
     const cards: StreamCard[] = t.id === "recap" ? [...base.cards.slice(0, 3), ...recapExtra] : base.cards;
     return [{ t, seg: { ...base, id: t.id === "places" ? base.id : t.id, title: t.title ?? base.title, headline: t.headline ?? false, cards } }];
@@ -64,9 +64,13 @@ const londonParts = (d: Date) => {
   return p as { year: number; month: number; day: number; hour: number; minute: number; second: number };
 };
 
+/** Hours in one cycle: UK part 1, UK part 2, rest of world. */
+export const CYCLE_HOURS = 3;
 export interface Position {
   mode: "uk" | "world";
-  /** Absolute London hour count — even = UK. */
+  /** UK hours only: 1 = main running order, 2 = same order, presenter reads every figure in depth. */
+  ukPart?: 1 | 2;
+  /** Absolute London hour count — cycle position = hourIndex % CYCLE_HOURS (0,1 UK; 2 world). */
   hourIndex: number;
   msIntoHour: number;
 }
@@ -75,7 +79,8 @@ export function positionAt(d: Date): Position {
   const day = Math.floor(Date.UTC(p.year, p.month - 1, p.day) / 86_400_000);
   const hourIndex = day * 24 + p.hour;
   const msIntoHour = (p.minute * 60 + p.second) * 1000 + d.getMilliseconds();
-  return { mode: hourIndex % 2 === 0 ? "uk" : "world", hourIndex, msIntoHour };
+  const c = hourIndex % CYCLE_HOURS;
+  return c === 2 ? { mode: "world", hourIndex, msIntoHour } : { mode: "uk", ukPart: c === 0 ? 1 : 2, hourIndex, msIntoHour };
 }
 
 /** Which UK slot is on now, plus how far into it. */
@@ -89,7 +94,7 @@ export function worldCountryAt(countries: string[], pos: Position): { index: num
   const perHour = HOUR_MS / COUNTRY_SLOT_MS;
   const slot = Math.floor(pos.msIntoHour / COUNTRY_SLOT_MS);
   const n = Math.max(1, countries.length);
-  const index = (Math.floor(pos.hourIndex / 2) * perHour + slot) % n;
+  const index = (Math.floor(pos.hourIndex / CYCLE_HOURS) * perHour + slot) % n;
   return { index, msIntoSlot: pos.msIntoHour % COUNTRY_SLOT_MS, next: (index + 1) % n };
 }
 

@@ -2,14 +2,21 @@ import type { Headline, Segment, StreamCard } from "./stream-rundown";
 
 
 /** Spoken line for a figure card — uses only words already on the card; never adds a figure. */
-export function scriptForCard(card: StreamCard | null): string {
+export function scriptForCard(card: StreamCard | null, deep = false): string {
   if (!card) return "No figure is published for this item.";
   const parts = [`${card.title}.`];
   const missing = !card.value || /not published/i.test(card.value);
   if (missing) parts.push("No figure is published.");
   else { parts.push(`${card.value}.`); const y = yoyLine(card); if (y) parts.push(y); }
+  // In depth (UK part 2): also read the card's own detail, period, publication and next-release dates — words already on the card.
+  if (deep && !missing) {
+    if (card.sub) parts.push(`${card.sub.replace(/\.?$/, ".")}`);
+    if (card.period) parts.push(`Reference period: ${card.period}.`);
+  }
   parts.push(`Source: ${card.source.replace(/\s*\(.*?\)/g, "")}.`);
-  return parts.join(" ").slice(0, 480);
+  if (deep && card.asOf) parts.push(`Published ${card.asOf}.`);
+  if (deep && card.nextDue) parts.push(`Next update due ${card.nextDue}.`);
+  return parts.join(" ").slice(0, deep ? 700 : 480);
 }
 
 /** Year-on-year line from two published figures in the same series; never estimated. */
@@ -30,9 +37,9 @@ export function scriptForHeadline(h: Headline): string {
 export const NO_HEADLINES = "No recent headlines collected.";
 
 /** Everything the presenter reads in a segment: every figure card, then its headlines. */
-export function readingList(seg: Segment | undefined): string[] {
+export function readingList(seg: Segment | undefined, deep = false): string[] {
   if (!seg) return [];
-  const cards = seg.cards.map(scriptForCard);
+  const cards = seg.cards.map((c) => scriptForCard(c, deep));
   const heads = seg.headlines.map(scriptForHeadline);
   const out = [...cards, ...(seg.script ?? []), ...heads];
   // Zero silent sections: anything with nothing to read still gets a spoken line.

@@ -33,10 +33,10 @@ describe("stream schedule", () => {
     expect(h.some((s) => s.seg.id === "crime")).toBe(false);
     expect(h.at(-1)!.end).toBe(HOUR_MS);
   });
-  it("alternates UK hour and world hour by the London clock", () => {
-    const a = positionAt(new Date("2026-11-04T18:10:00Z"));
-    const b = positionAt(new Date("2026-11-04T19:10:00Z"));
-    expect(a.mode).not.toBe(b.mode);
+  it("two UK hours then a world hour by the London clock", () => {
+    const modes = [18, 19, 20, 21, 22, 23].map((h) => positionAt(new Date(Date.UTC(2026, 10, 4, h, 10))).mode);
+    expect(modes.filter((m) => m === "world")).toHaveLength(2);
+    expect(modes.filter((m) => m === "uk")).toHaveLength(4);
     expect(ukSlotAt(buildUkHour(all), 0).index).toBe(0);
   });
   it("gives each country five minutes in a world hour", () => {
@@ -50,5 +50,19 @@ describe("stream schedule", () => {
       { id: "b", title: "Debt", value: null, period: null, asOf: null } as never,
     ] }, [], new Date());
     expect(s.cards.map((c) => c.title)).toEqual(["GDP"]);
+  });
+});
+
+describe("three-hour cycle", () => {
+  it("runs UK part 1, UK part 2, then world", () => {
+    const base = positionAt(new Date("2026-11-04T00:10:00Z")).hourIndex;
+    const seq = [0, 1, 2, 3].map((h) => { const p = positionAt(new Date(Date.UTC(2026, 10, 4, h, 10))); return { m: p.mode, part: p.ukPart, c: p.hourIndex % 3 }; });
+    for (const s of seq) expect(s.m).toBe(s.c === 2 ? "world" : "uk");
+    for (const s of seq) if (s.c !== 2) expect(s.part).toBe(s.c === 0 ? 1 : 2);
+    expect(typeof base).toBe("number");
+  });
+  it("keeps sponsor breaks at :15:40 and :45:40 in every hour", () => {
+    expect(sponsorBreakAt(15 * 60_000 + 41_000).active).toBe(true);
+    expect(sponsorBreakAt(45 * 60_000 + 41_000).active).toBe(true);
   });
 });
