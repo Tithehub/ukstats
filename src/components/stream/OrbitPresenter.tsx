@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import closed from "@/assets/stream/orbit-presenter-closed.png";
-import open from "@/assets/stream/orbit-presenter-open.png";
+import closed from "@/assets/stream/orbit-presenter-closed-clean.png";
+import open from "@/assets/stream/orbit-presenter-open-clean.png";
 import { speakLine } from "@/lib/speech.functions";
 import { readVoiceKey } from "@/lib/voice-key";
 
@@ -98,7 +98,7 @@ export function OrbitPresenter({ line, upcoming = [], voice }: { line: string; u
       <img ref={mouth} src={open} alt="" aria-hidden className={fit} width={832} height={1024}
         style={{ opacity: 0, WebkitMaskImage: MOUTH_MASK, maskImage: MOUTH_MASK }} />
     </div>
-    <div className="absolute left-1/2 top-[90px] flex -translate-x-1/2 items-center gap-2 rounded-full bg-night/80 px-4 py-1 backdrop-blur-md">
+    <div className="absolute bottom-[120px] left-1/2 flex -translate-x-1/2 items-center gap-2 bg-night/80 px-3 py-1 backdrop-blur-md">
       <span className={`inline-block size-3 shrink-0 rounded-full ${status === "speaking" ? "bg-destructive motion-safe:animate-pulse" : "bg-night-muted"}`} />
       <span className="whitespace-nowrap font-mono text-[15px] font-bold uppercase tracking-wide">AI presenter · {label}</span>
     </div>

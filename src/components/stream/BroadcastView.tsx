@@ -1,6 +1,7 @@
 import type { StreamBrand } from "@/components/stream/stream-brand";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ClientOnly } from "@tanstack/react-router";
 import { startStreamAudio, type StreamAudio } from "@/lib/stream-audio";
 import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
 import { worldQuery } from "@/lib/world.functions";
@@ -36,6 +37,7 @@ import { buildUkHour, cardStep, positionAt, promoAt, PROMO_MS, ukSlotAt, worldCo
 
 export const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
 const ALL_WORLD = COUNTRIES.map((c) => ({ code: c.code, key: c.name.toLowerCase() }));
+const OrbitGlobe = lazy(() => import("@/components/stream/OrbitGlobe"));
 
 export type Layout = "landscape" | "portrait";
 
@@ -219,24 +221,22 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   </div>;
 
   return <div className="fixed inset-0 overflow-hidden bg-night">
-  <div data-frame data-layout={layout} className="absolute left-0 top-0 origin-top-left overflow-hidden bg-night font-sans text-night-fg"
+  <div data-frame data-layout={layout} data-variant={variant} className="absolute left-0 top-0 origin-top-left overflow-hidden bg-night font-sans text-night-fg"
     style={{ width: W, height: H, transform: `scale(${scale})`, left: offset.x, top: offset.y }}>
     {layout === "landscape" && variant === "orbit" ? <>
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
       {/* Globe Orbit v3 — laid out like the 32s reference video */}
-      <div className="absolute inset-y-0 left-[620px] right-0"><GlobeExplorer state={s} onChange={onChange} broadcast /></div>
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_68%_45%,transparent_30%,var(--night)_80%)]" />
+      <div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={seg?.country ?? "united kingdom"} /></Suspense></ClientOnly></div>
       <OrbitBackdrop />
-      <div className="absolute left-[1000px] top-[330px] z-20 -translate-x-1/2">{seg && <OrbitPulse place={wc ? countryName(wc.code) : "United Kingdom"} scene={sceneFor(seg)} />}</div>
-      <div className="pointer-events-none absolute inset-0 z-[12] bg-[linear-gradient(90deg,var(--night)_0%,transparent_32%,transparent_62%,color-mix(in_oklab,var(--night)_70%,transparent)_100%),linear-gradient(0deg,var(--night)_0%,transparent_30%)]" />
-      <div className="absolute left-8 top-8 z-40 flex h-[60px] overflow-hidden rounded shadow-lg"><span className="flex items-center gap-3 bg-destructive px-5 text-[34px] font-black text-destructive-foreground"><span className="size-3 rounded-full bg-destructive-foreground motion-safe:animate-pulse" />LIVE</span><span className="orbit-glass flex items-center px-5 text-[34px] font-black uppercase">{wc ? countryName(wc.code) : "London"}</span></div>
+      <div className="orbit-scrim pointer-events-none absolute inset-0 z-[12]" />
+      <div className="absolute left-[54px] top-[44px] z-40 flex h-[62px] overflow-hidden border border-night-fg/20 shadow-lg"><span className="flex items-center bg-destructive px-5 text-[36px] font-black text-destructive-foreground">UKSTATS</span><span className="orbit-glass flex items-center gap-3 px-5 text-[36px] font-black"><span className="size-2 rounded-full bg-destructive motion-safe:animate-pulse" />LIVE</span></div>
       <div className="absolute right-8 top-8 z-40 text-right font-mono text-[18px] uppercase leading-snug tracking-widest text-night-muted">{clock}<br />{wc ? "Around the world" : "UK hour"} · Official sources</div>
-      <div className="absolute left-8 top-[130px] z-30 w-[380px]"><OrbitNextUp now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
-      {slides.length > 0 && <div className="absolute bottom-[110px] left-8 z-30 h-[340px] w-[380px]"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
-      <div className="absolute bottom-[96px] left-[360px] z-20 h-[880px] w-[760px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
-      <div aria-hidden className="absolute bottom-[96px] left-[300px] z-20 h-[90px] w-[900px] rounded-t-[40px] border-t-2 border-electric/50 bg-[linear-gradient(180deg,oklch(0.35_0.06_258/0.85),oklch(0.12_0.03_258/0.95))] shadow-[0_-10px_60px_-10px_var(--electric)]" />
-      <div className="absolute right-8 top-[180px] z-30 flex w-[640px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
-      <div className="absolute bottom-[118px] left-1/2 z-40 -translate-x-1/2"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
+      <div className="absolute left-[54px] top-[168px] z-30 w-[342px]"><OrbitNextUp now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
+      {slides.length > 0 && <div className="absolute bottom-[152px] left-[34px] z-30 h-[310px] w-[350px]"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
+      <div className="absolute bottom-[100px] left-[325px] z-20 h-[915px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
+      <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-20 h-[65px] border-t border-electric-soft/60" />
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute bottom-[136px] left-[590px] z-40"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
       {/* Globe fills the left; YouTube's title and control zones (top 96px, bottom 120px) show only globe/background */}
@@ -457,9 +457,9 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
       <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">{r.tag}</span>
     </div>
     <div className="mx-5 mt-3 h-[4px] w-14 bg-stream-yellow" />
-    <div className="flex min-h-0 flex-1 items-center gap-4 px-5">
-      <div className="shrink-0 rounded bg-[#ffffff] p-1.5"><QRCodeSVG value={r.qr} size={140} level="H" marginSize={1} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
-      <div className="min-w-0"><p className="line-clamp-2 text-[22px] font-black leading-tight">{r.name}</p><p className="mt-1 truncate font-mono text-[14px] font-bold uppercase text-night-muted">Scan · {r.label}</p></div>
+    <div className="flex min-h-0 flex-1 items-center gap-3 px-4">
+      <div className="shrink-0 rounded bg-stream-strap p-1.5"><QRCodeSVG value={r.qr} size={112} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
+      <div className="min-w-0"><p className="text-[18px] font-bold leading-tight">{r.name}</p><p className="mt-2 break-all font-mono text-[12px] text-night-muted">{r.label}</p></div>
     </div>
     <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
   </section>;
