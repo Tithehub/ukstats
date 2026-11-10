@@ -29,6 +29,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as ForeignAidRouteImport } from './routes/foreign-aid'
+import { Route as FoundingDocumentsRouteImport } from './routes/founding-documents'
 import { Route as GlobalRouteImport } from './routes/global'
 import { Route as GlobeRouteImport } from './routes/globe'
 import { Route as GoldRouteImport } from './routes/gold'
@@ -219,6 +220,11 @@ const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
 const ForeignAidRoute = ForeignAidRouteImport.update({
   id: '/foreign-aid',
   path: '/foreign-aid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoundingDocumentsRoute = FoundingDocumentsRouteImport.update({
+  id: '/founding-documents',
+  path: '/founding-documents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GlobalRoute = GlobalRouteImport.update({
@@ -703,6 +709,7 @@ export interface FileRoutesByFullPath {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/founding-documents': typeof FoundingDocumentsRoute
   '/global': typeof GlobalRoute
   '/globe': typeof GlobeRoute
   '/gold': typeof GoldRoute
@@ -815,6 +822,7 @@ export interface FileRoutesByTo {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/founding-documents': typeof FoundingDocumentsRoute
   '/global': typeof GlobalRoute
   '/globe': typeof GlobeRoute
   '/gold': typeof GoldRoute
@@ -927,6 +935,7 @@ export interface FileRoutesById {
   '/daily': typeof DailyRouteWithChildren
   '/feed.xml': typeof FeedDotxmlRoute
   '/foreign-aid': typeof ForeignAidRoute
+  '/founding-documents': typeof FoundingDocumentsRoute
   '/global': typeof GlobalRoute
   '/globe': typeof GlobeRoute
   '/gold': typeof GoldRoute
@@ -1042,6 +1051,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/founding-documents'
     | '/global'
     | '/globe'
     | '/gold'
@@ -1154,6 +1164,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/founding-documents'
     | '/global'
     | '/globe'
     | '/gold'
@@ -1265,6 +1276,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/feed.xml'
     | '/foreign-aid'
+    | '/founding-documents'
     | '/global'
     | '/globe'
     | '/gold'
@@ -1379,6 +1391,7 @@ export interface RootRouteChildren {
   DailyRoute: typeof DailyRouteWithChildren
   FeedDotxmlRoute: typeof FeedDotxmlRoute
   ForeignAidRoute: typeof ForeignAidRoute
+  FoundingDocumentsRoute: typeof FoundingDocumentsRoute
   GlobalRoute: typeof GlobalRoute
   GlobeRoute: typeof GlobeRoute
   GoldRoute: typeof GoldRoute
@@ -1579,6 +1592,13 @@ declare module '@tanstack/react-router' {
       path: '/foreign-aid'
       fullPath: '/foreign-aid'
       preLoaderRoute: typeof ForeignAidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founding-documents': {
+      id: '/founding-documents'
+      path: '/founding-documents'
+      fullPath: '/founding-documents'
+      preLoaderRoute: typeof FoundingDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/global': {
@@ -2362,6 +2382,7 @@ const rootRouteChildren: RootRouteChildren = {
   DailyRoute: DailyRouteWithChildren,
   FeedDotxmlRoute: FeedDotxmlRoute,
   ForeignAidRoute: ForeignAidRoute,
+  FoundingDocumentsRoute: FoundingDocumentsRoute,
   GlobalRoute: GlobalRoute,
   GlobeRoute: GlobeRoute,
   GoldRoute: GoldRoute,
