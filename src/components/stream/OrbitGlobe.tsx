@@ -120,7 +120,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     focus.current(country);
     // Decorative city network (no data): thin glowing great-circle arcs with travelling lights and gold city blooms.
     const CITIES: [number, number][] = [[-0.13, 51.5], [2.35, 48.86], [13.4, 52.52], [-3.7, 40.42], [12.5, 41.9], [37.6, 55.75], [-74, 40.7], [-118.2, 34.05], [-79.4, 43.65], [28.98, 41.0], [31.24, 30.04], [55.3, 25.2], [77.2, 28.6], [116.4, 39.9], [139.7, 35.7], [103.8, 1.35], [151.2, -33.9], [-46.6, -23.5], [18.4, -33.9], [-99.1, 19.4], [-6.26, 53.35], [10.75, 59.9]];
-    const PAIRS = [[0, 6], [0, 1], [0, 5], [1, 10], [2, 13], [0, 11], [11, 12], [12, 15], [15, 16], [13, 14], [6, 7], [6, 17], [8, 0], [3, 17], [4, 9], [9, 11], [1, 18], [7, 14], [20, 6], [21, 2], [19, 6]];
+    const PAIRS: [number, number][] = [[0, 6], [0, 1], [0, 5], [1, 10], [2, 13], [0, 11], [11, 12], [12, 15], [15, 16], [13, 14], [6, 7], [6, 17], [8, 0], [3, 17], [4, 9], [9, 11], [1, 18], [7, 14], [20, 6], [21, 2], [19, 6]];
     const gold = new THREE.Color(1, 0.78, 0.4);
     const bloomTex = glowTex("rgba(255,215,140,0.95)", "rgba(255,150,60,0)");
     const arcs: { pts: THREE.Vector3[]; head: THREE.Sprite; off: number }[] = [];
