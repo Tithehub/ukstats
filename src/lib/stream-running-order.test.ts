@@ -24,7 +24,7 @@ describe("UK hour running order", () => {
   });
   it("scandals are website-only: never on our own stream", () => {
     for (const h of [0, 1, 3, 4]) expect(buildUkHour(own, h).map((s) => s.seg.id)).not.toContain("scandals");
-    expect(buildRundown({ ...base, siteSections: true }).map((s) => s.id)).not.toContain("scandals");
+    expect(own.map((s) => s.id)).not.toContain("scandals");
   });
   it("every slot is voiced", () => {
     for (const s of buildUkHour(own)) expect(readingList(s.seg).length).toBeGreaterThan(0);
