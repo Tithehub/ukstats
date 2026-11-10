@@ -1,0 +1,1 @@
+ALTER TABLE public.sponsors ADD COLUMN IF NOT EXISTS logo_path text, ADD COLUMN IF NOT EXISTS stream_path text, ADD COLUMN IF NOT EXISTS qr_url text;

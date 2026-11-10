@@ -183,6 +183,13 @@
       "when": 1794214327305,
       "tag": "0025_remove_public_read_reference_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794294115148,
+      "tag": "0026_sponsor_logo_stream_qr",
+      "breakpoints": true
     }
   ]
 }
