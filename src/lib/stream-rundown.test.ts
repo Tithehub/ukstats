@@ -21,3 +21,14 @@ describe("stream rundown", () => {
     expect(segs).toEqual([]);
   });
 });
+
+import { onlineSpeechSegment as _os } from "./stream-rundown";
+describe("online speech slot", () => {
+  it("reads five distinct lines with no figures and shows no-live-figure source cards", () => {
+    const s = _os();
+    expect(s.pointer).toBe(true);
+    expect(new Set(s.script).size).toBe(5);
+    expect(s.script!.join(" ")).not.toMatch(/\d/);
+    expect(s.cards.map((c) => c.value)).toEqual(["No live figure", "No live figure", "No live figure"]);
+  });
+});

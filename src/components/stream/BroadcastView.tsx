@@ -199,7 +199,11 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const promo = brand || ex ? { active: false, msIntoPromo: 0 } : promoAt(pos.msIntoHour);
   const promoLines = scriptForPromo(sponsors.map((r) => r.name));
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
-  const reads = readingList(seg);
+  const reads0 = readingList(seg);
+  // Pointer slots read each line once and hold the last one, so short sections never loop.
+  const held = seg?.pointer && reads0.length ? reads0[Math.min(step, reads0.length - 1)]! : null;
+  const reads = held ? [held] : reads0;
+  const lineQueue = held ? reads0.slice(Math.min(step, reads0.length - 1) + 1, Math.min(step, reads0.length - 1) + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
   // What the presenter is actually saying right now; the Orbit card and globe follow it so voice and screen match.
   const [spoken, setSpoken] = useState<{ text: string | null; country: string | null }>({ text: null, country: null });
   const live = useRef({ reads, country: seg?.country ?? null }); live.current = { reads, country: seg?.country ?? null };
@@ -208,11 +212,11 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     ? <SelfPresenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} name={brand.presentedBy ?? brand.name} />
     : promo.active
     ? <Presenter line={promoLines[promoStep]!} upcoming={promoLines.slice(promoStep + 1, promoStep + 4)} voice={voice} />
-    : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
+    : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? lineQueue : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
   const walk = ex?.chapter.id === "walkthrough" ? ex : null;
   const noCamLine = !!ex0 && tourOn && !liveCam && GLOBE_TOUR[ex0.line]?.key === "cams";
   const orbitLine = ex0 ? (noCamLine ? GLOBE_NO_CAM_LINE : ex0.chapter.lines[ex0.line]!) : promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
-  const orbitUp = ex0 ? ex0.chapter.lines.slice(ex0.line + 1) : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
+  const orbitUp = ex0 ? ex0.chapter.lines.slice(ex0.line + 1) : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : lineQueue;
   const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} onSpeak={onSpeak} />;
   const orbitItem = itemForSpoken(seg, reads, spoken.text, step);
   const globeCountry = ex ? ex.country ?? "united kingdom" : spoken.country ?? seg?.country ?? "united kingdom";
