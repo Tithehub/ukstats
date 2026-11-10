@@ -45,8 +45,12 @@ describe("explainer and sponsor timing", () => {
 
 describe("speakable never reads time codes", () => {
   const bad = /\d{2}:?\d{2}\s*Z|\b0{3,}\b|\bZ\b|UTC|\+00:00/;
-  it.each(["Valid 00:00Z.", "Issued 0000Z.", "Period 2026-11-10 00:00Z.", "At 12:00 UTC.", "Updated 2026-11-10T00:00:00+00:00.", "As of 2026-06-01T00:00:00Z."])("cleans %s", (s) => {
+  it.each(["Valid 00:00Z.", "Issued 0000Z.", "Period 2026-11-10 00:00Z.", "At 12:00 UTC.", "Updated 2026-11-10T00:00:00+00:00.", "As of 2026-06-01T00:00:00Z.", "Forecast issued 10 Nov 2026 04:19:22 +0000; the highest site value is shown."])("cleans %s", (s) => {
     expect(speakable(s)).not.toMatch(bad);
   });
   it("still says the date", () => expect(speakable("Period 2026-11-10 00:00Z.")).toContain("November"));
+});
+describe("speakable keeps real figures", () => {
+  it("never drops counts like 19,000", () => expect(speakable("Up 19,000 vs previous quarter.")).toBe("Up 19,000 vs previous quarter."));
+  it("keeps the air-quality forecast sentence without the time code", () => expect(speakable("Forecast issued 10 Nov 2026 04:19:22 +0000; the highest site value is shown.")).toContain("the highest site value is shown"));
 });

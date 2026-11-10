@@ -129,7 +129,7 @@ export function speakable(text: string): string {
     .replace(new RegExp(`\\b${MONTH_RE}\\.? (\\d{4})\\b`, "gi"), (m, mo, y) => { const n = monthNo(mo); return n ? `${MONTHS[n - 1]} ${sayYear(+y)}` : m; })
     .replace(/\b\d{9,}\b/g, "")
     // Leftover clock times and time-zone codes ("00:00Z", "0000Z", "12:00 UTC", "+00:00") — never read aloud.
-    .replace(/[+-]\d{2}:\d{2}\b/g, "")
+    .replace(/\s?[+-]\d{2}:?\d{2}\b(?![\d.,%])/g, "")
     .replace(/\b\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\s*(?:Z|UTC|GMT)?\b/gi, "")
     .replace(/\b\d{4}\s?Z\b/g, "")
     .replace(/(\d)Z\b/g, "$1")
