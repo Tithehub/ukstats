@@ -4,6 +4,7 @@ import { feature } from "topojson-client";
 import topo from "world-atlas/countries-110m.json";
 import dayUrl from "@/assets/earth-blue-marble.jpg";
 import nightUrl from "@/assets/earth-night-lights.jpg";
+import cloudsUrl from "@/assets/earth-clouds-alpha.jpg";
 import { countryKey } from "@/lib/unrest";
 
 const outlines = (feature(topo as never, topo.objects.countries as never) as unknown as {
@@ -41,17 +42,19 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const blue = new THREE.Color(css.getPropertyValue("--orbit-atmosphere").trim());
     const red = new THREE.Color(css.getPropertyValue("--orbit-streak").trim());
     const loader = new THREE.TextureLoader();
-    const day = loader.load(dayUrl), night = loader.load(nightUrl);
+    const day = loader.load(dayUrl), night = loader.load(nightUrl), clouds = loader.load(cloudsUrl);
     day.anisotropy = night.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     const geometry = new THREE.SphereGeometry(1, 128, 96);
     const surface = new THREE.ShaderMaterial({
       uniforms: { dayT: { value: day }, nightT: { value: night } },
       vertexShader: "varying vec2 vUv; varying vec3 vN; void main(){vUv=uv;vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
-      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),2.8);vec3 c=land*vec3(0.09,0.15,0.26)+vec3(1.0,0.72,0.35)*city*4.5;c+=vec3(0.08,0.3,0.72)*rim;gl_FragColor=vec4(c,1.0);}",
+      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),2.8);float light=0.52+0.48*max(dot(normalize(vN),normalize(vec3(0.2,0.8,0.7))),0.0);vec3 c=land*vec3(0.24,0.4,0.72)*light+vec3(1.0,0.8,0.48)*pow(city,0.85)*8.0;c+=vec3(0.12,0.42,0.95)*rim;gl_FragColor=vec4(c,1.0);}",
     });
     const group = new THREE.Group();
     const earth = new THREE.Mesh(geometry, surface); earth.rotation.y = -Math.PI / 2;
     group.add(earth); group.quaternion.copy(target.current); scene.add(group);
+    const cloudMaterial = new THREE.MeshBasicMaterial({ color: blue, alphaMap: clouds, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending });
+    const cloudShell = new THREE.Mesh(geometry, cloudMaterial); cloudShell.scale.setScalar(1.008); cloudShell.rotation.y = earth.rotation.y; group.add(cloudShell);
     const atmosphere = new THREE.ShaderMaterial({
       uniforms: { tint: { value: blue } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide,
       vertexShader: "varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}",
@@ -65,6 +68,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
       const ring = new THREE.Group(); ring.rotation.set(0.45 + i * 0.65, 0.28 + i * 0.34, -0.45 + i * 0.7);
       ring.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: blue, transparent: true, opacity: 0.26 })));
       const streak = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.0025, 6, 100, 0.35), new THREE.MeshBasicMaterial({ color: red })); ring.add(streak);
+      const glow = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.009, 8, 100, 0.35), new THREE.MeshBasicMaterial({ color: red, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false })); ring.add(glow);
       const dot = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 8), new THREE.MeshBasicMaterial({ color: red })); ring.add(dot);
       scene.add(ring); rings.push({ group: ring, dot, radius, speed: 0.11 + i * 0.045 });
     }
@@ -75,11 +79,12 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const draw = (t: number) => {
       const delta = last ? Math.min((t - last) / 1000, 0.5) : 0.016; last = t;
       group.quaternion.slerp(target.current, reduced ? 1 : 1 - Math.exp(-delta * 1.8));
-      rings.forEach(({ group: ring, dot, radius, speed }) => { const a = reduced ? 0 : t / 1000 * speed; dot.position.set(Math.cos(a) * radius, Math.sin(a) * radius, 0); const streak = ring.children[1]; if (streak) streak.rotation.z = a - 0.35; });
+      if (!reduced) cloudShell.rotation.y += delta * 0.008;
+      rings.forEach(({ group: ring, dot, radius, speed }) => { const a = reduced ? 0 : t / 1000 * speed; dot.position.set(Math.cos(a) * radius, Math.sin(a) * radius, 0); for (const streak of ring.children.slice(1, 3)) streak.rotation.z = a - 0.35; });
       renderer.render(scene, camera); raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); observer.disconnect(); scene.traverse((o) => { if (o instanceof THREE.Mesh || o instanceof THREE.Line) { o.geometry.dispose(); const mats = Array.isArray(o.material) ? o.material : [o.material]; mats.forEach((m) => m.dispose()); } }); day.dispose(); night.dispose(); renderer.dispose(); renderer.domElement.remove(); };
+    return () => { cancelAnimationFrame(raf); observer.disconnect(); scene.traverse((o) => { if (o instanceof THREE.Mesh || o instanceof THREE.Line) { o.geometry.dispose(); const mats = Array.isArray(o.material) ? o.material : [o.material]; mats.forEach((m) => m.dispose()); } }); day.dispose(); night.dispose(); clouds.dispose(); renderer.dispose(); renderer.domElement.remove(); };
   }, []);
   return <div ref={host} className="h-full w-full" aria-label={`Animated newsroom globe focused on ${country}`} />;
 }
