@@ -92,11 +92,13 @@ export function OrbitRail({ now, items }: { now: string; items: string[] }) {
 /* ---------- Reference-video layout pieces (Globe Orbit v3) ---------- */
 
 /** Big hero card on the right: the figure being read, counting up to the exact published value. */
-export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | undefined; scene: OrbitScene; step: number; place: string }) {
+export function OrbitHeroCard({ seg, scene, step, place, item }: { seg: Segment | undefined; scene: OrbitScene; step: number; place: string; item?: ReadItem }) {
   const cards = seg?.cards ?? [];
   const heads = seg?.headlines ?? [];
-  const card = cards[step % cards.length] ?? null;
-  const head = !card ? heads[step % heads.length] ?? null : null;
+  // Follow what the presenter is saying when known, so voice and figure always match.
+  const card = item ? (item.kind === "card" ? cards[item.index] ?? null : null) : cards[step % cards.length] ?? null;
+  const head = item ? (item.kind === "head" ? heads[item.index] ?? null : null) : !card ? heads[step % heads.length] ?? null : null;
+  step = item ? (item.kind === "card" ? item.index : cards.length + item.index) : step;
   const label = scene === "world" ? `${place} · official figures` : seg?.title ?? SCENE_LABEL[scene];
   const red = scene === "warnings" || scene === "migration" || head?.official;
   const sp = card?.metric?.spark?.filter((x) => Number.isFinite(x)) ?? [];
