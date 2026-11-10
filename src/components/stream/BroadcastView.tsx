@@ -173,6 +173,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const promoLines = scriptForPromo(sponsors.map((r) => r.name));
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
   const reads = readingList(seg);
+  // What the presenter is actually saying right now; the Orbit card and globe follow it so voice and screen match.
+  const [spoken, setSpoken] = useState<{ text: string | null; country: string | null }>({ text: null, country: null });
+  const live = useRef({ reads, country: seg?.country ?? null }); live.current = { reads, country: seg?.country ?? null };
+  const onSpeak = useCallback((text: string) => setSpoken((o) => ({ text, country: live.current.reads.includes(text) ? live.current.country : o.country })), []);
   const anchor = brand?.presenter === "self"
     ? <SelfPresenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} name={brand.presentedBy ?? brand.name} />
     : promo.active
@@ -180,7 +184,9 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
   const orbitLine = promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
   const orbitUp = promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
-  const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} />;
+  const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} onSpeak={onSpeak} />;
+  const orbitItem = itemForSpoken(seg, reads, spoken.text, step);
+  const globeCountry = spoken.country ?? seg?.country ?? "united kingdom";
   const hourStart = now ? now.getTime() - pos.msIntoHour : 0;
   const orbitNext: { title: string; time: string | null }[] = !wc && ukHour.length && now
     ? [1, 2, 3].map((i) => ukHour[ukSlotAt(ukHour, pos.msIntoHour).index + i]).filter((x): x is NonNullable<typeof x> => !!x)
@@ -226,7 +232,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     {layout === "landscape" && variant === "orbit" ? <>
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
       {/* Globe Orbit v3 — laid out like the 32s reference video */}
-      <div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={seg?.country ?? "united kingdom"} /></Suspense></ClientOnly></div>
+      <div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={globeCountry} /></Suspense></ClientOnly></div>
       <OrbitBackdrop />
       <div className="orbit-scrim pointer-events-none absolute inset-0 z-[12]" />
       <div aria-hidden className="orbit-studio-mullion absolute bottom-[165px] left-[410px] top-0 z-[13] w-[38px]" />
@@ -237,7 +243,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       {slides.length > 0 && <div className="absolute bottom-[152px] left-[34px] z-30 h-[310px] w-[350px]"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
       <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
-      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
