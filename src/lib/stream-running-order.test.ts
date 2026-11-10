@@ -50,8 +50,8 @@ import { scriptForCard as _sfc } from "./stream-script";
 describe("spoken dates", () => {
   it("never reads raw timestamps aloud", () => {
     const line = _sfc({ id: "x", title: "Street-level crimes near Westminster", value: "1,234", sub: null, source: "Police.uk", period: "August 2026", asOf: "2026-09-15T00:00:00.000Z", nextDue: "2026-11-15T00:00:00.000Z", metric: null } as never, true);
-    expect(line).toContain("Published 15 September 2026.");
-    expect(line).toContain("Next update due 15 November 2026.");
+    expect(line).toContain("Published the fifteenth of September, twenty twenty-six.");
+    expect(line).toContain("Next update due the fifteenth of November, twenty twenty-six.");
     expect(line).not.toMatch(/T\d{2}:|\.000Z|\d{4}-\d{2}-\d{2}/);
   });
 });
@@ -72,7 +72,7 @@ import { goldSegment } from "./stream-rundown";
 describe("voice clean-up and sync", () => {
   it("never speaks raw dates or timestamps", () => {
     const out = speakable("Published 2026-09-15T00:00:00.000Z. Period 2026-11-10. Gold 2026-M08.");
-    expect(out).toBe("Published 15 September 2026. Period 10 November 2026. Gold August 2026.");
+    expect(out).toBe("Published the fifteenth of September, twenty twenty-six. Period the tenth of November, twenty twenty-six. Gold August twenty twenty-six.");
     expect(out).not.toMatch(/T\d{2}:|\d{4}-\d{2}|Z\b/);
   });
   it("screen line at any moment is the one whose speaking time covers it", () => {
@@ -93,4 +93,12 @@ describe("voice clean-up and sync", () => {
     expect(seg.gold!.map((r) => r.rank)).toEqual([1, 2, 3]);
     expect(goldSegment(null).script![0]).toMatch(/couldn't be loaded/);
   });
+});
+
+describe("dates in spoken English", () => {
+  it("reads UK slash dates day first", () => expect(speakable("10/11/2026")).toBe("the tenth of November, twenty twenty-six"));
+  it("reads written dates", () => expect(speakable("Due 1 November 2026.")).toBe("Due the first of November, twenty twenty-six."));
+  it("reads short month dates", () => expect(speakable("21 Oct 2026")).toBe("the twenty-first of October, twenty twenty-six"));
+  it("reads month and year", () => expect(speakable("Period Sep 2026")).toBe("Period September twenty twenty-six"));
+  it("reads early-2000s years", () => expect(speakable("3/2/2005")).toBe("the third of February, two thousand and five"));
 });

@@ -88,12 +88,34 @@ export function scriptForSponsorBreak(rows: { name: string; label: string }[], m
 }
 
 /** Date as spoken words on the London calendar ("15 September 2026"); null if not a real date — never read raw timestamps aloud. */
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const ONES = ["","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+const TENS = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+const ORD: Record<string, string> = { one: "first", two: "second", three: "third", five: "fifth", eight: "eighth", nine: "ninth", twelve: "twelfth", twenty: "twentieth", thirty: "thirtieth" };
+const words = (n: number) => n < 20 ? ONES[n]! : TENS[Math.floor(n / 10)]! + (n % 10 ? `-${ONES[n % 10]}` : "");
+const ordinal = (n: number) => { const w = words(n); const parts = w.split("-"); const last = parts.pop()!; return [...parts, ORD[last] ?? `${last}th`].join("-"); };
+/** 2026 → "twenty twenty-six"; 2005 → "two thousand and five"; 2000 → "two thousand". */
+export function sayYear(y: number): string {
+  if (y >= 2000 && y < 2010) return y === 2000 ? "two thousand" : `two thousand and ${ONES[y - 2000]}`;
+  const hi = Math.floor(y / 100), lo = y % 100;
+  return `${words(hi)} ${lo === 0 ? "hundred" : lo < 10 ? `oh ${ONES[lo]}` : words(lo)}`;
+}
+/** Spoken English date, e.g. "the tenth of November, twenty twenty-six". */
+export function sayDate(day: number, month: number, year: number): string | null {
+  const m = MONTHS[month - 1]; if (!m || day < 1 || day > 31) return null;
+  return `the ${ordinal(day)} of ${m}, ${sayYear(year)}`;
+}
+const MONTH_RE = "(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+const monthNo = (t: string) => MONTHS.findIndex((m) => m.slice(0, 3).toLowerCase() === t.slice(0, 3).toLowerCase()) + 1;
+
 export function spokenDate(v: string | null | undefined): string | null {
   if (!v) return null;
   if (!/^\d{4}-\d{2}-\d{2}/.test(v)) return /\d{4}-\d{2}|T\d{2}:/.test(v) ? null : v;
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
+  const p = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "numeric", year: "numeric", timeZone: "Europe/London" }).formatToParts(d);
+  const g = (t: string) => Number(p.find((x) => x.type === t)?.value);
+  return sayDate(g("day"), g("month"), g("year"));
 }
 
 /** Last check before the voice: computer-format dates become words; leftover timestamps/codes are removed — never read digit by digit. */
@@ -101,7 +123,10 @@ export function speakable(text: string): string {
   return text
     .replace(/\b(\d{4}-\d{2}-\d{2})(?:T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})?)?\b/g, (m) => spokenDate(m) ?? "")
     .replace(/\bT\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?\b/g, "")
-    .replace(/\b(\d{4})-M(\d{2})\b/g, (_, y, m) => `${["January","February","March","April","May","June","July","August","September","October","November","December"][Number(m) - 1] ?? ""} ${y}`)
+    .replace(/\b(\d{4})-M(\d{2})\b/g, (_, y, m) => `${MONTHS[Number(m) - 1] ?? ""} ${y}`)
+    .replace(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/g, (m, d, mo, y) => sayDate(+d, +mo, +y) ?? m)
+    .replace(new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)? ${MONTH_RE}\\.? (\\d{4})\\b`, "gi"), (m, d, mo, y) => sayDate(+d, monthNo(mo), +y) ?? m)
+    .replace(new RegExp(`\\b${MONTH_RE}\\.? (\\d{4})\\b`, "gi"), (m, mo, y) => { const n = monthNo(mo); return n ? `${MONTHS[n - 1]} ${sayYear(+y)}` : m; })
     .replace(/\b\d{9,}\b/g, "")
     .replace(/\(\s*\)/g, "").replace(/\s+([.,])/g, "$1").replace(/\s{2,}/g, " ").trim();
 }
