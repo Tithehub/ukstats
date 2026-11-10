@@ -1,4 +1,5 @@
 import { LIVE_STREAM_URL } from "@/lib/brand";
+import { XIcon } from "@/components/layout/XIcon";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -210,10 +211,12 @@ export function SiteHeader({ status }: { status?: ReactNode }) {
             href="https://x.com/ukstatsglobal"
             target="_blank"
             rel="noopener noreferrer"
-            className={btn("ghost", "sm", "max-xl:hidden whitespace-nowrap")}
+            className={btn("ghost", "sm", "whitespace-nowrap")}
             aria-label="Follow us on X @ukstatsglobal"
+            title="Follow @ukstatsglobal on X"
           >
-            Follow on X
+            <XIcon />
+            <span className="max-xl:hidden">Follow on X</span>
           </a>
           <Link to="/widget" className={btn("secondary", "sm", "max-2xl:hidden whitespace-nowrap")}>
             <LayoutGrid className="size-4" aria-hidden="true" />
