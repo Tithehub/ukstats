@@ -137,7 +137,7 @@ export function speakable(text: string): string {
   // Safety net: drop any sentence that still looks like a time code or a run of zeros.
   return cleaned.split(/(?<=[.!?])\s+/).filter((x) => !BAD_CODE.test(x)).join(" ").trim();
 }
-const BAD_CODE = /\d{2}:?\d{2}\s*Z\b|\b0{3,}\b|\bZ\b|\b(?:UTC|GMT)\b/;
+const BAD_CODE = /\d{2}:?\d{2}\s*Z\b|(?<![\d,.])0{3,}(?![\d,])|\bZ\b|\b(?:UTC|GMT)\b/;
 
 /** How long a line stays on screen: its speaking time (~2.6 words/s plus a breath), at least 6s. */
 /** Words as she actually says them: dates become words, figures like "£2.8tn" or "12.5%" take several words each. */
