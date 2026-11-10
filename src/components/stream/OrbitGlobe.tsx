@@ -146,7 +146,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
       const shown = arrivedAt < 0 ? 0 : Math.min(1, (sec - arrivedAt) / 0.6);
       (label.material as THREE.SpriteMaterial).opacity = shown; (pin.material as THREE.SpriteMaterial).opacity = shown;
       hot.children.forEach((o, i) => { ((o as THREE.LineSegments).material as THREE.LineBasicMaterial).opacity = (i ? 0.5 : 1) * (0.7 + 0.3 * Math.sin(sec * 3)); });
-      if (!reduced) surface.uniforms.sweep!.value = ((sec * 0.18) % 2.6) - 1.3;
+      if (!reduced) surface.uniforms["sweep"]!.value = ((sec * 0.18) % 2.6) - 1.3;
       if (!reduced && arrivedAt >= 0) { const p = ((sec - arrivedAt) % 2.4) / 2.4; pulse.scale.setScalar(1 + p * 4); (pulse.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - p); } else (pulse.material as THREE.MeshBasicMaterial).opacity = 0;
       if (!reduced) { dustPts.rotation.y = sec * 0.01; (flare.material as THREE.SpriteMaterial).opacity = 0.75 + 0.25 * Math.sin(sec * 0.8); }
       renderer.render(scene, camera); raf = requestAnimationFrame(draw);
