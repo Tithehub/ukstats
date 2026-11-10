@@ -58,4 +58,4 @@
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
-- Stream screen and voice share one timetable (lineAt/lineMs in stream-script.ts, per-line speaking time); a new on-screen line interrupts the presenter, and every spoken line passes speakable() client and server side — prevents drift and raw dates read aloud.
+- Stream screen and voice share one timetable (lineAt/lineMs in stream-script.ts, per-line speaking time); all voice plays through the single page-wide player in voice-channel.ts (nextTurn/playVoice; late clips dropped, no read-ahead), and every spoken line passes speakable() client and server side — prevents drift and raw dates read aloud.
