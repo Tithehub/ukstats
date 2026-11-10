@@ -11,17 +11,19 @@ export interface Chapter { id: ChapterId; title: string; ms: number; lines: stri
 export function explainerChapters(): Chapter[] {
   const r = REPORT_PRICES;
   return [
-    { id: "welcome", title: "Welcome to UKStats", ms: 15_000, lines: [
+    { id: "welcome", title: "Welcome to UKStats", ms: 10_000, lines: [
       "Time for a quick tour of UKStats — one source of truth for official UK and world statistics.",
       "Every figure is free for everyone, at ukstats.co.uk.",
     ] },
-    { id: "globe", title: "The interactive globe", ms: 40_000, countries: ["united kingdom", "united states", "france", "australia"], lines: [
-      "This is our live interactive globe. Pick any country and it flies straight there.",
-      "Switch on government travel advice from the UK Foreign Office and the US State Department, each on its own scale.",
-      "Add live flights, migration routes and news reports — every layer is labelled with who published it.",
-      "Try it yourself at ukstats.co.uk slash globe.",
+    { id: "globe", title: "The interactive globe", ms: 60_000, lines: [
+      "This is our real interactive globe. First, the UK Foreign Office's travel advice for every country, on its own scale.",
+      "Next, the US State Department's levels one to four — shown separately, never merged with the UK's.",
+      "Live flights, from public tracking feeds. They're not official, and colours change only for emergency codes or travel warnings.",
+      "Migration routes: Home Office small boats, Frontex, US Border Patrol and the UN refugee agency, side by side.",
+      "News and police reports, shown as headlines, kept apart from official warnings.",
+      "And public road cameras run by transport authorities — live scenes only, never figures. Try it at ukstats.co.uk slash globe.",
     ] },
-    { id: "sources", title: "Where our stats come from", ms: 30_000, lines: [
+    { id: "sources", title: "Where our stats come from", ms: 25_000, lines: [
       "Our figures come straight from official publishers: the ONS, the Home Office, the Treasury and the OBR, the Met Office, UKHSA, Eurostat, the World Bank and the IMF.",
       "Every figure shows its source, its date and when the next release is due.",
       "Nothing is estimated and nothing is made up. If a figure isn't published, we say so.",
@@ -31,7 +33,7 @@ export function explainerChapters(): Chapter[] {
       `Subscribe for ${gbp(r.report_uk_monthly.pence)} a month or ${gbp(r.report_uk_yearly.pence)} a year for the UK, or ${gbp(r.report_global_monthly.pence)} a month or ${gbp(r.report_global_yearly.pence)} a year for Global.`,
       "Each report includes government warnings, headlines and emergency kit guidance. Scan the code to get today's edition.",
     ] },
-    { id: "rent", title: "Rent and brand your own stats site", ms: 30_000, lines: [
+    { id: "rent", title: "Rent and brand your own stats site", ms: 25_000, lines: [
       "Run a business, a channel or a community? Put your own brand on our official stats.",
       `Branded widgets from ${rentGbp(PRODUCT_PRICES.widgets.pence)} a month, a branded dashboard from ${rentGbp(PRODUCT_PRICES.dashboard.pence)}, and your own live stream from ${rentGbp(PRODUCT_PRICES.stream.pence)}.`,
       `Present it yourself, or add our AI presenter for ${rentGbp(AI_PRESENTER_PENCE)} a month. You change the branding — never the figures. See ukstats.co.uk slash rent.`,
@@ -62,4 +64,20 @@ export function explainerStep(msIn: number) {
   }
   const c = ch.at(-1)!;
   return { index: ch.length - 1, chapter: c, msInChapter: c.ms - 1, line: c.lines.length - 1, country: null };
+}
+
+/** Real-globe tour for the globe chapter: one layer per presenter line; the last step opens a live camera. */
+export type TourStep = { key: "uk" | "us" | "flights" | "migration" | "news" | "cams"; label: string; state: { layer?: "uk" | "us"; fl: boolean; mg: boolean; nw: boolean; cam?: boolean; c: string } };
+export const GLOBE_TOUR: TourStep[] = [
+  { key: "uk", label: "UK FCDO travel advice", state: { layer: "uk", fl: false, mg: false, nw: false, c: "united kingdom" } },
+  { key: "us", label: "US State Dept levels 1–4", state: { layer: "us", fl: false, mg: false, nw: false, c: "united states of america" } },
+  { key: "flights", label: "Live flights · not official", state: { fl: true, mg: false, nw: false, c: "united kingdom" } },
+  { key: "migration", label: "Migration routes", state: { fl: false, mg: true, nw: false, c: "united kingdom" } },
+  { key: "news", label: "News & police reports", state: { fl: false, mg: false, nw: true, c: "united kingdom" } },
+  { key: "cams", label: "Public road cameras · scene only", state: { fl: false, mg: false, nw: false, cam: true, c: "united states of america" } },
+];
+/** Tour step for a globe-chapter line; without a live camera the tour stays on the news step instead of showing stills as live. */
+export function globeTourStep(line: number, hasLiveCam: boolean): number {
+  const i = Math.max(0, Math.min(GLOBE_TOUR.length - 1, line));
+  return GLOBE_TOUR[i]!.key === "cams" && !hasLiveCam ? i - 1 : i;
 }

@@ -176,7 +176,7 @@ function hasWebGL() {
 }
 
 /** The globe plus its control panel, shared by the home page and /globe. */
-export function GlobeExplorer({ state: s, onChange, compact = false, broadcast = false }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean; broadcast?: boolean }) {
+export function GlobeExplorer({ state: s, onChange, compact = false, broadcast = false, camFocus }: { state: GlobeState; onChange: (p: Partial<GlobeState>) => void; compact?: boolean; broadcast?: boolean; /** Broadcast tours: open this public camera. */ camFocus?: string | null }) {
   const { data: world } = useQuery(worldQuery());
   const { data: unrest } = useQuery({ ...unrestQuery(), refetchInterval: 5 * 60_000 });
   const [feedPaused, setFeedPaused] = useState(false);
@@ -193,6 +193,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const [camId, setCamId] = useState<string | null>(null);
   const globeCams = useMemo(() => (s.cam && camData ? camData.items : []), [s.cam, camData]);
   useEffect(() => { if (camId && !broadcast) setOnAir(false); }, [camId, broadcast]);
+  useEffect(() => { if (broadcast && camFocus !== undefined) setCamId(camFocus); }, [broadcast, camFocus]);
   const cam = camId ? globeCams.find((c) => c.id === camId) ?? null : null;
   const globeSats = useSatPositions(s.st ? tleData?.items ?? null : null);
   const [preset, setPreset] = useState<{ n: number; kind: "world" | "tilt" | "focus" | "in" | "out" } | null>(null);
