@@ -25,6 +25,7 @@ import sp_rareitup from "@/assets/stream-pictures/rareitup.jpg.asset.json";
 import sp_goldlive from "@/assets/stream-pictures/goldlive.jpg.asset.json";
 import sp_xpre from "@/assets/stream-pictures/xpre.jpg.asset.json";
 import sp_yachtfino from "@/assets/stream-pictures/yachtfino.jpg.asset.json";
+import sp_ssglobal from "@/assets/stream-pictures/ssglobal.jpg.asset.json";
 import bookStream from "@/assets/grooming-gang-cover-up-stream-4x3-v2.jpg.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
@@ -453,7 +454,7 @@ function PromoCard() {
 }
 
 /** 1200x900 stream pictures made from each sponsor's own banner, keyed by website domain (Orbit box only). */
-const STREAM_PICTURES: Record<string, string> = { "gopharma.ai": sp_gopharma.url, "rareitup.com": sp_rareitup.url, "gold.live": sp_goldlive.url, "xpre.ai": sp_xpre.url, "yachtfino.com": sp_yachtfino.url };
+const STREAM_PICTURES: Record<string, string> = { "gopharma.ai": sp_gopharma.url, "rareitup.com": sp_rareitup.url, "gold.live": sp_goldlive.url, "xpre.ai": sp_xpre.url, "yachtfino.com": sp_yachtfino.url, "ssgloballegalservices.com": sp_ssglobal.url };
 
 type CornerSlide = { id: string; name: string; img: string | null; streamImg?: string | null; label: string; qr: string; tag: string };
 
