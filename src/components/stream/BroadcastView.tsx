@@ -484,7 +484,7 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
     <span aria-hidden className="orbit-accent absolute inset-x-0 top-0 h-[3px]" />
     <div className="flex min-h-0 flex-1">
       <div className="relative z-10 flex w-[48%] flex-col p-4 pb-3">
-        <span className="font-mono text-[12px] font-black uppercase tracking-widest text-destructive">{r.tag}</span>
+        <span className="font-mono text-[12px] font-black uppercase tracking-widest text-sponsor-tag [text-shadow:0_1px_3px_rgb(0_0_0_/0.65)]">{r.tag}</span>
         <p className="mt-1 line-clamp-4 text-[23px] font-black uppercase leading-[1.08] drop-shadow">{r.name}</p>
       </div>
       <div aria-hidden className="orbit-sponsor-img absolute inset-0 overflow-hidden">
