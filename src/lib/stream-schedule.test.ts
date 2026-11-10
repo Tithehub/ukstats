@@ -33,10 +33,10 @@ describe("stream schedule", () => {
     expect(h.some((s) => s.seg.id === "crime")).toBe(false);
     expect(h.at(-1)!.end).toBe(HOUR_MS);
   });
-  it("alternates UK hour and world hour by the London clock", () => {
-    const a = positionAt(new Date("2026-11-04T18:10:00Z"));
-    const b = positionAt(new Date("2026-11-04T19:10:00Z"));
-    expect(a.mode).not.toBe(b.mode);
+  it("two UK hours then a world hour by the London clock", () => {
+    const modes = [18, 19, 20, 21, 22, 23].map((h) => positionAt(new Date(Date.UTC(2026, 10, 4, h, 10))).mode);
+    expect(modes.filter((m) => m === "world")).toHaveLength(2);
+    expect(modes.filter((m) => m === "uk")).toHaveLength(4);
     expect(ukSlotAt(buildUkHour(all), 0).index).toBe(0);
   });
   it("gives each country five minutes in a world hour", () => {

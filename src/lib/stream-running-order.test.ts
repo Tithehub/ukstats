@@ -17,8 +17,8 @@ describe("UK hour running order", () => {
     expect(SPONSOR_BREAK_STARTS).toHaveLength(2);
     expect(SPONSOR_BREAK_MS).toBe(60_000);
   });
-  it("alternates education and happiest places by UK hour", () => {
-    const a = buildUkHour(own, 0).map((s) => s.seg.id), b = buildUkHour(own, 2).map((s) => s.seg.id);
+  it("alternates education and happiest places by UK block", () => {
+    const a = buildUkHour(own, 0).map((s) => s.seg.id), b = buildUkHour(own, 3).map((s) => s.seg.id);
     expect(a).toContain("education"); expect(a).not.toContain("happiest");
     expect(b).toContain("happiest"); expect(b).not.toContain("education");
   });
