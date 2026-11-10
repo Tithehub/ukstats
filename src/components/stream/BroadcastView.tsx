@@ -20,6 +20,11 @@ import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
+import sp_gopharma from "@/assets/stream-pictures/gopharma.jpg.asset.json";
+import sp_rareitup from "@/assets/stream-pictures/rareitup.jpg.asset.json";
+import sp_goldlive from "@/assets/stream-pictures/goldlive.jpg.asset.json";
+import sp_xpre from "@/assets/stream-pictures/xpre.jpg.asset.json";
+import sp_yachtfino from "@/assets/stream-pictures/yachtfino.jpg.asset.json";
 import bookStream from "@/assets/grooming-gang-cover-up-stream-4x3-v2.jpg.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
@@ -444,11 +449,14 @@ function PromoCard() {
   </section>;
 }
 
-type CornerSlide = { id: string; name: string; img: string | null; label: string; qr: string; tag: string };
+/** 1200x900 stream pictures made from each sponsor's own banner, keyed by website domain (Orbit box only). */
+const STREAM_PICTURES: Record<string, string> = { "gopharma.ai": sp_gopharma.url, "rareitup.com": sp_rareitup.url, "gold.live": sp_goldlive.url, "xpre.ai": sp_xpre.url, "yachtfino.com": sp_yachtfino.url };
+
+type CornerSlide = { id: string; name: string; img: string | null; streamImg?: string | null; label: string; qr: string; tag: string };
 
 function sponsorSlide(r: SponsorBannerRow): CornerSlide {
   const site = sponsorSite(r.url);
-  return { id: r.id, name: r.name, img: r.banner_link ?? (r.banner_path ? null : r.banner_url), label: site.label, qr: site.qr, tag: "Supported by" };
+  return { id: r.id, name: r.name, streamImg: STREAM_PICTURES[site.label.replace(/^www\./, "")] ?? null, img: r.banner_link ?? (r.banner_path ? null : r.banner_url), label: site.label, qr: site.qr, tag: "Supported by" };
 }
 
 const utm = (u: string) => { const x = new URL(u); x.searchParams.set("utm_source", "youtube"); x.searchParams.set("utm_medium", "ukstats_stream"); return x.toString(); };
@@ -480,7 +488,7 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
         <p className="mt-1 line-clamp-4 text-[23px] font-black uppercase leading-[1.08] drop-shadow">{r.name}</p>
       </div>
       <div aria-hidden className="orbit-sponsor-img absolute inset-0 overflow-hidden">
-        {r.img ? <SponsorPicture src={r.img} /> : <span className="orbit-sponsor-fallback block h-full w-full" />}
+        {(r.streamImg ?? r.img) ? <SponsorPicture src={(r.streamImg ?? r.img)!} /> : <span className="orbit-sponsor-fallback block h-full w-full" />}
       </div>
     </div>
     <div className="relative z-10 mx-4 flex items-center gap-4 border-t border-night-fg/20 py-3">
