@@ -115,9 +115,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const tenMin = now ? Math.floor(now.getTime() / 600_000) : 0;
   const rundown = useMemo(() => buildRundown({
     metrics, warnings: unrest?.warnings ?? [], reports: news?.items ?? [], emergencyPlanes: emergency, now: now ?? new Date(0),
-    featured: brand ? null : FEATURED_STORY,
+    featured: brand ? null : FEATURED_STORY, siteSections: !brand,
   }), [metrics, unrest, news, emergency, tenMin, brand]);
-  const ukHour = useMemo(() => buildUkHour(rundown), [rundown]);
+  const ukHourIndex = now ? positionAt(now).hourIndex : 0;
+  const ukHour = useMemo(() => buildUkHour(rundown, ukHourIndex), [rundown, ukHourIndex]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __ukHour?: unknown }).__ukHour = ukHour.map((x) => ({ id: x.seg.id, title: x.seg.title, start: x.start, end: x.end })); }, [ukHour]);
 
   // Clock-driven position: even London hours = UK hour, odd hours = other countries five minutes each.

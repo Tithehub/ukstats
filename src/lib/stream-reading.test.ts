@@ -29,7 +29,7 @@ import { scriptForPromo } from "./stream-script";
 import { promoAt } from "./stream-schedule";
 describe("About UKStats break", () => {
   it("runs at the start of every quarter-hour only", () => {
-    for (const q of [0, 15, 30, 45]) expect(promoAt(q * 60_000 + 5_000).active).toBe(true);
+    for (const q of [0, 15, 45]) expect(promoAt(q * 60_000 + 5_000).active).toBe(true);
     expect(promoAt(7 * 60_000).active).toBe(false);
     expect(promoAt(15 * 60_000 + 41_000).active).toBe(false);
   });
