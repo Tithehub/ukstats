@@ -507,7 +507,7 @@ function StreamSponsors({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
       <div className={`relative aspect-[3/1] w-full shrink-0 overflow-hidden ${r.id === "rec-inquiry" ? "bg-destructive text-destructive-foreground" : "bg-night"}`}>
         {r.img ? <img src={r.img} alt={r.name} className="h-full w-full object-contain" />
           : <span className="flex h-full items-center justify-center px-3 pt-4 text-center text-[30px] font-black leading-tight">{r.name}</span>}
-        <span className="absolute left-0 top-0 bg-destructive px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-destructive-foreground">{r.tag}</span>
+        <span className="absolute left-0 top-0 bg-sponsor-tag px-2 py-0.5 font-mono text-[12px] font-black uppercase tracking-widest text-sponsor-tag-foreground">{r.tag}</span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col justify-center px-3 leading-tight">
         <span className="truncate text-[22px] font-black">{r.name}</span>
