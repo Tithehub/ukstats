@@ -73,7 +73,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
       uniforms: { dayT: { value: day }, nightT: { value: night }, sweep: { value: -2 } },
       vertexShader: "varying vec2 vUv; varying vec3 vN; void main(){vUv=uv;vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
       // Colourful newsroom look: land lifted to electric blue/teal, oceans deep navy, warm gold city glow, moving light sweep.
-      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;uniform float sweep;varying vec2 vUv;varying vec3 vN;void main(){vec3 tex=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float landM=smoothstep(0.02,0.12,tex.g-tex.b*0.55+tex.r*0.35);float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),2.6);float light=0.55+0.45*max(dot(normalize(vN),normalize(vec3(0.2,0.8,0.7))),0.0);vec3 ocean=vec3(0.02,0.07,0.2)+tex*vec3(0.05,0.12,0.3);vec3 land=mix(vec3(0.1,0.32,0.75),vec3(0.2,0.62,0.95),tex.g*1.4)*(0.6+tex.r*0.6);vec3 c=mix(ocean,land,landM)*light+vec3(1.0,0.72,0.32)*pow(city,0.75)*12.0;float s=exp(-pow((vN.x+vN.y*0.4-sweep)*3.5,2.0));c+=vec3(0.35,0.6,1.0)*s*0.35;c+=vec3(0.12,0.45,1.0)*rim*1.2;gl_FragColor=vec4(c,1.0);}",
+      fragmentShader: "uniform sampler2D dayT;uniform sampler2D nightT;uniform float sweep;varying vec2 vUv;varying vec3 vN;void main(){vec3 land=texture2D(dayT,vUv).rgb;vec3 night=texture2D(nightT,vUv).rgb;float city=max(0.0,night.r-max(night.b*0.72,night.g*0.55));float rim=pow(1.0-max(vN.z,0.0),3.2);float light=0.5+0.5*max(dot(normalize(vN),normalize(vec3(0.45,0.7,0.6))),0.0);vec3 c=land*vec3(0.26,0.44,0.8)*light+vec3(1.0,0.74,0.34)*pow(city,0.7)*16.0;float s=exp(-pow((vN.x+vN.y*0.4-sweep)*3.5,2.0));c+=vec3(0.3,0.55,1.0)*s*0.18;float sun=pow(max(dot(normalize(vN),normalize(vec3(0.6,0.65,0.45))),0.0),6.0);c+=vec3(1.0,0.78,0.45)*sun*0.18;c+=vec3(0.15,0.5,1.0)*rim*1.4;gl_FragColor=vec4(c,1.0);}",
     });
     const group = new THREE.Group();
     const earth = new THREE.Mesh(geometry, surface); earth.rotation.y = -Math.PI / 2;
@@ -104,7 +104,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     group.add(allBorders);
     const hot = new THREE.Group(); group.add(hot);
     const label = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, depthTest: false }));
-    label.scale.set(0.6, 0.094, 1); label.position.set(-0.32, 0.3, 1.05); scene.add(label);
+    label.scale.set(0.6, 0.094, 1); label.position.set(-0.62, 0.42, 1.05); scene.add(label);
     let arrivedAt = -1;
     focus.current = (name: string) => {
       hot.children.slice().forEach((o) => { hot.remove(o); const l = o as THREE.LineSegments; l.geometry.dispose(); (l.material as THREE.Material).dispose(); });
@@ -118,6 +118,23 @@ export default function OrbitGlobe({ country }: { country: string }) {
       arrivedAt = -1;
     };
     focus.current(country);
+    // Decorative city network (no data): thin glowing great-circle arcs with travelling lights and gold city blooms.
+    const CITIES: [number, number][] = [[-0.13, 51.5], [2.35, 48.86], [13.4, 52.52], [-3.7, 40.42], [12.5, 41.9], [37.6, 55.75], [-74, 40.7], [-118.2, 34.05], [-79.4, 43.65], [28.98, 41.0], [31.24, 30.04], [55.3, 25.2], [77.2, 28.6], [116.4, 39.9], [139.7, 35.7], [103.8, 1.35], [151.2, -33.9], [-46.6, -23.5], [18.4, -33.9], [-99.1, 19.4], [-6.26, 53.35], [10.75, 59.9]];
+    const PAIRS = [[0, 6], [0, 1], [0, 5], [1, 10], [2, 13], [0, 11], [11, 12], [12, 15], [15, 16], [13, 14], [6, 7], [6, 17], [8, 0], [3, 17], [4, 9], [9, 11], [1, 18], [7, 14], [20, 6], [21, 2], [19, 6]];
+    const gold = new THREE.Color(1, 0.78, 0.4);
+    const bloomTex = glowTex("rgba(255,215,140,0.95)", "rgba(255,150,60,0)");
+    const arcs: { pts: THREE.Vector3[]; head: THREE.Sprite; off: number }[] = [];
+    const vec = (c: [number, number]) => new THREE.Vector3(...(onSphere(c[0], c[1], 1) as [number, number, number]));
+    for (const c of CITIES) { const b = new THREE.Sprite(new THREE.SpriteMaterial({ map: bloomTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.8 })); b.position.copy(vec(c).multiplyScalar(1.006)); b.scale.setScalar(0.07); group.add(b); }
+    PAIRS.forEach(([i, j], k) => {
+      const A = vec(CITIES[i]!), B = vec(CITIES[j]!); const ang = A.angleTo(B);
+      const pts = Array.from({ length: 65 }, (_, n) => { const t = n / 64; const p = A.clone().multiplyScalar(Math.sin((1 - t) * ang)).add(B.clone().multiplyScalar(Math.sin(t * ang))).divideScalar(Math.sin(ang)); return p.normalize().multiplyScalar(1.004 + Math.sin(t * Math.PI) * ang * 0.09); });
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: k % 3 ? blue : gold, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })));
+      const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: bloomTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); head.scale.setScalar(0.05); group.add(head);
+      arcs.push({ pts, head, off: k * 0.37 });
+    });
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("rgba(255,220,170,0.7)", "rgba(255,140,60,0)"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    sunGlow.scale.setScalar(1.6); sunGlow.position.set(0.85, 0.85, -0.2); scene.add(sunGlow);
     const rings: { group: THREE.Group; head: THREE.Sprite; radius: number; speed: number }[] = [];
     for (let i = 0; i < 4; i++) {
       const radius = 1.16 + i * 0.13;
@@ -148,6 +165,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
       hot.children.forEach((o, i) => { ((o as THREE.LineSegments).material as THREE.LineBasicMaterial).opacity = (i ? 0.5 : 1) * (0.7 + 0.3 * Math.sin(sec * 3)); });
       if (!reduced) surface.uniforms["sweep"]!.value = ((sec * 0.18) % 2.6) - 1.3;
       if (!reduced && arrivedAt >= 0) { const p = ((sec - arrivedAt) % 2.4) / 2.4; pulse.scale.setScalar(1 + p * 4); (pulse.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - p); } else (pulse.material as THREE.MeshBasicMaterial).opacity = 0;
+      arcs.forEach(({ pts, head, off }) => { const t = reduced ? 0.5 : ((sec * 0.22 + off) % 1); head.position.copy(pts[Math.floor(t * (pts.length - 1))]!); (head.material as THREE.SpriteMaterial).opacity = Math.sin(t * Math.PI); });
       if (!reduced) { dustPts.rotation.y = sec * 0.01; (flare.material as THREE.SpriteMaterial).opacity = 0.75 + 0.25 * Math.sin(sec * 0.8); }
       renderer.render(scene, camera); raf = requestAnimationFrame(draw);
     };
