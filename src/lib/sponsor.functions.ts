@@ -132,7 +132,7 @@ export const getMySponsorship = createServerFn({ method: "POST" })
       .maybeSingle();
     const { data: sponsor } = await context.supabase
       .from("sponsors")
-      .select("id,name,url,tagline,approved,paid,plan,region,regions,banner_url,banner_path")
+      .select("id,name,url,tagline,approved,paid,plan,region,regions,banner_url,banner_path,logo_path,stream_path,qr_url")
       .eq("user_id", context.userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
@@ -152,6 +152,9 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
     regions?: string[];
     banner_url?: string;
     banner_path?: string;
+    logo_path?: string;
+    stream_path?: string;
+    qr_url?: string;
   }) => {
     if (!envOk(d.environment)) throw new Error("Invalid environment");
     const name = String(d.name ?? "").trim().slice(0, 80);
@@ -164,12 +167,16 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
     const banner_url = String(d.banner_url ?? "").trim().slice(0, 500);
     if (banner_url && !/^https:\/\/[^\s]+$/.test(banner_url)) throw new Error("Banner image link must start with https://");
     const banner_path = String(d.banner_path ?? "").trim().slice(0, 500);
-    return { environment: d.environment, name, url, tagline, region, regions, banner_url, banner_path };
+    const logo_path = String(d.logo_path ?? "").trim().slice(0, 500);
+    const stream_path = String(d.stream_path ?? "").trim().slice(0, 500);
+    const qr_url = String(d.qr_url ?? "").trim().slice(0, 300);
+    if (qr_url && !/^https:\/\/[^\s]+$/.test(qr_url)) throw new Error("QR link must start with https://");
+    return { environment: d.environment, name, url, tagline, region, regions, banner_url, banner_path, logo_path, stream_path, qr_url };
   })
   .handler(async ({ data, context }) => {
     const { data: row } = await context.supabase
       .from("sponsors")
-      .select("id,plan,banner_path")
+      .select("id,plan,banner_path,logo_path,stream_path")
       .eq("user_id", context.userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
@@ -201,9 +208,25 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
       banner_url = data.banner_url;
     }
 
+    // Logo and stream picture: checked from their real bytes, like the banner.
+    const prevRow = row as { logo_path?: string | null; stream_path?: string | null };
+    const pics: { logo_path: string | null; stream_path: string | null } = { logo_path: null, stream_path: null };
+    for (const [key, kind] of [["logo_path", "logo"], ["stream_path", "stream"]] as const) {
+      const p = data[key];
+      if (!p) continue;
+      if (p === prevRow[key]) { pics[key] = p; continue; }
+      if (!isOwnBannerPath(p, context.userId)) return { error: "That picture isn't yours to use." };
+      const { checkPictureUpload } = await import("@/lib/banner.server");
+      const check = await checkPictureUpload(supabaseAdmin, p, kind);
+      if (!check.ok) { await supabaseAdmin.storage.from(BANNER_BUCKET).remove([p]); return { error: check.message }; }
+      pics[key] = p;
+    }
+
     const { error } = await supabaseAdmin
       .from("sponsors")
       .update({
+        ...pics,
+        qr_url: data.qr_url || null,
         name: data.name,
         url: data.url,
         tagline: isSponsor ? data.tagline || null : null,
@@ -216,9 +239,8 @@ export const saveSponsorDetails = createServerFn({ method: "POST" })
       })
       .eq("id", row.id);
     if (error) return { error: "Couldn't save" };
-    if (previous && previous !== banner_path) {
-      await supabaseAdmin.storage.from(BANNER_BUCKET).remove([previous]);
-    }
+    const stale = [previous && previous !== banner_path ? previous : null, prevRow.logo_path && prevRow.logo_path !== pics.logo_path ? prevRow.logo_path : null, prevRow.stream_path && prevRow.stream_path !== pics.stream_path ? prevRow.stream_path : null].filter((x): x is string => Boolean(x));
+    if (stale.length) await supabaseAdmin.storage.from(BANNER_BUCKET).remove(stale);
     return { ok: true as const };
   });
 
