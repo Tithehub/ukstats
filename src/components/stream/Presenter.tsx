@@ -13,7 +13,9 @@ function fetchLine(text: string) {
   let p = cache.get(text);
   if (!p) {
     if (voiceKey === undefined) voiceKey = readVoiceKey();
-    p = speakLine({ data: { text, voiceKey } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
+    const once = () => speakLine({ data: { text, voiceKey } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
+    // One retry so a single failed clip doesn't leave a silent gap on air.
+    p = once().then((a) => a ?? (unauthorised ? null : once()));
     p.then((a) => { if (!a) cache.delete(text); });
     if (cache.size > 60) cache.delete(cache.keys().next().value!);
     cache.set(text, p);
@@ -29,13 +31,17 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
   const latest = useRef(line);
   const lastSpoken = useRef("");
   latest.current = line;
+  const queue = useRef<string[]>([]); queue.current = upcoming;
+  const recent = useRef<string[]>([]);
+  /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
+  const nextLine = () => latest.current !== lastSpoken.current ? latest.current : queue.current.find((t) => t && !recent.current.includes(t)) ?? null;
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
   useEffect(() => {
     if (!line || busy.current) return;
     const speak = async (text: string) => {
-      busy.current = true; lastSpoken.current = text;
+      busy.current = true; lastSpoken.current = text; recent.current = [text, ...recent.current].slice(0, 8);
       setStatus("preparing");
       const b64 = await fetchLine(text);
       if (!b64) {
@@ -47,7 +53,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
       const a = new Audio(`data:audio/wav;base64,${b64}`);
       a.onended = () => {
         busy.current = false; setStatus("idle");
-        if (latest.current !== lastSpoken.current) void speak(latest.current);
+        { const n = nextLine(); if (n) void speak(n); }
       };
       try { await a.play(); setStatus("speaking"); }
       catch { setStatus("blocked"); mime(text); }
