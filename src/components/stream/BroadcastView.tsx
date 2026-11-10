@@ -130,20 +130,20 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const { data: countryData } = useQuery({ ...countryQuery(wc?.code ?? "fr"), enabled: !!wc });
   useQuery({ ...countryQuery(world ? WORLD[world.next]!.code : "fr"), enabled: !!world });
 
-  let seg: Segment | undefined; let msIn = 0; let lineQueue: string[] = [];
+  let seg: Segment | undefined; let msIn = 0; let upNext: string[] = [];
   if (wc && world) {
     seg = countrySegment(wc.key, countryData, unrest?.warnings ?? [], now ?? new Date(0), news?.items ?? []);
     msIn = world.msIntoSlot;
     // Distinct upcoming countries only; with one country, say when it repeats rather than listing it three times.
-    lineQueue = [...new Set([1, 2, 3].map((i) => WORLD[(world.index + i) % WORLD.length]!.code))]
+    upNext = [...new Set([1, 2, 3].map((i) => WORLD[(world.index + i) % WORLD.length]!.code))]
       .filter((c) => c !== wc.code).map((c) => countryName(c));
-    if (!lineQueue.length) lineQueue = [`${countryName(wc.code)} — fresh figures next round`];
-    if (hasUk && 60 - Math.floor(pos.msIntoHour / 60_000) <= 15) lineQueue = [...lineQueue.slice(0, 2), "UK hour at the top of the hour"];
+    if (!upNext.length) upNext = [`${countryName(wc.code)} — fresh figures next round`];
+    if (hasUk && 60 - Math.floor(pos.msIntoHour / 60_000) <= 15) upNext = [...upNext.slice(0, 2), "UK hour at the top of the hour"];
   } else if (ukHour.length) {
     const at = ukSlotAt(ukHour, pos.msIntoHour);
     seg = ukHour[at.index]!.seg; msIn = at.msIntoSlot;
-    lineQueue = [1, 2, 3].map((i) => ukHour[at.index + i]?.seg.title).filter((x): x is string => !!x);
-    if (lineQueue.length < 3) lineQueue.push("Around the world — other countries");
+    upNext = [1, 2, 3].map((i) => ukHour[at.index + i]?.seg.title).filter((x): x is string => !!x);
+    if (upNext.length < 3) upNext.push("Around the world — other countries");
   }
   const step = cardStep(msIn);
   const card = seg?.cards.length ? seg.cards[step % seg.cards.length]! : null;
@@ -203,7 +203,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   // Pointer slots read each line once and hold the last one, so short sections never loop.
   const held = seg?.pointer && reads0.length ? reads0[Math.min(step, reads0.length - 1)]! : null;
   const reads = held ? [held] : reads0;
-  const lineQueue = held ? reads0.slice(Math.min(step, reads0.length - 1) + 1, Math.min(step, reads0.length - 1) + 4) : lineQueue;
+  const lineQueue = held ? reads0.slice(Math.min(step, reads0.length - 1) + 1, Math.min(step, reads0.length - 1) + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
   // What the presenter is actually saying right now; the Orbit card and globe follow it so voice and screen match.
   const [spoken, setSpoken] = useState<{ text: string | null; country: string | null }>({ text: null, country: null });
   const live = useRef({ reads, country: seg?.country ?? null }); live.current = { reads, country: seg?.country ?? null };
@@ -224,14 +224,14 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const orbitNext: { title: string; time: string | null }[] = !wc && ukHour.length && now
     ? [1, 2, 3].map((i) => ukHour[ukSlotAt(ukHour, pos.msIntoHour).index + i]).filter((x): x is NonNullable<typeof x> => !!x)
       .map((x) => ({ title: x.seg.title, time: london(new Date(hourStart + x.start), { hour: "2-digit", minute: "2-digit" }) }))
-    : lineQueue.map((t) => ({ title: t, time: null }));
-  if (orbitNext.length < 3 && !wc) orbitNext.push(...lineQueue.slice(orbitNext.length).map((t) => ({ title: t, time: null })));
+    : upNext.map((t) => ({ title: t, time: null }));
+  if (orbitNext.length < 3 && !wc) orbitNext.push(...upNext.slice(orbitNext.length).map((t) => ({ title: t, time: null })));
   const orbitTicker = [
     ...(unrest?.warnings ?? []).filter((w) => w.mentionsUnrest).slice(0, 6).map((w) => ({ text: `${w.source} · ${w.country}: ${w.text}`, official: true })),
     ...(news?.items ?? []).slice(0, 10).map((r) => ({ text: `${r.publisher}: ${r.title}`, official: false })),
   ];
   const lower = head ? <LowerThird head={head} /> : null;
-  const next = lineQueue.length ? <UpNext items={lineQueue} /> : null;
+  const next = upNext.length ? <UpNext items={upNext} /> : null;
   const t = now ?? new Date(0);
   // UK register figures only belong on screen during the UK hour.
   const newest = wc ? [] : justPublished(metrics, t);
