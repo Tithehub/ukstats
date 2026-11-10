@@ -41,7 +41,7 @@ describe("UK part 2 goes deeper", () => {
   it("reads the card's period, publication and next-release dates", () => {
     const card = { kicker: "", title: "Net debt", value: "£2.8tn", sub: null, source: "ONS", period: "Sep 2026", asOf: "21 Oct 2026", nextDue: "21 Nov 2026", metric: null };
     const deep = scriptForCard(card, true);
-    expect(deep).toContain("Sep 2026"); expect(deep).toContain("21 Oct 2026"); expect(deep).toContain("21 Nov 2026");
+    expect(deep).toContain("September twenty twenty-six"); expect(deep).toContain("21 Oct 2026"); expect(deep).toContain("21 Nov 2026");
     expect(scriptForCard(card)).not.toContain("21 Nov 2026");
   });
 });
