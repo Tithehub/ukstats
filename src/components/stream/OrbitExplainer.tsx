@@ -40,6 +40,7 @@ export function OrbitExplainer({ chapter, index, line, msInChapter }: { chapter:
     </div>
     <h2 key={chapter.id} className="mt-2 text-[44px] font-black leading-tight motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-6">{chapter.title}</h2>
     <div className="mt-3 h-[5px] overflow-hidden rounded bg-night-fg/10"><div className="h-full bg-destructive transition-[width] duration-300" style={{ width: `${p * 100}%` }} /></div>
+    <div aria-hidden className="hidden">{[sports, ukCover, globalCover, rentDash, rentStream, rentWidget].map((x) => <img key={x} src={x} alt="" loading="eager" />)}</div>
     <div key={`${chapter.id}-body`} className="mt-5 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-700">{body(chapter, line)}</div>
   </div>;
 }
@@ -61,11 +62,11 @@ function body(c: Chapter, line: number) {
       </div>
     </div>;
     case "reports": return <div className="flex items-center gap-5">
-      <div className="relative h-[230px] w-[210px] shrink-0">
-        <img src={globalCover} alt="Global report cover" className="absolute right-0 top-0 h-[190px] rotate-6 rounded shadow-2xl" />
-        <img src={ukCover} alt="UK report cover" className="absolute left-0 top-4 h-[190px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
+      <div className="relative h-[230px] w-[180px] shrink-0">
+        <img src={globalCover} alt="Global report cover" className="absolute right-0 top-0 h-[170px] rotate-6 rounded shadow-2xl" />
+        <img src={ukCover} alt="UK report cover" className="absolute left-0 top-4 h-[170px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2 text-[22px]">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 text-[20px]">
         <Price k="UK daily" v={gbp(REPORT_PRICES.report_uk_daily.pence)} />
         <Price k="Global daily" v={gbp(REPORT_PRICES.report_global_daily.pence)} />
         <Price k="UK mo / yr" v={`${gbp(REPORT_PRICES.report_uk_monthly.pence)} / ${gbp(REPORT_PRICES.report_uk_yearly.pence)}`} />
@@ -89,7 +90,7 @@ function body(c: Chapter, line: number) {
       </div>;
     }
     case "sports": return <div className="relative h-[380px] overflow-hidden rounded-lg">
-      <img src={sports} alt="Multi-sport montage" width={1920} height={1088} className="size-full object-cover motion-safe:animate-[orbit-head_12s_ease-in-out_infinite] scale-110" />
+      <img src={sports} alt="Multi-sport montage" width={1920} height={1088} loading="eager" className="size-full object-cover motion-safe:animate-[orbit-head_12s_ease-in-out_infinite] scale-110" />
       <div className="absolute left-4 top-4 rounded-lg bg-night/70 px-4 py-3 backdrop-blur"><Wordmark /></div>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-night to-transparent px-5 pb-4 pt-16">
         <div className="font-mono text-[20px] uppercase tracking-[0.3em] text-destructive">Coming soon</div>
