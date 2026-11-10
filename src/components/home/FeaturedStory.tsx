@@ -19,7 +19,7 @@ export function FeaturedStory() {
         <p className="mt-3 font-mono text-xs text-muted-foreground">Source: <strong className="text-foreground">{s.publisher}</strong> · {fmtDate(s.published)}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Read on FT.com <ExternalLink className="size-4" /></a>
-          <Link to="/restore-britain" className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2.5 text-sm font-bold">About Restore Britain</Link>
+          <Link to="/restore-britain" search={{ kind: "all", q: "", page: 1 }} className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2.5 text-sm font-bold">About Restore Britain</Link>
         </div>
       </article>
     </section>
