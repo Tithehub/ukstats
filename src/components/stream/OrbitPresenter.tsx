@@ -1,4 +1,4 @@
-import { claimVoice, releaseVoice } from "@/lib/voice-channel";
+import { isTurn, nextTurn, playVoice, stopVoice, voiceAnalyser } from "@/lib/voice-channel";
 import { useEffect, useRef, useState } from "react";
 import closed from "@/assets/stream/orbit-presenter-closed-clean.png";
 import open from "@/assets/stream/orbit-presenter-open-clean.png";
@@ -25,7 +25,6 @@ function fetchLine(text: string) {
   return p;
 }
 
-let ctx: AudioContext | null = null;
 // Only the mouth area of the "open" portrait shows through, so the face never jumps.
 const MOUTH_MASK = "radial-gradient(ellipse 9% 5.5% at 50.2% 33.4%, #000 55%, transparent 100%)";
 
@@ -38,7 +37,6 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak, onBusy }: 
   const analyser = useRef<AnalyserNode | null>(null);
   const busy = useRef(false);
   const cur = useRef<(() => void) | null>(null);
-  const gen = useRef(0);
   const busyCb = useRef(onBusy); busyCb.current = onBusy;
   const latest = useRef(line);
   const lastSpoken = useRef("");
@@ -46,9 +44,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak, onBusy }: 
   latest.current = line;
   const queue = useRef<string[]>([]); queue.current = upcoming;
   const recent = useRef<string[]>([]);
-  /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
-  const nextLine = () => !recent.current.includes(latest.current) ? latest.current
-    : (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE); statusRef.current = status;
+ statusRef.current = status;
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
@@ -76,7 +72,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak, onBusy }: 
   useEffect(() => {
     if (!line) return;
     // Screen leads: a new on-screen line cuts the old clip straight away, so voice and screen never drift.
-    cur.current?.(); cur.current = null; busy.current = false;
+    cur.current?.(); cur.current = null; busy.current = false; if (voice) nextTurn();
     const mime = (text: string) => {
       busy.current = true; setStatus("miming"); said.current?.(text);
       const ms = Math.min(20000, Math.max(2500, text.split(/\s+/).length * 380));
@@ -88,40 +84,30 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak, onBusy }: 
       cur.current = () => window.clearTimeout(id);
     };
     const speak = async (text: string) => {
-      const g = ++gen.current;
-      cur.current = () => { gen.current++; };
+      const t = nextTurn();
+      cur.current = null;
       busy.current = true; lastSpoken.current = text; recent.current = [text, ...recent.current].slice(0, 8); setStatus("preparing");
       const b64 = await fetchLine(text);
-      if (g !== gen.current) return;
+      if (!isTurn(t)) return;
       if (!b64) { setStatus(unauthorised ? "unauthorised" : "idle"); mime(text); return; }
-      const el = new Audio(`data:audio/wav;base64,${b64}`);
-      try {
-        ctx ??= new AudioContext();
-        if (ctx.state === "suspended") await ctx.resume();
-        if (g !== gen.current) return;
-        const src = ctx.createMediaElementSource(el);
-        const an = ctx.createAnalyser(); an.fftSize = 512;
-        src.connect(an); an.connect(ctx.destination);
-        analyser.current = an;
-      } catch { analyser.current = null; }
-      let done = false;
+      // One shared page-wide player: a newer turn cancels this one, so clips can never overlap.
+      let guard = 0;
       const finish = () => {
-        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok); busyCb.current?.(false);
+        window.clearTimeout(guard); if (!isTurn(t)) return; busyCb.current?.(false);
         busy.current = false; analyser.current = null; setStatus("idle");
-        { const n = nextLine(); if (n) void speak(n); }
+        // Only fill silence with the bridge line; never read ahead of the screen.
+        if (latest.current === text && !recent.current.slice(0, 3).includes(BRIDGE)) void speak(BRIDGE);
       };
-      // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
-      const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
-      el.onended = finish; el.onerror = finish;
-      const stopEl = () => { busyCb.current?.(false); done = true; window.clearTimeout(guard); el.onended = null; el.onerror = null; el.pause(); analyser.current = null; };
-      const tok = claimVoice(stopEl);
-      cur.current = () => { stopEl(); releaseVoice(tok); };
-      if (g !== gen.current) { cur.current(); return; }
-      try { await el.play(); if (g !== gen.current) { stopEl(); releaseVoice(tok); return; } setStatus("speaking"); busyCb.current?.(true); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
+      guard = window.setTimeout(() => { if (isTurn(t)) { stopVoice(); finish(); } }, Math.max(15_000, text.split(/\s+/).length * 600));
+      cur.current = () => { window.clearTimeout(guard); busyCb.current?.(false); analyser.current = null; };
+      const ok = await playVoice(t, `data:audio/wav;base64,${b64}`, finish);
+      if (!isTurn(t)) { window.clearTimeout(guard); return; }
+      if (ok) { analyser.current = voiceAnalyser(); setStatus("speaking"); busyCb.current?.(true); said.current?.(text); }
+      else { window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
-  useEffect(() => () => { gen.current++; cur.current?.(); cur.current = null; }, []);
+  useEffect(() => () => { cur.current?.(); cur.current = null; nextTurn(); }, []);
 
   const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : status === "miming" ? "Reading on screen" : "Listening";
   const fit = "absolute inset-0 h-full w-full object-contain object-bottom";

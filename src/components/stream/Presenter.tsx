@@ -1,4 +1,4 @@
-import { claimVoice, releaseVoice } from "@/lib/voice-channel";
+import { isTurn, nextTurn, playVoice, stopVoice } from "@/lib/voice-channel";
 import { useEffect, useRef, useState } from "react";
 import cutout from "@/assets/stream/presenter_cutout.png.asset.json";
 import talking from "@/assets/stream/presenter_cutout_talking.webm.asset.json";
@@ -33,51 +33,47 @@ export function Presenter({ line, upcoming = [], voice, onBusy }: { line: string
   const [miming, setMiming] = useState(false);
   const busy = useRef(false);
   const cur = useRef<(() => void) | null>(null);
-  const gen = useRef(0);
   const busyCb = useRef(onBusy); busyCb.current = onBusy;
   const latest = useRef(line);
   const lastSpoken = useRef("");
   latest.current = line;
   const queue = useRef<string[]>([]); queue.current = upcoming;
   const recent = useRef<string[]>([]);
-  /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
-  const nextLine = () => !recent.current.includes(latest.current) ? latest.current
-    : (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE);
+
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
   useEffect(() => {
     if (!line) return;
     // Screen leads: a new on-screen line cuts the old clip straight away, so voice and screen never drift.
-    cur.current?.(); cur.current = null; busy.current = false; setMiming(false);
+    cur.current?.(); cur.current = null; busy.current = false; setMiming(false); if (voice) { nextTurn(); }
     const speak = async (text: string) => {
-      const g = ++gen.current;
-      cur.current = () => { gen.current++; };
+      const t = nextTurn();
+      cur.current = null;
       busy.current = true; lastSpoken.current = text; recent.current = [text, ...recent.current].slice(0, 8);
       setStatus("preparing");
       const b64 = await fetchLine(text);
-      if (g !== gen.current) return;
+      if (!isTurn(t)) return;
       if (!b64) {
         setStatus(unauthorised ? "unauthorised" : "idle");
         if (unauthorised) try { parent.postMessage({ type: "ukstats-voice", ok: false }, location.origin); } catch { /* ignore */ }
         mime(text);
         return;
       }
-      const a = new Audio(`data:audio/wav;base64,${b64}`);
-      let done = false;
+      // One shared page-wide player: a newer turn cancels this one, so clips can never overlap.
+      let guard = 0;
       const finish = () => {
-        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok); busyCb.current?.(false);
+        window.clearTimeout(guard); if (!isTurn(t)) return; busyCb.current?.(false);
         busy.current = false; setStatus("idle");
-        { const n = nextLine(); if (n) void speak(n); }
+        // Only fill silence with the bridge line; never read ahead of the screen.
+        if (latest.current === text && !recent.current.slice(0, 3).includes(BRIDGE)) void speak(BRIDGE);
       };
-      // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
-      const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
-      a.onended = finish; a.onerror = finish;
-      const stopA = () => { busyCb.current?.(false); done = true; window.clearTimeout(guard); a.onended = null; a.onerror = null; a.pause(); };
-      const tok = claimVoice(stopA);
-      cur.current = () => { stopA(); releaseVoice(tok); };
-      try { await a.play(); if (g !== gen.current) { stopA(); releaseVoice(tok); return; } setStatus("speaking"); busyCb.current?.(true); }
-      catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
+      guard = window.setTimeout(() => { if (isTurn(t)) { stopVoice(); finish(); } }, Math.max(15_000, text.split(/\s+/).length * 600));
+      cur.current = () => { window.clearTimeout(guard); busyCb.current?.(false); };
+      const ok = await playVoice(t, `data:audio/wav;base64,${b64}`, finish);
+      if (!isTurn(t)) { window.clearTimeout(guard); return; }
+      if (ok) { setStatus("speaking"); busyCb.current?.(true); }
+      else { window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     /** No sound available: she still visibly reads the on-screen line, timed to its length. */
     const mime = (text: string) => {
@@ -92,7 +88,7 @@ export function Presenter({ line, upcoming = [], voice, onBusy }: { line: string
     if (voice) void speak(line);
     else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
-  useEffect(() => () => { gen.current++; cur.current?.(); cur.current = null; }, []);
+  useEffect(() => () => { cur.current?.(); cur.current = null; nextTurn(); }, []);
 
   const speaking = status === "speaking" || miming;
   const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : miming ? "Reading on screen" : "Listening";
