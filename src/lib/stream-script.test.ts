@@ -30,3 +30,15 @@ describe("year-on-year line", () => {
   it("skips already-annual measures", () => expect(yoyLine(card({ annualChange: true }))).toBe("That's the change over the past twelve months."));
   it("matches the same period", () => { expect(yearEarlierLabel("2026 SEP")).toBe("2025 SEP"); expect(yearEarlierLabel("2026 Q3")).toBe("2025 Q3"); });
 });
+
+import { explainerChapters } from "@/lib/stream-explainer";
+import { scriptForSponsorBreak as sbk, lineMs as lm, SPONSOR_CARD_MS as CARD } from "@/lib/stream-script";
+describe("explainer and sponsor timing", () => {
+  it("gives every explainer line at least its speaking time", () => {
+    for (const c of explainerChapters()) c.lines.forEach((l, i) => expect(c.lineMs[i]!).toBeGreaterThanOrEqual(lm(l)));
+  });
+  it("fits every sponsor-break line inside its 10-second card", () => {
+    const rows = [{ name: "YachtFino", label: "yachtfino.com" }, { name: "SS GLOBAL Legal Services", label: "ssgloballegalservices.com" }];
+    for (let t = 0; t < 60_000; t += CARD) expect(lm(sbk(rows, t)!.line)).toBeLessThanOrEqual(CARD);
+  });
+});
