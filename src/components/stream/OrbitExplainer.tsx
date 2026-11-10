@@ -101,3 +101,25 @@ function body(c: Chapter, line: number) {
 }
 
 const Price = ({ k, v }: { k: string; v: string }) => <div className="flex justify-between gap-4 whitespace-nowrap border-b border-night-fg/10 pb-1"><span className="text-night-muted">{k}</span><span className="font-mono font-bold tabular-nums">{v}</span></div>;
+
+// Per-layer key for the real-globe tour — same colours and labels as the public globe key.
+import { NO_FIGURE, UK_ALERT_COLOURS, US_LEVEL_COLOURS } from "@/lib/globe-legend";
+import { FCDO_ALERT_LABEL, US_LEVEL_LABEL, type FcdoAlert } from "@/lib/unrest";
+import type { TourStep } from "@/lib/stream-explainer";
+const Sw = ({ c }: { c: string }) => <span aria-hidden className="mr-3 inline-block size-5 shrink-0 rounded-sm align-middle" style={{ background: c }} />;
+export function OrbitTourKey({ step, camPlace }: { step: TourStep; camPlace: string | null }) {
+  const rows: [string, string][] =
+    step.key === "uk" ? [...(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => [UK_ALERT_COLOURS[a], FCDO_ALERT_LABEL[a]] as [string, string]), [NO_FIGURE, "Not yet checked this cycle"]]
+    : step.key === "us" ? [...[4, 3, 2, 1].map((l) => [US_LEVEL_COLOURS[l]!, US_LEVEL_LABEL[l]!] as [string, string]), [NO_FIGURE, "No US advisory on file"]]
+    : step.key === "flights" ? [["#3fcf7a", "Normal"], ["#f0a020", "Radio-failure code, or over a Level 3 / lower FCDO warning"], ["#ff4a3a", "Emergency or hijack code, or over a Level 4 / FCDO all-travel country"]]
+    : step.key === "migration" ? [["#3fcf7a", "Small boats — Home Office daily reports"], ["#f0a020", "Illegal EU border crossings — Frontex"], ["#ff4a3a", "US southwest border encounters — CBP"], ["#7fb2ff", "Refugees abroad — UNHCR (not illegal crossings)"]]
+    : step.key === "news" ? [["#f0a020", "Protest headlines"], ["#e0452f", "Riot headlines"], [NO_FIGURE, "Faded icons = news & police reports, never official warnings"]]
+    : [["#ff4a3a", camPlace ? `Live: ${camPlace}` : "Live public camera"], [NO_FIGURE, "Public transport authorities · scene only, never figures"]];
+  const src = step.key === "uk" ? "UK Foreign Office (FCDO)" : step.key === "us" ? "US State Department" : step.key === "flights" ? "Public flight tracking · not official" : step.key === "migration" ? "Home Office · Frontex · CBP · UNHCR — never summed" : step.key === "news" ? "Publisher headlines, verbatim · media" : "Caltrans and other transport authorities";
+  return <div className="orbit-glass relative overflow-hidden rounded-xl border border-night-fg/15 p-6 shadow-2xl">
+    <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.25em] text-electric-soft"><span className="whitespace-nowrap">About UKStats · Real globe</span><span className="whitespace-nowrap text-night-muted">Key</span></div>
+    <h2 key={step.key} className="mt-2 text-[40px] font-black leading-tight motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-6">{step.label}</h2>
+    <ul key={`${step.key}-k`} className="mt-4 flex flex-col gap-3 text-[24px] motion-safe:animate-in motion-safe:fade-in">{rows.map(([c, t]) => <li key={t} className="flex items-center"><Sw c={c} />{t}</li>)}</ul>
+    <p className="mt-4 border-t border-night-fg/10 pt-3 font-mono text-[18px] text-night-muted">Source: {src}</p>
+  </div>;
+}

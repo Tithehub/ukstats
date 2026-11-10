@@ -41,10 +41,9 @@ import { regionFromPath, sponsorsForRegion, type SponsorBannerRow } from "@/lib/
 import { topSix, type TopBox } from "@/lib/stream-extras";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
-import { OrbitExplainer } from "@/components/stream/OrbitExplainer";
+import { OrbitExplainer, OrbitTourKey } from "@/components/stream/OrbitExplainer";
 import { EXPLAINER_MS, explainerStep, GLOBE_TOUR, globeTourStep } from "@/lib/stream-explainer";
 import { publicCamsQuery } from "@/lib/public-cams.functions";
-import { GlobeKey } from "@/components/globe/GlobeKey";
 import { buildUkHour, cardStep, explainerAt, positionAt, promoAt, PROMO_MS, sponsorBreakAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
 export const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
@@ -274,7 +273,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       </div>}
       <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
-      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{tour ? <div className="orbit-glass relative h-[640px] overflow-hidden rounded-xl border border-night-fg/15"><div className="px-6 pt-5 font-mono text-[18px] uppercase tracking-[0.25em] text-electric-soft">About UKStats · Interactive globe · On now: {tour.label}</div><div className="relative h-[560px] w-[320px] origin-top-left scale-[1.75]"><GlobeKey onClose={() => {}} /></div></div> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={ex || promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
