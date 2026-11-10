@@ -8,7 +8,7 @@ import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/useAuth";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
-import { BANNER_REQUIREMENTS, bannerFileProblem, bannerProblem, readImageSize } from "@/lib/banner-image";
+import { BANNER_REQUIREMENTS, STREAM_PICTURE_TIP, bannerFileProblem, bannerProblem, readImageSize } from "@/lib/banner-image";
 import { BANNER_BUCKET, bannerObjectPath } from "@/lib/banner-paths";
 import {
   createSponsorCheckout,
@@ -168,6 +168,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
               <div className="text-sm sm:col-span-2">
                 <p className="font-medium">Banner picture</p>
                 <p className="mt-1 text-xs text-night-muted">{BANNER_REQUIREMENTS}</p>
+                <p className="mt-1 text-xs text-night-muted">{STREAM_PICTURE_TIP}</p>
                 <input
                   type="file"
                   accept=".jpg,.jpeg,.png,.webp"

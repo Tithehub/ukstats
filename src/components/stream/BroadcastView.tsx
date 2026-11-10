@@ -20,6 +20,7 @@ import { STREAM_CLIPS } from "@/lib/stream-clips.data";
 import { buildRundown, countrySegment, statsTicker, type Segment, type StreamCard, type Headline } from "@/lib/stream-rundown";
 import { QRCodeSVG } from "qrcode.react";
 import bookCover from "@/assets/grooming-gang-cover-up-flat.png.asset.json";
+import bookStream from "@/assets/grooming-gang-cover-up-stream-4x3-v2.jpg.asset.json";
 import { Presenter } from "@/components/stream/Presenter";
 import { OrbitPresenter } from "@/components/stream/OrbitPresenter";
 import { OrbitHeroCard, OrbitLowerThird, OrbitMiniTiles, OrbitNextUp, OrbitPulse, OrbitTicker } from "@/components/stream/OrbitScene";
@@ -454,10 +455,19 @@ const utm = (u: string) => { const x = new URL(u); x.searchParams.set("utm_sourc
 /** Independent works (not sponsors) shown only on the UKStats stream; links only, no figures. */
 const RECOMMENDED_SLIDES: CornerSlide[] = [
   { id: "rec-inquiry", name: "The Rape Gang Inquiry", img: null, label: "therapeganginquiry.org", qr: utm("https://www.therapeganginquiry.org/"), tag: "Recommended" },
-  { id: "rec-book", name: "The Grooming Gang Cover-Up", img: bookCover.url, label: "amazon.co.uk", qr: utm("https://www.amazon.co.uk/dp/0995584982"), tag: "Recommended" },
+  { id: "rec-book", name: "The Grooming Gang Cover-Up", img: bookStream.url, label: "amazon.co.uk", qr: utm("https://www.amazon.co.uk/dp/0995584982"), tag: "Recommended" },
 ];
 
 /** Corner box: approved sponsors plus labelled recommendations, ~10s each, kept apart from figures. */
+/** 4:3 pictures (1200x900 recommended) fill the box; any other shape is shown whole, right-aligned over navy, never cropped. */
+function SponsorPicture({ src }: { src: string }) {
+  const [fits, setFits] = useState(true);
+  return <span className="orbit-sponsor-fallback absolute inset-0 block">
+    <img src={src} alt="" onLoad={(e) => { const i = e.currentTarget; setFits(Math.abs(i.naturalWidth / i.naturalHeight - 4 / 3) < 0.08); }}
+      className={`absolute inset-0 h-full w-full ${fits ? "object-cover" : "object-contain object-right"}`} />
+  </span>;
+}
+
 /** Orbit sponsor card (left column, like the reference): one at a time, big QR. */
 function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
   const r = rows[Math.floor(ms / 10_000) % rows.length]!;
@@ -470,7 +480,7 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
         <p className="mt-1 line-clamp-4 text-[23px] font-black uppercase leading-[1.08] drop-shadow">{r.name}</p>
       </div>
       <div aria-hidden className="orbit-sponsor-img absolute inset-0 overflow-hidden">
-        {r.img ? <img src={r.img} alt="" className="absolute inset-0 h-full w-full object-cover object-[70%_center]" /> : <span className="orbit-sponsor-fallback block h-full w-full" />}
+        {r.img ? <SponsorPicture src={r.img} /> : <span className="orbit-sponsor-fallback block h-full w-full" />}
       </div>
     </div>
     <div className="relative z-10 mx-4 flex items-center gap-4 border-t border-night-fg/20 py-3">
