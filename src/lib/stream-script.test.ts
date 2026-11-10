@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scriptForCard } from "./stream-script";
+import { scriptForCard, speakable } from "./stream-script";
 import type { StreamCard } from "./stream-rundown";
 
 const card = (o: Partial<StreamCard>): StreamCard => ({ kicker: "K", title: "Small boat arrivals", value: "412", sub: null, source: "Home Office", period: "4 Nov 2026", asOf: "2026-11-05T09:00:00Z", nextDue: null, metric: null, ...o });
