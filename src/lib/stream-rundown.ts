@@ -7,6 +7,7 @@ import type { CountryPayload } from "./countries";
 import type { FeaturedStory } from "./featured-story.data";
 import { SCANDALS, type Scandal } from "./scandals.data";
 import { SPEECH_ROWS } from "./online-speech";
+import { GOLD_SOURCE, goldPeriodLabel, type GoldTable } from "./gold";
 
 export const CARD_MS = 9_000;
 
@@ -34,6 +35,8 @@ export interface Segment {
   pointer?: boolean;
   /** Scandals slot: the scandal each pair of script lines is about (for its site picture). */
   scandals?: { slug: string; title: string; status: string }[];
+  /** Gold slot: ranked IMF rows shown as a leaderboard; script line i (after the intro) reads row i-1. */
+  gold?: { rank: number; name: string; iso3: string; tonnes: string; period: string }[];
 }
 
 export const UK = "united kingdom";
@@ -199,4 +202,25 @@ export function scandalsSegment(n = 3): Segment {
   return { id: "scandals", title: "Inquiry & scandals — background", country: UK, topic: "news", background: true,
     layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [], script: lines,
     scandals: top.map((s) => ({ slug: s.slug, title: s.title, status: s.status })) };
+}
+
+const ORD = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+/** Gold reserves: the site's own IMF ranking (implausible filings already excluded), top ten read aloud. No figures if the IMF table is missing. */
+export function goldSegment(table: GoldTable | null): Segment {
+  const base = { id: "gold", title: "Gold reserves", country: UK, topic: "gold", layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [] };
+  const ranked = table?.ranked ?? [];
+  if (!ranked.length) return { ...base, pointer: true, script: ["Gold reserves. The IMF figures couldn't be loaded just now, so no ranking is shown.", "Go to ukstats.co.uk slash gold for the latest official table."] };
+  const fmt = (t: number) => Math.round(t).toLocaleString("en-GB");
+  const rows = ranked.slice(0, 10).map((r, i) => ({ rank: i + 1, name: r.name, iso3: r.iso3, tonnes: fmt(r.tonnes), period: goldPeriodLabel(r.period) }));
+  const ukI = ranked.findIndex((r) => r.iso3 === "GBR");
+  const uk = ukI >= 0 ? ranked[ukI]! : null;
+  // Two countries per line so the whole top ten, the UK's rank and the source fit the one-minute slot.
+  const pairs: string[] = [];
+  for (let i = 0; i < rows.length; i += 2) pairs.push(rows.slice(i, i + 2).map((r) => `Number ${ORD[r.rank - 1]}, ${r.name}, ${r.tonnes} tonnes.`).join(" "));
+  return { ...base, gold: rows, script: [
+    `Gold reserves — the top ten countries by official gold held, as filed with the International Monetary Fund, latest ${rows[0]!.period}.`,
+    ...pairs,
+    uk ? `The United Kingdom is number ${ukI + 1}, with ${fmt(uk.tonnes)} tonnes, as of ${goldPeriodLabel(uk.period)}.` : "The United Kingdom's filing isn't in the IMF table right now.",
+    `Source: ${GOLD_SOURCE.name.replace(/\s*\(.*?\)/g, "")}. The full table is at ukstats.co.uk slash gold.`,
+  ] };
 }

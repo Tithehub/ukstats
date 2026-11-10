@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { voiceKeyMatches } from "./voice-key";
+import { speakable } from "./stream-script";
 
 const cache = new Map<string, string>();
 
@@ -19,7 +20,7 @@ async function signedIn(): Promise<boolean> {
 /** Turns one presenter line into WAV audio (base64). Allowed for signed-in users or the private stream voice key. */
 export const speakLine = createServerFn({ method: "POST" })
   .inputValidator((d: { text: string; voiceKey?: string | null }) => {
-    const text = String(d?.text ?? "").trim().slice(0, 400);
+    const text = speakable(String(d?.text ?? "")).slice(0, 400);
     if (!text) throw new Error("Empty line");
     return { text, voiceKey: typeof d?.voiceKey === "string" ? d.voiceKey.slice(0, 200) : null };
   })

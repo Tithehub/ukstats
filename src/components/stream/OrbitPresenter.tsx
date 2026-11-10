@@ -36,6 +36,8 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
   const level = useRef(0);
   const analyser = useRef<AnalyserNode | null>(null);
   const busy = useRef(false);
+  const cur = useRef<(() => void) | null>(null);
+  const gen = useRef(0);
   const latest = useRef(line);
   const lastSpoken = useRef("");
   const statusRef = useRef(status);
@@ -44,8 +46,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
   const recent = useRef<string[]>([]);
   /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
   const nextLine = () => !recent.current.includes(latest.current) ? latest.current
-    : queue.current.find((t) => t && !recent.current.includes(t))
-    ?? (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE); statusRef.current = status;
+    : (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE); statusRef.current = status;
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
@@ -71,18 +72,25 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
   }, []);
 
   useEffect(() => {
-    if (!line || busy.current) return;
+    if (!line) return;
+    // Screen leads: a new on-screen line cuts the old clip straight away, so voice and screen never drift.
+    cur.current?.(); cur.current = null; busy.current = false;
     const mime = (text: string) => {
       busy.current = true; setStatus("miming"); said.current?.(text);
       const ms = Math.min(20000, Math.max(2500, text.split(/\s+/).length * 380));
-      window.setTimeout(() => {
+      const id = window.setTimeout(() => {
+        cur.current = null;
         busy.current = false; setStatus("idle");
         if (latest.current !== lastSpoken.current) void (voice ? speak(latest.current) : mime((lastSpoken.current = latest.current)));
       }, ms);
+      cur.current = () => window.clearTimeout(id);
     };
     const speak = async (text: string) => {
+      const g = ++gen.current;
+      cur.current = () => { gen.current++; };
       busy.current = true; lastSpoken.current = text; recent.current = [text, ...recent.current].slice(0, 8); setStatus("preparing");
       const b64 = await fetchLine(text);
+      if (g !== gen.current) return;
       if (!b64) { setStatus(unauthorised ? "unauthorised" : "idle"); mime(text); return; }
       const el = new Audio(`data:audio/wav;base64,${b64}`);
       try {
@@ -102,6 +110,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
       const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
       el.onended = finish; el.onerror = finish;
+      cur.current = () => { done = true; window.clearTimeout(guard); el.onended = null; el.onerror = null; el.pause(); analyser.current = null; };
       try { await el.play(); setStatus("speaking"); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }

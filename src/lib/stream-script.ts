@@ -11,7 +11,8 @@ export function scriptForCard(card: StreamCard | null, deep = false): string {
   // In depth (UK part 2): also read the card's own detail, period, publication and next-release dates — words already on the card.
   if (deep && !missing) {
     if (card.sub) parts.push(`${card.sub.replace(/\.?$/, ".")}`);
-    if (card.period) parts.push(`Reference period: ${card.period}.`);
+    const per = card.period ? speakable(card.period) : "";
+    if (per) parts.push(`Reference period: ${per}.`);
   }
   parts.push(`Source: ${card.source.replace(/\s*\(.*?\)/g, "")}.`);
   const pub = deep ? spokenDate(card.asOf) : null;
@@ -46,7 +47,7 @@ export function readingList(seg: Segment | undefined, deep = false): string[] {
   if (!seg) return [];
   const cards = seg.cards.map((c) => scriptForCard(c, deep));
   const heads = seg.headlines.map(scriptForHeadline);
-  const out = [...cards, ...(seg.script ?? []), ...heads];
+  const out = [...cards, ...(seg.script ?? []), ...heads].map(speakable).filter(Boolean);
   // Zero silent sections: anything with nothing to read still gets a spoken line.
   if (!out.length) out.push(seg.id.startsWith("country-") ? NO_HEADLINES : `${seg.title}. No new figures or headlines for this item right now — the latest is on ukstats.co.uk.`);
   return out;
@@ -93,4 +94,27 @@ export function spokenDate(v: string | null | undefined): string | null {
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return null;
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
+}
+
+/** Last check before the voice: computer-format dates become words; leftover timestamps/codes are removed — never read digit by digit. */
+export function speakable(text: string): string {
+  return text
+    .replace(/\b(\d{4}-\d{2}-\d{2})(?:T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})?)?\b/g, (m) => spokenDate(m) ?? "")
+    .replace(/\bT\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?\b/g, "")
+    .replace(/\b(\d{4})-M(\d{2})\b/g, (_, y, m) => `${["January","February","March","April","May","June","July","August","September","October","November","December"][Number(m) - 1] ?? ""} ${y}`)
+    .replace(/\b\d{9,}\b/g, "")
+    .replace(/\(\s*\)/g, "").replace(/\s+([.,])/g, "$1").replace(/\s{2,}/g, " ").trim();
+}
+
+/** How long a line stays on screen: its speaking time (~2.6 words/s plus a breath), at least 6s. */
+export const lineMs = (text: string) => Math.max(6_000, Math.round((text.split(/\s+/).filter(Boolean).length / 2.6) * 1000) + 900);
+
+/** Which line is on screen ms into a slot. Screen and voice both follow this, so they can't drift; the list repeats if the slot outlasts it. */
+export function lineAt(reads: string[], msIn: number): { index: number; msInLine: number } {
+  if (!reads.length) return { index: 0, msInLine: msIn };
+  const lens = reads.map(lineMs), total = lens.reduce((a, b) => a + b, 0);
+  const lap = Math.floor(Math.max(0, msIn) / total);
+  let t = Math.max(0, msIn) - lap * total, i = 0;
+  while (i < lens.length - 1 && t >= lens[i]!) { t -= lens[i]!; i++; }
+  return { index: lap * reads.length + i, msInLine: t };
 }

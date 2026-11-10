@@ -1,4 +1,8 @@
 import { StreamScandalPanel } from "./StreamScandalPanel";
+import { StreamGoldBoard } from "./StreamGoldBoard";
+import { goldQuery } from "@/lib/gold.functions";
+import { goldSegment } from "@/lib/stream-rundown";
+import { lineAt } from "@/lib/stream-script";
 import { FEATURED_STORY } from "@/lib/featured-story.data";
 import type { StreamBrand } from "@/components/stream/stream-brand";
 import { useQuery } from "@tanstack/react-query";
@@ -114,10 +118,13 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const metrics = stats?.metrics ?? [];
   const emergency = flights?.planes ? flights.planes.filter((p) => p[7] === "7500" || p[7] === "7600" || p[7] === "7700").length : null;
   const tenMin = now ? Math.floor(now.getTime() / 600_000) : 0;
-  const rundown = useMemo(() => buildRundown({
+  const { data: goldData } = useQuery({ ...goldQuery(), enabled: !brand });
+  const rundown0 = useMemo(() => buildRundown({
     metrics, warnings: unrest?.warnings ?? [], reports: news?.items ?? [], emergencyPlanes: emergency, now: now ?? new Date(0),
     featured: brand ? null : FEATURED_STORY, siteSections: !brand,
   }), [metrics, unrest, news, emergency, tenMin, brand]);
+  // Gold slot reads the site's own IMF ranking rather than only pointing to the page.
+  const rundown = useMemo(() => rundown0.map((x) => x.id === "gold" ? goldSegment(goldData?.table ?? null) : x), [rundown0, goldData]);
   const ukHourIndex = now ? positionAt(now).hourIndex : 0;
   const ukHour = useMemo(() => buildUkHour(rundown, ukHourIndex), [rundown, ukHourIndex]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __ukHour?: unknown }).__ukHour = ukHour.map((x) => ({ id: x.seg.id, title: x.seg.title, start: x.start, end: x.end })); }, [ukHour]);
@@ -146,9 +153,14 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     upNext = [1, 2, 3].map((i) => ukHour[at.index + i]?.seg.title).filter((x): x is string => !!x);
     if (upNext.length < 3) upNext.push("Around the world — other countries");
   }
-  const step = cardStep(msIn);
-  const card = seg?.cards.length ? seg.cards[step % seg.cards.length]! : null;
-  const head = seg?.headlines.length ? seg.headlines[step % seg.headlines.length]! : null;
+  // One timetable for screen and voice: each line stays up for its own speaking time, so they can't drift.
+  const reads0 = readingList(seg, !wc && pos.ukPart === 2);
+  const step = lineAt(reads0, msIn).index;
+  const ri = reads0.length ? step % reads0.length : 0;
+  const nCards = seg?.cards.length ?? 0;
+  const card = nCards ? seg!.cards[Math.min(ri, nCards - 1)]! : null;
+  const nHeads = seg?.headlines.length ?? 0;
+  const head = nHeads ? seg!.headlines[Math.max(0, Math.min(nHeads - 1, ri - nCards - (seg?.script?.length ?? 0)))]! : null;
 
   const audio = useRef<StreamAudio | null>(null);
   useEffect(() => {
@@ -202,7 +214,6 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
   const sb = brand ? null : sponsorBreakAt(pos.msIntoHour);
   const sbVoice = sb?.active ? scriptForSponsorBreak(sponsors.map(sponsorSlide), sb.msIntoBreak) : null;
-  const reads0 = readingList(seg, !wc && pos.ukPart === 2);
   // Pointer slots read each line once and hold the last one, so short sections never loop.
   const held = seg?.pointer && reads0.length ? reads0[Math.min(step, reads0.length - 1)]! : null;
   const reads = held ? [held] : reads0;
@@ -287,7 +298,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       {walk && <WalkthroughVideo msIn={walk.msInChapter} />}
       <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
-      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{walk ? null : tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : seg?.scandals?.length ? <StreamScandalPanel seg={seg} lineIndex={Math.max(0, reads.indexOf(orbitLine))} /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{walk ? null : tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : seg?.scandals?.length ? <StreamScandalPanel seg={seg} lineIndex={Math.max(0, reads.indexOf(orbitLine))} /> : seg?.gold?.length ? <StreamGoldBoard seg={seg} lineIndex={ri} /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={ex || promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
@@ -298,7 +309,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <aside data-fit className={`absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5`}>
         {six}
         {fresh}
-        <div className="min-h-0 flex-1">{seg?.scandals?.length ? <StreamScandalPanel seg={seg} lineIndex={step % Math.max(1, reads.length)} /> : figure}</div>
+        <div className="min-h-0 flex-1">{seg?.scandals?.length ? <StreamScandalPanel seg={seg} lineIndex={ri} /> : seg?.gold?.length ? <StreamGoldBoard seg={seg} lineIndex={ri} /> : figure}</div>
       </aside>
       <div className="absolute left-[620px] top-[222px] z-30 h-[450px] w-[420px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
