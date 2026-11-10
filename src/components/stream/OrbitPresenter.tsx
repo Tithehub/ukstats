@@ -12,7 +12,7 @@ function fetchLine(text: string) {
   let p = cache.get(text);
   if (!p) {
     if (voiceKey === undefined) voiceKey = readVoiceKey();
-    const once = () => speakLine({ data: { text, voiceKey } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
+    const once = () => speakLine({ data: { text, voiceKey: voiceKey ?? null } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
     // One retry so a single failed clip doesn't leave a silent gap on air.
     p = once().then((a) => a ?? (unauthorised ? null : once()));
     p.then((a) => { if (!a) cache.delete(text); });
