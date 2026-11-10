@@ -14,7 +14,7 @@ export function OrbitStatsRail({ items, checked }: { items: KeyFigure[]; checked
       {checked && <span className="shrink-0 text-night-muted">{checked}</span>}
     </div>
     <div className="grid grid-cols-2 gap-3">
-      {items.map((k, i) => <div key={k.id} className="orbit-glass relative min-w-0 overflow-hidden rounded-xl px-4 py-3 will-change-transform motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4"
+      {items.map((k, i) => <div key={k.id} className="orbit-glass relative min-w-0 overflow-hidden rounded-xl px-4 py-3 will-change-transform motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700"
         style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
         <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px] ${k.alert ? "bg-destructive" : "bg-stream-yellow"}`} />
         <div className="truncate font-mono text-[13px] font-bold uppercase tracking-widest text-night-muted">{k.label}</div>
