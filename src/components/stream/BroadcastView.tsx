@@ -1,3 +1,4 @@
+import { FEATURED_STORY } from "@/lib/featured-story.data";
 import type { StreamBrand } from "@/components/stream/stream-brand";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -104,7 +105,8 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const tenMin = now ? Math.floor(now.getTime() / 600_000) : 0;
   const rundown = useMemo(() => buildRundown({
     metrics, warnings: unrest?.warnings ?? [], reports: news?.items ?? [], emergencyPlanes: emergency, now: now ?? new Date(0),
-  }), [metrics, unrest, news, emergency, tenMin]);
+    featured: brand ? null : FEATURED_STORY,
+  }), [metrics, unrest, news, emergency, tenMin, brand]);
   const ukHour = useMemo(() => buildUkHour(rundown), [rundown]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __ukHour?: unknown }).__ukHour = ukHour.map((x) => ({ id: x.seg.id, title: x.seg.title, start: x.start, end: x.end })); }, [ukHour]);
 
