@@ -182,3 +182,36 @@ export function bannerFileProblem(file: { name: string; size: number; type: stri
   }
   return null;
 }
+
+/** Rules for every sponsor picture kind, shown word-for-word on the dashboard. */
+export type PictureKind = "banner" | "logo" | "stream";
+export type PictureSpec = { ratio: number; tolerance: number; minW: number; minH: number; maxBytes: number; shape: string; requirements: string };
+
+export const PICTURE_SPECS: Record<PictureKind, PictureSpec> = {
+  banner: { ratio: BANNER_RATIO, tolerance: BANNER_RATIO_TOLERANCE, minW: BANNER_MIN_WIDTH, minH: BANNER_MIN_HEIGHT, maxBytes: BANNER_MAX_BYTES, shape: "3 wide to 1 tall",
+    requirements: "Website banner: 3 wide to 1 tall, at least 1536 × 512 pixels. JPG, PNG or WebP, up to 2 MB." },
+  logo: { ratio: 1, tolerance: 0.05, minW: 500, minH: 500, maxBytes: 1024 * 1024, shape: "square",
+    requirements: "Logo: square, at least 500 × 500 pixels (1000 × 1000 recommended). PNG with a transparent background is best; JPG or WebP also work. Up to 1 MB." },
+  stream: { ratio: 4 / 3, tolerance: 0.08 * (4 / 3), minW: 800, minH: 600, maxBytes: BANNER_MAX_BYTES, shape: "4 wide to 3 tall",
+    requirements: "Live stream picture: 4 wide to 3 tall, 1200 × 900 pixels recommended (at least 800 × 600). JPG, PNG or WebP, up to 2 MB. Keep the left third plain or dark — your name and QR code sit there." },
+};
+
+/** Plain words when a picture doesn't meet its kind's rule; null when it fits. */
+export function pictureProblem(kind: PictureKind, size: ImageSize | null, byteLength: number): string | null {
+  const s = PICTURE_SPECS[kind];
+  if (byteLength > s.maxBytes) return `That picture is too big — please send one up to ${s.maxBytes / (1024 * 1024)} MB.`;
+  if (!size) return CANT_READ_MESSAGE;
+  if (!BANNER_FORMATS.includes(size.format as (typeof BANNER_FORMATS)[number])) return `Only jpg, png or webp pictures work — that one is a ${size.format}.`;
+  const rightShape = Math.abs(size.width / size.height - s.ratio) <= s.tolerance;
+  const bigEnough = size.width >= s.minW && size.height >= s.minH;
+  if (rightShape && bigEnough) return null;
+  return `That picture is ${size.width}×${size.height}. We need ${s.shape}, at least ${s.minW}×${s.minH}.`;
+}
+
+/** Quick browser-side check before upload. */
+export function pictureFileProblem(kind: PictureKind, file: { name: string; size: number }): string | null {
+  const s = PICTURE_SPECS[kind];
+  if (file.size > s.maxBytes) return `That picture is too big — please send one up to ${s.maxBytes / (1024 * 1024)} MB.`;
+  const ext = file.name.toLowerCase().split(".").pop() ?? "";
+  return (BANNER_EXTENSIONS as readonly string[]).includes(ext) ? null : "Only jpg, png or webp pictures work.";
+}
