@@ -1,7 +1,7 @@
+import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { reachKind, rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -25,18 +25,16 @@ export const Route = createFileRoute("/sponsors")({
   component: SponsorsPage,
 });
 
-type Row = SponsorVisibilityRow & { region: string | null; regions: string[] | null; plan: string | null };
+type Row = SponsorVisibilityRow & { region: string | null; regions: string[] | null; plan: string | null; logo_link?: string | null };
 
 function SponsorsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {
     let env: string;
     try { env = getStripeEnvironment(); } catch { setRows([]); return; }
-    supabase
-      .from("sponsors")
-      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions,plan")
-      .order("plan", { ascending: true, nullsFirst: false })
-      .then(({ data }) => setRows(visibleSponsors((data ?? []) as Row[], env)));
+    getSponsorBannerBoard({ data: { environment: env } })
+      .then((r) => setRows(visibleSponsors(r.sponsors as Row[], env)))
+      .catch(() => setRows([]));
   }, []);
 
   const groups = new Map<string, Row[]>();
@@ -73,6 +71,7 @@ function SponsorsPage() {
                 {list.map((s) => (
                   <li key={s.id} className="rounded-md border border-night-line bg-night-panel/60 p-4">
                     <a href={s.url} target="_blank" rel="sponsored noopener noreferrer" className="hover:text-electric-soft">
+                      {s.logo_link ? <img src={s.logo_link} alt={`${s.name} logo`} width={64} height={64} loading="lazy" className="mb-2 size-16 rounded bg-background object-contain p-1" /> : null}
                       <p className="font-semibold">{s.name}</p>
                       {s.tagline ? <p className="mt-1 text-sm text-night-muted">{s.tagline}</p> : null}
                       <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">{s.plan === "sponsor" ? "Sponsor" : "Supporter"}</p>

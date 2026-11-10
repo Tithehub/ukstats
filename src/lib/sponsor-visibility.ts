@@ -72,6 +72,11 @@ export type SponsorBannerRow = SponsorVisibilityRow & {
   banner_url: string | null;
   banner_path: string | null;
   banner_link: string | null;
+  logo_path?: string | null;
+  stream_path?: string | null;
+  qr_url?: string | null;
+  logo_link?: string | null;
+  stream_link?: string | null;
 };
 
 /** Attaches each line's short-lived picture address; a line with no picture, or no address issued for it, gets null. */

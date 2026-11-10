@@ -1573,13 +1573,16 @@ export type Database = {
           ends_at: string | null
           environment: string | null
           id: string
+          logo_path: string | null
           name: string
           paid: boolean
           placement: string
           plan: string | null
+          qr_url: string | null
           region: string
           regions: string[] | null
           starts_at: string | null
+          stream_path: string | null
           stripe_subscription_id: string | null
           tagline: string | null
           topic: string | null
@@ -1595,13 +1598,16 @@ export type Database = {
           ends_at?: string | null
           environment?: string | null
           id?: string
+          logo_path?: string | null
           name: string
           paid?: boolean
           placement?: string
           plan?: string | null
+          qr_url?: string | null
           region?: string
           regions?: string[] | null
           starts_at?: string | null
+          stream_path?: string | null
           stripe_subscription_id?: string | null
           tagline?: string | null
           topic?: string | null
@@ -1617,13 +1623,16 @@ export type Database = {
           ends_at?: string | null
           environment?: string | null
           id?: string
+          logo_path?: string | null
           name?: string
           paid?: boolean
           placement?: string
           plan?: string | null
+          qr_url?: string | null
           region?: string
           regions?: string[] | null
           starts_at?: string | null
+          stream_path?: string | null
           stripe_subscription_id?: string | null
           tagline?: string | null
           topic?: string | null

@@ -1,5 +1,7 @@
 import { RegionPicker } from "./RegionPicker";
 import { ReviewLinksForm } from "./ReviewLinksForm";
+import { PictureUpload } from "./PictureUpload";
+import { QRCodeSVG } from "qrcode.react";
 import { rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -8,7 +10,7 @@ import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/useAuth";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
-import { BANNER_REQUIREMENTS, STREAM_PICTURE_TIP, bannerFileProblem, bannerProblem, readImageSize } from "@/lib/banner-image";
+import { PICTURE_SPECS, bannerFileProblem, bannerProblem, readImageSize } from "@/lib/banner-image";
 import { BANNER_BUCKET, bannerObjectPath } from "@/lib/banner-paths";
 import {
   createSponsorCheckout,
@@ -72,6 +74,9 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [bannerBusy, setBannerBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [logoPath, setLogoPath] = useState<string | null | undefined>(undefined);
+  const [streamPath, setStreamPath] = useState<string | null | undefined>(undefined);
+  const [qrUrl, setQrUrl] = useState<string | undefined>(undefined);
   const [loadError, setLoadError] = useState(false);
   const refresh = () => load({ data: { environment: env } }).then((result) => { setData(result); setLoadError(false); }).catch(() => setLoadError(true));
   useEffect(() => {
@@ -137,6 +142,10 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
   if (!data) return <p className="mt-8 text-night-muted">Loading your sponsorship…</p>;
   if (!hasSponsorshipDetails(data.sponsor, data.sub)) return <p className="mt-8 text-night-muted">No {env === "live" ? "live" : "test"} sponsorship is linked to this account. <Link to="/advertise" className="text-electric-soft underline">Choose a sponsor plan</Link></p>;
   const s = data.sponsor;
+  const savedLogo = (s as { logo_path?: string | null } | null)?.logo_path ?? null;
+  const savedStream = (s as { stream_path?: string | null } | null)?.stream_path ?? null;
+  const savedQr = (s as { qr_url?: string | null } | null)?.qr_url ?? "";
+  const qrPreview = (qrUrl ?? savedQr) || (s?.name === "Pending details" ? "" : s?.url ?? "");
   const status = !s ? "Setting up…" : !s.paid ? "Not showing — subscription ended" : s.approved ? "Live on the site" : s.name === "Pending details" ? "Add your details below" : "Waiting for approval";
   return (
     <section className="mt-8">
@@ -153,7 +162,7 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
             const f = new FormData(e.currentTarget);
             setSaving(true);
             try {
-              const r = await save({ data: { environment: env, name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), regions: f.getAll("regions").map(String), banner_url: String(f.get("banner_url") ?? ""), banner_path: (bannerPath === undefined ? savedPath : bannerPath) ?? "" } });
+              const r = await save({ data: { environment: env, name: String(f.get("name")), url: String(f.get("url")), tagline: String(f.get("tagline") ?? ""), regions: f.getAll("regions").map(String), banner_url: String(f.get("banner_url") ?? ""), banner_path: (bannerPath === undefined ? savedPath : bannerPath) ?? "", logo_path: (logoPath === undefined ? savedLogo : logoPath) ?? "", stream_path: (streamPath === undefined ? savedStream : streamPath) ?? "", qr_url: String(f.get("qr_url") ?? "") } });
               setMsg("error" in r ? r.error ?? "Couldn't save" : "Saved — we'll check it and switch it on.");
               refresh();
             } catch (err) { setMsg(err instanceof Error ? err.message : "Couldn't save"); }
@@ -162,13 +171,21 @@ export function MySponsorship({ environment }: { environment?: "live" | "sandbox
         >
           <label className="text-sm">Name shown<input name="name" required maxLength={80} defaultValue={s.name === "Pending details" ? "" : s.name} className={field} /></label>
           <label className="text-sm">Link (https://)<input name="url" required maxLength={300} defaultValue={s.name === "Pending details" ? "" : s.url} className={field} /></label>
+          <div className="text-sm sm:col-span-2">
+            <label className="block">QR code link (optional, https://)
+              <input name="qr_url" maxLength={300} defaultValue={savedQr} onChange={(e) => setQrUrl(e.target.value)} placeholder="Leave blank to use your website" className={field} />
+            </label>
+            <p className="mt-1 text-xs text-night-muted">Where the QR code on our live stream sends viewers — for example a special offer page. Blank uses your website.</p>
+            {/^https:\/\/\S+$/.test(qrPreview) ? <div className="mt-2 inline-block rounded bg-[#ffffff] p-2"><QRCodeSVG value={qrPreview} size={112} level="M" marginSize={2} aria-label="Preview of your QR code" /></div> : null}
+          </div>
+          <PictureUpload kind="logo" title="Logo" userId={user?.id} saved={savedLogo} value={logoPath === undefined ? savedLogo : logoPath} onChange={setLogoPath} />
+          <PictureUpload kind="stream" title="Live stream picture" userId={user?.id} saved={savedStream} value={streamPath === undefined ? savedStream : streamPath} onChange={setStreamPath} />
           <RegionPicker initial={rowRegions(s as { region?: string | null; regions?: string[] | null })} />
           {s.plan === "sponsor" ? (
             <>
               <div className="text-sm sm:col-span-2">
-                <p className="font-medium">Banner picture</p>
-                <p className="mt-1 text-xs text-night-muted">{BANNER_REQUIREMENTS}</p>
-                <p className="mt-1 text-xs text-night-muted">{STREAM_PICTURE_TIP}</p>
+                <p className="font-medium">Website banner</p>
+                <p className="mt-1 text-xs text-night-muted">{PICTURE_SPECS.banner.requirements}</p>
                 <input
                   type="file"
                   accept=".jpg,.jpeg,.png,.webp"

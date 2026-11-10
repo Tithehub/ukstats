@@ -9,6 +9,8 @@ import {
   CANT_READ_MESSAGE,
   TOO_BIG_MESSAGE,
   bannerProblem,
+  pictureProblem,
+  type PictureKind,
   readImageSize,
   type ImageSize,
 } from "@/lib/banner-image";
@@ -98,4 +100,14 @@ export async function checkBannerUpload(admin: SupabaseClient, path: string): Pr
   if (error || !data) return { ok: false, message: CANT_READ_MESSAGE };
   const bytes = new Uint8Array(await data.arrayBuffer());
   return checkBannerBytes(bytes);
+}
+
+/** Check an uploaded logo or stream picture from its real bytes. */
+export async function checkPictureUpload(admin: SupabaseClient, path: string, kind: PictureKind): Promise<BannerCheck> {
+  const { data } = await admin.storage.from(BANNER_BUCKET).download(path);
+  if (!data) return { ok: false, message: CANT_READ_MESSAGE };
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  const size = readImageSize(bytes);
+  const problem = pictureProblem(kind, size, bytes.length);
+  return problem || !size ? { ok: false, message: problem ?? CANT_READ_MESSAGE } : { ok: true, size };
 }
