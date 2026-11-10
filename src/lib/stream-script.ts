@@ -14,8 +14,10 @@ export function scriptForCard(card: StreamCard | null, deep = false): string {
     if (card.period) parts.push(`Reference period: ${card.period}.`);
   }
   parts.push(`Source: ${card.source.replace(/\s*\(.*?\)/g, "")}.`);
-  if (deep && card.asOf) parts.push(`Published ${card.asOf}.`);
-  if (deep && card.nextDue) parts.push(`Next update due ${card.nextDue}.`);
+  const pub = deep ? spokenDate(card.asOf) : null;
+  const next = deep ? spokenDate(card.nextDue) : null;
+  if (pub) parts.push(`Published ${pub}.`);
+  if (next) parts.push(`Next update due ${next}.`);
   return parts.join(" ").slice(0, deep ? 700 : 480);
 }
 
@@ -79,4 +81,13 @@ export function scriptForSponsorBreak(rows: { name: string; label: string }[], m
   };
   const i = Math.min(slots - 1, Math.floor(msIntoBreak / SPONSOR_CARD_MS));
   return { line: lineAt(i), upcoming: [i + 1, i + 2, i + 3].filter((j) => j < slots).map(lineAt) };
+}
+
+/** Date as spoken words on the London calendar ("15 September 2026"); null if not a real date — never read raw timestamps aloud. */
+export function spokenDate(v: string | null | undefined): string | null {
+  if (!v) return null;
+  if (!/^\d{4}-\d{2}-\d{2}/.test(v)) return /\d{4}-\d{2}|T\d{2}:/.test(v) ? null : v;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
 }
