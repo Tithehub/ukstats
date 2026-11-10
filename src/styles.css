@@ -466,6 +466,10 @@
 }
 .orbit-desk { background: var(--orbit-desk); box-shadow: 0 -8px 32px -18px var(--electric); }
 .orbit-shine { background: var(--orbit-shine); }
+.orbit-accent { background: linear-gradient(90deg, transparent, var(--destructive) 30%, var(--destructive) 70%, transparent); background-size: 200% 100%; animation: orbit-accent 4s linear infinite; }
+@keyframes orbit-accent { from { background-position: 200% 0; } to { background-position: 0 0; } }
+@keyframes orbit-glow { 0%, 100% { box-shadow: 0 0 14px -8px var(--stream-yellow); } 50% { box-shadow: 0 0 30px -6px var(--stream-yellow); } }
+@media (prefers-reduced-motion: reduce) { .orbit-accent { animation: none; } }
 .orbit-scrim { background: var(--orbit-scrim); }
 .orbit-studio-mullion { background: var(--orbit-metal); box-shadow: 6px 0 18px -8px var(--electric); }
 .orbit-studio-rail { background: var(--orbit-metal); border-top: 3px solid var(--electric); box-shadow: 0 -2px 14px var(--electric); }
