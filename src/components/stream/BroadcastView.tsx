@@ -199,7 +199,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const promo = brand || ex ? { active: false, msIntoPromo: 0 } : promoAt(pos.msIntoHour);
   const promoLines = scriptForPromo(sponsors.map((r) => r.name));
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
-  const reads = readingList(seg);
+  const reads0 = readingList(seg);
+  // Pointer slots read each line once and hold the last one, so short sections never loop.
+  const held = seg?.pointer && reads0.length ? reads0[Math.min(step, reads0.length - 1)]! : null;
+  const reads = held ? [held] : reads0;
   // What the presenter is actually saying right now; the Orbit card and globe follow it so voice and screen match.
   const [spoken, setSpoken] = useState<{ text: string | null; country: string | null }>({ text: null, country: null });
   const live = useRef({ reads, country: seg?.country ?? null }); live.current = { reads, country: seg?.country ?? null };

@@ -6,6 +6,7 @@ import type { ReportItem } from "./news-reports";
 import type { CountryPayload } from "./countries";
 import type { FeaturedStory } from "./featured-story.data";
 import { SCANDALS, type Scandal } from "./scandals.data";
+import { SPEECH_ROWS } from "./online-speech";
 
 export const CARD_MS = 9_000;
 
@@ -29,6 +30,8 @@ export interface Segment {
   script?: string[];
   /** Background segments are labelled "not official statistics". */
   background?: boolean;
+  /** Site-section pointers: each line is read once, then the last is held — never looped. */
+  pointer?: boolean;
 }
 
 export const UK = "united kingdom";
@@ -155,8 +158,24 @@ export const SITE_SECTIONS: { id: string; title: string; path: string; what: str
   { id: "education", title: "Education", path: "education", what: "schools and universities, from the official education registers" },
   { id: "online-speech", title: "Online speech", path: "online-speech", what: "official records on online speech cases" },
 ];
+/** Online speech: no UK publisher issues a social-media-only count, so the slot explains the official sources instead — never a figure. */
+export function onlineSpeechSegment(): Segment {
+  const uk = SPEECH_ROWS.filter((r) => ["uk", "sct", "ni"].includes(r.code));
+  const cards: StreamCard[] = uk.map((r) => ({ kicker: "Online speech · source", title: r.country, value: r.value ?? "No live figure", sub: r.cadence,
+    source: r.source, period: r.period, asOf: null, nextDue: null, metric: null }));
+  return { id: "online-speech", title: "Online speech", country: UK, topic: "online-speech", pointer: true,
+    layers: { fl: false, mg: false, nw: false }, cards, headlines: [],
+    script: [
+      "Online speech. No UK body publishes a count of convictions for social media posts alone.",
+      "In England and Wales, the Ministry of Justice publishes court outcomes under the Communications Act and the Malicious Communications Act. Those cover calls, texts, emails and posts together, quarterly, with annual tables each May.",
+      "Scotland and Northern Ireland publish their own annual court figures, and those are not online-only either.",
+      "Offences are defined differently in each country, so these series can't be compared like for like.",
+      "For every official source link, go to ukstats.co.uk slash online speech.",
+    ] };
+}
 export function pointerSegment(x: (typeof SITE_SECTIONS)[number]): Segment {
-  return { id: x.id, title: x.title, country: UK, topic: x.id, layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [],
+  if (x.id === "online-speech") return onlineSpeechSegment();
+  return { pointer: true, id: x.id, title: x.title, country: UK, topic: x.id, layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [],
     script: [`${x.title}. On ukstats.co.uk you'll find ${x.what}, each with its source and date.`, `Go to ukstats.co.uk slash ${x.path.replace(/-/g, " ")} for the full picture.`] };
 }
 
