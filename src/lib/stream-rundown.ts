@@ -56,6 +56,8 @@ export function buildRundown(input: {
   metrics: Metric[]; warnings: OfficialWarning[]; reports: ReportItem[]; emergencyPlanes: number | null; now: Date;
   /** Credited press story for the UK hour; omit for rented channels. */
   featured?: FeaturedStory | null;
+  /** UKStats' own channel only: scandals background and site-section pointers. */
+  siteSections?: boolean;
 }): Segment[] {
   const { metrics, now } = input;
   const recent = recentWarnings(input.warnings, now);
@@ -81,8 +83,8 @@ export function buildRundown(input: {
   const out: (Segment | null)[] = [
     byIds("foreign-aid", "Foreign aid — total spend", ["uk-foreign-aid", "uk-foreign-aid-gni"], "Foreign aid"),
     byIds("asylum-cost", "Cost of asylum", ["uk-irregular-cost-year", "uk-irregular-cost-day"], "Asylum cost"),
-    scandalsSegment(),
-    ...SITE_SECTIONS.map(pointerSegment),
+    input.siteSections ? scandalsSegment() : null,
+    ...(input.siteSections ? SITE_SECTIONS.map(pointerSegment) : []),
     boats,
     seg("economy", "UK economy & public finances", ["Finance"], "Finance"),
     seg("cost", "Cost of living", ["Cost of living"], "Cost of living"),

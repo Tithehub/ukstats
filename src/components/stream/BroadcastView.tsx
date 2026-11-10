@@ -115,7 +115,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const tenMin = now ? Math.floor(now.getTime() / 600_000) : 0;
   const rundown = useMemo(() => buildRundown({
     metrics, warnings: unrest?.warnings ?? [], reports: news?.items ?? [], emergencyPlanes: emergency, now: now ?? new Date(0),
-    featured: brand ? null : FEATURED_STORY,
+    featured: brand ? null : FEATURED_STORY, siteSections: !brand,
   }), [metrics, unrest, news, emergency, tenMin, brand]);
   const ukHourIndex = now ? positionAt(now).hourIndex : 0;
   const ukHour = useMemo(() => buildUkHour(rundown, ukHourIndex), [rundown, ukHourIndex]);
