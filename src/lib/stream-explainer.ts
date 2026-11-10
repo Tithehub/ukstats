@@ -5,17 +5,22 @@ import { PRODUCT_PRICES, AI_PRESENTER_PENCE, gbp as rentGbp } from "@/lib/rent-p
 
 const gbp = (p: number) => `£${(p / 100).toFixed(2)}`;
 
-export type ChapterId = "welcome" | "globe" | "sources" | "reports" | "rent" | "sports" | "close";
-export interface Chapter { id: ChapterId; title: string; ms: number; lines: string[]; countries?: string[] }
+export type ChapterId = "welcome" | "globe" | "sources" | "reports" | "rent" | "sports" | "walkthrough" | "close";
+/** lineMs: time on air per line, measured from the presenter voice plus a short pause, so no line is cut off. */
+export interface Chapter { id: ChapterId; title: string; ms: number; lines: string[]; lineMs: number[]; countries?: string[] }
+type Draft = Omit<Chapter, "ms">;
+
+/** Said over the globe when no public camera has real live video, instead of the camera line. */
+export const GLOBE_NO_CAM_LINE = "Try it yourself at ukstats dot co dot uk slash globe. Every layer is labelled with its source.";
 
 export function explainerChapters(): Chapter[] {
   const r = REPORT_PRICES;
-  return [
-    { id: "welcome", title: "Welcome to UKStats", ms: 10_000, lines: [
+  const drafts: Draft[] = [
+    { id: "welcome", title: "Welcome to UKStats", lineMs: [8900, 7220], lines: [
       "Time for a quick tour of UKStats — one source of truth for official UK and world statistics.",
       "Every figure is free for everyone, at ukstats.co.uk.",
     ] },
-    { id: "globe", title: "The interactive globe", ms: 60_000, lines: [
+    { id: "globe", title: "The interactive globe", lineMs: [10180, 9300, 10620, 11220, 7780, 12700], lines: [
       "This is our real interactive globe. First, the UK Foreign Office's travel advice for every country, on its own scale.",
       "Next, the US State Department's levels one to four — shown separately, never merged with the UK's.",
       "Live flights, from public tracking feeds. They're not official, and colours change only for emergency codes or travel warnings.",
@@ -23,28 +28,37 @@ export function explainerChapters(): Chapter[] {
       "News and police reports, shown as headlines, kept apart from official warnings.",
       "And public road cameras run by transport authorities — live scenes only, never figures. Try it at ukstats.co.uk slash globe.",
     ] },
-    { id: "sources", title: "Where our stats come from", ms: 25_000, lines: [
+    { id: "sources", title: "Where our stats come from", lineMs: [15900, 6700, 7900], lines: [
       "Our figures come straight from official publishers: the ONS, the Home Office, the Treasury and the OBR, the Met Office, UKHSA, Eurostat, the World Bank and the IMF.",
       "Every figure shows its source, its date and when the next release is due.",
       "Nothing is estimated and nothing is made up. If a figure isn't published, we say so.",
     ] },
-    { id: "reports", title: "Daily PDF reports", ms: 30_000, lines: [
+    { id: "reports", title: "Daily PDF reports", lineMs: [9660, 15140, 9460], lines: [
       `Want it all in one document? Download the daily UK report for ${gbp(r.report_uk_daily.pence)}, or the Global report for ${gbp(r.report_global_daily.pence)}.`,
       `Subscribe for ${gbp(r.report_uk_monthly.pence)} a month or ${gbp(r.report_uk_yearly.pence)} a year for the UK, or ${gbp(r.report_global_monthly.pence)} a month or ${gbp(r.report_global_yearly.pence)} a year for Global.`,
       "Each report includes government warnings, headlines and emergency kit guidance. Scan the code to get today's edition.",
     ] },
-    { id: "rent", title: "Rent and brand your own stats site", ms: 25_000, lines: [
+    { id: "rent", title: "Rent and brand your own stats site", lineMs: [8380, 11460, 14260], lines: [
       "Run a business, a channel or a community? Put your own brand on our official stats.",
       `Branded widgets from ${rentGbp(PRODUCT_PRICES.widgets.pence)} a month, a branded dashboard from ${rentGbp(PRODUCT_PRICES.dashboard.pence)}, and your own live stream from ${rentGbp(PRODUCT_PRICES.stream.pence)}.`,
       `Present it yourself, or add our AI presenter for ${rentGbp(AI_PRESENTER_PENCE)} a month. You change the branding — never the figures. See ukstats.co.uk slash rent.`,
     ] },
-    { id: "sports", title: "Coming soon: sports", ms: 15_000, lines: [
+    { id: "sports", title: "Coming soon: sports", lineMs: [7700], lines: [
       "Coming soon to UKStats: sports data and stats — with free games to play.",
     ] },
-    { id: "close", title: "Thanks for watching", ms: 10_000, lines: [
+    // Site walkthrough video (light mode); lineMs follow its page cuts: home, globe, statistics, reports, rent.
+    { id: "walkthrough", title: "A quick look around the site", lineMs: [13650, 12950, 9150, 9450, 9450], lines: [
+      "Here's ukstats dot co dot uk. The latest official figures are right on the home page, each with its source and date.",
+      "Open the interactive globe for government travel warnings, flights and migration routes, and turn layers on in the Layers menu.",
+      "On the statistics page, search any figure, like small boats, and filter by topic.",
+      `Reports has the daily PDF editions: ${gbp(r.report_uk_daily.pence)} for the UK and ${gbp(r.report_global_daily.pence)} for Global.`,
+      "And Rent UKStats puts your own brand on the very same official figures.",
+    ] },
+    { id: "close", title: "Thanks for watching", lineMs: [7540], lines: [
       "Follow us at UKStats Global, share the stream, and now — back to the figures.",
     ] },
   ];
+  return drafts.map((c) => ({ ...c, ms: c.lineMs.reduce((a, b) => a + b, 0) }));
 }
 
 export const EXPLAINER_MS = explainerChapters().reduce((a, c) => a + c.ms, 0);
@@ -56,7 +70,8 @@ export function explainerStep(msIn: number) {
   for (let i = 0; i < ch.length; i++) {
     const c = ch[i]!;
     if (t < c.ms) {
-      const line = Math.min(c.lines.length - 1, Math.floor(t / (c.ms / c.lines.length)));
+      let line = 0, acc = c.lineMs[0]!;
+      while (line < c.lines.length - 1 && t >= acc) acc += c.lineMs[++line]!;
       const country = c.countries ? c.countries[Math.min(c.countries.length - 1, Math.floor(t / (c.ms / c.countries.length)))]! : null;
       return { index: i, chapter: c, msInChapter: t, line, country };
     }
