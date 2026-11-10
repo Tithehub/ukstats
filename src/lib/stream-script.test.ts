@@ -42,3 +42,11 @@ describe("explainer and sponsor timing", () => {
     for (let t = 0; t < 60_000; t += CARD) expect(lm(sbk(rows, t)!.line)).toBeLessThanOrEqual(CARD);
   });
 });
+
+describe("speakable never reads time codes", () => {
+  const bad = /\d{2}:?\d{2}\s*Z|\b0{3,}\b|\bZ\b|UTC|\+00:00/;
+  it.each(["Valid 00:00Z.", "Issued 0000Z.", "Period 2026-11-10 00:00Z.", "At 12:00 UTC.", "Updated 2026-11-10T00:00:00+00:00.", "As of 2026-06-01T00:00:00Z."])("cleans %s", (s) => {
+    expect(speakable(s)).not.toMatch(bad);
+  });
+  it("still says the date", () => expect(speakable("Period 2026-11-10 00:00Z.")).toContain("November"));
+});
