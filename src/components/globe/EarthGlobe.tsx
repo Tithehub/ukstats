@@ -209,6 +209,9 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   }, [focus?.lat, focus?.lng]);
   const ref = useRef<GlobeMethods | undefined>(undefined);
   const [gl0, setGl0] = useState(false);
+  // Desktop graphics drivers can drop the 3D context (GPU switch, sleep); rebuild the globe up to twice.
+  const [gen, setGen] = useState(0);
+  const lost = useRef(0);
   const lastTele = useRef(0);
   // A click only counts if the pointer barely moved since it was pressed (trackpad drags never pick).
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -350,6 +353,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   return (
     <div ref={wrap} onPointerMove={onTelemetry ? onMove : undefined} className="h-full w-full" onWheel={() => { const a = ref.current?.pointOfView().altitude; if (a) setAlt(Math.round(a * 10) / 10); }} onPointerDown={() => { const c = ref.current?.controls(); if (c && !rotate) c.autoRotate = false; }}>
       <Globe
+        key={gen}
         ref={ref}
         width={size.w}
         height={size.h}
@@ -367,8 +371,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
         onPolygonClick={(f) => { if (moved.current) return; const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
-        onGlobeReady={() => { ref.current?.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)); setGl0(true); }}
-        rendererConfig={{ antialias: !coarse, powerPreference: "high-performance" }}
+        onGlobeReady={() => { const r = ref.current?.renderer(); r?.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)); r?.domElement.addEventListener("webglcontextlost", (e) => { e.preventDefault(); if (lost.current < 2) { lost.current++; setGl0(false); setGen((n) => n + 1); } }, { once: true }); setGl0(true); }}
+        rendererConfig={{ antialias: !coarse && gen === 0, powerPreference: "default" }}
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}
         pointLng={(e) => (e as { lng: number }).lng}
