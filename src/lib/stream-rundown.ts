@@ -5,6 +5,7 @@ import type { OfficialWarning } from "./unrest";
 import type { ReportItem } from "./news-reports";
 import type { CountryPayload } from "./countries";
 import type { FeaturedStory } from "./featured-story.data";
+import { SCANDALS, type Scandal } from "./scandals.data";
 
 export const CARD_MS = 9_000;
 
@@ -24,6 +25,10 @@ export interface Segment {
   headline?: boolean;
   layers: { fl: boolean; mg: boolean; nw: boolean };
   cards: StreamCard[]; headlines: Headline[];
+  /** Extra spoken lines (background or pointers to site pages) — never figures. */
+  script?: string[];
+  /** Background segments are labelled "not official statistics". */
+  background?: boolean;
 }
 
 export const UK = "united kingdom";
@@ -69,7 +74,15 @@ export function buildRundown(input: {
   const legal = seg("legal", "Legal migration — visas next to irregular arrivals", ["Immigration", "Irregular immigration & cost"], "Migration",
     { topic: "legal", layers: { fl: false, mg: true, nw: false } });
 
+  const byIds = (id: string, title: string, ids: string[], kicker: string): Segment | null => {
+    const cards = ids.map((x) => metrics.find((m) => m.id === x)).filter((m): m is Metric => !!m && m.status === "ok" && !!m.value).map((m) => metricCard(m, kicker));
+    return cards.length ? { id, title, country: UK, topic: id, layers: { fl: false, mg: false, nw: false }, cards, headlines: [] } : null;
+  };
   const out: (Segment | null)[] = [
+    byIds("foreign-aid", "Foreign aid — total spend", ["uk-foreign-aid", "uk-foreign-aid-gni"], "Foreign aid"),
+    byIds("asylum-cost", "Cost of asylum", ["uk-irregular-cost-year", "uk-irregular-cost-day"], "Asylum cost"),
+    scandalsSegment(),
+    ...SITE_SECTIONS.map(pointerSegment),
     boats,
     seg("economy", "UK economy & public finances", ["Finance"], "Finance"),
     seg("cost", "Cost of living", ["Cost of living"], "Cost of living"),
@@ -128,4 +141,37 @@ export function countryHeadlines(name: string, reports: ReportItem[], max = 5): 
   const re = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
   return reports.filter((r) => re.test(r.title)).sort((a, b) => byTime(a.published, b.published)).slice(0, max)
     .map((r) => ({ text: r.title, publisher: r.publisher, time: r.published, official: r.official }));
+}
+
+/** Site sections without stream figures: the presenter points viewers to the page; no number is read. */
+export const SITE_SECTIONS: { id: string; title: string; path: string; what: string }[] = [
+  { id: "gold", title: "Gold reserves", path: "gold", what: "official gold reserves filed with the IMF, country by country" },
+  { id: "tax-welfare", title: "Tax vs welfare", path: "tax-vs-welfare", what: "what the government raises in tax next to what it spends on welfare, from official outturn" },
+  { id: "council-spending", title: "Council spending", path: "spending", what: "each council's own spending return, by category" },
+  { id: "safest", title: "Safest places", path: "safest-places", what: "recorded crime rankings for towns and cities, from police data" },
+  { id: "happiest", title: "Happiest places", path: "happiest-places", what: "official wellbeing survey results by area" },
+  { id: "education", title: "Education", path: "education", what: "schools and universities, from the official education registers" },
+  { id: "online-speech", title: "Online speech", path: "online-speech", what: "official records on online speech cases" },
+];
+export function pointerSegment(x: (typeof SITE_SECTIONS)[number]): Segment {
+  return { id: x.id, title: x.title, country: UK, topic: x.id, layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [],
+    script: [`${x.title}. On ukstats.co.uk you'll find ${x.what}, each with its source and date.`, `Go to ukstats.co.uk slash ${x.path.replace(/-/g, " ")} for the full picture.`] };
+}
+
+const newest = (s: Scandal) => Math.max(0, ...s.official.map((o) => (o.published ? Date.parse(o.published) : 0)).filter((n) => !Number.isNaN(n)));
+/** Most recent scandals by their latest official document date. */
+export function topScandals(n = 3): Scandal[] {
+  const gg = SCANDALS.find((s) => s.slug === "grooming-gangs");
+  const rest = [...SCANDALS].filter((s) => s !== gg).sort((a, b) => newest(b) - newest(a));
+  return [...(gg ? [gg] : []), ...rest].slice(0, n);
+}
+/** Background segment: short voiced explainers from official summaries, no figures, ending with a pointer to the site. */
+export function scandalsSegment(n = 3): Segment {
+  const lines = topScandals(n).flatMap((s) => {
+    const first = s.summary.split(/(?<=\.)\s/)[0] ?? s.summary;
+    const text = first.replace(/\d[\d,.]*\s*(%|per cent|million|billion|bn|m\b)?/gi, "").replace(/\s{2,}/g, " ");
+    return [`Background, not official statistics. ${s.title}. ${/\d/.test(first) ? s.status + "." : text}`, `Status: ${s.status}. For an in-depth look, go to ukstats.co.uk slash scandals.`];
+  });
+  return { id: "scandals", title: "Inquiry & scandals — background", country: UK, topic: "news", background: true,
+    layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [], script: lines };
 }

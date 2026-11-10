@@ -34,7 +34,10 @@ export function readingList(seg: Segment | undefined): string[] {
   if (!seg) return [];
   const cards = seg.cards.map(scriptForCard);
   const heads = seg.headlines.map(scriptForHeadline);
-  return [...cards, ...(heads.length ? heads : seg.id.startsWith("country-") ? [NO_HEADLINES] : [])];
+  const out = [...cards, ...(seg.script ?? []), ...heads];
+  // Zero silent sections: anything with nothing to read still gets a spoken line.
+  if (!out.length) out.push(seg.id.startsWith("country-") ? NO_HEADLINES : `${seg.title}. No new figures or headlines for this item right now — the latest is on ukstats.co.uk.`);
+  return out;
 }
 
 /** Names joined for speech: "A", "A and B", "A, B and C". */

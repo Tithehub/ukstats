@@ -7,8 +7,10 @@ export const HOUR_MS = 60 * MIN;
 export const COUNTRY_SLOT_MS = 5 * MIN;
 
 /** UK running order: base segment id, minutes, optional override title and headline flag. */
-export const UK_HOUR: { id: string; base: string; alt?: string; min: number; title?: string; headline?: boolean }[] = [
+export const UK_HOUR: { id: string; base: string; alt?: string; odd?: string; min: number; title?: string; headline?: boolean }[] = [
   { id: "top-story", base: "featured", alt: "news", min: 2, title: "Top story & headlines" },
+  { id: "foreign-aid", base: "foreign-aid", min: 2 },
+  { id: "asylum-cost", base: "asylum-cost", min: 2 },
   { id: "boats-headline", base: "boats", min: 6, title: "Irregular migration & small boats", headline: true },
   { id: "economy", base: "economy", min: 6, title: "Debt & economy" },
   { id: "weather", base: "weather", min: 2 },
@@ -16,12 +18,19 @@ export const UK_HOUR: { id: string; base: string; alt?: string; min: number; tit
   { id: "crime", base: "crime", min: 6 },
   { id: "news-half", base: "news", min: 3, title: "Headlines at half past" },
   { id: "boats-update", base: "boats", min: 3, title: "Small boats update — latest day & year so far", headline: true },
-  { id: "nhs", base: "nhs", min: 5 },
+  { id: "scandals", base: "scandals", min: 3 },
+  { id: "nhs", base: "nhs", min: 4 },
+  { id: "gold", base: "gold", min: 1 },
+  { id: "tax-welfare", base: "tax-welfare", min: 1 },
+  { id: "council-spending", base: "council-spending", min: 1 },
   { id: "legal", base: "legal", min: 3 },
   { id: "population", base: "population", min: 2 },
   { id: "housing", base: "housing", min: 2 },
   { id: "security", base: "security", min: 3, title: "Defence & terror threat" },
-  { id: "politics", base: "politics", min: 3 },
+  { id: "politics", base: "politics", min: 2 },
+  { id: "places", base: "education", odd: "happiest", min: 1 },
+  { id: "safest", base: "safest", min: 1 },
+  { id: "online-speech", base: "online-speech", min: 1 },
   { id: "flights", base: "flights", min: 1 },
   { id: "warnings", base: "warnings", min: 1 },
   { id: "recap", base: "boats", min: 4, title: "Recap — small boats and the hour's key figures", headline: true },
@@ -30,14 +39,14 @@ export const UK_HOUR: { id: string; base: string; alt?: string; min: number; tit
 export interface Slot { seg: Segment; start: number; end: number }
 
 /** UK hour slots in ms from the top of the hour; missing topics are dropped and the rest stretched to fill 60 minutes. */
-export function buildUkHour(segments: Segment[]): Slot[] {
+export function buildUkHour(segments: Segment[], hourIndex = 0): Slot[] {
   const by = new Map(segments.map((s) => [s.id, s]));
   const recapExtra = segments.filter((s) => s.id !== "boats" && s.cards.some((c) => c.metric)).map((s) => s.cards[0]!).slice(0, 3);
   const picked = UK_HOUR.flatMap((t) => {
-    const base = by.get(t.base) ?? (t.alt ? by.get(t.alt) : undefined);
+    const base = (t.odd && Math.floor(hourIndex / 2) % 2 === 1 ? by.get(t.odd) : by.get(t.base)) ?? (t.alt ? by.get(t.alt) : undefined);
     if (!base) return [];
     const cards: StreamCard[] = t.id === "recap" ? [...base.cards.slice(0, 3), ...recapExtra] : base.cards;
-    return [{ t, seg: { ...base, id: t.id, title: t.title ?? base.title, headline: t.headline ?? false, cards } }];
+    return [{ t, seg: { ...base, id: t.id === "places" ? base.id : t.id, title: t.title ?? base.title, headline: t.headline ?? false, cards } }];
   });
   const total = picked.reduce((a, p) => a + p.t.min, 0);
   let at = 0;
