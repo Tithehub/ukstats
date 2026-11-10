@@ -104,7 +104,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     group.add(allBorders);
     const hot = new THREE.Group(); group.add(hot);
     const label = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, depthTest: false }));
-    label.scale.set(0.9, 0.14, 1); label.position.set(0, 0.2, 1.05); scene.add(label);
+    label.scale.set(0.6, 0.094, 1); label.position.set(-0.32, 0.3, 1.05); scene.add(label);
     let arrivedAt = -1;
     focus.current = (name: string) => {
       hot.children.slice().forEach((o) => { hot.remove(o); const l = o as THREE.LineSegments; l.geometry.dispose(); (l.material as THREE.Material).dispose(); });
