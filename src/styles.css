@@ -456,12 +456,18 @@
   --destructive: oklch(0.55 0.22 27);
   --orbit-atmosphere: rgb(69 158 255);
   --orbit-streak: rgb(255 61 84);
-  --orbit-panel: linear-gradient(125deg, color-mix(in oklab, var(--night-panel) 94%, transparent), color-mix(in oklab, var(--night) 78%, transparent));
+  --orbit-panel: linear-gradient(125deg, color-mix(in oklab, var(--night-panel) 88%, transparent), color-mix(in oklab, var(--night) 68%, transparent));
   --orbit-shadow: 0 18px 48px -20px oklch(0 0 0 / 0.9), inset 0 1px 0 color-mix(in oklab, var(--electric-soft) 18%, transparent), 0 0 22px -12px var(--electric);
-  --orbit-desk: linear-gradient(180deg, color-mix(in oklab, var(--electric-soft) 40%, var(--night)), var(--night) 28%, color-mix(in oklab, var(--electric-soft) 16%, var(--night)) 65%, var(--night));
+  --orbit-desk: linear-gradient(180deg, color-mix(in oklab, var(--electric-soft) 65%, var(--night)), color-mix(in oklab, var(--night-panel) 80%, var(--electric-soft)) 6%, var(--night) 18%, color-mix(in oklab, var(--electric-soft) 28%, var(--night)) 65%, var(--night) 94%);
+  --orbit-metal: linear-gradient(90deg, var(--night), color-mix(in oklab, var(--electric-soft) 48%, var(--night)) 25%, var(--night-panel) 45%, var(--electric) 68%, var(--night) 88%);
+  --orbit-reflection: repeating-linear-gradient(180deg, transparent 0 12px, color-mix(in oklab, var(--electric-soft) 9%, transparent) 13px 14px), linear-gradient(90deg, transparent, color-mix(in oklab, var(--electric) 16%, transparent), transparent);
   --orbit-shine: linear-gradient(100deg, transparent 40%, color-mix(in oklab, var(--night-fg) 22%, transparent) 50%, transparent 60%);
   --orbit-scrim: linear-gradient(90deg, var(--night) 0%, transparent 35%, transparent 78%, color-mix(in oklab, var(--night) 35%, transparent) 100%), linear-gradient(0deg, var(--night), transparent 22%);
 }
 .orbit-desk { background: var(--orbit-desk); box-shadow: 0 -8px 32px -18px var(--electric); }
 .orbit-shine { background: var(--orbit-shine); }
 .orbit-scrim { background: var(--orbit-scrim); }
+.orbit-studio-mullion { background: var(--orbit-metal); box-shadow: 6px 0 18px -8px var(--electric); }
+.orbit-studio-rail { background: var(--orbit-metal); border-top: 3px solid var(--electric); box-shadow: 0 -2px 14px var(--electric); }
+.orbit-desk-reflection { background: var(--orbit-reflection); }
+.orbit-desk-paper { background: var(--stream-strap); transform: skewX(-28deg); box-shadow: 0 6px 2px color-mix(in oklab, var(--electric-soft) 25%, transparent); }

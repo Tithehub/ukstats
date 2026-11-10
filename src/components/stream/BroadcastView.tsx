@@ -229,14 +229,16 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={seg?.country ?? "united kingdom"} /></Suspense></ClientOnly></div>
       <OrbitBackdrop />
       <div className="orbit-scrim pointer-events-none absolute inset-0 z-[12]" />
+      <div aria-hidden className="orbit-studio-mullion absolute bottom-[165px] left-[410px] top-0 z-[13] w-[38px]" />
+      <div aria-hidden className="orbit-studio-rail absolute inset-x-0 bottom-[167px] z-[13] h-[26px]" />
       <div className="absolute left-[54px] top-[44px] z-40 flex h-[62px] overflow-hidden border border-night-fg/20 shadow-lg"><span className="flex items-center bg-destructive px-5 text-[36px] font-black text-destructive-foreground">UKSTATS</span><span className="orbit-glass flex items-center gap-3 px-5 text-[36px] font-black"><span className="size-2 rounded-full bg-destructive motion-safe:animate-pulse" />LIVE</span></div>
       <div className="absolute right-8 top-8 z-40 text-right font-mono text-[18px] uppercase leading-snug tracking-widest text-night-muted">{clock}<br />{wc ? "Around the world" : "UK hour"} · Official sources</div>
       <div className="absolute left-[54px] top-[168px] z-30 w-[342px]"><OrbitNextUp now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
       {slides.length > 0 && <div className="absolute bottom-[152px] left-[34px] z-30 h-[310px] w-[350px]"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
-      <div className="absolute bottom-[100px] left-[325px] z-20 h-[915px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
-      <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-20 h-[65px] border-t border-electric-soft/60" />
+      <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
+      <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
       <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
-      <div className="absolute bottom-[136px] left-[590px] z-40"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
+      <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
       {/* Globe fills the left; YouTube's title and control zones (top 96px, bottom 120px) show only globe/background */}

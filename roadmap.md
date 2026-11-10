@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Bring Orbit closer to the supplied studio reference: illuminated Earth, studio architecture and reflective desk; UK/world stills and capture sizes checked, preview only
 - [x] Refine draft Orbit stream against supplied reference; stills checked, video not yet recorded
 - [x] Cleanup first pass: tablet overflow, phone report archive, homepage hierarchy, menu/search focus; 72 layout checks and 4 keyboard/search journeys passed
 - [ ] Audit remaining: 200% zoom, full priority journeys, light/dark checks and field speed evidence; live-player/globe label contrast left unchanged within stream boundaries
