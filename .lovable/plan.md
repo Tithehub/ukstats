@@ -13,7 +13,7 @@ For each of the five pictures, add the sponsor's own logo/name, cut straight fro
 | xpre.ai | "xpre.ai" logo |
 | YachtFino.com | "YACHTFINO – Beyond Yachting" logo |
 
-- Keep the main object (phone, card pack, coin, chip grid, yacht) as now.
+- Show every main object whole, with nothing cut off: the whole yacht end to end, the whole phone, card pack, coin and chip grid.
 - Keep everything clear of the left side (title and QR code) and the far right (behind the presenter).
 - Leave the slogans off unless you want them back.
 
