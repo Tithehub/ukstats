@@ -1,4 +1,4 @@
-import { BarChart3, CloudSun, Globe2, Plane, Scale, ShieldAlert, Ship, ChevronRight } from "lucide-react";
+import { BarChart3, CloudSun, Globe2, Plane, Scale, ShieldAlert, Ship, HeartPulse, Users, Home, Briefcase, Siren, Newspaper } from "lucide-react";
 import { fmtDate } from "@/lib/uk-stats";
 import { sparkPath, tilePage, type OrbitScene } from "@/lib/stream-orbit";
 import type { Headline, Segment, StreamCard } from "@/lib/stream-rundown";
@@ -146,8 +146,8 @@ export function OrbitMiniTiles({ seg, step }: { seg: Segment | undefined; step: 
   </div>;
 }
 
-const ICON = [[/debt|borrow|spend|tax|gdp|inflation|price/i, BarChart3], [/boat|migra|asylum|cross/i, Ship], [/weather|rain|wind|storm/i, CloudSun], [/warn|alert/i, ShieldAlert], [/crime|police/i, Scale], [/flight|sky/i, Plane], [/world|around|countr/i, Globe2]] as const;
-const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? ChevronRight;
+const ICON = [[/debt|borrow|spend|tax|gdp|inflation|price/i, BarChart3], [/boat|migra|asylum|cross/i, Ship], [/weather|rain|wind|storm/i, CloudSun], [/warn|alert/i, ShieldAlert], [/crime|police/i, Scale], [/flight|sky/i, Plane], [/world|around|countr/i, Globe2], [/nhs|health|hospital|a&e/i, HeartPulse], [/population|people|census/i, Users], [/hous|rent|home/i, Home], [/job|employ|wage|earn/i, Briefcase], [/terror|threat/i, Siren], [/headline|news|ukstats/i, Newspaper]] as const;
+const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? BarChart3;
 
 /** Short topic name for the rail: text before a dash/colon, never a full sentence. */
 export const shortTitle = (t: string) => t.split(/\s[—–-]\s|:/)[0]!.trim();
