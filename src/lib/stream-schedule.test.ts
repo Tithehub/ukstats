@@ -15,7 +15,7 @@ describe("stream schedule", () => {
     expect(h[1]!.seg.headline).toBe(true);
   });
   it("runs headlines again at half past when every topic is published", () => {
-    const full = [...all, ...["weather", "population", "housing", "politics", "warnings"].map(seg)];
+    const full = [...all, ...["weather", "population", "housing", "politics", "warnings", "foreign-aid", "asylum-cost", "scandals", "gold", "tax-welfare", "council-spending", "education", "safest", "online-speech"].map(seg)];
     const half = buildUkHour(full).find((s) => s.seg.id === "news-half")!;
     expect(half.start).toBe(30 * 60_000);
   });
