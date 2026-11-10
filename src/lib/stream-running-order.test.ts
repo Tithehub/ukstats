@@ -66,3 +66,29 @@ describe("scandals slot pictures", () => {
     expect(SCANDAL_IMAGES["grooming-gangs"]?.alt).toBe("Rotherham town centre");
   });
 });
+
+import { speakable, lineAt, lineMs } from "./stream-script";
+import { goldSegment } from "./stream-rundown";
+describe("voice clean-up and sync", () => {
+  it("never speaks raw dates or timestamps", () => {
+    const out = speakable("Published 2026-09-15T00:00:00.000Z. Period 2026-11-10. Gold 2026-M08.");
+    expect(out).toBe("Published 15 September 2026. Period 10 November 2026. Gold August 2026.");
+    expect(out).not.toMatch(/T\d{2}:|\d{4}-\d{2}|Z\b/);
+  });
+  it("screen line at any moment is the one whose speaking time covers it", () => {
+    const reads = ["one two three", "a much longer line ".repeat(10).trim(), "last"];
+    expect(lineAt(reads, 0).index).toBe(0);
+    expect(lineAt(reads, lineMs(reads[0]!) - 1).index).toBe(0);
+    expect(lineAt(reads, lineMs(reads[0]!)).index).toBe(1);
+    expect(lineAt(reads, lineMs(reads[0]!) + lineMs(reads[1]!)).index).toBe(2);
+    expect(lineMs("short")).toBe(6000);
+  });
+  it("gold slot reads the ranked IMF table in order, with the UK's rank", () => {
+    const row = (iso3: string, name: string, tonnes: number) => ({ iso3, name, tonnes, ounces: 0, period: "2026-M08", site: null });
+    const seg = goldSegment({ ranked: [row("USA", "United States", 8133.46), row("DEU", "Germany", 3350.2), row("GBR", "United Kingdom", 310.3)], flagged: [] });
+    expect(seg.script![1]).toBe("Number one, United States, 8,133 tonnes, as of August 2026.");
+    expect(seg.script).toContain("The United Kingdom is number 3, with 310 tonnes, as of August 2026.");
+    expect(seg.gold!.map((r) => r.rank)).toEqual([1, 2, 3]);
+    expect(goldSegment(null).script![0]).toMatch(/couldn't be loaded/);
+  });
+});
