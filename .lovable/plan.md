@@ -1,20 +1,15 @@
-# FT story: our own version of the chart
-
-## The catch
-The FT chart prints only one exact number: Rupert Lowe's 1.7bn views. Every other bar would have to be read off by eye, and that would be an estimate. The site never shows estimated figures.
+# FT story: show the FT chart screenshot
 
 ## What gets built
-Under the main story on the home page, a two-column panel in the site's navy, red and yellow style:
-- Title: "Rupert Lowe has greater visibility on X than most world leaders", with the FT's label "Views of posts on X, Jan–Oct 2026".
-- **World leaders** and **British MPs** shown as ranked ladders in the FT's order (Modi, Trump, Takaichi, **Lowe**, Zelenskyy, Macron, Netanyahu, Milei, Sánchez, Erdoğan / **Lowe**, Farage, Burnham, Badenoch, Sultana, Jenrick, Corbyn, Tice, Anderson, Braverman).
-- Each row shows a numbered rank chip. Lowe's row is highlighted in red with "1.7bn". The other rows show the name and rank only, with no bar lengths or guessed numbers.
-- Credit line: "Ranking and figure: Financial Times, 8 Nov 2026. Redrawn by UKStats; only the figure the FT printed is shown." It links to the article.
-- Stacks into one column on phones.
+- Your screenshot of the FT chart ("Rupert Lowe has greater visibility on X than most world leaders — Views of posts on X, Jan–Oct 2026") is shown inside the main story card on the home page, under the headline.
+- Caption under it: "Chart: Financial Times, 8 Nov 2026" with a link to the article. Clicking the chart opens the FT story.
+- Fits the card width on all screens and loads lazily so the home page stays fast.
+- The image has a proper description so screen readers can read it.
+- The card stays labelled "press coverage, not an official statistic". The chart's numbers are the FT's and are never added to the site's figures.
 
-## Option for real bars
-If you can send me the FT's exact numbers (some FT charts let you download the data), I'll switch the ladders to true proportional bars.
+## Note
+The chart is FT copyright. Showing it with a clear credit and link is common practice, but the FT could ask for it to be removed. If that happens, we can take it down in one change.
 
 ## Technical
-- Add `charts` (group, ordered names, `highlight`, `value` only where published) to `featured-story.data.ts`; render with a new `FeaturedStoryChart.tsx` using semantic tokens.
-- Add a test that only Lowe's published figure carries a value.
+- Upload `image-6.png` with lovable-assets to `src/assets/ft-x-views-chart.png.asset.json`; add `chart` (asset, alt, credit) to `featured-story.data.ts`; render in `FeaturedStory.tsx`.
 - Nothing published until you say so.
