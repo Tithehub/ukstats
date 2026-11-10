@@ -11,6 +11,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { LiveStreamPanel } from "@/components/LiveStreamPanel";
 import { IndependentWorksCta } from "@/components/home/IndependentWorksCta";
+import { FoundingDocuments } from "@/components/home/FoundingDocuments";
 import { FeaturedStory } from "@/components/home/FeaturedStory";
 import channel from "@/assets/uk-channel.jpg.asset.json";
 import fog from "@/assets/uk-fog.jpg.asset.json";
@@ -139,6 +140,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
 
       <FeaturedStory />
       <IndependentWorksCta />
+      <FoundingDocuments />
 
       <section aria-label="Lead story" id="new-home-lead" className="relative mt-8 scroll-mt-20 overflow-hidden rounded-3xl border border-border">
         <img src={channel.url} alt="The white cliffs of Dover at dusk" width={1280} height={720} className="absolute inset-0 size-full object-cover" />
