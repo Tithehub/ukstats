@@ -18,7 +18,7 @@ export function OrbitStatsRail({ items, checked }: { items: KeyFigure[]; checked
         style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
         <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px] ${k.alert ? "bg-destructive" : "bg-stream-yellow"}`} />
         <div className="truncate font-mono text-[13px] font-bold uppercase tracking-widest text-night-muted">{k.label}</div>
-        <div className="truncate py-1 text-[34px] font-black leading-tight tabular-nums">{k.alert ? k.value : <Roll value={k.value} />}</div>
+        <div className={`py-1 font-bold leading-tight tabular-nums ${k.value.length > 15 ? "text-[21px]" : "text-[32px]"}`}>{k.alert ? k.value : <Roll value={k.value} />}</div>
         <div className="flex min-w-0 items-center gap-2">
           <span className="shrink-0 rounded bg-night-fg/10 px-1.5 font-mono text-[12px] font-bold uppercase text-electric-soft">{k.publisher}</span>
           {k.period && <span className="truncate font-mono text-[12px] text-night-muted">{k.period}</span>}

@@ -55,7 +55,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const atmosphere = new THREE.ShaderMaterial({
       uniforms: { tint: { value: blue } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide,
       vertexShader: "varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}",
-      fragmentShader: "uniform vec3 tint;varying vec3 n;varying vec3 v;void main(){float a=pow(max(0.0,0.62+dot(n,v)),3.0);gl_FragColor=vec4(tint,a*0.72);}",
+      fragmentShader: "uniform vec3 tint;varying vec3 n;varying vec3 v;void main(){float a=pow(max(0.0,0.82+dot(n,v)),3.0);gl_FragColor=vec4(tint,a*1.4);}",
     });
     const haze = new THREE.Mesh(geometry, atmosphere); haze.scale.setScalar(1.065); scene.add(haze);
     const rings: { group: THREE.Group; dot: THREE.Mesh; radius: number; speed: number }[] = [];

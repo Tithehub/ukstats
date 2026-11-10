@@ -103,8 +103,8 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
   // No rise/fall percentage: the publisher does not state one, so we never compute it.
   const lo = sp.length ? Math.min(...sp) : 0, hi = sp.length ? Math.max(...sp) : 0;
   const bars = scene !== "migration" && sp.length >= 2;
-  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-lg p-7 motion-safe:animate-in motion-safe:slide-in-from-right-10 motion-safe:duration-700">
-    <div aria-hidden className="orbit-shine pointer-events-none absolute inset-0 motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" />
+  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-lg p-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden"><div className="orbit-shine absolute inset-0 motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" /></div>
     <div className="flex items-center justify-between gap-4">
       <span className="min-w-0 text-[22px] font-bold uppercase leading-tight">{label}</span>
       <Globe2 className="size-9 shrink-0 text-electric-soft" aria-hidden />
@@ -118,7 +118,7 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
       </div>
       {bars && <div className="mt-4 flex h-[56px] items-end gap-1.5" aria-hidden>{sp.slice(-16).map((x, i, a) => <span key={i} className={`flex-1 origin-bottom rounded-t ${i === a.length - 1 ? "bg-stream-yellow" : "bg-electric/70"}`} style={{ height: `${15 + ((x - lo) / (hi - lo || 1)) * 85}%`, animation: `orbit-grow 0.9s ${i * 60}ms ease-out both` }} />)}</div>}
       {(() => { const d = !bars && sp.length >= 2 ? sparkPath(sp, 560, 48) : null; return d ? <svg viewBox="0 0 560 48" preserveAspectRatio="none" className="mt-4 h-[44px] w-full overflow-visible" aria-hidden><path d={d} fill="none" strokeWidth={4} className="stroke-stream-yellow" style={{ strokeDasharray: 1000, animation: "orbit-draw 2s ease-out both" }} /></svg> : null; })()}
-      <p className="mt-6 border-t border-night-fg/15 pt-4 font-mono text-[15px] leading-relaxed text-night-muted">{card.source}{card.period ? ` · ${card.period}` : ""}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</p>
+      <p className="mt-6 break-words border-t border-night-fg/15 pt-4 font-mono text-[15px] leading-relaxed text-night-muted">{card.source}{card.period ? ` · ${card.period}` : ""}{card.asOf ? ` · ${fmtDate(card.asOf)}` : ""}</p>
     </> : head ? <>
       <span className={`mt-5 inline-block rounded px-3 py-1 font-mono text-[16px] font-black uppercase tracking-widest ${head.official ? "bg-destructive text-destructive-foreground" : "bg-electric text-night"}`}>{head.official ? "Official warning" : "News report — not official"}</span>
       <p className="mt-4 line-clamp-4 text-[40px] font-black leading-[1.12]">{head.text}</p>
