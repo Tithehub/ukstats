@@ -55,12 +55,12 @@ export const getSponsorBannerBoard = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await supabaseAdmin
       .from("sponsors")
-      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions,plan,banner_url,banner_path")
+      .select("id,name,url,tagline,approved,active,paid,environment,starts_at,ends_at,region,regions,plan,banner_url,banner_path,logo_path,stream_path,qr_url")
       .limit(200);
     const visible = visibleSponsors((rows ?? []) as BoardRow[], data.environment);
     if (!visible.length) return { sponsors: [] };
 
-    const paths = visible.map((r) => r.banner_path).filter((p): p is string => Boolean(p));
+    const paths = visible.flatMap((r) => [r.banner_path, r.logo_path, r.stream_path]).filter((p): p is string => Boolean(p));
     const urlByPath = new Map<string, string>();
     if (paths.length) {
       const signed = await supabaseAdmin.storage.from(BANNER_BUCKET).createSignedUrls(paths, BANNER_URL_SECONDS);
@@ -68,6 +68,10 @@ export const getSponsorBannerBoard = createServerFn({ method: "POST" })
         if (entry.path && entry.signedUrl) urlByPath.set(entry.path, entry.signedUrl);
       }
     }
-    return { sponsors: withBannerLinks(visible, urlByPath) };
+    return { sponsors: withBannerLinks(visible, urlByPath).map((r) => ({
+      ...r,
+      logo_link: r.logo_path ? urlByPath.get(r.logo_path) ?? null : null,
+      stream_link: r.stream_path ? urlByPath.get(r.stream_path) ?? null : null,
+    })) };
   });
 

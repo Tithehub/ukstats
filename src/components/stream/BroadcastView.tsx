@@ -455,7 +455,8 @@ type CornerSlide = { id: string; name: string; img: string | null; streamImg?: s
 
 function sponsorSlide(r: SponsorBannerRow): CornerSlide {
   const site = sponsorSite(r.url);
-  return { id: r.id, name: r.name, streamImg: STREAM_PICTURES[site.label.replace(/^www\./, "")] ?? null, img: r.banner_link ?? (r.banner_path ? null : r.banner_url), label: site.label, qr: site.qr, tag: "Supported by" };
+  const qr = r.qr_url ? sponsorSite(r.qr_url).qr : site.qr;
+  return { id: r.id, name: r.name, streamImg: r.stream_link ?? STREAM_PICTURES[site.label.replace(/^www\./, "")] ?? null, img: r.banner_link ?? (r.banner_path ? null : r.banner_url), label: site.label, qr, tag: "Supported by" };
 }
 
 const utm = (u: string) => { const x = new URL(u); x.searchParams.set("ref", "ukstats_stream"); return x.toString(); };
