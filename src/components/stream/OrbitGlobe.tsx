@@ -104,7 +104,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
     group.add(allBorders);
     const hot = new THREE.Group(); group.add(hot);
     const label = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, depthTest: false }));
-    label.scale.set(0.6, 0.094, 1); label.position.set(-0.62, 0.42, 1.05); scene.add(label);
+    label.scale.set(0.5, 0.078, 1); label.position.set(-0.1, -0.42, 1.05); scene.add(label);
     let arrivedAt = -1;
     focus.current = (name: string) => {
       hot.children.slice().forEach((o) => { hot.remove(o); const l = o as THREE.LineSegments; l.geometry.dispose(); (l.material as THREE.Material).dispose(); });
@@ -134,7 +134,7 @@ export default function OrbitGlobe({ country }: { country: string }) {
       arcs.push({ pts, head, off: k * 0.37 });
     });
     const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("rgba(255,220,170,0.7)", "rgba(255,140,60,0)"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-    sunGlow.scale.setScalar(1.6); sunGlow.position.set(0.85, 0.85, -0.2); scene.add(sunGlow);
+    sunGlow.scale.setScalar(1.1); sunGlow.position.set(0.7, 0.72, -0.4); scene.add(sunGlow);
     const rings: { group: THREE.Group; head: THREE.Sprite; radius: number; speed: number }[] = [];
     for (let i = 0; i < 4; i++) {
       const radius = 1.16 + i * 0.13;

@@ -147,7 +147,7 @@ export function OrbitMiniTiles({ seg, step }: { seg: Segment | undefined; step: 
 }
 
 const ICON = [[/debt|borrow|spend|tax|gdp|inflation|price/i, BarChart3], [/boat|migra|asylum|cross/i, Ship], [/weather|rain|wind|storm/i, CloudSun], [/warn|alert/i, ShieldAlert], [/crime|police/i, Scale], [/flight|sky/i, Plane], [/world|around|countr/i, Globe2], [/nhs|health|hospital|a&e/i, HeartPulse], [/population|people|census/i, Users], [/hous|rent|home/i, Home], [/job|employ|wage|earn/i, Briefcase], [/terror|threat/i, Siren], [/headline|news|ukstats/i, Newspaper]] as const;
-const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? BarChart3;
+const iconFor = (t: string) => ICON.find(([r]) => r.test(t))?.[1] ?? Globe2;
 
 /** Short topic name for the rail: text before a dash/colon, never a full sentence. */
 export const shortTitle = (t: string) => t.split(/\s[—–-]\s|:/)[0]!.trim();
@@ -164,11 +164,11 @@ export function OrbitNextUp({ now, items }: { now: string; items: { title: strin
     <div key={now} className="relative flex items-center gap-4 border-y border-night-fg/10 bg-destructive/10 px-5 py-3 motion-safe:animate-in motion-safe:slide-in-from-left-4">
       <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-destructive shadow-[0_0_18px_var(--destructive)]" />
       <RailIcon title={now} on />
-      <span className="min-w-0 flex-1"><span className="block truncate text-[22px] font-bold uppercase leading-tight">{shortTitle(now)}</span><span className="font-mono text-[15px] font-bold uppercase tracking-widest text-destructive">On air</span></span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-[20px] font-bold uppercase leading-tight">{shortTitle(now)}</span><span className="font-mono text-[15px] font-bold uppercase tracking-widest text-destructive">On air</span></span>
     </div>
     <ol>{items.slice(0, 3).map((u, i) => <li key={u.title} className="flex items-center gap-4 border-b border-night-fg/10 px-5 py-3 last:border-b-0 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3" style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
       <RailIcon title={u.title} />
-      <span className="min-w-0 flex-1"><span className="block truncate text-[22px] font-bold uppercase leading-tight">{shortTitle(u.title)}</span><span className="font-mono text-[17px] text-night-muted">{u.time ?? "Next"}</span></span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-[20px] font-bold uppercase leading-tight">{shortTitle(u.title)}</span><span className="font-mono text-[17px] text-night-muted">{u.time ?? "Next"}</span></span>
     </li>)}</ol>
   </section>;
 }
