@@ -56,6 +56,5 @@
 - /globe/broadcast is a fixed 1920×1080 frame scaled to the window; GlobeExplorer broadcast mode hides panels; [data-fit] overflow reports to /globe/studio.
 - Grooming inquiry page: dated official snapshot in grooming-inquiry.data.ts; report estimates labelled, national counts "Not published".
 - Stream cameras: only public-authority open feeds in stream-cameras.data.ts with live: true (continuous video; TfL JamCams are loops, so off), labelled "scene only" — no private/police CCTV.
-- Featured press stories (featured-story.data.ts): verbatim credited headline/standfirst with publisher link and date, labelled not official; one UK-hour stream segment, never in rented streams, figures, reports or embeds.
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
