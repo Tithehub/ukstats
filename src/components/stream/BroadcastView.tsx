@@ -257,7 +257,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     {layout === "landscape" && variant === "orbit" ? <>
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
       {/* Globe Orbit v3 — laid out like the 32s reference video */}
-      {tourState ? <div className="absolute left-[420px] top-0 bottom-[80px] right-0"><GlobeExplorer state={tourState} onChange={() => {}} broadcast camFocus={tour?.key === "cams" ? liveCam?.id ?? null : null} /></div>
+      {tourState ? <div className="absolute left-[420px] top-[110px] bottom-[80px] right-0"><GlobeExplorer state={tourState} onChange={() => {}} broadcast camFocus={tour?.key === "cams" ? liveCam?.id ?? null : null} /></div>
       : <><div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={globeCountry} /></Suspense></ClientOnly></div>
       <OrbitBackdrop /></>}
       <div className="orbit-scrim pointer-events-none absolute inset-0 z-[12]" />
