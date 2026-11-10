@@ -24,7 +24,8 @@ let ctx: AudioContext | null = null;
 const MOUTH_MASK = "radial-gradient(ellipse 9% 5.5% at 50.2% 33.4%, #000 55%, transparent 100%)";
 
 /** Orbit-layout AI presenter: mouth follows the real voice loudness; idle breathing and sway. Always labelled AI. */
-export function OrbitPresenter({ line, upcoming = [], voice }: { line: string; upcoming?: string[]; voice: boolean }) {
+export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: string; upcoming?: string[]; voice: boolean; onSpeak?: (text: string) => void }) {
+  const said = useRef(onSpeak); said.current = onSpeak;
   const [status, setStatus] = useState<"idle" | "preparing" | "speaking" | "blocked" | "unauthorised" | "miming">("idle");
   const mouth = useRef<HTMLImageElement>(null);
   const level = useRef(0);
@@ -61,7 +62,7 @@ export function OrbitPresenter({ line, upcoming = [], voice }: { line: string; u
   useEffect(() => {
     if (!line || busy.current) return;
     const mime = (text: string) => {
-      busy.current = true; setStatus("miming");
+      busy.current = true; setStatus("miming"); said.current?.(text);
       const ms = Math.min(20000, Math.max(2500, text.split(/\s+/).length * 380));
       window.setTimeout(() => {
         busy.current = false; setStatus("idle");
@@ -85,7 +86,7 @@ export function OrbitPresenter({ line, upcoming = [], voice }: { line: string; u
         busy.current = false; analyser.current = null; setStatus("idle");
         if (latest.current !== lastSpoken.current) void speak(latest.current);
       };
-      try { await el.play(); setStatus("speaking"); } catch { setStatus("blocked"); mime(text); }
+      try { await el.play(); setStatus("speaking"); said.current?.(text); } catch { setStatus("blocked"); mime(text); }
     };
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);

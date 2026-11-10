@@ -2,6 +2,7 @@ import { BarChart3, CloudSun, Globe2, Plane, Scale, ShieldAlert, Ship, ChevronRi
 import { fmtDate } from "@/lib/uk-stats";
 import { sparkPath, tilePage, type OrbitScene } from "@/lib/stream-orbit";
 import type { Headline, Segment, StreamCard } from "@/lib/stream-rundown";
+import type { ReadItem } from "@/lib/stream-sync";
 
 const SCENE_LABEL: Record<OrbitScene, string> = {
   stats: "Official figures", headlines: "Headlines", weather: "Weather", warnings: "Official warnings",
