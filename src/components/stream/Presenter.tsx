@@ -1,3 +1,4 @@
+import { claimVoice, releaseVoice } from "@/lib/voice-channel";
 import { useEffect, useRef, useState } from "react";
 import cutout from "@/assets/stream/presenter_cutout.png.asset.json";
 import talking from "@/assets/stream/presenter_cutout_talking.webm.asset.json";
@@ -64,15 +65,17 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
       const a = new Audio(`data:audio/wav;base64,${b64}`);
       let done = false;
       const finish = () => {
-        if (done) return; done = true; window.clearTimeout(guard);
+        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok);
         busy.current = false; setStatus("idle");
         { const n = nextLine(); if (n) void speak(n); }
       };
       // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
       const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
       a.onended = finish; a.onerror = finish;
-      cur.current = () => { done = true; window.clearTimeout(guard); a.onended = null; a.onerror = null; a.pause(); };
-      try { await a.play(); setStatus("speaking"); }
+      const stopA = () => { done = true; window.clearTimeout(guard); a.onended = null; a.onerror = null; a.pause(); };
+      const tok = claimVoice(stopA);
+      cur.current = () => { stopA(); releaseVoice(tok); };
+      try { await a.play(); if (g !== gen.current) { stopA(); releaseVoice(tok); return; } setStatus("speaking"); }
       catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     /** No sound available: she still visibly reads the on-screen line, timed to its length. */
@@ -88,6 +91,7 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
     if (voice) void speak(line);
     else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
+  useEffect(() => () => { gen.current++; cur.current?.(); cur.current = null; }, []);
 
   const speaking = status === "speaking" || miming;
   const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : miming ? "Reading on screen" : "Listening";
