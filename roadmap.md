@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Orbit draft: closer globe effects (halo, flare, wider orbit streaks, dust, country pulse) and animated tiles; preview only
 - [x] Bring Orbit closer to the supplied studio reference: illuminated Earth, studio architecture and reflective desk; UK/world stills and capture sizes checked, preview only
 - [x] Refine draft Orbit stream against supplied reference; stills checked, video not yet recorded
 - [x] Cleanup first pass: tablet overflow, phone report archive, homepage hierarchy, menu/search focus; 72 layout checks and 4 keyboard/search journeys passed

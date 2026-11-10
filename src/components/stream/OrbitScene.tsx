@@ -103,8 +103,9 @@ export function OrbitHeroCard({ seg, scene, step, place }: { seg: Segment | unde
   // No rise/fall percentage: the publisher does not state one, so we never compute it.
   const lo = sp.length ? Math.min(...sp) : 0, hi = sp.length ? Math.max(...sp) : 0;
   const bars = scene !== "migration" && sp.length >= 2;
-  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-lg p-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden"><div className="orbit-shine absolute inset-0 motion-safe:animate-[orbit-sweep_1.4s_ease-out_both]" /></div>
+  return <section key={`${seg?.id}-${step}`} data-fit className="orbit-glass relative overflow-hidden rounded-lg p-7 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:duration-700">
+    <span aria-hidden className="orbit-accent absolute inset-x-0 top-0 h-[3px]" />
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden"><div className="orbit-shine absolute inset-0 motion-safe:animate-[orbit-shine_6s_ease-in-out_infinite]" /></div>
     <div className="flex items-center justify-between gap-4">
       <span className="min-w-0 text-[22px] font-bold uppercase leading-tight">{label}</span>
       <Globe2 className="size-9 shrink-0 text-electric-soft" aria-hidden />
@@ -133,7 +134,8 @@ export function OrbitMiniTiles({ seg, step }: { seg: Segment | undefined; step: 
   if (cards.length < 2) return null;
   const pick = [1, 2, 3].flatMap((i) => { const c = cards[(step + i) % cards.length]; return c ? [c] : []; }).filter((c, i, a) => a.findIndex((x) => x.title === c.title) === i && c !== cards[step % cards.length]);
   return <div key={`${seg?.id}-${step}`} className="grid grid-cols-2 gap-3">
-    {pick.slice(0, 2).map((c, i) => <div key={c.title} className="orbit-glass min-w-0 rounded-lg px-4 py-3 motion-safe:animate-in motion-safe:slide-in-from-bottom-6" style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: "both" }}>
+    {pick.slice(0, 2).map((c, i) => <div key={c.title} className="orbit-glass orbit-tile relative min-w-0 overflow-hidden rounded-lg px-4 py-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-700" style={{ animationDelay: `${200 + i * 150}ms`, animationFillMode: "both" }}>
+      <span aria-hidden className="orbit-accent absolute inset-x-0 top-0 h-[3px]" /><span aria-hidden className="orbit-shine pointer-events-none absolute inset-0 motion-safe:animate-[orbit-shine_5s_ease-in-out_infinite]" style={{ animationDelay: `${1 + i * 0.8}s` }} />
       <div className="line-clamp-2 min-h-[36px] text-[15px] font-bold uppercase leading-tight text-night-muted">{c.title}</div>
       <div className="truncate text-[28px] font-black tabular-nums"><CountUp value={c.value} /></div>
       <div className="truncate font-mono text-[12px] text-night-muted">{c.source}</div>
@@ -150,7 +152,7 @@ export function OrbitNextUp({ now, items }: { now: string; items: { title: strin
     <div className="flex items-center gap-2 px-4 pt-3"><span className="h-5 w-1 bg-destructive" /><span className="font-mono text-[20px] font-black uppercase tracking-widest">Next up</span></div>
     <div key={now} className="mx-3 mt-2 truncate rounded border-l-4 border-destructive bg-destructive/15 px-3 py-1.5 text-[18px] font-bold motion-safe:animate-in motion-safe:slide-in-from-left-4">
       <span className="mr-2 font-mono text-[13px] uppercase text-destructive">On air</span>{now}</div>
-    <ol className="space-y-1 p-3">{items.slice(0, 3).map((u, i) => <li key={u.title} className={`flex items-center gap-3 rounded px-2 py-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 ${i === 0 ? "border-l-4 border-stream-yellow bg-stream-yellow/15" : ""}`} style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
+    <ol className="space-y-1 p-3">{items.slice(0, 3).map((u, i) => <li key={u.title} className={`flex items-center gap-3 rounded px-2 py-2 transition-colors duration-700 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 ${i === 0 ? "border-l-4 border-stream-yellow bg-stream-yellow/15 shadow-[0_0_24px_-8px_var(--stream-yellow)] motion-safe:animate-[orbit-glow_3s_ease-in-out_infinite]" : ""}`} style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}>
       <span className="w-10 shrink-0 text-electric-soft" aria-hidden>{(() => { const Icon = iconFor(u.title); return <Icon className="size-8" />; })()}</span>
       <span className="min-w-0 flex-1"><span className="block text-[19px] font-bold uppercase leading-tight">{u.title}</span>{u.time && <span className="font-mono text-[16px] text-night-muted">{u.time}</span>}</span>
     </li>)}</ol>
