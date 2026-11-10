@@ -120,7 +120,7 @@ export function spokenDate(v: string | null | undefined): string | null {
 
 /** Last check before the voice: computer-format dates become words; leftover timestamps/codes are removed — never read digit by digit. */
 export function speakable(text: string): string {
-  return text
+  const cleaned = text
     .replace(/\b(\d{4}-\d{2}-\d{2})(?:T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})?)?\b/g, (m) => spokenDate(m) ?? "")
     .replace(/\bT\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?\b/g, "")
     .replace(/\b(\d{4})-M(\d{2})\b/g, (_, y, m) => `${MONTHS[Number(m) - 1] ?? ""} ${y}`)
@@ -128,8 +128,16 @@ export function speakable(text: string): string {
     .replace(new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)? ${MONTH_RE}\\.? (\\d{4})\\b`, "gi"), (m, d, mo, y) => sayDate(+d, monthNo(mo), +y) ?? m)
     .replace(new RegExp(`\\b${MONTH_RE}\\.? (\\d{4})\\b`, "gi"), (m, mo, y) => { const n = monthNo(mo); return n ? `${MONTHS[n - 1]} ${sayYear(+y)}` : m; })
     .replace(/\b\d{9,}\b/g, "")
-    .replace(/\(\s*\)/g, "").replace(/\s+([.,])/g, "$1").replace(/\s{2,}/g, " ").trim();
+    // Leftover clock times and time-zone codes ("00:00Z", "0000Z", "12:00 UTC", "+00:00") — never read aloud.
+    .replace(/\s?[+-](?:0\d|1[0-4]):?(?:00|30|45)\b(?![\d.,%])/g, "")
+    .replace(/\b\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\s*(?:Z|UTC|GMT)?\b/gi, "")
+    .replace(/\b\d{4}\s?Z\b/g, "")
+    .replace(/(\d)Z\b/g, "$1")
+    .replace(/\(\s*\)/g, "").replace(/\s+([.,;])/g, "$1").replace(/\s{2,}/g, " ").trim();
+  // Safety net: drop any sentence that still looks like a time code or a run of zeros.
+  return cleaned.split(/(?<=[.!?])\s+/).filter((x) => !BAD_CODE.test(x)).join(" ").trim();
 }
+const BAD_CODE = /\d{2}:?\d{2}\s*Z\b|(?<![\d,.])0{3,}(?![\d,])|\bZ\b|\b(?:UTC|GMT)\b/;
 
 /** How long a line stays on screen: its speaking time (~2.6 words/s plus a breath), at least 6s. */
 /** Words as she actually says them: dates become words, figures like "£2.8tn" or "12.5%" take several words each. */
