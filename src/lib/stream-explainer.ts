@@ -1,6 +1,7 @@
 // "About UKStats" hourly explainer: pure chapter plan and presenter script.
 // Prices come only from the existing price lists — never typed into the script.
 import { REPORT_PRICES } from "@/lib/reports";
+import { lineMs as spokenMs } from "@/lib/stream-script";
 import { PRODUCT_PRICES, AI_PRESENTER_PENCE, gbp as rentGbp } from "@/lib/rent-pricing";
 
 const gbp = (p: number) => `£${(p / 100).toFixed(2)}`;
@@ -58,7 +59,8 @@ export function explainerChapters(): Chapter[] {
       "Follow us at UKStats Global, share the stream, and now — back to the figures.",
     ] },
   ];
-  return drafts.map((c) => ({ ...c, ms: c.lineMs.reduce((a, b) => a + b, 0) }));
+  // Each line lasts at least as long as she takes to say it; the walkthrough keeps its video cut times (its lines are checked to fit).
+  return drafts.map((c) => { const lm = c.id === "walkthrough" ? c.lineMs : c.lines.map((l, i) => Math.max(c.lineMs[i]!, spokenMs(l))); return { ...c, lineMs: lm, ms: lm.reduce((a, b) => a + b, 0) }; });
 }
 
 export const EXPLAINER_MS = explainerChapters().reduce((a, c) => a + c.ms, 0);

@@ -32,7 +32,8 @@ describe("hourly explainer", () => {
   });
   it("covers every chapter in order", () => {
     expect(explainerChapters().map((c) => c.id)).toEqual(["welcome", "globe", "sources", "reports", "rent", "sports", "walkthrough", "close"]);
-    expect(explainerStep(16_200).chapter.id).toBe("globe");
-    expect(explainerStep(16_200 + 10_180).line).toBe(1);
+    const w = explainerChapters()[0]!.ms, g0 = explainerChapters()[1]!.lineMs[0]!;
+    expect(explainerStep(w).chapter.id).toBe("globe");
+    expect(explainerStep(w + g0).line).toBe(1);
   });
 });
