@@ -86,7 +86,9 @@ describe("voice clean-up and sync", () => {
   it("gold slot reads the ranked IMF table in order, with the UK's rank", () => {
     const row = (iso3: string, name: string, tonnes: number) => ({ iso3, name, tonnes, ounces: 0, period: "2026-M08", site: null });
     const seg = goldSegment({ ranked: [row("USA", "United States", 8133.46), row("DEU", "Germany", 3350.2), row("GBR", "United Kingdom", 310.3)], flagged: [] });
-    expect(seg.script![1]).toBe("Number one, United States, 8,133 tonnes, as of August 2026.");
+    expect(seg.script![1]).toBe("Number one, United States, 8,133 tonnes. Number two, Germany, 3,350 tonnes.");
+    const total = seg.script!.reduce((a, l) => a + lineMs(l), 0);
+    expect(total).toBeLessThanOrEqual(60_000);
     expect(seg.script).toContain("The United Kingdom is number 3, with 310 tonnes, as of August 2026.");
     expect(seg.gold!.map((r) => r.rank)).toEqual([1, 2, 3]);
     expect(goldSegment(null).script![0]).toMatch(/couldn't be loaded/);

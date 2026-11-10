@@ -214,9 +214,12 @@ export function goldSegment(table: GoldTable | null): Segment {
   const rows = ranked.slice(0, 10).map((r, i) => ({ rank: i + 1, name: r.name, iso3: r.iso3, tonnes: fmt(r.tonnes), period: goldPeriodLabel(r.period) }));
   const ukI = ranked.findIndex((r) => r.iso3 === "GBR");
   const uk = ukI >= 0 ? ranked[ukI]! : null;
+  // Two countries per line so the whole top ten, the UK's rank and the source fit the one-minute slot.
+  const pairs: string[] = [];
+  for (let i = 0; i < rows.length; i += 2) pairs.push(rows.slice(i, i + 2).map((r) => `Number ${ORD[r.rank - 1]}, ${r.name}, ${r.tonnes} tonnes.`).join(" "));
   return { ...base, gold: rows, script: [
-    "Gold reserves — the top ten countries by official gold holdings, as filed with the International Monetary Fund.",
-    ...rows.map((r) => `Number ${ORD[r.rank - 1]}, ${r.name}, ${r.tonnes} tonnes, as of ${r.period}.`),
+    `Gold reserves — the top ten countries by official gold held, as filed with the International Monetary Fund, latest ${rows[0]!.period}.`,
+    ...pairs,
     uk ? `The United Kingdom is number ${ukI + 1}, with ${fmt(uk.tonnes)} tonnes, as of ${goldPeriodLabel(uk.period)}.` : "The United Kingdom's filing isn't in the IMF table right now.",
     `Source: ${GOLD_SOURCE.name.replace(/\s*\(.*?\)/g, "")}. The full table is at ukstats.co.uk slash gold.`,
   ] };
