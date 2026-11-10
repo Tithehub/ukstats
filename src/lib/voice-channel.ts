@@ -22,7 +22,7 @@ let overlaps = 0;
 let make: () => VoiceEl = () => {
   const a = new Audio(); a.preload = "auto";
   try { ctx = new AudioContext(); const s = ctx.createMediaElementSource(a); analyserNode = ctx.createAnalyser(); analyserNode.fftSize = 512; s.connect(analyserNode); analyserNode.connect(ctx.destination); } catch { analyserNode = null; }
-  return a;
+  return a as unknown as VoiceEl;
 };
 /** Test hook: swap the element factory. */
 export function _setVoiceFactory(f: () => VoiceEl): void { make = f; player = null; turn = 0; overlaps = 0; active = null; }
