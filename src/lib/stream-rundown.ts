@@ -91,7 +91,7 @@ export function buildRundown(input: {
   const out: (Segment | null)[] = [
     byIds("foreign-aid", "Foreign aid — total spend", ["uk-foreign-aid", "uk-foreign-aid-gni"], "Foreign aid"),
     byIds("asylum-cost", "Cost of asylum", ["uk-irregular-cost-year", "uk-irregular-cost-day"], "Asylum cost"),
-    input.siteSections ? scandalsSegment() : null,
+    null, // scandals are website-only (not on the stream)
     ...(input.siteSections ? SITE_SECTIONS.map(pointerSegment) : []),
     boats,
     seg("economy", "UK economy & public finances", ["Finance"], "Finance"),
