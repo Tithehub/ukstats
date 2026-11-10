@@ -47,6 +47,7 @@ export function OrbitExplainer({ chapter, index, line, msInChapter }: { chapter:
 
 function body(c: Chapter, line: number) {
   switch (c.id) {
+    case "walkthrough": return null; // the site-tour video has its own framed screen
     case "welcome": case "close": return <div className="flex items-center justify-between gap-6">
       <div className="flex flex-col gap-4"><Wordmark big /><p className="text-[28px] text-night-muted">{c.id === "welcome" ? "Official UK & world statistics. Always free." : "@ukstatsglobal · ukstats.co.uk"}</p></div>
       <Qr path="/" label="ukstats.co.uk" />
