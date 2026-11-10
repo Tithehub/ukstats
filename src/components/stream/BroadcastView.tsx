@@ -42,7 +42,9 @@ import { topSix, type TopBox } from "@/lib/stream-extras";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
 import { OrbitExplainer } from "@/components/stream/OrbitExplainer";
-import { EXPLAINER_MS, explainerStep } from "@/lib/stream-explainer";
+import { EXPLAINER_MS, explainerStep, GLOBE_TOUR, globeTourStep } from "@/lib/stream-explainer";
+import { publicCamsQuery } from "@/lib/public-cams.functions";
+import { GlobeKey } from "@/components/globe/GlobeKey";
 import { buildUkHour, cardStep, explainerAt, positionAt, promoAt, PROMO_MS, sponsorBreakAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
 export const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
@@ -185,7 +187,14 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   useEffect(() => { if (new URLSearchParams(window.location.search).get("segment") === "explainer") setExFrom(Date.now()); }, []);
   const exRaw = brand || variant !== "orbit" || layout !== "landscape" ? { active: false, msIn: 0 }
     : exFrom !== null && now ? { active: true, msIn: Math.max(0, now.getTime() - exFrom) % EXPLAINER_MS } : explainerAt(pos.msIntoHour, EXPLAINER_MS);
-  const ex = exRaw.active ? explainerStep(exRaw.msIn) : null;
+  const ex0 = exRaw.active ? explainerStep(exRaw.msIn) : null;
+  const tourOn = ex0?.chapter.id === "globe";
+  const { data: camData } = useQuery(publicCamsQuery(tourOn || exRaw.active));
+  const liveCam = camData?.items.find((c) => c.live) ?? null;
+  const tourIdx = tourOn ? globeTourStep(ex0!.line, !!liveCam) : -1;
+  const ex = ex0 && tourOn ? { ...ex0, line: tourIdx } : ex0;
+  const tour = tourIdx >= 0 ? GLOBE_TOUR[tourIdx]! : null;
+  const tourState = useMemo<GlobeState | null>(() => tour ? { ind: "none", official: true, acled: false, ...tour.state, c: tour.key === "cams" && liveCam ? "united states" : tour.state.c } as GlobeState : null, [tour, liveCam]);
   const promo = brand || ex ? { active: false, msIntoPromo: 0 } : promoAt(pos.msIntoHour);
   const promoLines = scriptForPromo(sponsors.map((r) => r.name));
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
@@ -249,8 +258,9 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     {layout === "landscape" && variant === "orbit" ? <>
       {/* Globe Orbit: full-bleed globe flies to each country; scene panel changes per segment type */}
       {/* Globe Orbit v3 — laid out like the 32s reference video */}
-      <div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={globeCountry} /></Suspense></ClientOnly></div>
-      <OrbitBackdrop />
+      {tourState ? <div className="absolute left-[420px] top-0 bottom-[80px] right-0"><GlobeExplorer state={tourState} onChange={() => {}} broadcast camFocus={tour?.key === "cams" ? liveCam?.id ?? null : null} /></div>
+      : <><div className="absolute left-[470px] top-[-150px] h-[1260px] w-[1510px]"><ClientOnly><Suspense fallback={null}><OrbitGlobe country={globeCountry} /></Suspense></ClientOnly></div>
+      <OrbitBackdrop /></>}
       <div className="orbit-scrim pointer-events-none absolute inset-0 z-[12]" />
       <div aria-hidden className="orbit-studio-mullion absolute bottom-[165px] left-[410px] top-0 z-[13] w-[38px]" />
       <div aria-hidden className="orbit-studio-rail absolute inset-x-0 bottom-[167px] z-[13] h-[26px]" />
@@ -264,7 +274,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       </div>}
       <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
-      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{tour ? <div className="orbit-glass relative h-[640px] overflow-hidden rounded-xl border border-night-fg/15"><div className="px-6 pt-5 font-mono text-[18px] uppercase tracking-[0.25em] text-electric-soft">About UKStats · Interactive globe · On now: {tour.label}</div><div className="relative h-[560px] w-[320px] origin-top-left scale-[1.75]"><GlobeKey onClose={() => {}} /></div></div> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={ex || promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>

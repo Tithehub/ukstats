@@ -70,11 +70,11 @@ export function explainerStep(msIn: number) {
 export type TourStep = { key: "uk" | "us" | "flights" | "migration" | "news" | "cams"; label: string; state: { layer?: "uk" | "us"; fl: boolean; mg: boolean; nw: boolean; cam?: boolean; c: string } };
 export const GLOBE_TOUR: TourStep[] = [
   { key: "uk", label: "UK FCDO travel advice", state: { layer: "uk", fl: false, mg: false, nw: false, c: "united kingdom" } },
-  { key: "us", label: "US State Dept levels 1–4", state: { layer: "us", fl: false, mg: false, nw: false, c: "united states of america" } },
+  { key: "us", label: "US State Dept levels 1–4", state: { layer: "us", fl: false, mg: false, nw: false, c: "united states" } },
   { key: "flights", label: "Live flights · not official", state: { fl: true, mg: false, nw: false, c: "united kingdom" } },
   { key: "migration", label: "Migration routes", state: { fl: false, mg: true, nw: false, c: "united kingdom" } },
   { key: "news", label: "News & police reports", state: { fl: false, mg: false, nw: true, c: "united kingdom" } },
-  { key: "cams", label: "Public road cameras · scene only", state: { fl: false, mg: false, nw: false, cam: true, c: "united states of america" } },
+  { key: "cams", label: "Public road cameras · scene only", state: { fl: false, mg: false, nw: false, cam: true, c: "united states" } },
 ];
 /** Tour step for a globe-chapter line; without a live camera the tour stays on the news step instead of showing stills as live. */
 export function globeTourStep(line: number, hasLiveCam: boolean): number {
