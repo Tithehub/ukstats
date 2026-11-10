@@ -129,11 +129,11 @@ export function speakable(text: string): string {
     .replace(new RegExp(`\\b${MONTH_RE}\\.? (\\d{4})\\b`, "gi"), (m, mo, y) => { const n = monthNo(mo); return n ? `${MONTHS[n - 1]} ${sayYear(+y)}` : m; })
     .replace(/\b\d{9,}\b/g, "")
     // Leftover clock times and time-zone codes ("00:00Z", "0000Z", "12:00 UTC", "+00:00") — never read aloud.
-    .replace(/\s?[+-]\d{2}:?\d{2}\b(?![\d.,%])/g, "")
+    .replace(/\s?[+-](?:0\d|1[0-4]):?(?:00|30|45)\b(?![\d.,%])/g, "")
     .replace(/\b\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\s*(?:Z|UTC|GMT)?\b/gi, "")
     .replace(/\b\d{4}\s?Z\b/g, "")
     .replace(/(\d)Z\b/g, "$1")
-    .replace(/\(\s*\)/g, "").replace(/\s+([.,])/g, "$1").replace(/\s{2,}/g, " ").trim();
+    .replace(/\(\s*\)/g, "").replace(/\s+([.,;])/g, "$1").replace(/\s{2,}/g, " ").trim();
   // Safety net: drop any sentence that still looks like a time code or a run of zeros.
   return cleaned.split(/(?<=[.!?])\s+/).filter((x) => !BAD_CODE.test(x)).join(" ").trim();
 }
