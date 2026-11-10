@@ -32,7 +32,7 @@ export const UK_HOUR: { id: string; base: string; alt?: string; odd?: string; mi
   { id: "safest", base: "safest", min: 1 },
   { id: "online-speech", base: "online-speech", min: 0.75 },
   { id: "flights", base: "flights", min: 1 },
-  { id: "warnings", base: "warnings", min: 1 },
+  { id: "warnings", base: "warnings", min: 1.25 },
   { id: "recap", base: "boats", min: 2, title: "Recap — small boats and the hour's key figures", headline: true },
 ];
 
