@@ -51,9 +51,6 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       } else if (statusRef.current === "miming" || (statusRef.current === "speaking" && !a)) {
         target = Math.max(0, Math.sin(t / 95) * 0.5 + Math.sin(t / 37) * 0.35 + 0.15);
       }
-      // Recording hook: a frame-by-frame capture sets the mouth from the voice track it lays underneath.
-      const forced = (window as unknown as { __orbitMouth?: number }).__orbitMouth;
-      if (typeof forced === "number") { if (mouth.current) mouth.current.style.opacity = forced.toFixed(2); raf = requestAnimationFrame(tick); return; }
       level.current += (target - level.current) * 0.45;
       if (mouth.current) mouth.current.style.opacity = level.current.toFixed(2);
       raf = requestAnimationFrame(tick);
@@ -94,7 +91,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
 
-  const label = typeof window !== "undefined" && typeof (window as unknown as { __orbitMouth?: number }).__orbitMouth === "number" ? "Speaking" : !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : status === "miming" ? "Reading on screen" : "Listening";
+  const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : status === "miming" ? "Reading on screen" : "Listening";
   const fit = "absolute inset-0 h-full w-full object-contain object-bottom";
   return <div className="relative h-full w-full">
     <div className="absolute inset-0 origin-bottom motion-safe:animate-[orbit-breathe_6s_ease-in-out_infinite] drop-shadow-[0_12px_30px_oklch(0_0_0/0.6)]">

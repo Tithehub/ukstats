@@ -275,9 +275,9 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
         <div className="h-[300px] w-[400px] origin-center scale-[2] my-[150px]"><OrbitSponsor rows={sponsors.map(sponsorSlide)} ms={sponsorBreakAt(pos.msIntoHour).msIntoBreak} /></div>
       </div>}
       {walk && <WalkthroughVideo msIn={walk.msInChapter} />}
-      <div className={walk ? "absolute bottom-[100px] right-[40px] z-[47] h-[430px] w-[350px] overflow-hidden rounded-xl border-2 border-electric-soft/70 bg-night shadow-2xl" : "absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]"}>{orbitAnchor}</div>
+      <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
-      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{walk ? null : tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={ex || promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
@@ -569,10 +569,10 @@ function WalkthroughVideo({ msIn }: { msIn: number }) {
     const v = ref.current; if (!v) return;
     const want = msIn / 1000;
     if (Math.abs(v.currentTime - want) > 0.6) v.currentTime = want;
-    if (v.paused && !(window as unknown as { __ukCapture?: boolean }).__ukCapture) void v.play().catch(() => {});
+    if (v.paused) void v.play().catch(() => {});
   }, [msIn]);
-  return <div className="absolute inset-x-0 top-0 bottom-[80px] z-[46] bg-night">
-    <video ref={ref} src={walkthroughVideo.url} muted playsInline preload="auto" className="size-full object-contain" aria-label="UKStats website walkthrough" />
-    <span className="absolute left-[54px] top-[44px] bg-destructive px-5 py-2 text-[30px] font-black text-destructive-foreground">UKSTATS · SITE TOUR</span>
+  return <div className="orbit-glass absolute right-[40px] top-[200px] z-[18] w-[880px] overflow-hidden rounded-xl border border-electric-soft/60 p-3 shadow-2xl">
+    <div className="mb-2 flex items-center gap-3"><span className="bg-destructive px-3 py-1 text-[20px] font-black text-destructive-foreground">SITE TOUR</span><span className="font-mono text-[18px] uppercase tracking-widest text-night-muted">ukstats.co.uk · A quick look around the site</span></div>
+    <video ref={ref} src={walkthroughVideo.url} muted playsInline preload="auto" className="aspect-video w-full rounded-md bg-night object-contain" aria-label="UKStats website walkthrough" />
   </div>;
 }
