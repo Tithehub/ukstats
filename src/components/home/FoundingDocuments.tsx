@@ -36,29 +36,23 @@ export function FoundingDocuments() {
       <p className="mt-1 text-sm text-muted-foreground">
         The UK has no single written constitution. These are the official texts at its core, published by The National Archives on legislation.gov.uk.
       </p>
-      <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {DOCS.map((d) => (
-          <li key={d.href} className="flex flex-col overflow-hidden rounded-lg border border-border hover:border-primary">
-            <a href={d.href} target="_blank" rel="noopener noreferrer" className="flex flex-1 flex-col">
-              {d.image ? (
-                <img src={d.image.src} alt={d.image.alt} width={800} height={600} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
-              ) : (
-                <div className="flex aspect-[4/3] w-full items-center justify-center bg-primary p-4 text-center">
-                  <span className="text-lg font-black text-primary-foreground">{d.title}</span>
-                </div>
+          <li key={d.href} className="flex h-full items-start gap-3 rounded-lg border border-border p-3 hover:border-primary">
+            {d.image ? (
+              <img src={d.image.src} alt={d.image.alt} width={56} height={56} loading="lazy" decoding="async" className="size-14 shrink-0 rounded object-cover" />
+            ) : (
+              <span aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded bg-primary font-mono text-xs font-bold text-primary-foreground">1689</span>
+            )}
+            <div className="min-w-0">
+              <a href={d.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 font-bold hover:text-primary">
+                {d.title} <ExternalLink className="size-4 shrink-0" />
+              </a>
+              <p className="mt-1 text-xs text-muted-foreground">{d.note}</p>
+              {d.image && (
+                <a href={d.image.creditHref} target="_blank" rel="noopener noreferrer" className="mt-1 block text-[10px] text-muted-foreground underline">Image: {d.image.credit}</a>
               )}
-              <span className="flex flex-col p-3">
-                <span className="flex items-center gap-1.5 font-bold">{d.title} <ExternalLink className="size-4 shrink-0" /></span>
-                <span className="mt-1 text-xs text-muted-foreground">{d.note}</span>
-              </span>
-            </a>
-            <p className="px-3 pb-2 text-[10px] text-muted-foreground">
-              {d.image ? (
-                <a href={d.image.creditHref} target="_blank" rel="noopener noreferrer" className="underline">Image: {d.image.credit}</a>
-              ) : (
-                "No openly licensed image of the original found"
-              )}
-            </p>
+            </div>
           </li>
         ))}
       </ul>
