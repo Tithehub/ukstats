@@ -55,3 +55,14 @@ describe("spoken dates", () => {
     expect(line).not.toMatch(/T\d{2}:|\.000Z|\d{4}-\d{2}-\d{2}/);
   });
 });
+
+import { SCANDAL_IMAGES } from "./scandals.images";
+describe("scandals slot pictures", () => {
+  it("names each scandal read, with its own site picture or none", () => {
+    const seg = scandalsSegment();
+    expect(seg.scandals?.length).toBe(3);
+    expect(seg.script?.length).toBe(6);
+    expect(seg.scandals![0]!.slug).toBe("grooming-gangs");
+    expect(SCANDAL_IMAGES["grooming-gangs"]?.alt).toBe("Rotherham town centre");
+  });
+});

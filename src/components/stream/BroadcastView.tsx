@@ -1,3 +1,4 @@
+import { StreamScandalPanel } from "./StreamScandalPanel";
 import { FEATURED_STORY } from "@/lib/featured-story.data";
 import type { StreamBrand } from "@/components/stream/stream-brand";
 import { useQuery } from "@tanstack/react-query";
@@ -286,7 +287,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       {walk && <WalkthroughVideo msIn={walk.msInChapter} />}
       <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
-      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{walk ? null : tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
+      <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{walk ? null : tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : seg?.scandals?.length ? <StreamScandalPanel seg={seg} lineIndex={Math.max(0, reads.indexOf(orbitLine))} /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={ex || promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
       <div className="absolute inset-x-0 bottom-0 z-40 h-[80px]"><OrbitTicker items={orbitTicker} clock={now ? london(now, { hour: "2-digit", minute: "2-digit" }) : ""} /></div>
     </> : layout === "landscape" ? (variant === "classic" ? <>
@@ -297,7 +298,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <aside data-fit className={`absolute right-0 top-[192px] z-30 flex h-[664px] w-[680px] flex-col gap-4 overflow-hidden border-l-2 border-night-line bg-night-panel p-5`}>
         {six}
         {fresh}
-        <div className="min-h-0 flex-1">{figure}</div>
+        <div className="min-h-0 flex-1">{seg?.scandals?.length ? <StreamScandalPanel seg={seg} lineIndex={step % Math.max(1, reads.length)} /> : figure}</div>
       </aside>
       <div className="absolute left-[620px] top-[222px] z-30 h-[450px] w-[420px]">{anchor}</div>
       <div className="absolute left-[1056px] top-[212px] z-30">{qr}</div>
