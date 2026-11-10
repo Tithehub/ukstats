@@ -23,6 +23,10 @@ export const BANNER_EXTENSIONS = ["jpg", "jpeg", "png", "webp"] as const;
 export const BANNER_REQUIREMENTS =
   "A wide banner: 3 wide to 1 tall, at least 1536×512, jpg, png or webp, under 2MB.";
 
+/** The live-stream sponsor box is 400x300 on a 1920x1080 broadcast. */
+export const STREAM_PICTURE_TIP =
+  "For the live stream: 1200×900 (4 wide to 3 tall, at least 800×600). Keep the left side plain or dark — the title and QR code sit there; put your logo and main subject on the right.";
+
 export const CANT_READ_MESSAGE = "We couldn't read that picture. Please send a jpg, png or webp file.";
 export const TOO_BIG_MESSAGE = "That picture is too big — please send one under 2MB.";
 
