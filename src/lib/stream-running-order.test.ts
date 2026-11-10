@@ -22,11 +22,9 @@ describe("UK hour running order", () => {
     expect(a).toContain("education"); expect(a).not.toContain("happiest");
     expect(b).toContain("happiest"); expect(b).not.toContain("education");
   });
-  it("scandals carry no figures and point to the site", () => {
-    const s = scandalsSegment();
-    expect(s.cards).toHaveLength(0);
-    expect(s.script!.join(" ")).not.toMatch(/\d/);
-    expect(s.script!.some((l) => l.includes("ukstats.co.uk"))).toBe(true);
+  it("scandals are website-only: never on our own stream", () => {
+    for (const h of [0, 1, 3, 4]) expect(buildUkHour(own, h).map((s) => s.seg.id)).not.toContain("scandals");
+    expect(own.map((s) => s.id)).not.toContain("scandals");
   });
   it("every slot is voiced", () => {
     for (const s of buildUkHour(own)) expect(readingList(s.seg).length).toBeGreaterThan(0);
