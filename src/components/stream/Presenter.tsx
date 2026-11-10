@@ -28,12 +28,13 @@ function fetchLine(text: string) {
 }
 
 /** AI presenter box: reads the current card's line without cutting off mid-sentence; always labelled as AI. */
-export function Presenter({ line, upcoming = [], voice }: { line: string; upcoming?: string[]; voice: boolean }) {
+export function Presenter({ line, upcoming = [], voice, onBusy }: { line: string; upcoming?: string[]; voice: boolean; onBusy?: (speaking: boolean) => void }) {
   const [status, setStatus] = useState<Status>("idle");
   const [miming, setMiming] = useState(false);
   const busy = useRef(false);
   const cur = useRef<(() => void) | null>(null);
   const gen = useRef(0);
+  const busyCb = useRef(onBusy); busyCb.current = onBusy;
   const latest = useRef(line);
   const lastSpoken = useRef("");
   latest.current = line;
@@ -65,17 +66,17 @@ export function Presenter({ line, upcoming = [], voice }: { line: string; upcomi
       const a = new Audio(`data:audio/wav;base64,${b64}`);
       let done = false;
       const finish = () => {
-        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok);
+        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok); busyCb.current?.(false);
         busy.current = false; setStatus("idle");
         { const n = nextLine(); if (n) void speak(n); }
       };
       // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
       const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
       a.onended = finish; a.onerror = finish;
-      const stopA = () => { done = true; window.clearTimeout(guard); a.onended = null; a.onerror = null; a.pause(); };
+      const stopA = () => { busyCb.current?.(false); done = true; window.clearTimeout(guard); a.onended = null; a.onerror = null; a.pause(); };
       const tok = claimVoice(stopA);
       cur.current = () => { stopA(); releaseVoice(tok); };
-      try { await a.play(); if (g !== gen.current) { stopA(); releaseVoice(tok); return; } setStatus("speaking"); }
+      try { await a.play(); if (g !== gen.current) { stopA(); releaseVoice(tok); return; } setStatus("speaking"); busyCb.current?.(true); }
       catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     /** No sound available: she still visibly reads the on-screen line, timed to its length. */

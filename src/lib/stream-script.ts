@@ -132,7 +132,19 @@ export function speakable(text: string): string {
 }
 
 /** How long a line stays on screen: its speaking time (~2.6 words/s plus a breath), at least 6s. */
-export const lineMs = (text: string) => Math.max(6_000, Math.round((text.split(/\s+/).filter(Boolean).length / 2.6) * 1000) + 900);
+/** Words as she actually says them: dates become words, figures like "£2.8tn" or "12.5%" take several words each. */
+export function spokenWords(text: string): number {
+  return speakable(text).split(/\s+/).filter(Boolean)
+    .reduce((n, w) => n + (/\d/.test(w) ? Math.max(2, Math.ceil(w.replace(/\D/g, "").length / 1.5)) + (/[£$€%]|bn|tn|m\b/i.test(w) ? 1 : 0) : 1), 0);
+}
+/** How long a line stays on screen: its spoken length at a newsreader pace (~2.2 words/s) plus a pause, at least 6s. */
+export const lineMs = (text: string) => Math.max(6_000, Math.round((spokenWords(text) / 2.2) * 1000) + 1_200);
+
+export type LineHold = { segId: string; step: number; since: number };
+/** Screen waits for the voice: while she's still speaking the held line stays up (max capMs), then the clock position resumes. */
+export function heldStep(clockStep: number, segId: string, hold: LineHold | null, speaking: boolean, nowMs: number, capMs = 25_000): number {
+  return hold && speaking && hold.segId === segId && nowMs - hold.since < capMs ? hold.step : clockStep;
+}
 
 /** Which line is on screen ms into a slot. Screen and voice both follow this, so they can't drift; the list repeats if the slot outlasts it. */
 export function lineAt(reads: string[], msIn: number): { index: number; msInLine: number } {
