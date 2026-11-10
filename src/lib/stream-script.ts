@@ -18,7 +18,10 @@ export function scriptForCard(card: StreamCard | null, deep = false): string {
   const next = deep ? spokenDate(card.nextDue) : null;
   if (pub) parts.push(`Published ${pub}.`);
   if (next) parts.push(`Next update due ${next}.`);
-  return parts.join(" ").slice(0, deep ? 700 : 480);
+  // The voice accepts 400 characters; keep whole sentences within that so no line is cut mid-word.
+  let out = "";
+  for (const s of parts) { const next = out ? `${out} ${s}` : s; if (next.length > 400) break; out = next; }
+  return out || parts.join(" ").slice(0, 400);
 }
 
 /** Year-on-year line from two published figures in the same series; never estimated. */

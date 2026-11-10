@@ -15,6 +15,8 @@ function fetchLine(text: string) {
     const once = () => speakLine({ data: { text, voiceKey: voiceKey ?? null } }).then((r) => { unauthorised = r.error === "Not authorised"; return r.audio; }).catch(() => null);
     // One retry so a single failed clip doesn't leave a silent gap on air.
     p = once().then((a) => a ?? (unauthorised ? null : once()));
+    // Watchdog: a voice request that never answers must not freeze the presenter.
+    p = Promise.race([p, new Promise<null>((r) => setTimeout(() => r(null), 30_000))]);
     p.then((a) => { if (!a) cache.delete(text); });
     if (cache.size > 60) cache.delete(cache.keys().next().value!);
     cache.set(text, p);
@@ -91,11 +93,16 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
         src.connect(an); an.connect(ctx.destination);
         analyser.current = an;
       } catch { analyser.current = null; }
-      el.onended = () => {
+      let done = false;
+      const finish = () => {
+        if (done) return; done = true; window.clearTimeout(guard);
         busy.current = false; analyser.current = null; setStatus("idle");
         { const n = nextLine(); if (n) void speak(n); }
       };
-      try { await el.play(); setStatus("speaking"); said.current?.(text); } catch { setStatus("blocked"); mime(text); }
+      // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
+      const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
+      el.onended = finish; el.onerror = finish;
+      try { await el.play(); setStatus("speaking"); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
