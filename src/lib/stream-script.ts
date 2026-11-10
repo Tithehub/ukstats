@@ -56,3 +56,20 @@ export function scriptForPromo(sponsorNames: string[]): string[] {
     "Back to the figures.",
   ];
 }
+
+/** Sponsor break: one line per 10s card, naming the sponsor on screen verbatim with their web address. No claims about them, no figures. */
+export const SPONSOR_CARD_MS = 10_000;
+export function scriptForSponsorBreak(rows: { name: string; label: string }[], msIntoBreak: number, breakMs = 60_000): { line: string; upcoming: string[] } | null {
+  const list = rows.filter((r) => r.name.trim());
+  if (!list.length) return null;
+  const slots = Math.max(1, Math.ceil(breakMs / SPONSOR_CARD_MS));
+  const lineAt = (i: number) => {
+    const r = list[i % list.length]!;
+    let s = `${r.name.trim()} — visit ${r.label}. Scan the code on screen.`;
+    if (i === 0) s = `This break is brought to you by our sponsors. ${s}`;
+    if (i === slots - 1) s = `${s} Thank you to our sponsors. Sponsors never choose or change our figures. Want your business here? Visit ukstats.co.uk/sponsors.`;
+    return s;
+  };
+  const i = Math.min(slots - 1, Math.floor(msIntoBreak / SPONSOR_CARD_MS));
+  return { line: lineAt(i), upcoming: [i + 1, i + 2, i + 3].filter((j) => j < slots).map(lineAt) };
+}

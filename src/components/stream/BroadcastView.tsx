@@ -34,7 +34,7 @@ import { sceneFor } from "@/lib/stream-orbit";
 import { OrbitBackdrop } from "@/components/stream/OrbitBackdrop";
 import { OrbitStatsRail } from "@/components/stream/OrbitStatsRail";
 import { checkedLabel, keyFigures } from "@/lib/stream-extras";
-import { scriptForCard, readingList, scriptForPromo } from "@/lib/stream-script";
+import { scriptForCard, readingList, scriptForPromo, scriptForSponsorBreak } from "@/lib/stream-script";
 import { itemForSpoken } from "@/lib/stream-sync";
 import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { regionFromPath, sponsorsForRegion, type SponsorBannerRow } from "@/lib/sponsor-visibility";
@@ -199,6 +199,8 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const promo = brand || ex ? { active: false, msIntoPromo: 0 } : promoAt(pos.msIntoHour);
   const promoLines = scriptForPromo(sponsors.map((r) => r.name));
   const promoStep = Math.min(promoLines.length - 1, Math.floor(promo.msIntoPromo / (PROMO_MS / promoLines.length)));
+  const sb = brand ? null : sponsorBreakAt(pos.msIntoHour);
+  const sbVoice = sb?.active ? scriptForSponsorBreak(sponsors.map(sponsorSlide), sb.msIntoBreak) : null;
   const reads0 = readingList(seg);
   // Pointer slots read each line once and hold the last one, so short sections never loop.
   const held = seg?.pointer && reads0.length ? reads0[Math.min(step, reads0.length - 1)]! : null;
@@ -210,13 +212,15 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
   const onSpeak = useCallback((text: string) => setSpoken((o) => ({ text, country: live.current.reads.includes(text) ? live.current.country : o.country })), []);
   const anchor = brand?.presenter === "self"
     ? <SelfPresenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} name={brand.presentedBy ?? brand.name} />
+    : sbVoice
+    ? <Presenter line={sbVoice.line} upcoming={sbVoice.upcoming} voice={voice} />
     : promo.active
     ? <Presenter line={promoLines[promoStep]!} upcoming={promoLines.slice(promoStep + 1, promoStep + 4)} voice={voice} />
     : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? lineQueue : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
   const walk = ex?.chapter.id === "walkthrough" ? ex : null;
   const noCamLine = !!ex0 && tourOn && !liveCam && GLOBE_TOUR[ex0.line]?.key === "cams";
-  const orbitLine = ex0 ? (noCamLine ? GLOBE_NO_CAM_LINE : ex0.chapter.lines[ex0.line]!) : promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
-  const orbitUp = ex0 ? ex0.chapter.lines.slice(ex0.line + 1) : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : lineQueue;
+  const orbitLine = ex0 ? (noCamLine ? GLOBE_NO_CAM_LINE : ex0.chapter.lines[ex0.line]!) : sbVoice ? sbVoice.line : promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
+  const orbitUp = ex0 ? ex0.chapter.lines.slice(ex0.line + 1) : sbVoice ? sbVoice.upcoming : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : lineQueue;
   const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} onSpeak={onSpeak} />;
   const orbitItem = itemForSpoken(seg, reads, spoken.text, step);
   const globeCountry = ex ? ex.country ?? "united kingdom" : spoken.country ?? seg?.country ?? "united kingdom";
@@ -273,7 +277,7 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div aria-hidden className="orbit-studio-rail absolute inset-x-0 bottom-[167px] z-[13] h-[26px]" />
       <div className="absolute left-[54px] top-[44px] z-40 flex h-[62px] overflow-hidden border border-night-fg/20 shadow-lg"><span className="flex items-center bg-destructive px-5 text-[36px] font-black text-destructive-foreground">UKSTATS</span><span className="orbit-glass relative flex items-center gap-3 px-5 text-[36px] font-black"><span className="size-2 rounded-full bg-destructive motion-safe:animate-pulse" />LIVE</span></div>
       <div className="absolute right-8 top-8 z-40 text-right font-mono text-[18px] uppercase leading-snug tracking-widest text-night-muted">{clock}<br />{wc ? "Around the world" : "UK hour"} · Official sources</div>
-      <div className="orbit-tuck absolute left-[54px] top-[168px] z-[15] w-[400px]"><OrbitNextUp now={ex ? `About UKStats · ${ex.chapter.title}` : promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
+      <div className="orbit-tuck absolute left-[54px] top-[168px] z-[15] w-[400px]"><OrbitNextUp now={ex ? `About UKStats · ${ex.chapter.title}` : sbVoice ? "Sponsor break" : promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
       {slides.length > 0 && <div className="absolute bottom-[176px] left-[54px] z-[15] h-[300px] w-[400px] orbit-tilt-left orbit-tuck"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
       {!brand && sponsors.length > 0 && sponsorBreakAt(pos.msIntoHour).active && <div className="absolute inset-x-0 top-0 bottom-[80px] z-[45] flex flex-col items-center justify-center gap-8 bg-night/90 backdrop-blur-md">
         <p className="font-mono text-[28px] uppercase tracking-[0.3em] text-electric-soft">Supported by</p>
