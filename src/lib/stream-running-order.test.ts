@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildRundown, scandalsSegment } from "./stream-rundown";
 import { buildUkHour, SPONSOR_BREAK_MS, SPONSOR_BREAK_STARTS } from "./stream-schedule";
-import { readingList } from "./stream-script";
+import { readingList, scriptForCard } from "./stream-script";
 import type { Metric } from "./uk-stats";
 
 const m = (id: string, title: string): Metric => ({ id, title, value: "£1bn", status: "ok", category: "Finance", source: "ONS", period: "2025", asOf: null, nextDue: null, sub: null } as unknown as Metric);
@@ -34,5 +34,14 @@ describe("UK hour running order", () => {
   it("rented channels get no scandals or site sections", () => {
     const ids = buildRundown({ ...base, metrics: [] }).map((s) => s.id);
     expect(ids).not.toContain("scandals"); expect(ids).not.toContain("gold");
+  });
+});
+
+describe("UK part 2 goes deeper", () => {
+  it("reads the card's period, publication and next-release dates", () => {
+    const card = { kicker: "", title: "Net debt", value: "£2.8tn", sub: null, source: "ONS", period: "Sep 2026", asOf: "21 Oct 2026", nextDue: "21 Nov 2026", metric: null };
+    const deep = scriptForCard(card, true);
+    expect(deep).toContain("Sep 2026"); expect(deep).toContain("21 Oct 2026"); expect(deep).toContain("21 Nov 2026");
+    expect(scriptForCard(card)).not.toContain("21 Nov 2026");
   });
 });

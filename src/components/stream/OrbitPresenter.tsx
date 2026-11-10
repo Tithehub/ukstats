@@ -4,6 +4,7 @@ import open from "@/assets/stream/orbit-presenter-open-clean.png";
 import { speakLine } from "@/lib/speech.functions";
 import { readVoiceKey } from "@/lib/voice-key";
 
+const BRIDGE = "Full figures, sources and dates are on ukstats.co.uk.";
 const cache = new Map<string, Promise<string | null>>();
 let voiceKey: string | null | undefined;
 let unauthorised = false;
@@ -40,7 +41,9 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
   const queue = useRef<string[]>([]); queue.current = upcoming;
   const recent = useRef<string[]>([]);
   /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
-  const nextLine = () => latest.current !== lastSpoken.current ? latest.current : queue.current.find((t) => t && !recent.current.includes(t)) ?? null; statusRef.current = status;
+  const nextLine = () => !recent.current.includes(latest.current) ? latest.current
+    : queue.current.find((t) => t && !recent.current.includes(t))
+    ?? (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE); statusRef.current = status;
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 

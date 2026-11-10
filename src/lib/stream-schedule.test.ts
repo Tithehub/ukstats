@@ -52,3 +52,17 @@ describe("stream schedule", () => {
     expect(s.cards.map((c) => c.title)).toEqual(["GDP"]);
   });
 });
+
+describe("three-hour cycle", () => {
+  it("runs UK part 1, UK part 2, then world", () => {
+    const base = positionAt(new Date("2026-11-04T00:10:00Z")).hourIndex;
+    const seq = [0, 1, 2, 3].map((h) => { const p = positionAt(new Date(Date.UTC(2026, 10, 4, h, 10))); return { m: p.mode, part: p.ukPart, c: p.hourIndex % 3 }; });
+    for (const s of seq) expect(s.m).toBe(s.c === 2 ? "world" : "uk");
+    for (const s of seq) if (s.c !== 2) expect(s.part).toBe(s.c === 0 ? 1 : 2);
+    expect(typeof base).toBe("number");
+  });
+  it("keeps sponsor breaks at :15:40 and :45:40 in every hour", () => {
+    expect(sponsorBreakAt(15 * 60_000 + 41_000).active).toBe(true);
+    expect(sponsorBreakAt(45 * 60_000 + 41_000).active).toBe(true);
+  });
+});
