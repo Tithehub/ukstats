@@ -40,7 +40,7 @@ export function FoundingDocuments() {
       <p className="mt-1 text-sm text-muted-foreground">
         The UK has no single written constitution. These are the official texts at its core, published by The National Archives on legislation.gov.uk.
       </p>
-      <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-4 grid items-start gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {DOCS.map((d) => (
           <li key={d.href} className="flex h-full items-start gap-3 rounded-lg border border-border p-3 hover:border-primary">
             {d.image ? (
