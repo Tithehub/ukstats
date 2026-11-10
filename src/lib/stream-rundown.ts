@@ -32,6 +32,8 @@ export interface Segment {
   background?: boolean;
   /** Site-section pointers: each line is read once, then the last is held — never looped. */
   pointer?: boolean;
+  /** Scandals slot: the scandal each pair of script lines is about (for its site picture). */
+  scandals?: { slug: string; title: string; status: string }[];
 }
 
 export const UK = "united kingdom";
@@ -188,11 +190,13 @@ export function topScandals(n = 3): Scandal[] {
 }
 /** Background segment: short voiced explainers from official summaries, no figures, ending with a pointer to the site. */
 export function scandalsSegment(n = 3): Segment {
-  const lines = topScandals(n).flatMap((s) => {
+  const top = topScandals(n);
+  const lines = top.flatMap((s) => {
     const first = s.summary.split(/(?<=\.)\s/)[0] ?? s.summary;
     const text = first.replace(/\d[\d,.]*\s*(%|per cent|million|billion|bn|m\b)?/gi, "").replace(/\s{2,}/g, " ");
     return [`Background, not official statistics. ${s.title}. ${/\d/.test(first) ? s.status + "." : text}`, `Status: ${s.status}. For an in-depth look, go to ukstats.co.uk slash scandals.`];
   });
   return { id: "scandals", title: "Inquiry & scandals — background", country: UK, topic: "news", background: true,
-    layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [], script: lines };
+    layers: { fl: false, mg: false, nw: false }, cards: [], headlines: [], script: lines,
+    scandals: top.map((s) => ({ slug: s.slug, title: s.title, status: s.status })) };
 }
