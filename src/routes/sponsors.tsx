@@ -2,7 +2,6 @@ import { getSponsorBannerBoard } from "@/lib/banner.functions";
 import { reachKind, rowRegions } from "@/lib/sponsor-regions";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { visibleSponsors, type SponsorVisibilityRow } from "@/lib/sponsor-visibility";
 import { SiteHeader } from "@/components/layout/SiteHeader";

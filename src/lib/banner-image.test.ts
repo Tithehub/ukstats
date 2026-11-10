@@ -88,3 +88,22 @@ describe("the banner rule a sponsor's picture must pass", () => {
     );
   });
 });
+
+import { pictureProblem, PICTURE_SPECS } from "./banner-image";
+describe("sponsor logo and stream picture rules", () => {
+  const png = (width: number, height: number) => ({ width, height, format: "png" as const });
+  it("logo must be square and at least 500×500, up to 1 MB", () => {
+    expect(pictureProblem("logo", png(1000, 1000), 500_000)).toBeNull();
+    expect(pictureProblem("logo", png(400, 400), 100_000)).not.toBeNull();
+    expect(pictureProblem("logo", png(1000, 600), 100_000)).not.toBeNull();
+    expect(pictureProblem("logo", png(1000, 1000), 1024 * 1024 + 1)).not.toBeNull();
+    expect(PICTURE_SPECS.logo.maxBytes).toBe(1024 * 1024);
+  });
+  it("stream picture must be 4:3 and at least 800×600, up to 2 MB", () => {
+    expect(pictureProblem("stream", png(1200, 900), 1_000_000)).toBeNull();
+    expect(pictureProblem("stream", png(800, 600), 1_000_000)).toBeNull();
+    expect(pictureProblem("stream", png(640, 480), 1_000_000)).not.toBeNull();
+    expect(pictureProblem("stream", png(1600, 900), 1_000_000)).not.toBeNull();
+    expect(pictureProblem("stream", png(1200, 900), 2 * 1024 * 1024 + 1)).not.toBeNull();
+  });
+});
