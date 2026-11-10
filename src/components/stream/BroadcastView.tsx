@@ -458,7 +458,7 @@ function sponsorSlide(r: SponsorBannerRow): CornerSlide {
   return { id: r.id, name: r.name, streamImg: STREAM_PICTURES[site.label.replace(/^www\./, "")] ?? null, img: r.banner_link ?? (r.banner_path ? null : r.banner_url), label: site.label, qr: site.qr, tag: "Supported by" };
 }
 
-const utm = (u: string) => { const x = new URL(u); x.searchParams.set("utm_source", "youtube"); x.searchParams.set("utm_medium", "ukstats_stream"); return x.toString(); };
+const utm = (u: string) => { const x = new URL(u); x.searchParams.set("ref", "ukstats_stream"); return x.toString(); };
 /** Independent works (not sponsors) shown only on the UKStats stream; links only, no figures. */
 const RECOMMENDED_SLIDES: CornerSlide[] = [
   { id: "rec-inquiry", name: "The Rape Gang Inquiry", img: null, label: "therapeganginquiry.org", qr: utm("https://www.therapeganginquiry.org/"), tag: "Recommended" },
@@ -484,14 +484,14 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
     <div className="flex min-h-0 flex-1">
       <div className="relative z-10 flex w-[48%] flex-col p-4 pb-3">
         <span className="font-mono text-[12px] font-black uppercase tracking-widest text-sponsor-tag [text-shadow:0_1px_3px_rgb(0_0_0_/0.65)]">{r.tag}</span>
-        <p className="mt-1 line-clamp-4 text-[23px] font-black uppercase leading-[1.08] drop-shadow">{r.name}</p>
+        <p className="mt-1 line-clamp-2 text-[23px] font-black uppercase leading-[1.08] drop-shadow">{r.name}</p>
       </div>
       <div aria-hidden className="orbit-sponsor-img absolute inset-0 overflow-hidden">
         {(r.streamImg ?? r.img) ? <SponsorPicture src={(r.streamImg ?? r.img)!} /> : <span className="orbit-sponsor-fallback block h-full w-full" />}
       </div>
     </div>
-    <div className="relative z-10 mx-4 flex items-center gap-4 border-t border-night-fg/20 py-3">
-      <div className="shrink-0 rounded bg-stream-strap p-1"><QRCodeSVG value={r.qr} size={92} level="H" marginSize={1} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
+    <div className="relative z-10 mx-4 flex items-center gap-4 border-t border-night-fg/20 py-2">
+      <div className="orbit-qr-flat shrink-0 rounded bg-[#ffffff]"><QRCodeSVG value={r.qr} size={132} level="M" marginSize={4} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} /></div>
       <div className="min-w-0"><p className="text-[17px] font-black uppercase leading-tight">Scan to<br />discover more</p><p className="mt-1 break-all font-mono text-[13px] text-electric-soft">{r.label}</p></div>
     </div>
     <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
@@ -514,7 +514,7 @@ function StreamSponsors({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
       </div>
     </div>
     <div className="flex w-[196px] shrink-0 flex-col items-center justify-center gap-1 bg-[#ffffff] p-2 text-[#000000]">
-      <QRCodeSVG value={r.qr} size={164} level="H" marginSize={2} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} />
+      <QRCodeSVG value={r.qr} size={164} level="M" marginSize={4} bgColor="#ffffff" fgColor="#000000" aria-label={`QR code to ${r.label}`} />
       <span className="font-mono text-[13px] font-black uppercase">Scan to visit</span>
     </div>
     <div className="absolute bottom-0 left-0 h-[4px] bg-destructive" style={{ width: `${pct}%` }} />
@@ -526,7 +526,7 @@ function sponsorSite(url: string | null | undefined): { qr: string; label: strin
   try {
     const u = new URL(url ?? "");
     if (u.protocol !== "https:" && u.protocol !== "http:") throw 0;
-    u.searchParams.set("utm_source", "youtube"); u.searchParams.set("utm_medium", "ukstats_stream");
+    u.searchParams.set("ref", "ukstats_stream");
     return { qr: u.toString(), label: u.hostname };
   } catch { return { qr: SPONSOR_QR_URL, label: "ukstats.co.uk/sponsors" }; }
 }
