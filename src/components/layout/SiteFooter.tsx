@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { AtSign, Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2, Twitter } from "lucide-react";
+import { XIcon } from "@/components/layout/XIcon";
+import { AtSign, Bot, Github, Newspaper, CalendarDays, Building2, FileText, LayoutGrid, LifeBuoy, LogIn, Plug, PlusCircle, Rss, Table2 } from "lucide-react";
 import { SOCIAL_PROFILES } from "@/lib/social-profiles";
 import { SponsorStrip } from "@/components/SponsorStrip";
 import { SponsorBanner } from "@/components/sponsor/SponsorBanner";
 import { RestoreDedication } from "./RestoreDedication";
 
-const PROFILE_ICONS = { x: Twitter, bluesky: AtSign, mastodon: AtSign } as const;
+const PROFILE_ICONS = { x: XIcon, bluesky: AtSign, mastodon: AtSign } as const;
 
 const COLUMNS = [
   {
