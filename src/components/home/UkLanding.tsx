@@ -11,6 +11,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { LiveStreamPanel } from "@/components/LiveStreamPanel";
 import { IndependentWorksCta } from "@/components/home/IndependentWorksCta";
+import { FeaturedStory } from "@/components/home/FeaturedStory";
 import channel from "@/assets/uk-channel.jpg.asset.json";
 import fog from "@/assets/uk-fog.jpg.asset.json";
 import westminster from "@/assets/uk-westminster.jpg.asset.json";
@@ -136,6 +137,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
       </section>
       <p className="mt-2 font-mono text-[11px] text-muted-foreground">Red and yellow are the publisher's own warning levels.</p>
 
+      <FeaturedStory />
       <IndependentWorksCta />
 
       <section aria-label="Lead story" id="new-home-lead" className="relative mt-8 scroll-mt-20 overflow-hidden rounded-3xl border border-border">

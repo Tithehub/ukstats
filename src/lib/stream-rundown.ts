@@ -4,6 +4,7 @@ import type { Category, Metric } from "./uk-stats";
 import type { OfficialWarning } from "./unrest";
 import type { ReportItem } from "./news-reports";
 import type { CountryPayload } from "./countries";
+import type { FeaturedStory } from "./featured-story.data";
 
 export const CARD_MS = 9_000;
 
@@ -48,6 +49,8 @@ const warnHeadline = (w: OfficialWarning): Headline => ({ text: `${w.country}: $
 /** Topic segments for the UK; any topic without published figures is left out. */
 export function buildRundown(input: {
   metrics: Metric[]; warnings: OfficialWarning[]; reports: ReportItem[]; emergencyPlanes: number | null; now: Date;
+  /** Credited press story for the UK hour; omit for rented channels. */
+  featured?: FeaturedStory | null;
 }): Segment[] {
   const { metrics, now } = input;
   const recent = recentWarnings(input.warnings, now);
@@ -88,6 +91,10 @@ export function buildRundown(input: {
         sub: "Codes 7500 / 7600 / 7700 from live transponder feeds — not official", source: "ADS-B feeds (OpenSky / adsb.lol)",
         period: "Right now", asOf: now.toISOString(), nextDue: null, metric: null, live: true }],
       headlines: newsHeads.filter((h) => /plane|flight|aircraft|airport/i.test(h.text)).slice(0, 4),
+    } : null,
+    input.featured?.streamUk ? {
+      id: "featured", title: `In the news — ${input.featured.publisher}`, country: UK, topic: "news", layers: { fl: false, mg: false, nw: false },
+      cards: [], headlines: [{ text: input.featured.headline, publisher: input.featured.publisher, time: input.featured.published, official: false }],
     } : null,
     newsHeads.length ? {
       id: "news", title: "News & police reports", country: UK, topic: "news", layers: { fl: false, mg: false, nw: true },
