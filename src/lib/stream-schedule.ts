@@ -91,8 +91,16 @@ export const PROMO_EVERY_MS = 15 * MIN;
 export const PROMO_MS = 40_000;
 export function promoAt(msIntoHour: number): { active: boolean; msIntoPromo: number } {
   const m = msIntoHour % PROMO_EVERY_MS;
-  return { active: m < PROMO_MS, msIntoPromo: m };
+  return { active: m < PROMO_MS && !explainerAt(msIntoHour).active, msIntoPromo: m };
 }
+
+/** Hourly "About UKStats" explainer: starts at :30 London every hour (replaces the short :30 promo). */
+export const EXPLAINER_START = 30 * MIN;
+export function explainerAt(msIntoHour: number, length = EXPLAINER_LEN): { active: boolean; msIn: number } {
+  const d = msIntoHour - EXPLAINER_START;
+  return d >= 0 && d < length ? { active: true, msIn: d } : { active: false, msIn: 0 };
+}
+const EXPLAINER_LEN = 170_000;
 
 /** Full-screen sponsor break: 60s straight after the :15 and :45 "About UKStats" promo, every hour (UK and world). */
 export const SPONSOR_BREAK_MS = 60_000;
