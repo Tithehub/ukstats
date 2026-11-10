@@ -1,17 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { buildUkHour, HOUR_MS, positionAt, ukSlotAt, worldCountryAt } from "./stream-schedule";
+import { buildUkHour, HOUR_MS, positionAt, sponsorBreakAt, ukSlotAt, worldCountryAt } from "./stream-schedule";
 import { countrySegment, type Segment } from "./stream-rundown";
 
 const seg = (id: string): Segment => ({ id, title: id, country: "united kingdom", topic: id, layers: { fl: false, mg: false, nw: false }, cards: [{ kicker: "", title: id, value: "1", sub: null, source: "ONS", period: null, asOf: null, nextDue: null, metric: null }], headlines: [] });
 const all = ["boats", "economy", "cost", "crime", "nhs", "legal", "security", "flights", "news"].map(seg);
 
 describe("stream schedule", () => {
-  it("fills exactly one hour and opens on small boats as a major issue", () => {
+  it("fills exactly one hour, opens on headlines then small boats as a major issue", () => {
     const h = buildUkHour(all);
     expect(h[0]!.start).toBe(0);
     expect(h.at(-1)!.end).toBe(HOUR_MS);
-    expect(h[0]!.seg.id).toBe("boats-headline");
-    expect(h[0]!.seg.headline).toBe(true);
+    expect(h[0]!.seg.id).toBe("top-story");
+    expect(h[1]!.seg.id).toBe("boats-headline");
+    expect(h[1]!.seg.headline).toBe(true);
+  });
+  it("runs headlines again at half past when every topic is published", () => {
+    const full = [...all, ...["weather", "population", "housing", "politics", "warnings"].map(seg)];
+    const half = buildUkHour(full).find((s) => s.seg.id === "news-half")!;
+    expect(half.start).toBe(30 * 60_000);
+  });
+  it("cuts to a 60-second sponsor break after the :15 and :45 promo only", () => {
+    expect(sponsorBreakAt(15 * 60_000 + 40_000).active).toBe(true);
+    expect(sponsorBreakAt(45 * 60_000 + 99_000).active).toBe(true);
+    expect(sponsorBreakAt(16 * 60_000 + 40_000).active).toBe(false);
+    expect(sponsorBreakAt(30 * 60_000 + 50_000).active).toBe(false);
   });
   it("brings small boats back at least three times in the UK hour", () => {
     expect(buildUkHour(all).filter((s) => s.seg.topic === "boats").length).toBeGreaterThanOrEqual(3);
