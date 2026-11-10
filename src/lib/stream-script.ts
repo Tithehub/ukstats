@@ -79,8 +79,8 @@ export function scriptForSponsorBreak(rows: { name: string; label: string }[], m
   const lineAt = (i: number) => {
     const r = list[i % list.length]!;
     let s = `${r.name.trim()} — visit ${r.label}. Scan the code on screen.`;
-    if (i === 0) s = `This break is brought to you by our sponsors. ${s}`;
-    if (i === slots - 1) s = `${s} Thank you to our sponsors. Sponsors never choose or change our figures. Want your business here? Visit ukstats.co.uk/sponsors.`;
+    if (i === 0) s = `Brought to you by our sponsors. ${s}`;
+    if (i === slots - 1) s = `${r.name.trim()} — ${r.label}. Thank you to our sponsors, who never choose our figures.`;
     return s;
   };
   const i = Math.min(slots - 1, Math.floor(msIntoBreak / SPONSOR_CARD_MS));
