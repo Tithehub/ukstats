@@ -7,3 +7,4 @@
 - Public sponsor displays read only payments-env, never the Stripe SDK; this prevents payment scripts from loading on statistics-only pages.
 - The live stream (/globe/broadcast) shows sponsors only in its StreamSponsors corner box (same getSponsorBannerBoard records, UK region), never on figures, Top 6 or tickers — keeps paid placement away from the numbers on air.
 - Sponsor review profiles (sponsor_review_links) are plain outbound links validated by normaliseReviewUrl and shown only once admin-approved; never embed review-site scripts or display ratings we can't source officially.
+- Sponsor logos (square, ≥500, 1 MB) and live-stream pictures (4:3, ≥800×600, 2 MB) follow PICTURE_SPECS in src/lib/banner-image.ts, share the private sponsor-banners folder and are re-checked from bytes server-side; the stream prefers a sponsor's own stream picture and qr_url over the prepared STREAM_PICTURES — one rule set drives both the checks and the dashboard wording.
