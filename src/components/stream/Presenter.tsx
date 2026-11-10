@@ -33,16 +33,13 @@ export function Presenter({ line, upcoming = [], voice, onBusy }: { line: string
   const [miming, setMiming] = useState(false);
   const busy = useRef(false);
   const cur = useRef<(() => void) | null>(null);
-  const gen = useRef(0);
   const busyCb = useRef(onBusy); busyCb.current = onBusy;
   const latest = useRef(line);
   const lastSpoken = useRef("");
   latest.current = line;
   const queue = useRef<string[]>([]); queue.current = upcoming;
   const recent = useRef<string[]>([]);
-  /** Next line to say: the screen's line if it changed, else the next queued line not said recently — so the voice never sits silent. */
-  const nextLine = () => !recent.current.includes(latest.current) ? latest.current
-    : (recent.current.slice(0, 3).includes(BRIDGE) ? null : BRIDGE);
+
 
   useEffect(() => { if (voice) upcoming.forEach((t) => t && fetchLine(t)); }, [voice, upcoming.join("|")]);
 
