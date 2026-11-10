@@ -42,7 +42,8 @@ import { topSix, type TopBox } from "@/lib/stream-extras";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
 import { OrbitExplainer, OrbitTourKey } from "@/components/stream/OrbitExplainer";
-import { EXPLAINER_MS, explainerStep, GLOBE_TOUR, globeTourStep } from "@/lib/stream-explainer";
+import { EXPLAINER_MS, explainerStep, GLOBE_NO_CAM_LINE, GLOBE_TOUR, globeTourStep } from "@/lib/stream-explainer";
+import walkthroughVideo from "@/assets/stream/site_walkthrough_stream.mp4.asset.json";
 import { publicCamsQuery } from "@/lib/public-cams.functions";
 import { buildUkHour, cardStep, explainerAt, positionAt, promoAt, PROMO_MS, sponsorBreakAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
@@ -207,8 +208,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
     : promo.active
     ? <Presenter line={promoLines[promoStep]!} upcoming={promoLines.slice(promoStep + 1, promoStep + 4)} voice={voice} />
     : <Presenter line={reads.length ? reads[step % reads.length]! : scriptForCard(card)} upcoming={reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [reads[0] ?? ""].filter(Boolean)} voice={voice} />;
-  const orbitLine = ex ? ex.chapter.lines[ex.line]! : promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
-  const orbitUp = ex ? ex.chapter.lines.slice(ex.line + 1) : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
+  const walk = ex?.chapter.id === "walkthrough" ? ex : null;
+  const noCamLine = !!ex0 && tourOn && !liveCam && GLOBE_TOUR[ex0.line]?.key === "cams";
+  const orbitLine = ex0 ? (noCamLine ? GLOBE_NO_CAM_LINE : ex0.chapter.lines[ex0.line]!) : promo.active ? promoLines[promoStep]! : reads.length ? reads[step % reads.length]! : scriptForCard(card);
+  const orbitUp = ex0 ? ex0.chapter.lines.slice(ex0.line + 1) : promo.active ? promoLines.slice(promoStep + 1, promoStep + 4) : reads.length ? [1, 2, 3].map((i) => reads[(step + i) % reads.length]!) : [];
   const orbitAnchor = brand?.presenter === "self" ? anchor : <OrbitPresenter line={orbitLine} upcoming={orbitUp} voice={voice} onSpeak={onSpeak} />;
   const orbitItem = itemForSpoken(seg, reads, spoken.text, step);
   const globeCountry = ex ? ex.country ?? "united kingdom" : spoken.country ?? seg?.country ?? "united kingdom";
@@ -271,7 +274,8 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
         <p className="font-mono text-[28px] uppercase tracking-[0.3em] text-electric-soft">Supported by</p>
         <div className="h-[300px] w-[400px] origin-center scale-[2] my-[150px]"><OrbitSponsor rows={sponsors.map(sponsorSlide)} ms={sponsorBreakAt(pos.msIntoHour).msIntoBreak} /></div>
       </div>}
-      <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
+      {walk && <WalkthroughVideo msIn={walk.msInChapter} />}
+      <div className={walk ? "absolute bottom-[100px] right-[40px] z-[47] h-[430px] w-[350px] overflow-hidden rounded-xl border-2 border-electric-soft/70 bg-night shadow-2xl" : "absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]"}>{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
       <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{tour ? <OrbitTourKey step={tour} camPlace={tour.key === "cams" ? liveCam?.place ?? null : null} /> : ex ? <OrbitExplainer chapter={ex.chapter} index={ex.index} line={ex.line} msInChapter={ex.msInChapter} /> : !brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
       <div className="absolute bottom-[136px] left-[565px] z-40"><OrbitLowerThird tag={ex || promo.active ? "About UKStats" : wc ? "World" : "UK"} /></div>
@@ -557,3 +561,18 @@ function sponsorSite(url: string | null | undefined): { qr: string; label: strin
 const SPONSOR_QR_URL = "https://ukstats.co.uk/sponsors?utm_source=youtube&utm_medium=stream_sponsor";
 
 
+
+/** Site walkthrough (explainer chapter): the recorded light-mode tour, kept in step with the London clock. No figures are added. */
+function WalkthroughVideo({ msIn }: { msIn: number }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current; if (!v) return;
+    const want = msIn / 1000;
+    if (Math.abs(v.currentTime - want) > 0.6) v.currentTime = want;
+    if (v.paused && !(window as unknown as { __ukCapture?: boolean }).__ukCapture) void v.play().catch(() => {});
+  }, [msIn]);
+  return <div className="absolute inset-x-0 top-0 bottom-[80px] z-[46] bg-night">
+    <video ref={ref} src={walkthroughVideo.url} muted playsInline preload="auto" className="size-full object-contain" aria-label="UKStats website walkthrough" />
+    <span className="absolute left-[54px] top-[44px] bg-destructive px-5 py-2 text-[30px] font-black text-destructive-foreground">UKSTATS · SITE TOUR</span>
+  </div>;
+}
