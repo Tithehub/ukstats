@@ -7,21 +7,22 @@ export const HOUR_MS = 60 * MIN;
 export const COUNTRY_SLOT_MS = 5 * MIN;
 
 /** UK running order: base segment id, minutes, optional override title and headline flag. */
-export const UK_HOUR: { id: string; base: string; min: number; title?: string; headline?: boolean }[] = [
-  { id: "boats-headline", base: "boats", min: 8, title: "Irregular migration & small boats", headline: true },
-  { id: "economy", base: "economy", min: 7 },
-  { id: "cost", base: "cost", min: 7 },
-  { id: "boats-update", base: "boats", min: 5, title: "Small boats update — latest day & year so far", headline: true },
-  { id: "crime", base: "crime", min: 7 },
+export const UK_HOUR: { id: string; base: string; alt?: string; min: number; title?: string; headline?: boolean }[] = [
+  { id: "top-story", base: "featured", alt: "news", min: 2, title: "Top story & headlines" },
+  { id: "boats-headline", base: "boats", min: 6, title: "Irregular migration & small boats", headline: true },
+  { id: "economy", base: "economy", min: 6, title: "Debt & economy" },
+  { id: "weather", base: "weather", min: 2 },
+  { id: "cost", base: "cost", min: 8 },
+  { id: "crime", base: "crime", min: 6 },
+  { id: "news-half", base: "news", min: 3, title: "Headlines at half past" },
   { id: "nhs", base: "nhs", min: 6 },
-  { id: "legal", base: "legal", min: 6 },
+  { id: "legal", base: "legal", min: 3 },
   { id: "population", base: "population", min: 3 },
   { id: "housing", base: "housing", min: 3 },
-  { id: "security", base: "security", min: 5 },
+  { id: "security", base: "security", min: 3, title: "Defence & terror threat" },
   { id: "politics", base: "politics", min: 3 },
-  { id: "weather", base: "weather", min: 3 },
-  { id: "flights", base: "flights", min: 2.5 },
-  { id: "news", base: "news", min: 2.5 },
+  { id: "flights", base: "flights", min: 1 },
+  { id: "warnings", base: "warnings", min: 1 },
   { id: "recap", base: "boats", min: 4, title: "Recap — small boats and the hour's key figures", headline: true },
 ];
 
@@ -32,7 +33,7 @@ export function buildUkHour(segments: Segment[]): Slot[] {
   const by = new Map(segments.map((s) => [s.id, s]));
   const recapExtra = segments.filter((s) => s.id !== "boats" && s.cards.some((c) => c.metric)).map((s) => s.cards[0]!).slice(0, 3);
   const picked = UK_HOUR.flatMap((t) => {
-    const base = by.get(t.base);
+    const base = by.get(t.base) ?? (t.alt ? by.get(t.alt) : undefined);
     if (!base) return [];
     const cards: StreamCard[] = t.id === "recap" ? [...base.cards.slice(0, 3), ...recapExtra] : base.cards;
     return [{ t, seg: { ...base, id: t.id, title: t.title ?? base.title, headline: t.headline ?? false, cards } }];
@@ -90,4 +91,12 @@ export const PROMO_MS = 40_000;
 export function promoAt(msIntoHour: number): { active: boolean; msIntoPromo: number } {
   const m = msIntoHour % PROMO_EVERY_MS;
   return { active: m < PROMO_MS, msIntoPromo: m };
+}
+
+/** Full-screen sponsor break: 60s straight after the :15 and :45 "About UKStats" promo, every hour (UK and world). */
+export const SPONSOR_BREAK_MS = 60_000;
+export const SPONSOR_BREAK_STARTS = [15 * MIN + PROMO_MS, 45 * MIN + PROMO_MS];
+export function sponsorBreakAt(msIntoHour: number): { active: boolean; msIntoBreak: number } {
+  for (const s of SPONSOR_BREAK_STARTS) if (msIntoHour >= s && msIntoHour < s + SPONSOR_BREAK_MS) return { active: true, msIntoBreak: msIntoHour - s };
+  return { active: false, msIntoBreak: 0 };
 }

@@ -40,7 +40,7 @@ import { regionFromPath, sponsorsForRegion, type SponsorBannerRow } from "@/lib/
 import { topSix, type TopBox } from "@/lib/stream-extras";
 import { smallBoatsQuery } from "@/lib/small-boats.functions";
 import { boatsYearMetric, countdown, justPublished, upcomingReleases } from "@/lib/stream-extras";
-import { buildUkHour, cardStep, positionAt, promoAt, PROMO_MS, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
+import { buildUkHour, cardStep, positionAt, promoAt, PROMO_MS, sponsorBreakAt, ukSlotAt, worldCountryAt } from "@/lib/stream-schedule";
 
 export const statsQuery = { queryKey: ["uk-stats"], queryFn: () => getUkStats() as Promise<StatsPayload>, staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 };
 const ALL_WORLD = COUNTRIES.map((c) => ({ code: c.code, key: c.name.toLowerCase() }));
@@ -249,6 +249,10 @@ export function BroadcastView({ layout, brand, variant = "classic", watermark }:
       <div className="absolute right-8 top-8 z-40 text-right font-mono text-[18px] uppercase leading-snug tracking-widest text-night-muted">{clock}<br />{wc ? "Around the world" : "UK hour"} · Official sources</div>
       <div className="orbit-tuck absolute left-[54px] top-[168px] z-[15] w-[400px]"><OrbitNextUp now={promo.active ? "About UKStats" : seg?.title ?? "Official UK statistics"} items={orbitNext} /></div>
       {slides.length > 0 && <div className="absolute bottom-[176px] left-[54px] z-[15] h-[300px] w-[400px] orbit-tilt-left orbit-tuck"><OrbitSponsor rows={slides} ms={pos.msIntoHour} /></div>}
+      {!brand && sponsors.length > 0 && sponsorBreakAt(pos.msIntoHour).active && <div className="absolute inset-x-0 top-0 bottom-[80px] z-[45] flex flex-col items-center justify-center gap-8 bg-night/90 backdrop-blur-md">
+        <p className="font-mono text-[28px] uppercase tracking-[0.3em] text-electric-soft">Supported by</p>
+        <div className="h-[300px] w-[400px] origin-center scale-[2] my-[150px]"><OrbitSponsor rows={sponsors.map(sponsorSlide)} ms={sponsorBreakAt(pos.msIntoHour).msIntoBreak} /></div>
+      </div>}
       <div className="absolute bottom-[137px] left-[325px] z-20 h-[890px] w-[730px] origin-bottom motion-safe:animate-[orbit-head_9s_ease-in-out_infinite]">{orbitAnchor}</div>
       <div aria-hidden className="orbit-desk absolute inset-x-0 bottom-[80px] z-[21] h-[91px] border-t border-electric-soft/60"><div className="orbit-desk-reflection absolute inset-x-0 top-0 h-full" /><div className="orbit-desk-paper absolute bottom-[38px] left-[580px] h-[12px] w-[285px]" /></div>
       <div className="absolute right-[54px] top-[250px] z-30 flex w-[590px] flex-col gap-4">{!brand && promo.active ? <PromoCard /> : <><OrbitHeroCard seg={seg} scene={sceneFor(seg)} step={step} place={wc ? countryName(wc.code) : "UK"} item={orbitItem} />{wc ? <OrbitMiniTiles seg={seg} step={step} /> : <OrbitStatsRail items={keyFigures(metrics)} checked={checkedLabel(stats?.fetchedAt, t)} />}</>}</div>
