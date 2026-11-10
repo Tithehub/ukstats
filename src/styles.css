@@ -475,3 +475,8 @@
 .orbit-studio-rail { background: var(--orbit-metal); border-top: 3px solid var(--electric); box-shadow: 0 -2px 14px var(--electric); }
 .orbit-desk-reflection { background: var(--orbit-reflection); }
 .orbit-desk-paper { background: var(--stream-strap); transform: skewX(-28deg); box-shadow: 0 6px 2px color-mix(in oklab, var(--electric-soft) 25%, transparent); }
+
+/* Orbit draft: angled glass screen walls leaning back towards the presenter */
+.orbit-tilt-left { transform: perspective(1400px) rotateY(14deg); transform-origin: left center; transform-style: preserve-3d; filter: drop-shadow(0 24px 30px color-mix(in oklab, var(--night) 70%, transparent)); }
+.orbit-tilt-right { transform: perspective(1600px) rotateY(-10deg); transform-origin: right center; }
+.orbit-tilt-left .orbit-glass, .orbit-tilt-right .orbit-glass { box-shadow: inset 0 1px 0 color-mix(in oklab, var(--electric-soft) 70%, transparent), inset 0 0 28px color-mix(in oklab, var(--electric) 18%, transparent); }
