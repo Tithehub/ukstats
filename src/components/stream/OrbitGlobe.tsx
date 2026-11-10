@@ -71,9 +71,10 @@ export default function OrbitGlobe({ country }: { country: string }) {
     const resize = () => { const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(el); resize();
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0;
+    let raf = 0, last = 0;
     const draw = (t: number) => {
-      group.quaternion.slerp(target.current, reduced ? 1 : 0.018);
+      const delta = last ? Math.min((t - last) / 1000, 0.5) : 0.016; last = t;
+      group.quaternion.slerp(target.current, reduced ? 1 : 1 - Math.exp(-delta * 1.8));
       rings.forEach(({ group: ring, dot, radius, speed }) => { const a = reduced ? 0 : t / 1000 * speed; dot.position.set(Math.cos(a) * radius, Math.sin(a) * radius, 0); const streak = ring.children[1]; if (streak) streak.rotation.z = a - 0.35; });
       renderer.render(scene, camera); raf = requestAnimationFrame(draw);
     };
