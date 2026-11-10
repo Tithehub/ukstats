@@ -462,12 +462,12 @@ function OrbitSponsor({ rows, ms }: { rows: CornerSlide[]; ms: number }) {
   const pct = ((ms % 10_000) / 10_000) * 100;
   return <section data-fit key={r.id} className="orbit-sponsor-card orbit-glass relative flex h-full flex-col overflow-hidden rounded-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-6 motion-safe:duration-500">
     <span aria-hidden className="orbit-accent absolute inset-x-0 top-0 h-[3px]" />
-    <div className="relative z-10 flex min-h-0 flex-1">
+    <div className="flex min-h-0 flex-1">
       <div className="relative z-10 flex w-[48%] flex-col p-4 pb-3">
         <span className="font-mono text-[12px] font-black uppercase tracking-widest text-destructive">{r.tag}</span>
         <p className="mt-1 line-clamp-4 text-[23px] font-black uppercase leading-[1.08] drop-shadow">{r.name}</p>
       </div>
-      <div aria-hidden className="orbit-sponsor-img fixed-cover absolute inset-0 overflow-hidden">
+      <div aria-hidden className="orbit-sponsor-img absolute inset-0 overflow-hidden">
         {r.img ? <img src={r.img} alt="" className="absolute inset-0 h-full w-full object-cover object-[70%_center]" /> : <span className="orbit-sponsor-fallback block h-full w-full" />}
       </div>
     </div>
