@@ -1,3 +1,4 @@
+import { claimVoice, releaseVoice } from "@/lib/voice-channel";
 import { useEffect, useRef, useState } from "react";
 import closed from "@/assets/stream/orbit-presenter-closed-clean.png";
 import open from "@/assets/stream/orbit-presenter-open-clean.png";
@@ -96,6 +97,7 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       try {
         ctx ??= new AudioContext();
         if (ctx.state === "suspended") await ctx.resume();
+        if (g !== gen.current) return;
         const src = ctx.createMediaElementSource(el);
         const an = ctx.createAnalyser(); an.fftSize = 512;
         src.connect(an); an.connect(ctx.destination);
@@ -103,18 +105,22 @@ export function OrbitPresenter({ line, upcoming = [], voice, onSpeak }: { line: 
       } catch { analyser.current = null; }
       let done = false;
       const finish = () => {
-        if (done) return; done = true; window.clearTimeout(guard);
+        if (done) return; done = true; window.clearTimeout(guard); releaseVoice(tok);
         busy.current = false; analyser.current = null; setStatus("idle");
         { const n = nextLine(); if (n) void speak(n); }
       };
       // Watchdog: if the clip errors or never reports its end, move on instead of going silent.
       const guard = window.setTimeout(finish, Math.max(15_000, text.split(/\s+/).length * 600));
       el.onended = finish; el.onerror = finish;
-      cur.current = () => { done = true; window.clearTimeout(guard); el.onended = null; el.onerror = null; el.pause(); analyser.current = null; };
-      try { await el.play(); setStatus("speaking"); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
+      const stopEl = () => { done = true; window.clearTimeout(guard); el.onended = null; el.onerror = null; el.pause(); analyser.current = null; };
+      const tok = claimVoice(stopEl);
+      cur.current = () => { stopEl(); releaseVoice(tok); };
+      if (g !== gen.current) { cur.current(); return; }
+      try { await el.play(); if (g !== gen.current) { stopEl(); releaseVoice(tok); return; } setStatus("speaking"); said.current?.(text); } catch { done = true; window.clearTimeout(guard); setStatus("blocked"); mime(text); }
     };
     if (voice) void speak(line); else { lastSpoken.current = line; mime(line); }
   }, [line, voice]);
+  useEffect(() => () => { gen.current++; cur.current?.(); cur.current = null; }, []);
 
   const label = !voice ? "Voice off" : status === "unauthorised" ? "Voice off — not authorised" : status === "blocked" ? "Voice blocked" : status === "preparing" ? "Preparing voice" : status === "speaking" ? "Speaking" : status === "miming" ? "Reading on screen" : "Listening";
   const fit = "absolute inset-0 h-full w-full object-contain object-bottom";
