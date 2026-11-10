@@ -45,3 +45,13 @@ describe("UK part 2 goes deeper", () => {
     expect(scriptForCard(card)).not.toContain("21 Nov 2026");
   });
 });
+
+import { scriptForCard as _sfc } from "./stream-script";
+describe("spoken dates", () => {
+  it("never reads raw timestamps aloud", () => {
+    const line = _sfc({ id: "x", title: "Street-level crimes near Westminster", value: "1,234", sub: null, source: "Police.uk", period: "August 2026", asOf: "2026-09-15T00:00:00.000Z", nextDue: "2026-11-15T00:00:00.000Z", metric: null } as never, true);
+    expect(line).toContain("Published 15 September 2026.");
+    expect(line).toContain("Next update due 15 November 2026.");
+    expect(line).not.toMatch(/T\d{2}:|\.000Z|\d{4}-\d{2}-\d{2}/);
+  });
+});
