@@ -1,4 +1,7 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ChevronDown } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { FOUNDING_HISTORIES, type FoundingHistory } from "@/lib/founding-documents.data";
+import { HistoryTimeline } from "./FoundingTimeline";
 import billImg from "@/assets/founding/bill-of-rights-1689.jpg.asset.json";
 import magnaImg from "@/assets/founding/magna-carta-1297.jpg.asset.json";
 import settlementImg from "@/assets/founding/act-of-settlement-1701.jpg.asset.json";
@@ -7,22 +10,23 @@ type Doc = {
   title: string;
   note: string;
   href: string;
+  historyId: string;
   image?: { src: string; alt: string; credit: string; creditHref: string };
 };
 
 // Images: originals/period copies on Wikimedia Commons, licences checked 2026-11-10.
 const DOCS: Doc[] = [
   {
-    title: "Bill of Rights 1689", note: "Rights of Parliament and the subject", href: "https://www.legislation.gov.uk/aep/WillandMarSess2/1/2/contents",
+    historyId: "bill-of-rights", title: "Bill of Rights 1689", note: "Rights of Parliament and the subject", href: "https://www.legislation.gov.uk/aep/WillandMarSess2/1/2/contents",
     image: { src: billImg.url, alt: "Handwritten opening of the original Bill of Rights 1689", credit: "Original manuscript · public domain", creditHref: "https://commons.wikimedia.org/wiki/File:English_Bill_of_Rights_of_1689_(top).jpg" },
   },
   {
-    title: "Magna Carta (1297)", note: "Clauses still in force in England", href: "https://www.legislation.gov.uk/aep/Edw1cc1929/25/9/contents",
+    historyId: "magna-carta", title: "Magna Carta (1297)", note: "Clauses still in force in England", href: "https://www.legislation.gov.uk/aep/Edw1cc1929/25/9/contents",
     image: { src: magnaImg.url, alt: "Parchment of a 1297 exemplification of Magna Carta", credit: "1297 copy, Parliament House Canberra · public domain", creditHref: "https://commons.wikimedia.org/wiki/File:Magna_Carta_(1297_Australian_copy).jpg" },
   },
-  { title: "Claim of Right 1689", note: "Scotland's equivalent", href: "https://www.legislation.gov.uk/aosp/1689/28/contents" },
+  { historyId: "claim-of-right", title: "Claim of Right 1689", note: "Scotland's equivalent", href: "https://www.legislation.gov.uk/aosp/1689/28/contents" },
   {
-    title: "Act of Settlement 1701", note: "Succession and judicial independence", href: "https://www.legislation.gov.uk/aep/Will3/12-13/2/contents",
+    historyId: "act-of-settlement", title: "Act of Settlement 1701", note: "Succession and judicial independence", href: "https://www.legislation.gov.uk/aep/Will3/12-13/2/contents",
     image: { src: settlementImg.url, alt: "Illuminated engrossed copy of the Act of Settlement 1701", credit: "Copy presented to Electress Sophia · CC BY-SA 3.0", creditHref: "https://commons.wikimedia.org/wiki/File:Act_of_Settlement_3323.jpg" },
   },
 ];
@@ -36,7 +40,7 @@ export function FoundingDocuments() {
       <p className="mt-1 text-sm text-muted-foreground">
         The UK has no single written constitution. These are the official texts at its core, published by The National Archives on legislation.gov.uk.
       </p>
-      <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-4 grid items-start gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {DOCS.map((d) => (
           <li key={d.href} className="flex h-full items-start gap-3 rounded-lg border border-border p-3 hover:border-primary">
             {d.image ? (
@@ -52,10 +56,17 @@ export function FoundingDocuments() {
               {d.image && (
                 <a href={d.image.creditHref} target="_blank" rel="noopener noreferrer" className="mt-1 block text-[10px] text-muted-foreground underline">Image: {d.image.credit}</a>
               )}
+              {(() => { const h = FOUNDING_HISTORIES.find((x) => x.id === d.historyId) as FoundingHistory | undefined; return h ? (
+                <details className="group mt-2">
+                  <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-semibold text-primary">Read the history <ChevronDown className="size-3.5 transition group-open:rotate-180" /></summary>
+                  <HistoryTimeline history={h} compact />
+                </details>
+              ) : null; })()}
             </div>
           </li>
         ))}
       </ul>
+      <Link to="/founding-documents" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Read the full explainer, earliest to latest →</Link>
     </section>
   );
 }

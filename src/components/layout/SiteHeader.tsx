@@ -85,6 +85,7 @@ export const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
     name: "Learn",
     items: [
       { to: "/politics-explained", label: "Politics explained — terms A–Z", icon: FileText },
+      { to: "/founding-documents", label: "Founding documents — history", icon: FileText },
       { to: "/tax-vs-welfare", label: "Tax vs welfare", icon: Banknote },
       { to: "/foreign-aid", label: "Foreign aid", icon: Plane },
       { to: "/polling", label: "Polling", icon: Vote },

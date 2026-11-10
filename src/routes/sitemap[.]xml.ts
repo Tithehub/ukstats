@@ -57,6 +57,7 @@ const entries: SitemapEntry[] = [
   { path: "/safest-places", changefreq: "weekly", priority: "0.7" },
   { path: "/happiest-places", changefreq: "weekly", priority: "0.7" },
   { path: "/politics-explained", changefreq: "monthly", priority: "0.6" },
+  { path: "/founding-documents", changefreq: "monthly", priority: "0.6" },
   { path: "/citizen-journalists", changefreq: "weekly", priority: "0.6" },
   { path: "/move-compare", changefreq: "monthly", priority: "0.6" },
   { path: "/gold", changefreq: "weekly", priority: "0.7" },
