@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LiveStreamPanel } from "@/components/LiveStreamPanel";
 import { LIVE_STREAM_ID } from "@/lib/brand";
+import { liveStreamQuery } from "@/lib/live-stream.functions";
 
-const thumb = `https://i.ytimg.com/vi/${LIVE_STREAM_ID}/hqdefault.jpg`;
+const thumbFor = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
 export const Route = createFileRoute("/live")({
-  head: () => ({
+  head: ({ loaderData }) => { const thumb = thumbFor(loaderData?.id ?? LIVE_STREAM_ID); return {
     meta: [
       { title: "UKStats Live — official UK figures streamed 24/7" },
       { name: "description", content: "Watch UKStats Live: national debt, small boats, warnings and more from official publishers, every figure sourced and dated." },
@@ -16,7 +17,8 @@ export const Route = createFileRoute("/live")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: thumb },
     ],
-  }),
+  }; },
+  loader: ({ context }) => context.queryClient.ensureQueryData(liveStreamQuery).catch(() => null),
   component: LivePage,
 });
 

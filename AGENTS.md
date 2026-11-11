@@ -59,3 +59,4 @@
 - Spending: councils link only their own nation's return, never summed.
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
 - Stream screen and voice share one timetable (lineAt/lineMs in stream-script.ts, per-line speaking time); all voice plays through the single page-wide player in voice-channel.ts (nextTurn/playVoice; late clips dropped, no read-ahead), and every spoken line passes speakable() client and server side — prevents drift and raw dates read aloud.
+- Homepage/live stream ID is admin-editable via payload_cache "live-stream" (live-stream.functions.ts), brand.ts LIVE_STREAM_ID is only the fallback; Agents suggestions expire after 24h — so stream changes need no publish.

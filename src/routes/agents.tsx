@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,6 +12,7 @@ import { StreamLaunchComposer } from "@/components/agents/StreamLaunchComposer";
 import { DomainsPanel } from "@/components/agents/DomainsPanel";
 import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
 import { ImprovementPlanPanel } from "@/components/agents/ImprovementPlanPanel";
+import { LiveStreamLinkPanel } from "@/components/agents/LiveStreamLinkPanel";
 import { MorningReviewPanel } from "@/components/agents/MorningReviewPanel";
 
 export const Route = createFileRoute("/agents")({
@@ -42,6 +43,13 @@ function AgentsPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const q = useQuery({ queryKey: ["agents"], queryFn: () => fetchDash(), enabled: signedIn });
+  // Fresh list each London day.
+  useEffect(() => {
+    const day = () => new Date().toLocaleDateString("en-GB", { timeZone: "Europe/London" });
+    let d = day();
+    const t = setInterval(() => { const n = day(); if (n !== d) { d = n; qc.invalidateQueries(); } }, 60_000);
+    return () => clearInterval(t);
+  }, [qc]);
   const refresh = () => { qc.invalidateQueries({ queryKey: ["agents"] }); qc.invalidateQueries({ queryKey: ["improvement-plan"] }); };
 
   let body: React.ReactNode;
@@ -70,6 +78,7 @@ function AgentsPage() {
           {latest ? <span className="font-mono text-[12px] text-night-muted">Last run {new Date(latest.started_at).toLocaleString("en-GB")} · {latest.status}</span> : null}
         </div>
         {err ? <p className="mt-3 text-overdue">{err}</p> : null}
+        <LiveStreamLinkPanel />
         <ImprovementPlanPanel />
         <MorningReviewPanel />
         {latest?.pause_reason ? <p className="mt-3 text-ageing">AI agents paused: {latest.pause_reason}</p> : null}

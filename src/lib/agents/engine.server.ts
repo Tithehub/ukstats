@@ -211,6 +211,16 @@ export async function runAgentTeam(opts: { force?: boolean } = {}) {
   const { data: last } = await db.from("agent_runs").select("status").order("started_at", { ascending: false }).limit(1);
   const aiPaused = !opts.force && last?.[0]?.status === "paused";
 
+  // Clear unreviewed suggestions older than 24 hours so each day starts fresh.
+  const { suggestionCutoff } = await import("@/lib/live-stream");
+  const cut = suggestionCutoff();
+  await Promise.all([
+    db.from("agent_posts").delete().eq("status", "pending").lt("created_at", cut),
+    db.from("agent_findings").delete().eq("status", "open").lt("created_at", cut),
+    db.from("explainer_drafts").delete().eq("status", "pending").lt("created_at", cut),
+    db.from("improvement_plans").delete().lt("created_at", cut),
+  ]).catch(() => null);
+
   const { data: run } = await db.from("agent_runs").insert({}).select("id").single();
   const runId = run.id as string;
   const findings: Finding[] = [];

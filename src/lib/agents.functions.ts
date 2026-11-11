@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { suggestionCutoff } from "@/lib/live-stream";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function assertAdmin(supabase: any, userId: string) {
@@ -20,7 +21,7 @@ export const getAgentDashboard = createServerFn({ method: "POST" })
     const { data: findings } = latest
       ? await supabase.from("agent_findings").select("*").eq("run_id", latest.id).order("created_at")
       : { data: [] };
-    const { data: drafts } = await supabase.from("explainer_drafts").select("*").eq("status", "pending").order("created_at", { ascending: false }).limit(30);
+    const { data: drafts } = await supabase.from("explainer_drafts").select("*").eq("status", "pending").gte("created_at", suggestionCutoff()).order("created_at", { ascending: false }).limit(30);
     return { isAdmin: true as const, runs: runs ?? [], findings: findings ?? [], drafts: drafts ?? [] };
   });
 
@@ -58,7 +59,7 @@ export const getLatestPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { data } = await context.supabase.from("improvement_plans").select("id, summary, tasks, created_at").order("created_at", { ascending: false }).limit(1);
+    const { data } = await context.supabase.from("improvement_plans").select("id, summary, tasks, created_at").gte("created_at", suggestionCutoff()).order("created_at", { ascending: false }).limit(1);
     const p = data?.[0];
     return p ? { id: p.id as string, summary: p.summary as string, created_at: p.created_at as string, tasks: (p.tasks ?? []) as import("@/lib/agents/planner").PlanTask[] } : null;
   });
@@ -112,7 +113,7 @@ export const listAgentPosts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { data } = await context.supabase.from("agent_posts").select("*").in("status", ["pending", "approved"]).order("created_at", { ascending: false }).limit(40);
+    const { data } = await context.supabase.from("agent_posts").select("*").in("status", ["pending", "approved"]).gte("created_at", suggestionCutoff()).order("created_at", { ascending: false }).limit(40);
     return data ?? [];
   });
 

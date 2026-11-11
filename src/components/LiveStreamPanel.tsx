@@ -1,20 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Play, Volume2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { LIVE_STREAM_ID, YOUTUBE_CHANNEL_URL } from "@/lib/brand";
+import { liveStreamQuery } from "@/lib/live-stream.functions";
 import { checkEmbeddable } from "@/lib/embed-check.functions";
 import { ShareRow } from "@/components/ShareRow";
 
 /** Live player: starts muted automatically after hydration (browsers block sound until a tap). */
 export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolean }) {
   const [state, setState] = useState<"idle" | "on" | "blocked">("idle");
+  const sq = useQuery(liveStreamQuery);
+  const streamId = sq.data?.id ?? LIVE_STREAM_ID;
   useEffect(() => {
+    if (sq.isPending) return;
     let alive = true;
-    checkEmbeddable({ data: { id: LIVE_STREAM_ID } })
+    setState("idle");
+    checkEmbeddable({ data: { id: streamId } })
       .catch(() => ({ ok: true }))
       .then((r) => { if (alive) setState(r.ok ? "on" : "blocked"); });
     return () => { alive = false; };
-  }, []);
+  }, [streamId, sq.isPending]);
   const frame = useRef<HTMLIFrameElement>(null);
   const [muted, setMuted] = useState(true);
   const send = (func: string) => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args: [] }), "*");
@@ -46,7 +52,7 @@ export function LiveStreamPanel({ showLiveLink = true }: { showLiveLink?: boolea
             <iframe
               ref={frame}
               className="absolute inset-0 h-full w-full"
-              src={`https://www.youtube-nocookie.com/embed/${LIVE_STREAM_ID}?autoplay=1&mute=0&playsinline=1&enablejsapi=1`}
+              src={`https://www.youtube-nocookie.com/embed/${streamId}?autoplay=1&mute=0&playsinline=1&enablejsapi=1`}
               title="UKStats Live stream"
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
               allowFullScreen
