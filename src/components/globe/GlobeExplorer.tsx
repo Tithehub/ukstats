@@ -3,7 +3,7 @@ import { LIVE_STREAM_URL } from "@/lib/brand";
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Component as ReactComponent, lazy, Suspense, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon, Video, MapPin } from "lucide-react";
+import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon, Video, MapPin, PanelRightClose, PanelRightOpen, Minimize2, SlidersHorizontal, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
 import { unrestQuery } from "@/lib/unrest.functions";
@@ -175,6 +175,11 @@ function BroadcastChannels({ k, limit }: { k: string; limit?: number }) {
   </div>;
 }
 
+interface GlobeUi { aside: boolean; toolbar: boolean; key: boolean; strips: boolean }
+const UI_OPEN: GlobeUi = { aside: false, toolbar: false, key: false, strips: false };
+const UI_KEY = "globe-ui-v1";
+const TAB = "inline-flex items-center gap-1 rounded-md border border-night-line bg-night-panel/85 px-2 py-1 text-[11px] text-night-fg shadow backdrop-blur hover:bg-night";
+
 /** null when WebGL works, otherwise a plain reason to show the visitor. */
 function webglProblem(): string | null {
   try { const c = document.createElement("canvas"); return c.getContext("webgl2") || c.getContext("webgl") ? null : "Your browser has graphics acceleration turned off or blocked, so the 3D globe can't start. In Chrome turn on Settings › System › Use graphics acceleration; in Safari check Low Power Mode is off."; } catch { return "Your browser blocked 3D graphics for this page."; }
@@ -240,6 +245,13 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const [sheetOpen, setSheetOpen] = useState(false);
   // One overlay at a time, so panels never pile up over the globe.
   const [panel, setPanel] = useState<"search" | "layers" | "cams" | "key" | null>(null);
+  // Fold-away panels, remembered per device and read after hydration.
+  const [ui, setUi] = useState<GlobeUi>(UI_OPEN);
+  useEffect(() => { try { const v = JSON.parse(localStorage.getItem(UI_KEY) ?? "null"); if (v && typeof v === "object") setUi({ ...UI_OPEN, ...v }); } catch { /* storage blocked */ } }, []);
+  const setUiSaved = (p: Partial<GlobeUi>) => setUi((u) => { const n = { ...u, ...p }; try { localStorage.setItem(UI_KEY, JSON.stringify(n)); } catch { /* storage blocked */ } return n; });
+  const allHidden = ui.aside && ui.toolbar && ui.key && ui.strips;
+  const anyHidden = ui.aside || ui.toolbar || ui.key || ui.strips;
+  useEffect(() => { if (broadcast || !anyHidden) return; const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !panel) setUiSaved(UI_OPEN); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); });
   const layersOpen = panel === "layers", keyOpen = panel === "key";
   const setLayersOpen = (o: boolean | ((v: boolean) => boolean)) => setPanel((p) => ((typeof o === "function" ? o(p === "layers") : o) ? "layers" : p === "layers" ? null : p));
   const setKeyOpen = (o: boolean | ((v: boolean) => boolean)) => setPanel((p) => ((typeof o === "function" ? o(p === "key") : o) ? "key" : p === "key" ? null : p));
@@ -349,10 +361,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
     {feed?.connected && <button onClick={() => onChange({ feed: "live" })} className="shrink-0 rounded border border-electric/60 px-2 py-1 font-mono uppercase text-electric-soft hover:bg-night">{feed.items.filter((i) => i.live).length ? `● ${feed.items.filter((i) => i.live).length} live now` : "Live feed"}</button>}
   </div>;
 
-  return <div className={broadcast ? "flex h-full min-h-0 flex-col overflow-hidden" : compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{!broadcast && <><div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-b border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
+  return <div className={broadcast ? "flex h-full min-h-0 flex-col overflow-hidden" : compact ? "overflow-hidden rounded-lg border border-night-line" : "flex flex-1 flex-col"}>{!broadcast && !ui.strips && <><div aria-label="Latest official warnings and news headlines" className="flex h-8 items-center overflow-hidden border-b border-desk-line bg-desk text-xs text-desk-fg [contain:layout_paint]">
     <span className="flex h-full shrink-0 items-center bg-onair px-2 font-mono text-[10px] font-bold uppercase tracking-wider text-desk-fg">Latest</span>
     {headlines.length ? <div className="min-w-0 flex-1 overflow-hidden"><div className="ticker-track flex w-max">{[0, 1].map((r) => <div key={r} aria-hidden={r === 1 || undefined} className="flex shrink-0">{headlines.map((h) => <button key={h.id} tabIndex={r ? -1 : 0} onClick={h.go} className="max-w-[24rem] shrink-0 truncate border-r border-desk-line px-3 hover:underline">{h.text}</button>)}</div>)}</div></div>
       : <span className="px-3 text-desk-muted">Waiting for the official feeds…</span>}
+    <button type="button" onClick={() => setUiSaved({ strips: true })} aria-label="Hide headlines and warnings" title="Hide headlines and warnings" className="max-sm:hidden grid h-full shrink-0 place-items-center border-l border-desk-line px-2 hover:bg-onair/30"><EyeOff className="size-3.5" /></button>
   </div>{ticker}</>}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "min-h-0 flex-1"}`}>
     <section aria-label="Interactive globe" className={`relative flex-1 ${height}`} onPointerDownCapture={() => { if (!broadcast) setOnAir(false); }} onWheelCapture={() => { if (!broadcast) setOnAir(false); }}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
@@ -363,7 +376,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {gl && <GlobeBoundary key={glTry} onFail={(why: string) => { setGlWhy(why); setGl(false); }}><EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { if (id.startsWith("news|")) { onChange({ c: countryKey(id.slice(5).split(", ").pop()!), m: undefined }); return; } const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} wx={globeWx} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} /></GlobeBoundary>}
       </Suspense></ClientOnly>}
       {cam && <CamViewer cam={cam} all={globeCams} onPick={setCamId} onClose={() => setCamId(null)} />}
-      <div className={`absolute inset-x-3 top-3 z-20 flex items-start gap-2 text-xs sm:right-16 ${broadcast ? "hidden" : ""} ${panel === "search" ? "" : "max-sm:hidden"}`}>
+            <div className={`absolute inset-x-3 top-3 z-20 flex items-start gap-2 text-xs sm:right-16 ${broadcast ? "hidden" : ""} ${ui.toolbar ? "sm:hidden" : ""} ${panel === "search" ? "" : "max-sm:hidden"}`}>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-xl border border-night-line/60 bg-night-panel/70 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)] backdrop-blur-md min-[1280px]:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
         <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1 max-sm:basis-full sm:max-w-72">
@@ -381,6 +394,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
           <button type="button" onClick={() => { if (!sel) onChange({ c: UK_KEY, m: undefined }); setOnAir((o) => !o); }} aria-pressed={onAir} className={`${TB} ${onAir ? "bg-night" : ""}`}>{onAir ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}{onAir ? "Stop tour" : "Tour"}</button>
           </span>
           <GlobeShare title={`${selName ? `${selName} — ` : ""}live globe | UKStats`} />
+          <button type="button" onClick={() => { setPanel(null); setUiSaved({ toolbar: true }); }} aria-label="Hide globe controls" title="Hide controls" className={`${TB} max-sm:hidden`}><EyeOff className="size-3.5" /></button>
         </div>
       </div>
       {layersOpen && <div id="globe-layers" role="dialog" aria-label="Globe layers" onKeyDown={(e) => { if (e.key === "Escape") setLayersOpen(false); }} className="z-40 overflow-y-auto border border-night-line bg-night-panel p-3 text-xs shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[55dvh] max-sm:rounded-t-xl sm:absolute sm:left-3 sm:top-16 sm:max-h-[calc(100%-6rem)] sm:w-80 sm:rounded-md sm:bg-night-panel/95 sm:backdrop-blur">
@@ -437,7 +451,9 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {!camData ? <p className="mt-2 text-night-muted">Loading cameras…</p> : <div className="-ml-6"><CamList cams={globeCams} country={sel ?? ""} onPick={(id) => { setCamId(id); setPanel(null); }} /></div>}
       </div>}
       {keyOpen && <GlobeKey onClose={() => setKeyOpen(false)} />}
-      {(stat && ind || s.layer) && !layersOpen && <div aria-label="Colour key" className="absolute right-3 bottom-20 z-10 max-w-[60%] rounded-md border border-night-line bg-night-panel/90 p-2 text-[10px] backdrop-blur sm:top-3 sm:bottom-auto sm:max-w-56">
+      {(stat && ind || s.layer) && !layersOpen && ui.key && <button type="button" onClick={() => setUiSaved({ key: false })} className={`absolute right-3 bottom-20 z-10 sm:top-3 sm:bottom-auto ${!ui.aside ? "" : "lg:right-12"} ${TAB}`}><Info className="size-3" />Colour key</button>}
+      {(stat && ind || s.layer) && !layersOpen && !ui.key && <div aria-label="Colour key" className="absolute right-3 bottom-20 z-10 max-w-[60%] rounded-md border border-night-line bg-night-panel/90 p-2 text-[10px] backdrop-blur sm:top-3 sm:bottom-auto sm:max-w-56">
+        <button type="button" onClick={() => setUiSaved({ key: true })} aria-label="Hide colour key" className="float-right -mr-1 -mt-1 ml-1 grid size-5 place-items-center rounded text-night-muted hover:bg-night hover:text-night-fg"><X className="size-3" /></button>
         {stat && ind ? <><p className="truncate font-semibold">{ind.label} · {stat.newest ?? "—"}</p><div className="mt-1 h-1.5 rounded" style={{ background: `linear-gradient(to right, ${shadeColour(0)}, ${shadeColour(0.5)}, ${shadeColour(1)})` }} /><div className="flex justify-between font-mono text-night-muted"><span>Low rank</span><span>Rank 1</span></div></>
           : s.layer === "us" ? <ul>{[1, 2, 3, 4].map((l) => <li key={l}><Swatch c={US_LEVEL_COLOURS[l]!} />Level {l}</li>)}<li className="text-night-muted">US State Dept</li></ul>
           : <ul>{(["all", "all-but-essential", "parts-all", "parts-essential", "none"] as FcdoAlert[]).map((a) => <li key={a} className="truncate"><Swatch c={UK_ALERT_COLOURS[a]} />{FCDO_ALERT_LABEL[a].replace("FCDO advises against ", "Against ")}</li>)}<li className="text-night-muted">UK FCDO</li></ul>}
@@ -456,10 +472,14 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         <button onClick={nextCountry} aria-label="Next country" className={CTRL}><SkipForward className="size-3.5" /><span className="max-sm:sr-only">Next country</span></button>
         <button onClick={() => setRotate((r) => !r)} aria-pressed={!!rotate} aria-label={rotate ? "Stop spin" : "Spin"} className={CTRL}>{rotate ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}<span className="max-sm:sr-only">{rotate ? "Stop spin" : "Spin"}</span></button>
         <button onClick={() => { setResetKey((k) => k + 1); onChange({ c: "", m: undefined }); }} aria-label="Reset view" className={CTRL}><RotateCcw className="size-3.5" /><span className="max-sm:sr-only">Reset view</span></button>
+        {ui.toolbar && <button onClick={() => setUiSaved({ toolbar: false })} className={CTRL}><SlidersHorizontal className="size-3.5" /><span>Show controls</span></button>}
+        {ui.strips && <button onClick={() => setUiSaved({ strips: false })} className={CTRL}><ChevronDown className="size-3.5" /><span>Show headlines</span></button>}
+        <button onClick={() => { setPanel(null); setUiSaved(allHidden ? UI_OPEN : { aside: true, toolbar: true, key: true, strips: true }); }} aria-pressed={allHidden} className={CTRL}>{allHidden ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}<span>{allHidden ? "Show menus" : "Full globe"}</span></button>
       </div>}
+      {!broadcast && <button type="button" onClick={() => setUiSaved({ aside: !ui.aside })} aria-expanded={!ui.aside} aria-controls="globe-country-panel" aria-label={ui.aside ? "Show country panel" : "Hide country panel"} title={ui.aside ? "Show country panel" : "Hide country panel"} className="absolute right-0 top-[36%] z-20 hidden h-12 w-6 place-items-center rounded-l-md border border-r-0 border-night-line bg-night-panel/90 text-night-fg hover:bg-night lg:grid">{ui.aside ? <PanelRightOpen className="size-4" /> : <PanelRightClose className="size-4" />}</button>}
     </section>
 
-    {!broadcast && <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[340px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px] lg:max-h-[960px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-sm:hidden max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
+    {!broadcast && <aside id="globe-country-panel" aria-label="Country controls" className={`${ui.aside ? "lg:hidden " : ""}w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[340px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px] lg:max-h-[960px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-sm:hidden max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
       {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-label={sheetOpen ? "Close country panel" : "Open country panel"} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" /><b className="text-night-fg">{selName}</b> · {sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
