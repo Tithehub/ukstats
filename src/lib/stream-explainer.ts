@@ -35,8 +35,8 @@ export function explainerChapters(): Chapter[] {
       "Nothing is estimated and nothing is made up. If a figure isn't published, we say so.",
     ] },
     { id: "reports", title: "Daily PDF reports", lineMs: [9660, 15140, 9460], lines: [
-      `Want it all in one document? Download the daily UK report for ${gbp(r.report_uk_daily.pence)}, or the Global report for ${gbp(r.report_global_daily.pence)}.`,
-      `Subscribe for ${gbp(r.report_uk_monthly.pence)} a month or ${gbp(r.report_uk_yearly.pence)} a year for the UK, or ${gbp(r.report_global_monthly.pence)} a month or ${gbp(r.report_global_yearly.pence)} a year for Global.`,
+      `Want it all in one document? The UK and Global Stats report is ${gbp(r.report_combined_daily.pence)} a day.`,
+      `Or subscribe for ${gbp(r.report_combined_weekly.pence)} a week, ${gbp(r.report_combined_monthly.pence)} a month or ${gbp(r.report_combined_yearly.pence)} a year.`,
       "Each report includes government warnings, headlines and emergency kit guidance. Scan the code to get today's edition.",
     ] },
     { id: "rent", title: "Rent and brand your own stats site", lineMs: [8380, 11460, 14260], lines: [
@@ -52,7 +52,7 @@ export function explainerChapters(): Chapter[] {
       "Here's ukstats dot co dot uk. The latest official figures are right on the home page, each with its source and date.",
       "Open the interactive globe for government travel warnings, flights and migration routes, and turn layers on in the Layers menu.",
       "On the statistics page, search any figure, like small boats, and filter by topic.",
-      `Reports has the daily PDF editions: ${gbp(r.report_uk_daily.pence)} for the UK and ${gbp(r.report_global_daily.pence)} for Global.`,
+      `Reports has the daily UK and Global Stats PDF, from ${gbp(r.report_combined_daily.pence)} a day.`,
       "And Rent UKStats puts your own brand on the very same official figures.",
     ] },
     { id: "close", title: "Thanks for watching", lineMs: [7540], lines: [
