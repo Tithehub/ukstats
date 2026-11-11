@@ -28,7 +28,7 @@ describe("hourly explainer", () => {
   });
   it("says the real report prices", () => {
     const r = explainerChapters().find((c) => c.id === "reports")!.lines.join(" ");
-    for (const p of ["£1.00", "£2.50", "£19.99", "£199.00", "£49.99", "£499.00"]) expect(r).toContain(p);
+    for (const p of ["75p", "£2.49", "£9.99", "£99"]) expect(r).toContain(p);
   });
   it("covers every chapter in order", () => {
     expect(explainerChapters().map((c) => c.id)).toEqual(["welcome", "globe", "sources", "reports", "rent", "sports", "walkthrough", "close"]);
