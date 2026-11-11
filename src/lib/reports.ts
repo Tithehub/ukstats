@@ -24,7 +24,7 @@ export const isReportPriceId = (s: unknown): s is ReportPriceId => typeof s === 
 export const reportPlanLabel = (id: string | null | undefined) =>
   (id && (REPORT_PRICES as Record<string, { label: string }>)[id]?.label) ?? (id && LEGACY_REPORT_LABELS[id]) ?? "Reports subscription";
 
-export const gbp = (pence: number) => `£${(pence / 100).toFixed(2)}`;
+export const gbp = (pence: number) => (pence < 100 ? `${pence}p` : pence % 100 === 0 ? `£${pence / 100}` : `£${(pence / 100).toFixed(2)}`);
 
 /** What the same downloads would cost bought one day at a time. */
 export function dailyEquivalent(id: ReportPriceId): number {
