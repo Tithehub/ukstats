@@ -165,6 +165,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   let p = newPage("UK Debt today");
   {
     const d = debtPanel(input.metrics, input.date);
+    text(p, "PART 1  |  UK STATS", W - M - width(F.mb, "PART 1  |  UK STATS", 8), H - 62, F.mb, 8, RED);
     let yy = sectionTitle(p, "UK Debt today", H - 92);
     const bh = 300;
     p.drawRectangle({ x: M, y: yy - bh, width: W - 2 * M, height: bh, color: NAVY });
