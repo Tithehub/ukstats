@@ -68,10 +68,10 @@ export function FoundingDocuments() {
         ))}
       </ul>
       <div className="mt-3 flex items-start gap-3 rounded-lg border border-border p-3 hover:border-primary">
-        <img src={nrrImg.url} alt="Front cover of the National Risk Register 2026" width={56} height={56} loading="lazy" decoding="async" className="size-14 shrink-0 rounded object-cover object-top" />
+        <a href="https://assets.publishing.service.gov.uk/media/6a50d66b1228eb26a4cab76c/National_Risk_Register_2026.pdf" target="_blank" rel="noopener noreferrer" aria-label="Open the National Risk Register 2026 (PDF)" className="shrink-0"><img src={nrrImg.url} alt="Front cover of the National Risk Register 2026" width={56} height={56} loading="lazy" decoding="async" className="size-14 shrink-0 rounded object-cover object-top" /></a>
         <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Official government publication · not a UKStats statistic</p>
-          <a href="https://www.gov.uk/government/publications/national-risk-register-2026" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 font-bold hover:text-primary">
+          <a href="https://assets.publishing.service.gov.uk/media/6a50d66b1228eb26a4cab76c/National_Risk_Register_2026.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 font-bold hover:text-primary">
             National Risk Register 2026 <ExternalLink className="size-4 shrink-0" />
           </a>
           <p className="mt-1 text-xs text-muted-foreground">Cabinet Office · published 14 July 2026, updated 12 August 2026. The government's assessment of the most serious risks facing the UK.</p>
