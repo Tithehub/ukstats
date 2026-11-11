@@ -5,6 +5,7 @@ import { HistoryTimeline } from "./FoundingTimeline";
 import billImg from "@/assets/founding/bill-of-rights-1689.jpg.asset.json";
 import magnaImg from "@/assets/founding/magna-carta-1297.jpg.asset.json";
 import settlementImg from "@/assets/founding/act-of-settlement-1701.jpg.asset.json";
+import nrrImg from "@/assets/founding/national-risk-register-2026-cover.jpg.asset.json";
 
 type Doc = {
   title: string;
@@ -66,6 +67,21 @@ export function FoundingDocuments() {
           </li>
         ))}
       </ul>
+      <div className="mt-3 flex items-start gap-3 rounded-lg border border-border p-3 hover:border-primary">
+        <img src={nrrImg.url} alt="Front cover of the National Risk Register 2026" width={56} height={56} loading="lazy" decoding="async" className="size-14 shrink-0 rounded object-cover object-top" />
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Official government publication · not a UKStats statistic</p>
+          <a href="https://www.gov.uk/government/publications/national-risk-register-2026" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 font-bold hover:text-primary">
+            National Risk Register 2026 <ExternalLink className="size-4 shrink-0" />
+          </a>
+          <p className="mt-1 text-xs text-muted-foreground">Cabinet Office · published 14 July 2026, updated 12 August 2026. The government's assessment of the most serious risks facing the UK.</p>
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-primary">
+            <a href="https://assets.publishing.service.gov.uk/media/6a50d66b1228eb26a4cab76c/National_Risk_Register_2026.pdf" target="_blank" rel="noopener noreferrer" className="underline">Full report (PDF, 223 pages)</a>
+            <a href="https://assets.publishing.service.gov.uk/media/6a7c4412aadaaddf89b6e484/A_Guide_to_the_2026_National_Risk_Register.pdf" target="_blank" rel="noopener noreferrer" className="underline">Short guide (PDF, 27 pages)</a>
+          </div>
+          <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer" className="mt-1 block text-[10px] text-muted-foreground underline">Cover: Cabinet Office, Crown copyright, Open Government Licence v3.0</a>
+        </div>
+      </div>
       <Link to="/founding-documents" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Read the full explainer, earliest to latest →</Link>
     </section>
   );
