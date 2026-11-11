@@ -37,7 +37,7 @@ export function explainerChapters(): Chapter[] {
     { id: "reports", title: "Daily PDF reports", lineMs: [9660, 15140, 9460], lines: [
       `Want it all in one document? The UK and Global Stats report is ${gbp(r.report_combined_daily.pence)} a day.`,
       `Or subscribe for ${gbp(r.report_combined_weekly.pence)} a week, ${gbp(r.report_combined_monthly.pence)} a month or ${gbp(r.report_combined_yearly.pence)} a year.`,
-      "Each report includes government warnings, headlines and emergency kit guidance. Scan the code to get today's edition.",
+      "It opens with UK debt and every UK figure, then global stats for every country. Scan the code to get today's edition.",
     ] },
     { id: "rent", title: "Rent and brand your own stats site", lineMs: [8380, 11460, 14260], lines: [
       "Run a business, a channel or a community? Put your own brand on our official stats.",
