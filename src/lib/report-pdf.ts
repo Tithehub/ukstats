@@ -47,7 +47,7 @@ const TOP5 = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL
 export function debtPanel(metrics: Metric[], reportDate: string) {
   const debt = metrics.find((m) => m.id === "uk-national-debt") ?? null;
   const gdp = metrics.find((m) => m.id === "uk-debt-gdp") ?? null;
-  const age = debt?.value && debt.asOf ? Math.max(0, Math.round((Date.UTC(...(reportDate.split("-").map(Number) as [number, number, number]).map((n, i) => (i === 1 ? n - 1 : n)) as [number, number, number]) - Date.parse(debt.asOf.slice(0, 10))) / 864e5)) : null;
+  const age = debt?.value && debt.asOf ? Math.max(0, Math.round((Date.parse(reportDate) - Date.parse(debt.asOf.slice(0, 10))) / 864e5)) : null;
   return {
     value: debt?.value ?? null,
     change: debt?.value ? debt.change?.label ?? null : null,
