@@ -5,7 +5,7 @@
  * offered for direct posting — nothing here asks anyone for a password to a
  * platform, and no credential is ever sent back to the browser once saved.
  */
-export type SocialPlatform = "bluesky" | "mastodon" | "telegram" | "discord" | "slack";
+export type SocialPlatform = "x" | "bluesky" | "mastodon" | "telegram" | "discord" | "slack";
 
 export interface SocialField {
   key: string;
@@ -27,6 +27,20 @@ export interface SocialPlatformSpec {
 }
 
 export const SOCIAL_PLATFORMS: SocialPlatformSpec[] = [
+  {
+    key: "x",
+    name: "X",
+    blurb: "Posts to your X account using keys from your own X developer app (set to Read and write).",
+    docsUrl: "https://developer.x.com/en/portal/dashboard",
+    docsLabel: "Open the X developer portal",
+    limit: 280,
+    fields: [
+      { key: "apiKey", label: "API key", placeholder: "Consumer key", secret: true },
+      { key: "apiSecret", label: "API key secret", placeholder: "Consumer secret", secret: true },
+      { key: "accessToken", label: "Access token", placeholder: "123456-…", secret: true, help: "Generate this after setting app permissions to Read and write, or it will be read-only." },
+      { key: "accessSecret", label: "Access token secret", placeholder: "Access secret", secret: true },
+    ],
+  },
   {
     key: "bluesky",
     name: "Bluesky",
@@ -95,7 +109,6 @@ export const SOCIAL_PLATFORMS: SocialPlatformSpec[] = [
 
 /** Platforms that require a reviewed developer app, so posting stays manual. */
 export const MANUAL_ONLY = [
-  { name: "X", why: "X requires a paid developer app per account, so use the composer link." },
   { name: "LinkedIn", why: "LinkedIn only issues posting access to reviewed partner apps." },
   { name: "Facebook / Threads", why: "Meta requires an app review before an account can post through the API." },
   { name: "Reddit", why: "Reddit posting needs a per-subreddit registered script app." },

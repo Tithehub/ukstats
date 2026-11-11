@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { platformSpec, type SocialPlatform } from "@/lib/social";
 import { publicHttpsUrl } from "@/lib/safe-url";
+import { oauthHeader, type XCreds } from "@/lib/x-oauth";
 import { youtubeIdFromLink, youtubeThumbnailUrls } from "@/lib/stream-launch";
 
 interface Thumb { url: string; bytes: Uint8Array<ArrayBuffer>; type: string; title: string }
@@ -31,6 +32,12 @@ function mastodonBase(c: Creds): string {
   const u = publicHttpsUrl((c["instance"] ?? "").startsWith("http") ? c["instance"]! : `https://${c["instance"] ?? ""}`);
   if (!u) throw new Error("Enter a public Mastodon server address, e.g. https://mastodon.social");
   return u.origin;
+}
+
+function xCreds(c: Creds): XCreds {
+  const v = { apiKey: c["apiKey"] ?? "", apiSecret: c["apiSecret"] ?? "", accessToken: c["accessToken"] ?? "", accessSecret: c["accessSecret"] ?? "" };
+  if (!v.apiKey || !v.apiSecret || !v.accessToken || !v.accessSecret) throw new Error("Enter all four X keys.");
+  return v;
 }
 
 function discordWebhook(c: Creds): string {
@@ -67,6 +74,13 @@ async function admin() {
 /** Verify the credentials with the platform and return the account label to show. */
 async function verify(platform: SocialPlatform, c: Creds): Promise<string> {
   switch (platform) {
+    case "x": {
+      const url = "https://api.x.com/2/users/me";
+      const res = await fetch(url, { headers: { authorization: await oauthHeader("GET", url, xCreds(c)) } });
+      if (!res.ok) throw new Error(`X rejected those keys (${res.status}): ${await res.text()}`);
+      const j = (await res.json()) as { data?: { username?: string } };
+      return `@${j.data?.username ?? "account"}`;
+    }
     case "bluesky": {
       const res = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
         method: "POST",
@@ -108,6 +122,37 @@ async function verify(platform: SocialPlatform, c: Creds): Promise<string> {
 
 async function send(platform: SocialPlatform, c: Creds, text: string, link: string, thumb: Thumb | null = null): Promise<string | null> {
   switch (platform) {
+    case "x": {
+      const xc = xCreds(c);
+      const mediaIds: string[] = [];
+      let note = "";
+      if (thumb) {
+        try {
+          const mu = "https://api.x.com/2/media/upload";
+          const fd = new FormData();
+          fd.append("media", new Blob([thumb.bytes], { type: thumb.type }), "livestream.jpg");
+          fd.append("media_category", "tweet_image");
+          const m = await fetch(mu, { method: "POST", headers: { authorization: await oauthHeader("POST", mu, xc) }, body: fd });
+          if (!m.ok) throw new Error(`${m.status}: ${await m.text()}`);
+          const mj = (await m.json()) as { data?: { id?: string }; media_id_string?: string };
+          const id = mj.data?.id ?? mj.media_id_string;
+          if (id) mediaIds.push(String(id));
+        } catch (e) {
+          console.error("X media upload failed", e);
+          note = " (posted without the picture: X refused it)";
+        }
+      }
+      const tu = "https://api.x.com/2/tweets";
+      const res = await fetch(tu, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: await oauthHeader("POST", tu, xc) },
+        body: JSON.stringify({ text: text.includes(link) ? text : `${text}\n${link}`, ...(mediaIds.length ? { media: { media_ids: mediaIds } } : {}) }),
+      });
+      if (!res.ok) throw new Error(`X refused the post (${res.status}): ${await res.text()}`);
+      const j = (await res.json()) as { data?: { id?: string } };
+      if (note) console.warn(note);
+      return j.data?.id ? `https://x.com/i/status/${j.data.id}${note ? "#no-picture" : ""}` : null;
+    }
     case "bluesky": {
       const session = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
         method: "POST",
