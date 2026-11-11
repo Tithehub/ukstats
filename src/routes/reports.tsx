@@ -4,7 +4,7 @@ import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from "@tanst
 import { useServerFn } from "@tanstack/react-start";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
-import { Check, Download, FileText, Globe2, Lock } from "lucide-react";
+import { Check, Download, Globe2, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -13,7 +13,6 @@ import { useAuth } from "@/lib/useAuth";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { canDownload, dailyEquivalent, gbp, REPORT_PRICES, reportPlanLabel, savingPercent, subActive, type ReportEdition, type ReportKind, type ReportPriceId } from "@/lib/reports";
 import { createReportCheckout, createReportPortal, getMyReportAccess, getReportDownload, listReportEditions } from "@/lib/reports.functions";
-import cover from "@/assets/reports/uk-01.jpg";
 import headlines from "@/assets/reports/uk-02.jpg";
 import globalCover from "@/assets/reports/global-01.jpg";
 import world from "@/assets/reports/global-12.jpg";
@@ -24,10 +23,10 @@ export const Route = createFileRoute("/reports")({
   validateSearch: (s: Record<string, unknown>): { checkout?: "done" } => (s["checkout"] === "done" ? { checkout: "done" } : {}),
   loader: ({ context }) => context.queryClient.ensureQueryData(editionsQuery),
   head: () => ({ meta: [
-    { title: "Daily UKStats PDF reports — UK £1, Global £2.50" },
+    { title: "UK & Global Stats daily PDF report — from 75p" },
     { name: "description", content: "A professionally designed daily PDF of every official UK figure, with source, period, publication date and next release. Includes world rankings for every country. From 75p a day." },
     { property: "og:title", content: "Daily UKStats PDF reports" },
-    { property: "og:description", content: "Every official figure, sourced and dated, in one branded PDF each morning. UK £1, Global £2.50, or subscribe and save." },
+    { property: "og:description", content: "Every official figure, sourced and dated, in one branded PDF each morning. 75p a day, £2.49 a week, £9.99 a month or £99 a year." },
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://ukstats.co.uk/reports" },
     { name: "twitter:card", content: "summary" },
