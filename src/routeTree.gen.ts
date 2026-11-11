@@ -66,6 +66,7 @@ import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TaxVsWelfareRouteImport } from './routes/tax-vs-welfare'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as WorldCompareRouteImport } from './routes/world-compare'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
@@ -407,6 +408,11 @@ const TaxVsWelfareRoute = TaxVsWelfareRouteImport.update({
   path: '/tax-vs-welfare',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WidgetRoute = WidgetRouteImport.update({
   id: '/widget',
   path: '/widget',
@@ -746,6 +752,7 @@ export interface FileRoutesByFullPath {
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
+  '/terms': typeof TermsRoute
   '/widget': typeof WidgetRoute
   '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
@@ -857,6 +864,7 @@ export interface FileRoutesByTo {
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
+  '/terms': typeof TermsRoute
   '/widget': typeof WidgetRoute
   '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
@@ -972,6 +980,7 @@ export interface FileRoutesById {
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/tax-vs-welfare': typeof TaxVsWelfareRoute
+  '/terms': typeof TermsRoute
   '/widget': typeof WidgetRoute
   '/world-compare': typeof WorldCompareRoute
   '/$country/calendar': typeof CountryCalendarRoute
@@ -1088,6 +1097,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/support'
     | '/tax-vs-welfare'
+    | '/terms'
     | '/widget'
     | '/world-compare'
     | '/$country/calendar'
@@ -1199,6 +1209,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/support'
     | '/tax-vs-welfare'
+    | '/terms'
     | '/widget'
     | '/world-compare'
     | '/$country/calendar'
@@ -1313,6 +1324,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/support'
     | '/tax-vs-welfare'
+    | '/terms'
     | '/widget'
     | '/world-compare'
     | '/$country/calendar'
@@ -1428,6 +1440,7 @@ export interface RootRouteChildren {
   StatusRoute: typeof StatusRoute
   SupportRoute: typeof SupportRoute
   TaxVsWelfareRoute: typeof TaxVsWelfareRoute
+  TermsRoute: typeof TermsRoute
   WidgetRoute: typeof WidgetRoute
   WorldCompareRoute: typeof WorldCompareRoute
   AnswersQuestionRoute: typeof AnswersQuestionRoute
@@ -1851,6 +1864,13 @@ declare module '@tanstack/react-router' {
       path: '/tax-vs-welfare'
       fullPath: '/tax-vs-welfare'
       preLoaderRoute: typeof TaxVsWelfareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/widget': {
@@ -2419,6 +2439,7 @@ const rootRouteChildren: RootRouteChildren = {
   StatusRoute: StatusRoute,
   SupportRoute: SupportRoute,
   TaxVsWelfareRoute: TaxVsWelfareRoute,
+  TermsRoute: TermsRoute,
   WidgetRoute: WidgetRoute,
   WorldCompareRoute: WorldCompareRoute,
   AnswersQuestionRoute: AnswersQuestionRoute,
