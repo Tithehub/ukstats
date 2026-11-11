@@ -86,7 +86,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
   const by = (id: string) => data.metrics.find((m) => m.id === id && m.value != null);
   const debt = by("uk-national-debt"), debtGdp = by("uk-debt-gdp"), boats = by("uk-small-boats-daily"), week = by("uk-small-boats-week");
   const terror = by("uk-threat-level"), met = by("uk-metoffice-warnings"), flood = by("uk-flood-warnings"), cpih = by("uk-cpih"), crime = by("uk-street-crime");
-  const ticker = [boats && `Home Office: ${boats.value} irregular arrivals detected (${boats.period ?? fmtDate(boats.asOf)})`, met && `Met Office: ${met.value}`, terror && `Terror threat level: ${terror.value}`, cpih && `ONS: CPIH inflation ${cpih.value}`, debt && `ONS: net debt ${debt.value}`].filter(Boolean) as string[];
+  const ticker = [week && `Home Office: ${week.value} small-boat arrivals in the last 7 days (${week.period ?? fmtDate(week.asOf)})`, met && `Met Office: ${met.value}`, terror && `Terror threat level: ${terror.value}`, cpih && `ONS: CPIH inflation ${cpih.value}`, debt && `ONS: net debt ${debt.value}`].filter(Boolean) as string[];
 
   return <div className="min-h-screen bg-background text-foreground">
     <div aria-label="Latest official figures" className="flex h-9 items-center overflow-hidden bg-onair-readable text-sm font-semibold text-desk-fg">
@@ -132,7 +132,7 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
         <Tile m={terror} icon={<ShieldCheck className="size-5" />} label="National terrorism threat level" link={{ category: "National alerts" }} />
         <Tile m={met} icon={<CloudFog className="size-5" />} label="Met Office weather warnings" link={{ category: "National alerts" }} />
         <Tile m={flood} icon={<Waves className="size-5" />} label="Flood alerts and warnings" link={{ category: "National alerts" }} />
-        <Tile m={boats} icon={<Ship className="size-5" />} label="Small-boat arrivals, latest day" link={{ category: "Irregular immigration & cost" }} />
+        <Tile m={week} icon={<Ship className="size-5" />} label="Small-boat arrivals, last 7 days" link={{ category: "Irregular immigration & cost" }} />
         <Tile m={cpih} icon={<ShoppingCart className="size-5" />} label="CPIH inflation, annual rate" link={{ category: "Cost of living" }} />
         <Tile m={crime} icon={<Siren className="size-5" />} label={crime?.title ?? "Crime"} link={{ category: "Crime" }} />
       </section>
@@ -148,9 +148,10 @@ export function UkLanding({ data, search, onSearchChange, additionalContent }: G
         <div className="relative max-w-2xl p-6 sm:p-12">
           <span className="inline-flex items-center gap-2 rounded-md bg-onair-readable px-3 py-1 text-xs font-black uppercase tracking-widest text-desk-fg"><Ship className="size-4" />Borders · latest figure</span>
           <h2 className="mt-4 text-4xl font-black leading-none tracking-tight sm:text-6xl">Small-boat arrivals</h2>
-          <div className="mt-3 font-mono text-7xl font-semibold tracking-tighter sm:text-8xl">{boats?.value ?? "Not published"}</div>
-          <p className="mt-3 text-base">{week ? `${week.value} in the last 7 days (${week.period ?? ""}).` : "Seven-day total not published."}</p>
-          <p className="mt-2 font-mono text-xs text-muted-foreground"><Meta m={boats} /></p>
+          <div className="mt-3 font-mono text-7xl font-semibold tracking-tighter sm:text-8xl">{week?.value ?? "Not published"}</div>
+          <p className="mt-1 text-sm font-bold uppercase tracking-widest">In the last 7 days{week?.period ? ` (${week.period})` : ""}</p>
+          <p className="mt-2 font-mono text-xs text-muted-foreground"><Meta m={week} /></p>
+          <p className="mt-3 text-base">{boats ? `Latest day: ${boats.value} (${boats.period ?? fmtDate(boats.asOf)}).` : "Latest daily figure not published."}</p>
           <Link to="/register" search={{ category: "Irregular immigration & cost", q: undefined }} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-3 font-bold text-background">All small-boat figures <ArrowRight className="size-4" /></Link>
         </div>
       </section>
