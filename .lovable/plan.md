@@ -11,3 +11,14 @@
 - `LiveStreamPanel.tsx` and `live.tsx` read the ID from shared Query options (loader ensureQueryData); brand.ts default updated to `5To5U1Ccx-8`.
 - Admin card in `agents.tsx`.
 - Tests for the link parser (valid formats, rejected bad links).
+
+## Daily clear-out of Agents page suggestions
+- Pending suggestions older than 24 hours (draft social posts, findings, explainer drafts, improvement plans) are deleted automatically, so the page starts fresh each day with only the new overnight suggestions.
+- Anything you already approved stays (approved explainers on the site and posts you've marked as used are kept).
+- The page refreshes itself when the London date changes, so an open tab shows the new day's list.
+
+### Technical details
+- In the agents tick (`engine.server.ts`), before a run: delete rows with `created_at < now() - 24h` and pending/open status from `agent_posts`, `agent_findings`, `explainer_drafts`, plus `improvement_plans` older than 24h. Approved explainers never touched.
+- Agents page reads also filter to the last 24h, so stale items vanish even if the clean-up hasn't run yet.
+- `agents.tsx` invalidates its queries when the London day rolls over (minute check).
+- Test: the age cutoff keeps a 23h item and drops a 25h item, and never drops approved explainers.
