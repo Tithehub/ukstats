@@ -113,7 +113,7 @@ export function explainerAt(msIntoHour: number, length = EXPLAINER_LEN): { activ
   const d = msIntoHour - EXPLAINER_START;
   return d >= 0 && d < length ? { active: true, msIn: d } : { active: false, msIn: 0 };
 }
-const EXPLAINER_LEN = 254_339; // keep equal to EXPLAINER_MS (stream-explainer.ts); a test checks it
+const EXPLAINER_LEN = 249_920; // keep equal to EXPLAINER_MS (stream-explainer.ts); a test checks it
 
 /** Full-screen sponsor break: 60s straight after the :15 and :45 "About UKStats" promo, every hour (UK and world). */
 export const SPONSOR_BREAK_MS = 60_000;
