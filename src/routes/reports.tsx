@@ -11,7 +11,7 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/useAuth";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
-import { canDownload, dailyEquivalent, gbp, REPORT_PRICES, savingPercent, subActive, type ReportEdition, type ReportKind, type ReportPriceId } from "@/lib/reports";
+import { canDownload, dailyEquivalent, gbp, REPORT_PRICES, reportPlanLabel, savingPercent, subActive, type ReportEdition, type ReportKind, type ReportPriceId } from "@/lib/reports";
 import { createReportCheckout, createReportPortal, getMyReportAccess, getReportDownload, listReportEditions } from "@/lib/reports.functions";
 import cover from "@/assets/reports/uk-01.jpg";
 import headlines from "@/assets/reports/uk-02.jpg";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/reports")({
   loader: ({ context }) => context.queryClient.ensureQueryData(editionsQuery),
   head: () => ({ meta: [
     { title: "Daily UKStats PDF reports — UK £1, Global £2.50" },
-    { name: "description", content: "A professionally designed daily PDF of every official UK figure, with source, period, publication date and next release. Global edition adds world rankings for every country." },
+    { name: "description", content: "A professionally designed daily PDF of every official UK figure, with source, period, publication date and next release. Includes world rankings for every country. From 75p a day." },
     { property: "og:title", content: "Daily UKStats PDF reports" },
     { property: "og:description", content: "Every official figure, sourced and dated, in one branded PDF each morning. UK £1, Global £2.50, or subscribe and save." },
     { property: "og:type", content: "website" },
@@ -97,7 +97,7 @@ function ReportsPage() {
     if (signedIn && owns(edition, kind, date))
       return <Button size="sm" onClick={() => download(edition, kind, date)} disabled={busy === key}><Download className="size-4" aria-hidden />{busy === key ? "Preparing…" : "Download PDF"}</Button>;
     if (kind !== "daily") return <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="size-3" aria-hidden /> Subscribers</span>;
-    const id: ReportPriceId = edition === "uk" ? "report_uk_daily" : "report_global_daily";
+    const id: ReportPriceId = "report_combined_daily";
     return <Button size="sm" variant="outline" onClick={() => buy(id, date)} disabled={!env}>Buy {gbp(REPORT_PRICES[id].pence)}</Button>;
   };
 
@@ -108,11 +108,11 @@ function ReportsPage() {
       <main className="mx-auto max-w-6xl px-4 py-10">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">UKStats reports</p>
         <h1 className="mt-2 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">Every official figure, in one beautifully set PDF each morning</h1>
-        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">Built at 07:00 London time from the same figures on ukstats.co.uk. Each figure shows its source, period, publication date and next release, plus the year-on-year change when the publisher gives one. Missing figures say "Not published". Also includes UK Government warnings, links to emergency supply kits (we make no money from them) and the day's main headlines, labelled as news. The Global edition adds every country's UK and US travel warnings and headlines by country. All the stats stay free on the site. The PDF is a paid, ready-to-share version.</p>
+        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">Built at 07:00 London time from the same figures on ukstats.co.uk. Each figure shows its source, period, publication date and next release, plus the year-on-year change when the publisher gives one. Missing figures say "Not published". Also includes UK Government warnings, links to emergency supply kits (we make no money from them) and the day's main headlines, labelled as news. It also covers every country's UK and US travel warnings and headlines by country. All the stats stay free on the site. The PDF is a paid, ready-to-share version.</p>
         {justPaid && <p className="mt-4 rounded-lg border border-primary bg-primary/5 p-3 text-sm font-semibold">Thank you — your purchase is confirmed. Your download button appears below within a few seconds.</p>}
 
-        <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Sample pages">
-          {[[cover, "UK edition cover"], [globalCover, "Global edition cover"], [headlines, "Headline figures"], [world, "Global edition: world rankings"]].map(([src, cap]) => (
+        <section className="mt-8 grid gap-3 sm:grid-cols-3" aria-label="Sample pages">
+          {[[globalCover, "Cover"], [headlines, "Headline figures"], [world, "World rankings"]].map(([src, cap]) => (
             <figure key={cap} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <img src={src} alt={`Sample report page: ${cap}`} className="aspect-[1/1.414] w-full object-cover object-top" loading="lazy" width={428} height={605} />
               <figcaption className="border-t border-border px-3 py-2 text-xs font-semibold">{cap}</figcaption>
@@ -120,32 +120,24 @@ function ReportsPage() {
           ))}
         </section>
 
-        <section className="mt-10 grid gap-5 md:grid-cols-2" aria-label="Prices">
-          {(["uk", "global"] as const).map((ed) => {
-            const daily = ed === "uk" ? "report_uk_daily" : "report_global_daily";
-            const monthly = ed === "uk" ? "report_uk_monthly" : "report_global_monthly";
-            const yearly = ed === "uk" ? "report_uk_yearly" : "report_global_yearly";
-            return (
-              <div key={ed} className="rounded-xl border-2 border-primary/80 bg-card p-5">
-                <div className="flex items-center gap-2">{ed === "uk" ? <FileText className="size-5" aria-hidden /> : <Globe2 className="size-5" aria-hidden />}<h2 className="text-2xl font-black">{ed === "uk" ? "UK report" : "Global report"}</h2></div>
-                <p className="mt-1 text-sm text-muted-foreground">{ed === "uk" ? "Every UK figure on the register: debt, small boats, inflation, crime, warnings and more." : "Everything in the UK report, plus world rankings and five main figures for every country."}</p>
-                <div className="mt-4 flex items-baseline gap-2"><span className="font-mono text-4xl font-black">{gbp(REPORT_PRICES[daily].pence)}</span><span className="text-sm text-muted-foreground">per daily report</span></div>
-                <Button className="mt-3 w-full" size="lg" onClick={() => buy(daily)} disabled={!env || (signedIn && owns(ed, "daily", today))}>{signedIn && owns(ed, "daily", today) ? "You own today's report" : "Buy today's report"}</Button>
-                <div className="mt-4 grid gap-2">
-                  {([monthly, yearly] as const).map((id) => {
-                    const p = REPORT_PRICES[id] as { edition: ReportEdition; pence: number; interval: "month" | "year"; label: string };
-                    return (
-                      <div key={id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border p-3">
-                        <div className="min-w-0"><p className="font-bold">{gbp(p.pence)} <span className="text-sm font-normal text-muted-foreground">/ {p.interval}</span></p>
-                          <p className="text-xs text-muted-foreground"><s>{gbp(dailyEquivalent(p.edition, p.interval))}</s> bought daily · save {savingPercent(id)}% · daily, weekly and monthly editions</p></div>
-                        <Button className="min-h-11 shrink-0" size="sm" variant="secondary" onClick={() => buy(id)} disabled={!env || !!activeSub}>Subscribe</Button>
-                      </div>
-                    );
-                  })}
+        <section className="mt-10 rounded-xl border-2 border-primary/80 bg-card p-5" aria-label="Prices">
+          <div className="flex items-center gap-2"><Globe2 className="size-5" aria-hidden /><h2 className="text-2xl font-black">UK & Global Stats</h2></div>
+          <p className="mt-1 text-sm text-muted-foreground">One report: every UK figure on the register (debt, small boats, inflation, crime, warnings and more), then world rankings and five main figures for every country.</p>
+          <div className="mt-4 flex items-baseline gap-2"><span className="font-mono text-4xl font-black">{gbp(REPORT_PRICES.report_combined_daily.pence)}</span><span className="text-sm text-muted-foreground">per daily report</span></div>
+          <Button className="mt-3 w-full sm:w-auto" size="lg" onClick={() => buy("report_combined_daily")} disabled={!env || (signedIn && owns("global", "daily", today))}>{signedIn && owns("global", "daily", today) ? "You own today's report" : "Buy today's report"}</Button>
+          <div className="mt-4 grid gap-2 md:grid-cols-3">
+            {(["report_combined_weekly", "report_combined_monthly", "report_combined_yearly"] as const).map((id) => {
+              const p = REPORT_PRICES[id];
+              return (
+                <div key={id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border p-3">
+                  <div className="min-w-0"><p className="font-bold">{gbp(p.pence)} <span className="text-sm font-normal text-muted-foreground">/ {p.interval}</span></p>
+                    <p className="text-xs text-muted-foreground"><s>{gbp(dailyEquivalent(id))}</s> bought daily · save {savingPercent(id)}%</p></div>
+                  <Button className="min-h-11 shrink-0" size="sm" variant="secondary" onClick={() => buy(id)} disabled={!env || !!activeSub}>Subscribe</Button>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Subscriptions include the daily, weekly and monthly editions.</p>
         </section>
         {!env && <p className="mt-3 text-sm text-muted-foreground">Checkout isn't switched on for this site yet.</p>}
         <ul className="mt-4 grid gap-1 text-sm text-muted-foreground sm:grid-cols-3">
@@ -165,7 +157,7 @@ function ReportsPage() {
             : !signedIn ? <p className="mt-2 text-sm"><Link to="/auth" search={{ next: "/reports" }} className="font-semibold underline">Sign in</Link> to buy reports and download the ones you own.</p>
             : activeSub ? (
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
-                <p className="text-sm"><strong>{REPORT_PRICES[activeSub.price_id as ReportPriceId]?.label ?? "Reports subscription"}</strong> — {activeSub.cancel_at_period_end || activeSub.status === "canceled" ? "ends" : "renews"} {activeSub.current_period_end ? longDate(activeSub.current_period_end.slice(0, 10)) : ""}. Every edition below is unlocked.</p>
+                <p className="text-sm"><strong>{reportPlanLabel(activeSub.price_id)}</strong> — {activeSub.cancel_at_period_end || activeSub.status === "canceled" ? "ends" : "renews"} {activeSub.current_period_end ? longDate(activeSub.current_period_end.slice(0, 10)) : ""}. Every edition below is unlocked.</p>
                 <Button variant="outline" size="sm" onClick={manage}>Manage subscription</Button>
               </div>)
             : <p className="mt-2 text-sm text-muted-foreground">{purchases.length ? `You own ${purchases.length} daily ${purchases.length === 1 ? "report" : "reports"}.` : "You haven't bought a report yet."}</p>}
@@ -175,18 +167,18 @@ function ReportsPage() {
           <h2 id="archive" className="text-2xl font-black">Report archive</h2>
           <div className="mt-3 overflow-hidden rounded-lg border border-border">
             <table className="block w-full text-sm sm:table">
-              <thead className="sr-only bg-primary text-primary-foreground sm:not-sr-only sm:table-header-group"><tr><th scope="col" className="px-3 py-2 text-left">Date</th><th scope="col" className="px-3 py-2 text-left">UK report</th><th scope="col" className="px-3 py-2 text-left">Global report</th></tr></thead>
+              <thead className="sr-only bg-primary text-primary-foreground sm:not-sr-only sm:table-header-group"><tr><th scope="col" className="px-3 py-2 text-left">Date</th><th scope="col" className="px-3 py-2 text-left">UK & Global Stats</th></tr></thead>
               <tbody className="block w-full sm:table-row-group">
                 {dates.map((d) => (
                   <tr key={d} className="grid grid-cols-2 border-t border-border sm:table-row">
                     <th scope="row" className="col-span-2 px-3 py-3 text-left font-semibold sm:py-2">{longDate(d)}{d === today && <span className="ml-2 rounded bg-primary px-1.5 py-0.5 font-mono text-[10px] uppercase text-primary-foreground">Today</span>}</th>
-                    {(["uk", "global"] as const).map((ed) => <td key={ed} className="min-w-0 px-3 pb-3 sm:py-2"><span aria-hidden="true" className="mb-2 block text-xs font-semibold sm:hidden">{ed === 'uk' ? 'UK report' : 'Global report'}</span>{d === today || built(ed, d) ? <Action edition={ed} kind="daily" date={d} /> : <span className="text-xs text-muted-foreground">Not built</span>}</td>)}
+                    <td className="col-span-2 min-w-0 px-3 pb-3 sm:py-2">{d === today || built("global", d) ? <Action edition="global" kind="daily" date={d} /> : <span className="text-xs text-muted-foreground">Not built</span>}</td>
                   </tr>
                 ))}
-                {periodic.map((e) => (
+                {periodic.filter((e) => e.edition === "global").map((e) => (
                   <tr key={`${e.edition}-${e.kind}-${e.report_date}`} className="border-t border-border bg-muted/40">
-                    <td className="px-3 py-2 font-semibold">{kindLabel[e.kind]} {e.edition === "uk" ? "UK" : "Global"} — {longDate(e.report_date)}</td>
-                    <td className="px-3 py-2" colSpan={2}><Action edition={e.edition} kind={e.kind} date={e.report_date} /></td>
+                    <td className="px-3 py-2 font-semibold">{kindLabel[e.kind]} UK & Global Stats — {longDate(e.report_date)}</td>
+                    <td className="px-3 py-2" ><Action edition={e.edition} kind={e.kind} date={e.report_date} /></td>
                   </tr>
                 ))}
               </tbody>
