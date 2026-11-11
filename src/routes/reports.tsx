@@ -13,9 +13,9 @@ import { useAuth } from "@/lib/useAuth";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { canDownload, dailyEquivalent, gbp, REPORT_PRICES, reportPlanLabel, savingPercent, subActive, type ReportEdition, type ReportKind, type ReportPriceId } from "@/lib/reports";
 import { createReportCheckout, createReportPortal, getMyReportAccess, getReportDownload, listReportEditions } from "@/lib/reports.functions";
-import headlines from "@/assets/reports/uk-02.jpg";
-import globalCover from "@/assets/reports/global-01.jpg";
-import world from "@/assets/reports/global-12.jpg";
+import headlines from "@/assets/reports/combined-2.jpg";
+import globalCover from "@/assets/reports/combined-1.jpg";
+import world from "@/assets/reports/combined-16.jpg";
 
 const editionsQuery = queryOptions({ queryKey: ["report-editions"], queryFn: () => listReportEditions(), staleTime: 60_000 });
 
@@ -111,7 +111,7 @@ function ReportsPage() {
         {justPaid && <p className="mt-4 rounded-lg border border-primary bg-primary/5 p-3 text-sm font-semibold">Thank you — your purchase is confirmed. Your download button appears below within a few seconds.</p>}
 
         <section className="mt-8 grid gap-3 sm:grid-cols-3" aria-label="Sample pages">
-          {[[globalCover, "Cover"], [headlines, "Headline figures"], [world, "World rankings"]].map(([src, cap]) => (
+          {[[globalCover, "Cover"], [headlines, "UK Debt today"], [world, "World rankings"]].map(([src, cap]) => (
             <figure key={cap} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <img src={src} alt={`Sample report page: ${cap}`} className="aspect-[1/1.414] w-full object-cover object-top" loading="lazy" width={428} height={605} />
               <figcaption className="border-t border-border px-3 py-2 text-xs font-semibold">{cap}</figcaption>

@@ -4,8 +4,8 @@ import { explainerChapters, type Chapter } from "@/lib/stream-explainer";
 import { REPORT_PRICES, gbp } from "@/lib/reports";
 import { PRODUCT_PRICES, AI_PRESENTER_PENCE, gbp as rentGbp } from "@/lib/rent-pricing";
 import sports from "@/assets/explainer-sports.jpg";
-import ukCover from "@/assets/reports/uk-01.jpg";
-import globalCover from "@/assets/reports/global-01.jpg";
+import ukCover from "@/assets/reports/combined-1.jpg";
+import globalCover from "@/assets/reports/combined-2.jpg";
 import rentDash from "@/assets/rent/rent-dashboard.jpg";
 import rentStream from "@/assets/rent/rent-stream.jpg";
 import rentWidget from "@/assets/rent/rent-widget.jpg";
@@ -64,8 +64,8 @@ function body(c: Chapter, line: number) {
     </div>;
     case "reports": return <div className="flex items-center gap-5">
       <div className="relative h-[230px] w-[180px] shrink-0">
-        <img src={globalCover} alt="Global report cover" className="absolute right-0 top-0 h-[170px] rotate-6 rounded shadow-2xl" />
-        <img src={ukCover} alt="UK report cover" className="absolute left-0 top-4 h-[170px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
+        <img src={globalCover} alt="UK Debt today page" className="absolute right-0 top-0 h-[170px] rotate-6 rounded shadow-2xl" />
+        <img src={ukCover} alt="UK & Global Stats report cover" className="absolute left-0 top-4 h-[170px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2 text-[20px]">
         <Price k="Daily" v={gbp(REPORT_PRICES.report_combined_daily.pence)} />
