@@ -10,7 +10,7 @@ export function parseStreamId(input: string): string | null {
   else if (host === "youtube.com" || host === "youtube-nocookie.com") {
     id = u.searchParams.get("v");
     const m = u.pathname.match(/^\/(live|shorts|embed)\/([\w-]{11})/);
-    if (!id && m) id = m[2];
+    if (!id && m) id = m[2] ?? null;
   }
   return id && /^[\w-]{11}$/.test(id) ? id : null;
 }

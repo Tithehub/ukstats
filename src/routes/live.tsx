@@ -6,7 +6,7 @@ import { liveStreamQuery } from "@/lib/live-stream.functions";
 const thumbFor = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
 export const Route = createFileRoute("/live")({
-  head: ({ loaderData }) => { const thumb = thumbFor(loaderData?.id ?? LIVE_STREAM_ID); return {
+  head: ({ loaderData }) => { const thumb = thumbFor((loaderData as { id?: string } | null | undefined)?.id ?? LIVE_STREAM_ID); return {
     meta: [
       { title: "UKStats Live — official UK figures streamed 24/7" },
       { name: "description", content: "Watch UKStats Live: national debt, small boats, warnings and more from official publishers, every figure sourced and dated." },
