@@ -4,7 +4,7 @@ import { REPORT_PRICES } from "@/lib/reports";
 import { lineMs as spokenMs } from "@/lib/stream-script";
 import { PRODUCT_PRICES, AI_PRESENTER_PENCE, gbp as rentGbp } from "@/lib/rent-pricing";
 
-const gbp = (p: number) => `£${(p / 100).toFixed(2)}`;
+import { gbp } from "@/lib/reports";
 
 export type ChapterId = "welcome" | "globe" | "sources" | "reports" | "rent" | "sports" | "walkthrough" | "close";
 /** lineMs: time on air per line, measured from the presenter voice plus a short pause, so no line is cut off. */
