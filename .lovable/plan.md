@@ -1,15 +1,10 @@
-# National Risk Register on ukstats.co.uk: legal check
+# Make the National Risk Register title open the official PDF
 
-## Short answer
-Yes, it is legal. Linking to the report is always allowed. Showing its cover is allowed under the Open Government Licence v3.0, which lets anyone copy and republish Crown copyright material, including for commercial sites, if they credit the source and do not suggest the government endorses UKStats.
+Clicking the card title "National Risk Register 2026" (and its cover thumbnail) will open the official full report PDF straight from GOV.UK in a new tab, instead of the GOV.UK summary page.
 
-## One point to tidy
-The licence does not cover government logos, crests or the Royal Arms. If the cover thumbnail shows the HM Government crest, it is safer to crop it out or use a plain navy title square, as was done for the Claim of Right.
+- The PDF stays hosted by GOV.UK, so readers always get the official, current copy (no re-hosted file to go out of date).
+- The "Full report" and "Short guide" links stay as they are.
+- Desktop and phone checked in preview. Nothing published.
 
-## Proposed changes
-1. Check the cover thumbnail for the crest. If present, crop it out; if cropping looks poor, swap to a plain navy "NRR 2026" square.
-2. Use the licence wording in the credit: "Contains public sector information licensed under the Open Government Licence v3.0."
-3. Keep the "Official government publication, not a UKStats statistic" label so it never looks like an endorsement.
-
-## Not legal advice
-This is based on the published licence terms, not a solicitor review.
+## Technical details
+In src/components/home/FoundingDocuments.tsx, change the title link href to the assets.publishing.service.gov.uk National_Risk_Register_2026.pdf URL and wrap the thumbnail in the same link.
