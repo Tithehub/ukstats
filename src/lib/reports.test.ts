@@ -45,3 +45,27 @@ describe("schedule", () => {
     expect(kindsFor("2026-11-07")).toEqual(["daily"]);
   });
 });
+
+import { debtPanel } from "./report-pdf";
+import type { Metric } from "./uk-stats";
+describe("UK debt panel", () => {
+  const m = (o: Partial<Metric>) => ({ id: "uk-national-debt", value: "£2,900bn", period: "September 2026", asOf: "2026-10-21", nextDue: "2026-11-21", source: "ONS", sourceUrl: "https://ons.gov.uk", change: { label: "+£20bn", dir: "up" }, ...o }) as Metric;
+  it("copies the published debt figure and counts its age in days", () => {
+    const d = debtPanel([m({})], "2026-11-11");
+    expect(d.value).toBe("£2,900bn");
+    expect(d.ageDays).toBe(21);
+    expect(d.next).toBe("2026-11-21");
+  });
+  it("shows no value when ONS has no figure", () => {
+    const d = debtPanel([m({ value: null })], "2026-11-11");
+    expect(d.value).toBeNull();
+    expect(d.ageDays).toBeNull();
+    expect(d.change).toBeNull();
+  });
+});
+describe("UK debt change wording", () => {
+  it("spells out the direction instead of an arrow symbol", () => {
+    const d = debtPanel([{ id: "uk-national-debt", value: "£3,005bn", period: "2026 SEP", asOf: "2026-10-20", nextDue: null, source: "ONS", sourceUrl: "x", change: { label: "▲ 23.8bn vs previous", dir: "up" } } as Metric], "2026-11-11");
+    expect(d.change).toBe("Up £23.8bn vs previous");
+  });
+});

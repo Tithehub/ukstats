@@ -13,7 +13,7 @@ import { CATEGORIES } from "@/lib/uk-stats";
 import { fmtWorld, rankIndicator, WORLD_INDICATORS, WORLD_SOURCE, type WorldPayload } from "@/lib/world";
 import { windowStart, type ReportEdition, type ReportKind } from "@/lib/reports";
 
-export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array; combined?: Uint8Array; kitImages?: Record<string, Uint8Array> }
+export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array; combined?: Uint8Array; logo?: Uint8Array; kitImages?: Record<string, Uint8Array> }
 export interface ReportInput {
   edition: ReportEdition;
   kind: ReportKind;
@@ -42,6 +42,24 @@ const YELLOW = rgb(1, 0.8, 0.1);
 
 const HEADLINE_IDS = ["uk-national-debt", "uk-small-boats-week", "uk-irregular-migration", "uk-cpi", "uk-unemployment", "uk-threat-level", "uk-metoffice-warnings", "uk-flood-warnings"];
 const TOP5 = ["NY.GDP.PCAP.CD", "FP.CPI.TOTL.ZG", "SL.UEM.TOTL.ZS", "GC.DOD.TOTL.GD.ZS", "SP.POP.TOTL"];
+
+/** Fields for the "UK Debt today" panel, copied from the published metrics. Age is days from publication to the report date. */
+export function debtPanel(metrics: Metric[], reportDate: string) {
+  const debt = metrics.find((m) => m.id === "uk-national-debt") ?? null;
+  const gdp = metrics.find((m) => m.id === "uk-debt-gdp") ?? null;
+  const age = debt?.value && debt.asOf ? Math.max(0, Math.round((Date.parse(reportDate) - Date.parse(debt.asOf.slice(0, 10))) / 864e5)) : null;
+  return {
+    value: debt?.value ?? null,
+    change: debt?.value && debt.change ? `${debt.change.dir === "up" ? "Up" : debt.change.dir === "down" ? "Down" : "No change,"} ${debt.change.label.replace(/^[^\d£-]+/, "").replace(/^(\d)/, "£$1")}` : null,
+    gdp: gdp?.value ?? null,
+    period: debt?.value ? debt.period : null,
+    published: debt?.value ? debt.asOf : null,
+    next: debt?.nextDue ?? null,
+    ageDays: age,
+    source: debt?.source ?? "Office for National Statistics",
+    url: debt?.sourceUrl ?? "https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance",
+  };
+}
 
 export function longDate(iso: string): string {
   const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
@@ -113,6 +131,13 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     text(p, "Stats", tx + width(F.k, "UK", size) + size * 0.12, y + s * 0.05, F.b, size, WHITE);
   };
 
+  const logoImg = input.fonts.logo ? await doc.embedPng(input.fonts.logo) : null;
+  const brand = (p: PDFPage, x: number, y: number, h: number) => {
+    if (!logoImg) return logo(p, x, y, h);
+    const bh = h * 1.25, bw = (logoImg.width / logoImg.height) * bh;
+    p.drawImage(logoImg, { x, y: y - bh * 0.12, width: bw, height: bh });
+  };
+
   // ---------- Cover (drawn last, see drawCover) ----------
   const cover = doc.addPage([W, H]);
   const toc: { section: string; page: number }[] = [];
@@ -124,7 +149,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     pages.push(p);
     if (!toc.some((t) => t.section === section)) toc.push({ section, page: pages.length + 1 });
     p.drawRectangle({ x: 0, y: H - 34, width: W, height: 34, color: NAVY });
-    logo(p, M, H - 25, 13);
+    brand(p, M, H - 25, 13);
     text(p, fit(F.mb, `${title.toUpperCase()}  |  ${dateLong.toUpperCase()}`, 7.5, 300), W - M - width(F.mb, fit(F.mb, `${title.toUpperCase()}  |  ${dateLong.toUpperCase()}`, 7.5, 300), 7.5), H - 21, F.mb, 7.5, rgb(0.75, 0.82, 0.92));
     text(p, section.toUpperCase(), M, H - 62, F.mb, 8, BLUE);
     return p;
@@ -137,7 +162,39 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
 
   // ---------- Headlines ----------
   const byId = new Map(input.metrics.map((m) => [m.id, m]));
-  let p = newPage("At a glance");
+  let p = newPage("UK Debt today");
+  {
+    const d = debtPanel(input.metrics, input.date);
+    let yy = sectionTitle(p, "UK Debt today", H - 92);
+    const bh = 300;
+    p.drawRectangle({ x: M, y: yy - bh, width: W - 2 * M, height: bh, color: NAVY });
+    p.drawRectangle({ x: M, y: yy - bh, width: 5, height: bh, color: RED });
+    const X = M + 24;
+    text(p, "UK PUBLIC SECTOR NET DEBT", X, yy - 30, F.mb, 8, rgb(0.75, 0.82, 0.92));
+    text(p, fit(F.k, d.value ?? "Not published", d.value ? 44 : 22, W - 2 * M - 48), X, yy - 80, F.k, d.value ? 44 : 22, WHITE);
+    const rows: [string, string][] = [
+      ["Change on previous month", d.change ?? "Not published"],
+      ["Debt as a share of GDP", d.gdp ?? "Not published"],
+      ["Month covered", d.period ?? "Not stated"],
+      ["Published by ONS", shortDate(d.published)],
+      ["Next official figure", d.next ? shortDate(d.next) : "Not announced"],
+      ["Age of figure", d.ageDays == null ? "-" : `${d.ageDays} day${d.ageDays === 1 ? "" : "s"} old`],
+    ];
+    rows.forEach(([k, v], i) => {
+      const ry = yy - 116 - i * 22;
+      text(p, k, X, ry, F.m, 8.5, rgb(0.75, 0.82, 0.92));
+      text(p, fit(F.b, v, 11, 220), X + 190, ry, F.b, 11, WHITE);
+    });
+    const qr = qrcode(0, "M"); qr.addData(d.url); qr.make();
+    const n = qr.getModuleCount(), qs = 78, cell = qs / n, qx = W - M - 24 - qs, qy = yy - bh + 24;
+    p.drawRectangle({ x: qx - 4, y: qy - 4, width: qs + 8, height: qs + 8, color: WHITE });
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) p.drawRectangle({ x: qx + k * cell, y: qy + (n - 1 - r) * cell, width: cell + 0.15, height: cell + 0.15, color: NAVY });
+    text(p, fit(F.m, `Source: ${d.source}`, 7.5, 330), X, yy - bh + 40, F.m, 7.5, rgb(0.75, 0.82, 0.92));
+    text(p, fit(F.m, d.url, 7, 330), X, yy - bh + 26, F.m, 7, rgb(0.75, 0.82, 0.92));
+    yy -= bh + 26;
+    wrap(F.r, "ONS publishes UK debt once a month, not daily. This page shows the newest official figure with its own dates; it changes on the day ONS releases a new one. UKStats never estimates a running or daily debt total.", 9.5, W - 2 * M).forEach((l, i) => text(p, l, M, yy - i * 14, F.r, 9.5, MUTED));
+  }
+  p = newPage("At a glance");
   let y = sectionTitle(p, "The headline figures", H - 92);
   const cw = (W - 2 * M - 12) / 2, ch = 140;
   HEADLINE_IDS.forEach((id, i) => {
@@ -440,7 +497,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     c.drawRectangle({ x: 0, y: H - 3, width: W, height: 3, color: RED });
     const L = 56;
     // Masthead
-    logo(c, L, H - 68, 17);
+    brand(c, L, H - 68, 17);
     const [yy, mm, dd] = input.date.split("-").map(Number);
     const doy = Math.round((Date.UTC(yy!, mm! - 1, dd!) - Date.UTC(yy!, 0, 0)) / 864e5);
     const vol = `No. ${doy}  |  ${yy}`;
@@ -464,7 +521,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     text(c, fit(F.r, hm?.title ?? "UK public sector net debt", 9, W - 2 * L), L, ty - 82, F.r, 9, SOFT);
     const hv = hm?.value ?? "Not published";
     text(c, hv, L, ty - 112, F.r, 26, hm?.value ? WHITE : SOFT);
-    const meta = `${hm?.source ?? "Source not available"}  |  ${hm?.period ?? "period not stated"}`;
+    const meta = hm?.value ? `as at ${hm.period ?? "period not stated"}  |  ONS, published ${shortDate(hm.asOf)}` : "Source not available";
     text(c, fit(F.m, meta, 7.5, W - 2 * L - width(F.r, hv, 26) - 20), L + width(F.r, hv, 26) + 16, ty - 108, F.m, 7.5, SOFT);
     // Quiet contents line
     const names = toc.filter((t) => !(CATEGORIES as readonly string[]).includes(t.section)).map((t) => t.section);
