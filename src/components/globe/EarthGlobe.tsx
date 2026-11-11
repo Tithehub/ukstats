@@ -71,22 +71,30 @@ export function sunPosition(d: Date): { lat: number; lng: number } {
 
 export interface GlobeFlow { id: string; from: string; to: string; toLat?: number | undefined; toLng?: number | undefined; color: string; stroke: number; label: string }
 
+const haloTex = (() => { let t: THREE.Texture | null = null; return () => { if (t) return t; const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d")!; const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "rgba(255,255,255,0.9)"); g.addColorStop(0.45, "rgba(255,255,255,0.35)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return (t = new THREE.CanvasTexture(c)); }; })();
+const haloGeo = new THREE.CircleGeometry(1, 32);
+/** Soft glow disc lying on the globe surface under an icon, in the icon's own colour. */
+function halo(color: string, opacity: number, size = 1.6): THREE.Object3D {
+  const m = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color, map: haloTex(), transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending }));
+  m.scale.setScalar(size); m.position.z = 0.05; return m;
+}
+
 function makeBoat(color = "#f05a28"): THREE.Object3D {
   // A small dinghy seen from above: pointed bow, inflatable rim, a row of people.
   const g = new THREE.Group();
   const s = new THREE.Shape();
   s.moveTo(-0.9, -0.32); s.lineTo(0.45, -0.32); s.quadraticCurveTo(1.0, -0.2, 1.15, 0); s.quadraticCurveTo(1.0, 0.2, 0.45, 0.32); s.lineTo(-0.9, 0.32); s.closePath();
-  const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: 0.22, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.55, flatShading: true }));
+  const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: 0.22, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 3, curveSegments: 16 }), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.4, roughness: 0.45, metalness: 0.15 }));
   const inner = new THREE.Shape();
   inner.moveTo(-0.75, -0.18); inner.lineTo(0.4, -0.18); inner.quadraticCurveTo(0.8, -0.1, 0.9, 0); inner.quadraticCurveTo(0.8, 0.1, 0.4, 0.18); inner.lineTo(-0.75, 0.18); inner.closePath();
-  const floor = new THREE.Mesh(new THREE.ExtrudeGeometry(inner, { depth: 0.24, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color: "#1b2330", flatShading: true }));
+  const floor = new THREE.Mesh(new THREE.ExtrudeGeometry(inner, { depth: 0.24, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 3, curveSegments: 16 }), new THREE.MeshStandardMaterial({ color: "#1b2330" }));
   floor.position.z = 0.01;
   g.add(rim, floor);
-  const head = new THREE.SphereGeometry(0.09, 6, 6), hm = new THREE.MeshStandardMaterial({ color: "#f2f4f7", emissive: "#f2f4f7", emissiveIntensity: 0.3 });
+  const head = new THREE.SphereGeometry(0.09, 16, 12), hm = new THREE.MeshStandardMaterial({ color: "#f2f4f7", emissive: "#f2f4f7", emissiveIntensity: 0.3 });
   for (let i = 0; i < 4; i++) for (const y of [-0.08, 0.08]) { const p = new THREE.Mesh(head, hm); p.position.set(-0.55 + i * 0.3, y, 0.3); g.add(p); }
   // Point the bow north-west, towards Kent.
   g.rotation.z = (3 * Math.PI) / 4;
-  const wrap = new THREE.Group(); wrap.add(g); wrap.scale.setScalar(0.45);
+  const wrap = new THREE.Group(); wrap.add(g, halo(color, 0.5, 3)); wrap.scale.setScalar(0.45);
   wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2, boat: true };
   return wrap;
 }
@@ -109,37 +117,37 @@ const KIND = { riot: { c: "#e0452f", ring: "rgba(224,69,47," }, protest: { c: "#
 
 function makeIcon(kind: UnrestKind, research: boolean): THREE.Object3D {
   const col = new THREE.Color(KIND[kind].c);
-  const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: research ? 0.3 : 0.8, flatShading: true, transparent: research, opacity: research ? 0.6 : 1 });
+  const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: research ? 0.25 : 0.55, roughness: 0.38, metalness: 0.2, transparent: research, opacity: research ? 0.6 : 1 });
   const g = new THREE.Group();
   if (kind === "strike") {
     // Missile diving onto a flash burst.
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 2, 8), new THREE.MeshStandardMaterial({ color: "#c9ccd2", flatShading: true }));
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 2, 20), new THREE.MeshStandardMaterial({ color: "#c9ccd2" }));
     body.position.y = 2.4;
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.6, 8), mat); tip.position.y = 1.1; tip.rotation.z = Math.PI;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.6, 20), mat); tip.position.y = 1.1; tip.rotation.z = Math.PI;
     const fin = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, 0.06), mat); fin.position.y = 3.3;
-    const burst = new THREE.Mesh(new THREE.IcosahedronGeometry(0.75, 0), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ff7a1a", emissiveIntensity: 1.2, flatShading: true }));
+    const burst = new THREE.Mesh(new THREE.IcosahedronGeometry(0.75, 2), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ff7a1a", emissiveIntensity: 1.2 }));
     burst.position.y = 0.4;
     g.add(body, tip, fin, burst);
   } else if (kind === "war") {
     // Crossed swords over a shield.
-    const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2, 6), mat); shield.rotation.x = Math.PI / 2; shield.position.y = 1.4;
-    const steel = new THREE.MeshStandardMaterial({ color: "#e6e8ec", metalness: 0.6, roughness: 0.3, flatShading: true });
+    const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2, 24), mat); shield.rotation.x = Math.PI / 2; shield.position.y = 1.4;
+    const steel = new THREE.MeshStandardMaterial({ color: "#e6e8ec", metalness: 0.6, roughness: 0.3 });
     for (const a of [0.7, -0.7]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.14, 3, 0.08), steel); b.position.set(0, 1.5, 0.15); b.rotation.z = a; g.add(b); }
     g.add(shield);
   } else if (kind === "riot") {
-    const outer = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.6, 6), mat); outer.position.y = 1.3;
-    const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 0), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ffb020", emissiveIntensity: 1, flatShading: true }));
+    const outer = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.6, 24), mat); outer.position.y = 1.3;
+    const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 2), new THREE.MeshStandardMaterial({ color: "#ffd25a", emissive: "#ffb020", emissiveIntensity: 1 }));
     inner.position.y = 0.6;
     g.add(outer, inner);
   } else {
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.4, 6), new THREE.MeshStandardMaterial({ color: "#dcd6c8", flatShading: true }));
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.4, 16), new THREE.MeshStandardMaterial({ color: "#dcd6c8" }));
     pole.position.y = 1.2;
     const board = new THREE.Mesh(new THREE.BoxGeometry(2, 1.3, 0.2), mat); board.position.y = 2.4;
     g.add(pole, board);
   }
   // Stand the icon up off the globe surface (globe objects face +z outward).
   g.rotation.x = Math.PI / 2;
-  const wrap = new THREE.Group(); wrap.add(g);
+  const wrap = new THREE.Group(); wrap.add(g, halo(KIND[kind].c, research ? 0.25 : 0.55));
   wrap.scale.setScalar(research ? 1.1 : 2.2);
   wrap.userData = { spin: g, phase: Math.random() * Math.PI * 2 };
   return wrap;
@@ -288,10 +296,10 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
     const k = countryKey((f as Feat).properties.name);
     if (k === selected) return colors.sel;
     if (hotspots.has(k)) return colors.hot;
-    if (fill) return fill.get(k) ?? "rgba(140,140,140,0.35)";
+    if (fill) return fill.get(k) ?? "rgba(140,140,140,0.06)";
     if (!shade) return "rgba(255,255,255,0.04)";
     const s = shade.get(k);
-    if (s === undefined) return "rgba(140,140,140,0.35)";
+    if (s === undefined) return "rgba(140,140,140,0.06)";
     return `rgba(${Math.round(30 + 200 * s)}, ${Math.round(110 + 80 * s)}, ${Math.round(220 - 150 * s)}, 0.75)`;
   };
 
@@ -300,14 +308,14 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   const dayNightMat = useMemo(() => {
     const load = new THREE.TextureLoader();
     const day = load.load(earth), night = load.load(nightLights);
-    for (const t of [day, night]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
+    for (const t of [day, night]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; }
     return new THREE.ShaderMaterial({
       uniforms: { dayT: { value: day }, nightT: { value: night }, sun: { value: new THREE.Vector3(1, 0, 0) } },
       vertexShader: "varying vec3 vN; varying vec2 vUv; void main(){ vUv = uv; vN = normalize((modelMatrix * vec4(position,1.0)).xyz); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ float d = dot(vN, normalize(sun)); float k = smoothstep(-0.12, 0.12, d); vec3 dt = texture2D(dayT, vUv).rgb; vec3 dc = dt * (0.6 + 0.55 * clamp(d, 0.0, 1.0)); vec3 nc = texture2D(nightT, vUv).rgb * vec3(2.4, 2.0, 1.4) + dt * 0.07; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.1, abs(d)); c += vec3(1.0, 0.45, 0.15) * edge * 0.18; gl_FragColor = vec4(c, 1.0); }",
+      fragmentShader: "uniform sampler2D dayT; uniform sampler2D nightT; uniform vec3 sun; varying vec3 vN; varying vec2 vUv; void main(){ vec3 L = normalize(sun); float d = dot(vN, L); float k = smoothstep(-0.2, 0.2, d); vec3 dt = texture2D(dayT, vUv).rgb; float lum = dot(dt, vec3(0.299,0.587,0.114)); vec2 px = vec2(1.0/4096.0, 1.0/2048.0); float lx = dot(texture2D(dayT, vUv + vec2(px.x,0.0)).rgb, vec3(0.333)) - lum; float ly = dot(texture2D(dayT, vUv + vec2(0.0,px.y)).rgb, vec3(0.333)) - lum; float relief = clamp(1.0 + (lx + ly) * 2.5, 0.85, 1.15); float water = smoothstep(0.02, 0.12, dt.b - max(dt.r, dt.g)); vec3 dc = dt * (0.85 + 0.3 * clamp(d, 0.0, 1.0)) * mix(relief, 1.0, water); vec3 V = normalize(cameraPosition - vN * 100.0); vec3 H = normalize(L + V); float spec = pow(max(dot(vN, H), 0.0), 60.0) * water * 0.45 * k; dc += vec3(1.0, 0.96, 0.88) * spec; vec3 nc = texture2D(nightT, vUv).rgb * vec3(2.0, 1.7, 1.2) + dt * 0.42; vec3 c = mix(nc, dc, k); float edge = 1.0 - smoothstep(0.0, 0.14, abs(d)); c += vec3(1.0, 0.5, 0.2) * edge * 0.14; float fres = pow(1.0 - max(dot(vN, V), 0.0), 3.0); c += vec3(0.45, 0.7, 1.0) * fres * 0.35 * (0.35 + 0.65 * k); gl_FragColor = vec4(c, 1.0); }",
     });
   }, []);
-  const plainMat = useMemo(() => new THREE.MeshPhongMaterial({ shininess: 6 }), []);
+  const plainMat = useMemo(() => new THREE.MeshPhongMaterial({ shininess: 14, specular: new THREE.Color("#3a4a5a") }), []);
   useEffect(() => {
     const g = ref.current; if (!g || !dayNight) return;
     const set = () => { const s = sunPosition(new Date()); const c = g.getCoords(s.lat, s.lng, 0); dayNightMat.uniforms["sun"]!.value.set(c.x, c.y, c.z); };
@@ -319,7 +327,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   useEffect(() => {
     const g = ref.current; if (!g || !gl0 || coarse || still || gen > 0) return;
     const tex = new THREE.TextureLoader().load(cloudsAlpha);
-    const mat = new THREE.MeshLambertMaterial({ color: "#ffffff", alphaMap: tex, transparent: true, opacity: 0.32, depthWrite: false });
+    const mat = new THREE.MeshLambertMaterial({ color: "#ffffff", alphaMap: tex, transparent: true, opacity: 0.38, depthWrite: false });
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(g.getGlobeRadius() * 1.006, 64, 48), mat);
     g.scene().add(mesh);
     let raf = 0; const spin = () => { mesh.rotation.y += 0.00012; raf = requestAnimationFrame(spin); }; raf = requestAnimationFrame(spin);
