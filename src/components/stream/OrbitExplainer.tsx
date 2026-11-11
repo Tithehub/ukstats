@@ -68,10 +68,10 @@ function body(c: Chapter, line: number) {
         <img src={ukCover} alt="UK report cover" className="absolute left-0 top-4 h-[170px] -rotate-3 rounded shadow-2xl motion-safe:animate-[orbit-head_6s_ease-in-out_infinite]" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2 text-[20px]">
-        <Price k="UK daily" v={gbp(REPORT_PRICES.report_uk_daily.pence)} />
-        <Price k="Global daily" v={gbp(REPORT_PRICES.report_global_daily.pence)} />
-        <Price k="UK mo / yr" v={`${gbp(REPORT_PRICES.report_uk_monthly.pence)} / ${gbp(REPORT_PRICES.report_uk_yearly.pence)}`} />
-        <Price k="Global mo / yr" v={`${gbp(REPORT_PRICES.report_global_monthly.pence)} / ${gbp(REPORT_PRICES.report_global_yearly.pence)}`} />
+        <Price k="Daily" v={gbp(REPORT_PRICES.report_combined_daily.pence)} />
+        <Price k="Weekly" v={gbp(REPORT_PRICES.report_combined_weekly.pence)} />
+        <Price k="Monthly" v={gbp(REPORT_PRICES.report_combined_monthly.pence)} />
+        <Price k="Yearly" v={gbp(REPORT_PRICES.report_combined_yearly.pence)} />
       </div>
     </div>;
     case "rent": {

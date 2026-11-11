@@ -13,7 +13,7 @@ import { CATEGORIES } from "@/lib/uk-stats";
 import { fmtWorld, rankIndicator, WORLD_INDICATORS, WORLD_SOURCE, type WorldPayload } from "@/lib/world";
 import { windowStart, type ReportEdition, type ReportKind } from "@/lib/reports";
 
-export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array; kitImages?: Record<string, Uint8Array> }
+export interface ReportFonts { regular: Uint8Array; bold: Uint8Array; black: Uint8Array; mono: Uint8Array; monoBold: Uint8Array; ukMap?: Uint8Array; globe?: Uint8Array; combined?: Uint8Array; kitImages?: Record<string, Uint8Array> }
 export interface ReportInput {
   edition: ReportEdition;
   kind: ReportKind;
@@ -95,9 +95,9 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     return `${t.trimEnd()}...`;
   };
 
-  const editionName = input.edition === "uk" ? "UK" : "Global";
+  const editionName = input.edition === "uk" ? "UK" : "UK & Global Stats";
   const kindName = input.kind === "daily" ? "Daily" : input.kind === "weekly" ? "Weekly" : "Monthly";
-  const title = `${kindName} ${editionName} Report`;
+  const title = input.edition === "uk" ? `${kindName} ${editionName} Report` : `${kindName} ${editionName}`;
   const dateLong = longDate(input.date);
 
   // Website lockup: three rounded bars (short, tall, medium) + "UK" bold, "Stats" regular, all white.
@@ -446,15 +446,16 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     const vol = `No. ${doy}  |  ${yy}`;
     text(c, vol, W - L - width(F.m, vol, 8), H - 61, F.m, 8, SOFT);
     // Artwork centrepiece
-    const art = input.edition === "uk" ? input.fonts.ukMap : input.fonts.globe;
+    const art = input.edition === "uk" ? input.fonts.ukMap : (input.fonts.combined ?? input.fonts.globe);
     if (art) {
       const img = await doc.embedPng(art);
-      const bh = input.edition === "uk" ? 330 : 300, bw = (img.width / img.height) * bh;
+      const bh = input.edition === "uk" ? 330 : 320, bw = (img.width / img.height) * bh;
       c.drawImage(img, { x: (W - bw) / 2, y: H - 120 - bh, width: bw, height: bh, opacity: 0.9 });
     }
     // Title
     const ty = 360;
-    text(c, `${editionName} ${kindName} Report`, L, ty, F.r, 30, WHITE);
+    if (input.edition === "uk") text(c, `${editionName} ${kindName} Report`, L, ty, F.r, 30, WHITE);
+    else { text(c, "UK & Global Stats", L, ty, F.r, 30, WHITE); text(c, `${kindName} report`.toUpperCase(), L, ty + 34, F.mb, 8, SOFT); }
     const dLong = new Date(Date.UTC(yy!, mm! - 1, dd!)).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
     text(c, dLong, L, ty - 24, F.r, 11, SOFT);
     c.drawRectangle({ x: L, y: ty - 42, width: 28, height: 1.5, color: RED });

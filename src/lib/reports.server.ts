@@ -6,6 +6,7 @@ import mono from "@/assets/fonts/IBMPlexMono-Regular.ttf?inline";
 import monoBold from "@/assets/fonts/IBMPlexMono-SemiBold.ttf?inline";
 import ukMapPng from "@/assets/report/uk-map.png?inline";
 import globePng from "@/assets/report/globe.png?inline";
+import combinedPng from "@/assets/report/combined.png?inline";
 import kitStarter from "@/assets/report/kit-evaq8-starter.jpg?inline";
 import kitTwo from "@/assets/report/kit-evaq8-two-person.jpg?inline";
 import kitGroup from "@/assets/report/kit-countrywide-evacuation.jpg?inline";
@@ -28,7 +29,7 @@ const fromDataUrl = (u: string) => {
   return out;
 };
 let fonts: ReportFonts | null = null;
-const getFonts = () => (fonts ??= { regular: fromDataUrl(regular), bold: fromDataUrl(bold), black: fromDataUrl(black), mono: fromDataUrl(mono), monoBold: fromDataUrl(monoBold), ukMap: fromDataUrl(ukMapPng), globe: fromDataUrl(globePng), kitImages: { "evaq8-starter": fromDataUrl(kitStarter), "evaq8-two-person": fromDataUrl(kitTwo), "countrywide-evacuation": fromDataUrl(kitGroup) } });
+const getFonts = () => (fonts ??= { regular: fromDataUrl(regular), bold: fromDataUrl(bold), black: fromDataUrl(black), mono: fromDataUrl(mono), monoBold: fromDataUrl(monoBold), ukMap: fromDataUrl(ukMapPng), globe: fromDataUrl(globePng), combined: fromDataUrl(combinedPng), kitImages: { "evaq8-starter": fromDataUrl(kitStarter), "evaq8-two-person": fromDataUrl(kitTwo), "countrywide-evacuation": fromDataUrl(kitGroup) } });
 
 /** Build one edition from the saved snapshots and store it. Returns the storage path. */
 export async function generateEdition(edition: ReportEdition, kind: ReportKind, date: string): Promise<string> {
