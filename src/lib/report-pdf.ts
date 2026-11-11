@@ -50,7 +50,7 @@ export function debtPanel(metrics: Metric[], reportDate: string) {
   const age = debt?.value && debt.asOf ? Math.max(0, Math.round((Date.parse(reportDate) - Date.parse(debt.asOf.slice(0, 10))) / 864e5)) : null;
   return {
     value: debt?.value ?? null,
-    change: debt?.value ? debt.change?.label ?? null : null,
+    change: debt?.value && debt.change ? `${debt.change.dir === "up" ? "Up" : debt.change.dir === "down" ? "Down" : "No change,"} ${debt.change.label.replace(/^[^\d£-]+/, "").replace(/^(\d)/, "£$1")}` : null,
     gdp: gdp?.value ?? null,
     period: debt?.value ? debt.period : null,
     published: debt?.value ? debt.asOf : null,

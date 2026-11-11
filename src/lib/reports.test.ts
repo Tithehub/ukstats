@@ -63,3 +63,9 @@ describe("UK debt panel", () => {
     expect(d.change).toBeNull();
   });
 });
+describe("UK debt change wording", () => {
+  it("spells out the direction instead of an arrow symbol", () => {
+    const d = debtPanel([{ id: "uk-national-debt", value: "£3,005bn", period: "2026 SEP", asOf: "2026-10-20", nextDue: null, source: "ONS", sourceUrl: "x", change: { label: "▲ 23.8bn vs previous", dir: "up" } } as Metric], "2026-11-11");
+    expect(d.change).toBe("Up £23.8bn vs previous");
+  });
+});
