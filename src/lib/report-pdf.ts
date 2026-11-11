@@ -165,6 +165,7 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   let p = newPage("UK Debt today");
   {
     const d = debtPanel(input.metrics, input.date);
+    text(p, "PART 1  |  UK STATS", W - M - width(F.mb, "PART 1  |  UK STATS", 8), H - 62, F.mb, 8, RED);
     let yy = sectionTitle(p, "UK Debt today", H - 92);
     const bh = 300;
     p.drawRectangle({ x: M, y: yy - bh, width: W - 2 * M, height: bh, color: NAVY });
@@ -336,34 +337,6 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
     headBlock(uk);
   }
 
-  if (input.edition === "global" && input.travel) {
-    curLabel = "Travel warnings"; p = newPage(curLabel); y = sectionTitle(p, "Government travel warnings, every country", H - 92);
-    para("Each government's own wording, side by side and never merged: UK FCDO and US State Department. * = the publisher mentioned riots, protests or unrest in the last 30 days.", F.r, 8.5, MUTED); y -= 4;
-    const rows = travelRows(input.travel.warnings, input.travel.fcdoAlerts, new Date(`${input.date}T12:00:00Z`));
-    const cx = [M + 6, M + 140, M + 330];
-    const hdr = () => { p.drawRectangle({ x: M, y: y - 16, width: W - 2 * M, height: 16, color: NAVY }); ["COUNTRY", "UK FCDO", "US STATE DEPT"].forEach((h, i) => text(p, h, cx[i]!, y - 11, F.mb, 6.5, WHITE)); y -= 16; };
-    hdr();
-    rows.forEach((r, i) => {
-      if (y - 14 < 60) { p = newPage(curLabel); y = H - 80; hdr(); }
-      if (i % 2 === 0) p.drawRectangle({ x: M, y: y - 14, width: W - 2 * M, height: 14, color: PALE });
-      text(p, fit(F.b, `${r.unrest ? "* " : ""}${r.country}`, 7.5, 128), cx[0]!, y - 10, F.b, 7.5, r.unrest ? RED : INK);
-      const uk = fit(F.r, r.uk, 7, 184), us = fit(F.r, r.us, 7, W - M - cx[2]! - 6);
-      text(p, uk, cx[1]!, y - 10, F.r, 7, r.uk === "Not checked" ? MUTED : INK);
-      text(p, us, cx[2]!, y - 10, F.r, 7, r.us === "Not checked" ? MUTED : INK);
-      if (r.ukUrl) link(p, cx[1]!, y - 13, 184, 12, r.ukUrl);
-      if (r.usUrl) link(p, cx[2]!, y - 13, W - M - cx[2]!, 12, r.usUrl);
-      y -= 14;
-    });
-    if (!rows.length) para("Not published at time of report.", F.r, 10, MUTED);
-    const names = input.world?.countries.map((c) => c.name) ?? [...new Set(rows.map((r) => r.country))];
-    const per = headlinesByCountry(news, names.filter((n) => n !== "United Kingdom"));
-    if (per.length) {
-      curLabel = "World headlines"; p = newPage(curLabel); y = sectionTitle(p, "Main headlines by country", H - 92);
-      para("Headlines copied word for word from the publisher. They are news, not official figures.", F.r, 8.5, MUTED); y -= 4;
-      for (const c of per) { need(50); text(p, c.country, M, y, F.k, 11, NAVY); y -= 15; headBlock(c.items); y -= 4; }
-    }
-  }
-
   p = newPage("Official register"); y = H - 92;
   if (input.kind !== "daily") {
     const from = windowStart(input.date, input.kind);
@@ -374,6 +347,22 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   for (const cat of CATEGORIES) table(cat, input.metrics.filter((m) => m.category === cat), cat);
   const other = input.metrics.filter((m) => !CATEGORIES.includes(m.category));
   table("Other measures", other, "Other measures");
+
+  // ---------- Global divider ----------
+  if (input.edition === "global") {
+    const dp = doc.addPage([W, H]);
+    pages.push(dp);
+    toc.push({ section: "Global Stats", page: pages.length + 1 });
+    dp.drawRectangle({ x: 0, y: 0, width: W, height: H, color: NAVY });
+    dp.drawRectangle({ x: 0, y: H - 3, width: W, height: 3, color: RED });
+    brand(dp, 56, H - 68, 17);
+    const art = input.fonts.globe ?? input.fonts.combined;
+    if (art) { const img = await doc.embedPng(art); const bh = 340, bw = (img.width / img.height) * bh; dp.drawImage(img, { x: (W - bw) / 2, y: H - 140 - bh, width: bw, height: bh, opacity: 0.9 }); }
+    text(dp, "PART 2", 56, 330, F.mb, 8, rgb(0.75, 0.82, 0.92));
+    text(dp, "Global Stats", 56, 296, F.r, 30, WHITE);
+    dp.drawRectangle({ x: 56, y: 280, width: 28, height: 1.5, color: RED });
+    wrap(F.r, `World rankings, every country's main figures, government travel warnings and headlines by country, ${dateLong}. Every figure keeps its own source and year.`, 10, W - 112).forEach((l, i) => text(dp, l, 56, 256 - i * 15, F.r, 10, rgb(0.75, 0.82, 0.92)));
+  }
 
   // ---------- Global ----------
   if (input.edition === "global") {
@@ -427,6 +416,37 @@ export async function buildReportPdf(input: ReportInput): Promise<{ bytes: Uint8
   }
 
   // ---------- Sources ----------
+  if (input.edition === "global") {
+  if (input.travel) {
+    curLabel = "Travel warnings"; p = newPage(curLabel); y = sectionTitle(p, "Government travel warnings, every country", H - 92);
+    para("Each government's own wording, side by side and never merged: UK FCDO and US State Department. * = the publisher mentioned riots, protests or unrest in the last 30 days.", F.r, 8.5, MUTED); y -= 4;
+    const rows = travelRows(input.travel.warnings, input.travel.fcdoAlerts, new Date(`${input.date}T12:00:00Z`));
+    const cx = [M + 6, M + 140, M + 330];
+    const hdr = () => { p.drawRectangle({ x: M, y: y - 16, width: W - 2 * M, height: 16, color: NAVY }); ["COUNTRY", "UK FCDO", "US STATE DEPT"].forEach((h, i) => text(p, h, cx[i]!, y - 11, F.mb, 6.5, WHITE)); y -= 16; };
+    hdr();
+    rows.forEach((r, i) => {
+      if (y - 14 < 60) { p = newPage(curLabel); y = H - 80; hdr(); }
+      if (i % 2 === 0) p.drawRectangle({ x: M, y: y - 14, width: W - 2 * M, height: 14, color: PALE });
+      text(p, fit(F.b, `${r.unrest ? "* " : ""}${r.country}`, 7.5, 128), cx[0]!, y - 10, F.b, 7.5, r.unrest ? RED : INK);
+      const uk = fit(F.r, r.uk, 7, 184), us = fit(F.r, r.us, 7, W - M - cx[2]! - 6);
+      text(p, uk, cx[1]!, y - 10, F.r, 7, r.uk === "Not checked" ? MUTED : INK);
+      text(p, us, cx[2]!, y - 10, F.r, 7, r.us === "Not checked" ? MUTED : INK);
+      if (r.ukUrl) link(p, cx[1]!, y - 13, 184, 12, r.ukUrl);
+      if (r.usUrl) link(p, cx[2]!, y - 13, W - M - cx[2]!, 12, r.usUrl);
+      y -= 14;
+    });
+    if (!rows.length) para("Not published at time of report.", F.r, 10, MUTED);
+    const names = input.world?.countries.map((c) => c.name) ?? [...new Set(rows.map((r) => r.country))];
+    const per = headlinesByCountry(news, names.filter((n) => n !== "United Kingdom"));
+    if (per.length) {
+      curLabel = "World headlines"; p = newPage(curLabel); y = sectionTitle(p, "Main headlines by country", H - 92);
+      para("Headlines copied word for word from the publisher. They are news, not official figures.", F.r, 8.5, MUTED); y -= 4;
+      for (const c of per) { need(50); text(p, c.country, M, y, F.k, 11, NAVY); y -= 15; headBlock(c.items); y -= 4; }
+    }
+  }
+
+  }
+
   p = newPage("Sources"); y = sectionTitle(p, "Sources and method", H - 92);
   const method = [
     "UKStats copies each figure exactly as the official publisher released it. Nothing is estimated, interpolated, rounded or re-based.",
