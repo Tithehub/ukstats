@@ -1,7 +1,7 @@
 # Add National Risk Register 2026 link beside Founding Documents
 
 ## What you'll see
-A new card directly under the Founding Documents cards on the homepage:
+A new card on its own full-width line, directly under the Founding Documents cards on the homepage (not squeezed into the same row):
 - Small square thumbnail of the real front cover of the National Risk Register 2026 (on the left, same style as the document cards).
 - Title "National Risk Register 2026", "Cabinet Office, published 14 July 2026, updated 12 August 2026".
 - One-line plain description: the government's assessment of the most serious risks facing the UK.
