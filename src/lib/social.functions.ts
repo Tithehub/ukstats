@@ -66,6 +66,22 @@ function clean(input: unknown): Creds {
   return out;
 }
 
+const REDDIT_UA = "web:ukstats.co.uk:v1.0 (by /u/ukstats)";
+async function redditToken(c: Creds): Promise<string> {
+  const res = await fetch("https://www.reddit.com/api/v1/access_token", {
+    method: "POST",
+    headers: { authorization: `Basic ${btoa(`${c["clientId"] ?? ""}:${c["clientSecret"] ?? ""}`)}`, "content-type": "application/x-www-form-urlencoded", "user-agent": REDDIT_UA },
+    body: new URLSearchParams({ grant_type: "password", username: c["username"] ?? "", password: c["password"] ?? "" }),
+  });
+  const j = (await res.json().catch(() => ({}))) as { access_token?: string; error?: string };
+  if (!res.ok || !j.access_token) throw new Error(`Reddit rejected those details (${res.status}${j.error ? `: ${j.error}` : ""}). Check the app ID, secret, username and password.`);
+  return j.access_token;
+}
+function redditTarget(c: Creds): string {
+  const sr = (c["subreddit"] ?? "").replace(/^\/?r\//i, "").trim();
+  return sr || `u_${(c["username"] ?? "").replace(/^\/?u\//i, "")}`;
+}
+
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
@@ -80,6 +96,13 @@ async function verify(platform: SocialPlatform, c: Creds): Promise<string> {
       if (!res.ok) throw new Error(`X rejected those keys (${res.status}): ${await res.text()}`);
       const j = (await res.json()) as { data?: { username?: string } };
       return `@${j.data?.username ?? "account"}`;
+    }
+    case "reddit": {
+      const tok = await redditToken(c);
+      const res = await fetch("https://oauth.reddit.com/api/v1/me", { headers: { authorization: `Bearer ${tok}`, "user-agent": REDDIT_UA } });
+      if (!res.ok) throw new Error(`Reddit sign-in worked but the account could not be read (${res.status}).`);
+      const j = (await res.json()) as { name?: string };
+      return `u/${j.name ?? c["username"]} → ${redditTarget(c).startsWith("u_") ? "own profile" : `r/${redditTarget(c)}`}`;
     }
     case "bluesky": {
       const res = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
@@ -152,6 +175,20 @@ async function send(platform: SocialPlatform, c: Creds, text: string, link: stri
       const j = (await res.json()) as { data?: { id?: string } };
       if (note) console.warn(note);
       return j.data?.id ? `https://x.com/i/status/${j.data.id}${note ? "#no-picture" : ""}` : null;
+    }
+    case "reddit": {
+      const tok = await redditToken(c);
+      const title = (thumb?.title || text.replace(link, "")).replace(/\s+/g, " ").trim().slice(0, 300) || "UKStats live";
+      const res = await fetch("https://oauth.reddit.com/api/submit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${tok}`, "content-type": "application/x-www-form-urlencoded", "user-agent": REDDIT_UA },
+        body: new URLSearchParams({ api_type: "json", kind: "link", sr: redditTarget(c), title, url: link, resubmit: "true" }),
+      });
+      const body = await res.text();
+      if (!res.ok) throw new Error(`Reddit refused the post (${res.status}): ${body}`);
+      const j = JSON.parse(body) as { json?: { errors?: unknown[][]; data?: { url?: string } } };
+      if (j.json?.errors?.length) throw new Error(`Reddit refused the post: ${JSON.stringify(j.json.errors)}`);
+      return j.json?.data?.url ?? null;
     }
     case "bluesky": {
       const session = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {

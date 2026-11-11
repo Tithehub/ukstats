@@ -18,7 +18,7 @@ export const Route = createFileRoute("/connections")({
       {
         name: "description",
         content:
-          "Attach your own X, Bluesky, Mastodon, Telegram, Discord or Slack account so newly published UK figures can be posted straight from the outreach queue.",
+          "Attach your own X, Reddit, Bluesky, Mastodon, Telegram, Discord or Slack account so newly published UK figures can be posted straight from the outreach queue.",
       },
       { property: "og:title", content: "Connect your socials to the UKStats outreach bot" },
       {

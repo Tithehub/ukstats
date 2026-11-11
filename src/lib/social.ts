@@ -2,10 +2,10 @@
  * Social connections people can attach to their own accounts.
  *
  * Only platforms that let an account holder issue their own credentials are
- * offered for direct posting — nothing here asks anyone for a password to a
- * platform, and no credential is ever sent back to the browser once saved.
+ * offered for direct posting — only Reddit (whose script apps accept nothing else) takes a
+ * password, and no credential is ever sent back to the browser once saved.
  */
-export type SocialPlatform = "x" | "bluesky" | "mastodon" | "telegram" | "discord" | "slack";
+export type SocialPlatform = "x" | "reddit" | "bluesky" | "mastodon" | "telegram" | "discord" | "slack";
 
 export interface SocialField {
   key: string;
@@ -39,6 +39,21 @@ export const SOCIAL_PLATFORMS: SocialPlatformSpec[] = [
       { key: "apiSecret", label: "API key secret", placeholder: "Consumer secret", secret: true },
       { key: "accessToken", label: "Access token", placeholder: "123456-…", secret: true, help: "Generate this after setting app permissions to Read and write, or it will be read-only." },
       { key: "accessSecret", label: "Access token secret", placeholder: "Access secret", secret: true },
+    ],
+  },
+  {
+    key: "reddit",
+    name: "Reddit",
+    blurb: "Posts the link to your own Reddit profile (or a subreddit you name) using a personal \"script\" app you create on Reddit.",
+    docsUrl: "https://www.reddit.com/prefs/apps",
+    docsLabel: "Create a script app on Reddit",
+    limit: 300,
+    fields: [
+      { key: "clientId", label: "App ID", placeholder: "The code under \"personal use script\"", secret: true },
+      { key: "clientSecret", label: "App secret", placeholder: "secret", secret: true },
+      { key: "username", label: "Reddit username", placeholder: "ukstats" },
+      { key: "password", label: "Reddit password", placeholder: "Account password", secret: true, help: "Reddit's script apps only accept the account password. It is stored server-side and never shown again. Turn off two-factor login for this account or posting will fail." },
+      { key: "subreddit", label: "Post to (optional)", placeholder: "Leave blank for your own profile", help: "Only name a subreddit whose rules allow links — self-promotion gets new accounts banned." },
     ],
   },
   {
@@ -111,7 +126,6 @@ export const SOCIAL_PLATFORMS: SocialPlatformSpec[] = [
 export const MANUAL_ONLY = [
   { name: "LinkedIn", why: "LinkedIn only issues posting access to reviewed partner apps." },
   { name: "Facebook / Threads", why: "Meta requires an app review before an account can post through the API." },
-  { name: "Reddit", why: "Reddit posting needs a per-subreddit registered script app." },
 ];
 
 export const platformSpec = (key: string) => SOCIAL_PLATFORMS.find((p) => p.key === key) ?? null;

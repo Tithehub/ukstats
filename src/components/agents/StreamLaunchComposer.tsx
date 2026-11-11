@@ -46,7 +46,7 @@ export function StreamLaunchComposer() {
         </button>
         <button type="button" disabled={!link} onClick={async () => { await navigator.clipboard.writeText(full); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-night-line px-4 disabled:opacity-50"><Copy className="h-4 w-4" aria-hidden /> {copied ? "Copied" : "Copy post"}</button>
       </div>
-      {!list.length ? <p className="mt-2 text-[13px] text-night-muted">No accounts connected. <a href="/connections" className="underline">Connect X, Bluesky, Mastodon, Telegram, Discord or Slack</a> to post in one click.</p> : null}
+      {!list.length ? <p className="mt-2 text-[13px] text-night-muted">No accounts connected. <a href="/connections" className="underline">Connect X, Reddit, Bluesky, Mastodon, Telegram, Discord or Slack</a> to post in one click.</p> : null}
       {results ? (
         <ul className="mt-2 space-y-1 text-[13px]">
           {results.map((r, i) => (
