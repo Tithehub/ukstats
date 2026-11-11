@@ -60,3 +60,4 @@
 - Stream AI presenter: says only scriptForCard text, labelled AI; ?voice=off mutes.
 - Stream screen and voice share one timetable (lineAt/lineMs in stream-script.ts, per-line speaking time); all voice plays through the single page-wide player in voice-channel.ts (nextTurn/playVoice; late clips dropped, no read-ahead), and every spoken line passes speakable() client and server side — prevents drift and raw dates read aloud.
 - Homepage/live stream ID is admin-editable via payload_cache "live-stream" (live-stream.functions.ts), brand.ts LIVE_STREAM_ID is only the fallback; Agents suggestions expire after 24h — so stream changes need no publish.
+- The globe start-up never leaves a blank space: a stale module retries then reloads once, a renderer that never reports ready rebuilds in light mode, and failures show a reason plus Try again — Macs failed silently before.

@@ -212,6 +212,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   // Desktop graphics drivers can drop the 3D context (GPU switch, sleep); rebuild the globe up to twice.
   const [gen, setGen] = useState(0);
   const lost = useRef(0);
+  // Blank-globe guard: if the renderer never reports ready, rebuild once in light mode (no smoothing, pixel ratio 1, no clouds).
+  useEffect(() => { if (gl0 || gen > 1) return; const t = setTimeout(() => setGen((n) => n + 1), 6000); return () => clearTimeout(t); }, [gl0, gen]);
   const lastTele = useRef(0);
   // A click only counts if the pointer barely moved since it was pressed (trackpad drags never pick).
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -315,14 +317,14 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
   }, [dayNight, gl0, dayNightMat]);
   // Faint drifting clouds — desktop only, never with reduced motion, so phones stay fast.
   useEffect(() => {
-    const g = ref.current; if (!g || !gl0 || coarse || still) return;
+    const g = ref.current; if (!g || !gl0 || coarse || still || gen > 0) return;
     const tex = new THREE.TextureLoader().load(cloudsAlpha);
     const mat = new THREE.MeshLambertMaterial({ color: "#ffffff", alphaMap: tex, transparent: true, opacity: 0.32, depthWrite: false });
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(g.getGlobeRadius() * 1.006, 64, 48), mat);
     g.scene().add(mesh);
     let raf = 0; const spin = () => { mesh.rotation.y += 0.00012; raf = requestAnimationFrame(spin); }; raf = requestAnimationFrame(spin);
     return () => { cancelAnimationFrame(raf); g.scene().remove(mesh); mesh.geometry.dispose(); mat.dispose(); tex.dispose(); };
-  }, [gl0, coarse, still]);
+  }, [gl0, coarse, still, gen]);
   useEffect(() => {
     const g = ref.current; if (!g || !preset) return;
     g.controls().autoRotate = false;
@@ -361,8 +363,8 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         globeImageUrl={earth}
         globeMaterial={dayNight ? dayNightMat : plainMat}
         showAtmosphere
-        atmosphereColor="#7fb2ff"
-        atmosphereAltitude={0.2}
+        atmosphereColor="#8fc4ff"
+        atmosphereAltitude={0.24}
         polygonsData={FEATURES}
         polygonAltitude={(f) => (countryKey((f as Feat).properties.name) === selected ? 0.009 : 0.008)}
         polygonCapColor={cap}
@@ -371,7 +373,7 @@ export default function EarthGlobe({ shade, hotspots, events, selected, onSelect
         polygonLabel={(f) => { const n = (f as Feat).properties.name; return labels?.get(countryKey(n)) ?? n; }}
         onPolygonClick={(f) => { if (moved.current) return; const n = (f as Feat).properties.name; onSelect(countryKey(n), n); }}
         polygonsTransitionDuration={200}
-        onGlobeReady={() => { const r = ref.current?.renderer(); r?.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)); r?.domElement.addEventListener("webglcontextlost", (e) => { e.preventDefault(); if (lost.current < 2) { lost.current++; setGl0(false); setGen((n) => n + 1); } }, { once: true }); setGl0(true); }}
+        onGlobeReady={() => { const r = ref.current?.renderer(); r?.setPixelRatio(gen > 0 ? 1 : Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)); r?.domElement.addEventListener("webglcontextlost", (e) => { e.preventDefault(); if (lost.current < 2) { lost.current++; setGl0(false); setGen((n) => n + 1); } }, { once: true }); setGl0(true); }}
         rendererConfig={{ antialias: !coarse && gen === 0, powerPreference: "default" }}
         pointsData={pts}
         pointLat={(e) => (e as { lat: number }).lat}

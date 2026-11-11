@@ -2,7 +2,7 @@ import { CAM_REGIONS } from "@/lib/public-cams";
 import { LIVE_STREAM_URL } from "@/lib/brand";
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component as ReactComponent, lazy, Suspense, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ExternalLink, Info, Maximize2, Pause, Play, RotateCcw, Search, SkipForward, Layers, Landmark, Tv, Radio, X, ChevronDown, Plane as PlaneIcon, Video, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { worldQuery } from "@/lib/world.functions";
@@ -41,7 +41,11 @@ import { SAT_SOURCE } from "@/lib/satellites";
 import { useSatPositions } from "@/components/globe/useSatPositions";
 import { GlobeHud } from "@/components/globe/GlobeHud";
 
-const loadEarthGlobe = () => import("@/components/globe/EarthGlobe");
+// A stale cached chunk after a publish fails to import: retry once, then reload the page once (guarded) to fetch fresh code.
+let globeMod: Promise<typeof import("@/components/globe/EarthGlobe")> | null = null;
+const loadEarthGlobe = () => (globeMod ??= import("@/components/globe/EarthGlobe")
+  .catch(() => new Promise((r) => setTimeout(r, 800)).then(() => import("@/components/globe/EarthGlobe")))
+  .catch((e) => { globeMod = null; try { if (!sessionStorage.getItem("globe-reloaded")) { sessionStorage.setItem("globe-reloaded", "1"); location.reload(); } } catch { /* storage blocked */ } throw e; }));
 const EarthGlobe = lazy(loadEarthGlobe);
 
 export type GlobeState = {
@@ -126,7 +130,7 @@ function DestLink({ d }: { d: Destination }) {
   }
 }
 
-const TB = "inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-night-line px-2 hover:bg-night";
+const TB = "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-transparent bg-night/40 px-2.5 transition-colors hover:border-night-line hover:bg-night";
 const CTRL = "inline-flex min-h-9 items-center gap-1 rounded border border-night-line bg-night-panel/90 px-2 py-1 backdrop-blur hover:bg-night disabled:opacity-50";
 
 function Swatch({ c }: { c: string }) { return <span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-sm align-middle" style={{ background: c }} />; }
@@ -171,8 +175,17 @@ function BroadcastChannels({ k, limit }: { k: string; limit?: number }) {
   </div>;
 }
 
-function hasWebGL() {
-  try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; }
+/** null when WebGL works, otherwise a plain reason to show the visitor. */
+function webglProblem(): string | null {
+  try { const c = document.createElement("canvas"); return c.getContext("webgl2") || c.getContext("webgl") ? null : "Your browser has graphics acceleration turned off or blocked, so the 3D globe can't start. In Chrome turn on Settings › System › Use graphics acceleration; in Safari check Low Power Mode is off."; } catch { return "Your browser blocked 3D graphics for this page."; }
+}
+
+/** Catches a crash while the 3D globe starts so the page never goes blank. */
+class GlobeBoundary extends ReactComponent<{ onFail: (why: string) => void; children: ReactNode }, { bad: boolean }> {
+  override state = { bad: false };
+  static getDerivedStateFromError() { return { bad: true }; }
+  override componentDidCatch() { this.props.onFail("The 3D globe stopped while starting — often a graphics driver or low-power setting on this computer."); }
+  override render() { return this.state.bad ? null : this.props.children; }
 }
 
 /** The globe plus its control panel, shared by the home page and /globe. */
@@ -205,9 +218,11 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   const flowRows = useMemo(() => (s.mg && migration ? buildFlows(migration) : []), [s.mg, migration]);
   const globeFlows = useMemo(() => { const max = Math.max(1, ...flowRows.map((f) => f.value)); const col = { frontex: "#f0a020", cbp: "#ff4a3a", unhcr: "#7fb2ff" } as const; return flowRows.map((f, i) => ({ id: `mf-${i}`, from: f.from, to: f.to, toLat: f.toLat, toLng: f.toLng, color: col[f.source], stroke: 0.15 + 0.85 * Math.sqrt(f.value / max), label: f.label })); }, [flowRows]);
   const [gl, setGl] = useState<boolean | null>(null);
+  const [glWhy, setGlWhy] = useState("");
+  const [glTry, setGlTry] = useState(0);
   const [q, setQ] = useState("");
   // Load the 3D module before switching it on, so the swap never suspends inside a pending navigation and leaves the globe blank.
-  useEffect(() => { const g = hasWebGL(); if (!g) { setGl(false); return; } let live = true; void loadEarthGlobe().then(() => { if (live) setGl(true); }, () => { if (live) setGl(false); }); return () => { live = false; }; }, []);
+  useEffect(() => { const why = webglProblem(); if (why) { setGlWhy(why); setGl(false); return; } let live = true; setGl(null); void loadEarthGlobe().then(() => { if (live) setGl(true); }, () => { if (live) { setGlWhy("The globe couldn't download — check your connection, then try again."); setGl(false); } }); return () => { live = false; }; }, [glTry]);
 
   const ind = WORLD_INDICATORS.find((i) => i.slug === s.ind) ?? null;
   const byKey = useMemo(() => new Map((world?.countries ?? []).map((c) => [countryKey(c.name), c])), [world]);
@@ -322,7 +337,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   };
 
   const loading = <div role="status" className="flex h-full flex-col items-center justify-center gap-3 text-sm text-night-muted"><span aria-hidden="true" className="size-10 animate-spin rounded-full border-2 border-night-line border-t-electric" />Loading globe…</div>;
-  const height = broadcast ? "h-full" : compact ? "h-[52vh] min-h-[340px] max-h-[620px]" : "h-[60vh] min-h-[380px] lg:h-auto";
+  const height = broadcast ? "h-full" : compact ? "h-[56vh] min-h-[340px] lg:h-[78vh] lg:min-h-[520px] lg:max-h-[960px]" : "h-[60vh] min-h-[380px] lg:h-auto";
 
   const ticker = <div aria-label="Latest official riot and protest warnings" className="flex items-center gap-2 overflow-x-auto border-b border-night-line bg-night-panel px-3 py-2 text-xs text-night-fg">
     <span className="shrink-0 font-mono uppercase text-overdue"><span className="mr-1 inline-block size-1.5 rounded-full bg-overdue pulse-dot" />Official warnings</span>
@@ -341,14 +356,15 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
   </div>{ticker}</>}<div className={`relative flex flex-col bg-night text-night-fg lg:flex-row ${compact ? "" : "min-h-0 flex-1"}`}>
     <section aria-label="Interactive globe" className={`relative flex-1 ${height}`} onPointerDownCapture={() => { if (!broadcast) setOnAir(false); }} onWheelCapture={() => { if (!broadcast) setOnAir(false); }}>
       {gl === false ? <div className="h-full overflow-y-auto p-4 pt-44">
-        <p className="text-sm text-night-muted">Your device can't show the 3D globe. Pick a country instead:</p>
+        <p className="text-sm text-night-fg">{glWhy || "Your device can't show the 3D globe."}</p>
+        <div className="mt-2 flex items-center gap-2"><Button size="sm" onClick={() => setGlTry((n) => n + 1)}>Try again</Button><span className="text-sm text-night-muted">or pick a country:</span></div>
         <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">{names.map((c) => <li key={c.iso3}><button className="w-full rounded px-2 py-1 text-left hover:bg-night-panel" onClick={() => onChange({ c: countryKey(c.name) })}>{c.name}</button></li>)}</ul>
       </div> : <ClientOnly fallback={loading}><Suspense fallback={loading}>
-        {gl && <EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { if (id.startsWith("news|")) { onChange({ c: countryKey(id.slice(5).split(", ").pop()!), m: undefined }); return; } const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} wx={globeWx} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} />}
+        {gl && <GlobeBoundary key={glTry} onFail={(why: string) => { setGlWhy(why); setGl(false); }}><EarthGlobe shade={null} fill={advice?.fill ?? stat?.fill ?? null} labels={advice?.labels ?? stat?.labels ?? null} rotate={rotate} resetKey={resetKey} hotspots={hotKeys} events={research.length ? [] : events} selected={sel} onSelect={(k) => onChange({ c: k, m: undefined })} markers={markers} onMarker={(id) => { if (id.startsWith("news|")) { onChange({ c: countryKey(id.slice(5).split(", ").pop()!), m: undefined }); return; } const m = official.find((x) => x.id === id); if (m) pick(m); }} focus={marker ? { lat: marker.lat, lng: marker.lng } : cam ? { lat: cam.lat, lng: cam.lng } : plane ? { lat: plane.p[2], lng: plane.p[3] } : null} planes={globePlanes} onPlane={(id) => onChange({ fp: id })} planePaths={planePaths} boats={globeBoats} flows={globeFlows} quakes={globeQuakes} wx={globeWx} sats={globeSats} cams={globeCams} onCam={setCamId} preset={preset} dayNight={s.dn !== false} onTelemetry={compact || broadcast ? undefined : setTele} feedPins={pins} onFeedPin={(k) => onChange({ c: k, m: undefined, feed: "live" })} /></GlobeBoundary>}
       </Suspense></ClientOnly>}
       {cam && <CamViewer cam={cam} all={globeCams} onPick={setCamId} onClose={() => setCamId(null)} />}
       <div className={`absolute inset-x-3 top-3 z-20 flex items-start gap-2 text-xs sm:right-16 ${broadcast ? "hidden" : ""} ${panel === "search" ? "" : "max-sm:hidden"}`}>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-lg border border-night-line bg-night-panel/90 p-1.5 shadow-lg backdrop-blur min-[1280px]:flex-nowrap">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 rounded-xl border border-night-line/60 bg-night-panel/70 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)] backdrop-blur-md min-[1280px]:flex-nowrap">
         {compact ? <h2 className="sr-only">Explore the world — click any country</h2> : <h1 className="sr-only">World globe</h1>}
         <form onSubmit={find} role="search" className="flex min-w-0 flex-1 gap-1 max-sm:basis-full sm:max-w-72">
           <label htmlFor={compact ? "globe-q-home" : "globe-q"} className="sr-only">Find a country</label>
@@ -443,7 +459,7 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
       </div>}
     </section>
 
-    {!broadcast && <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[380px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-sm:hidden max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
+    {!broadcast && <aside aria-label="Country controls" className={`w-full overflow-y-auto border-t border-night-line bg-night-panel p-4 lg:w-[340px] lg:border-l lg:border-t-0 ${compact ? "max-h-[620px] lg:max-h-[960px]" : "lg:max-h-[calc(100dvh-64px)]"} ${!compact && sel ? `max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:rounded-t-xl max-lg:border max-lg:shadow-2xl ${sheetOpen ? "max-lg:max-h-[60dvh]" : "max-sm:hidden max-lg:max-h-16 max-lg:overflow-hidden"}` : ""}`}>
       {!compact && sel && <button onClick={() => setSheetOpen((o) => !o)} aria-label={sheetOpen ? "Close country panel" : "Open country panel"} aria-expanded={sheetOpen} className="mx-auto -mt-2 mb-2 flex min-h-8 w-full items-center justify-center gap-1 text-xs text-night-muted lg:hidden"><span className="h-1 w-10 rounded bg-night-line" /><b className="text-night-fg">{selName}</b> · {sheetOpen ? "Lower panel" : "Raise panel"}<ChevronDown className={`size-3.5 ${sheetOpen ? "" : "rotate-180"}`} /></button>}
       {unrest ? <p className="font-mono text-[11px] text-night-muted">Checked {fmtDate(unrest.fetchedAt)} · UK FCDO {unrest.fcdoOk ? "answered" : "unavailable"} · US State Dept {unrest.stateOk ? "answered" : "unavailable"}</p>
         : <p className="font-mono text-[11px] text-night-muted">Loading official warning feeds…</p>}
