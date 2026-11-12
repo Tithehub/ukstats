@@ -5,9 +5,10 @@ import daily from "@/assets/games/daily.jpg";
 import hl from "@/assets/games/higher-lower.jpg";
 import guess from "@/assets/games/guess.jpg";
 import rank from "@/assets/games/rank.jpg";
+import britain from "@/assets/games/britain.jpg";
 
 const T = "Free stats games — Daily 5, Higher or Lower and more | UKStats";
-const D = "Free, quick statistics games built on real World Bank figures: the Daily 5 challenge, Higher or Lower, Guess the Number and Rank the World. Leaderboards and shareable scores.";
+const D = "Free, quick statistics games built on real World Bank figures: the Daily 5 challenge, Britain by the Numbers, Higher or Lower, Guess the Number and Rank the World. Leaderboards and shareable scores.";
 
 export const Route = createFileRoute("/games/")({
   head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }], links: [{ rel: "canonical", href: "https://ukstats.co.uk/games" }] }),
@@ -34,6 +35,14 @@ function Hub() {
           <span className="mt-4 inline-block rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground">Play today's 5</span>
         </div>
       </Link>
+      <Link to="/games/britain-by-the-numbers" className="mt-4 grid overflow-hidden rounded-lg border border-night-line bg-night-panel transition hover:border-electric-soft sm:grid-cols-2">
+        <img src={britain} alt="" width={992} height={672} loading="lazy" className="h-full w-full object-cover" />
+        <div className="p-6">
+          <p className="font-mono text-xs uppercase tracking-wider text-electric-soft">UK only</p>
+          <h2 className="mt-1 text-2xl font-semibold">Britain by the Numbers</h2>
+          <p className="mt-2 text-night-muted">Councils head to head on house prices, pay, crime, age and life satisfaction — real ONS and Land Registry figures.</p>
+        </div>
+      </Link>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {GAMES.map((g) => (
           <Link key={g.game} to="/games/$game" params={{ game: g.game }} className="overflow-hidden rounded-lg border border-night-line bg-night-panel transition hover:border-electric-soft">
@@ -42,7 +51,7 @@ function Hub() {
           </Link>
         ))}
       </div>
-      <div className="mt-8"><Leaderboard /></div>
+      <div className="mt-8"><Leaderboard choose /></div>
     </GameShell>
   );
 }

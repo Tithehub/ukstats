@@ -8,7 +8,7 @@ import { QuestionCard } from "@/components/games/QuestionCard";
 import { ShareResult } from "@/components/games/ShareResult";
 import { Leaderboard } from "@/components/games/Leaderboard";
 import { worldQuery } from "@/lib/world.functions";
-import { myDaily, submitDaily } from "@/lib/games.functions";
+import { myDaily, submitScore } from "@/lib/games.functions";
 import { dailyRound, shareBlocks, type Answer } from "@/lib/games";
 import { londonDate } from "@/lib/daily";
 import { useAuth } from "@/lib/useAuth";
@@ -29,8 +29,8 @@ function Daily() {
   const [day, setDay] = useState<string | null>(null);
   useEffect(() => setDay(londonDate()), []);
   const qs = useMemo(() => (data && day ? dailyRound(data, day) : []), [data, day]);
-  const mine = useQuery({ queryKey: ["my-daily", session?.user.id], queryFn: () => myDailyFn(), enabled: !!session });
-  const myDailyFn = useServerFn(myDaily); const submit = useServerFn(submitDaily);
+  const mine = useQuery({ queryKey: ["my-daily", session?.user.id], queryFn: () => myDailyFn({ data: { game: "daily-5" } }), enabled: !!session });
+  const myDailyFn = useServerFn(myDaily); const submit = useServerFn(submitScore);
   const [i, setI] = useState(0); const [answers, setAnswers] = useState<Answer[]>([]); const [pts, setPts] = useState<number[]>([]);
   const [saved, setSaved] = useState<string | null>(null); const [saving, setSaving] = useState(false);
   const finished = qs.length > 0 && i >= qs.length;
@@ -39,7 +39,7 @@ function Daily() {
 
   const save = async () => {
     setSaving(true);
-    try { const r = await submit({ data: { answers } }); setSaved(r.ok ? `Saved — ${r.score} points on today's board.` : r.error); await qc.invalidateQueries(); }
+    try { const r = await submit({ data: { game: "daily-5", answers } }); setSaved(r.ok ? `Saved — ${r.score} points on today's board.` : r.error); await qc.invalidateQueries(); }
     catch { setSaved("Couldn't save your score — please try again."); }
     setSaving(false);
   };
@@ -67,7 +67,7 @@ function Daily() {
             </>
           )}
       </div>
-      <div className="mt-8"><Leaderboard /></div>
+      <div className="mt-8"><Leaderboard game="daily-5" /></div>
     </GameShell>
   );
 }

@@ -26,3 +26,24 @@ describe("game scoring", () => {
     expect(scoreQuestion(q, ["B", "D", "A", "E", "C"])).toBe(60);
   });
 });
+
+describe("game registry", () => {
+  it("every scored game is registered, Britain has 10 questions", async () => {
+    const { GAME_DEFS, isGameId } = await import("./games");
+    expect(Object.keys(GAME_DEFS).sort()).toEqual(["britain-by-the-numbers", "daily-5", "guess-the-number", "higher-or-lower", "rank-the-world"]);
+    expect(GAME_DEFS["britain-by-the-numbers"].kinds.length).toBe(10);
+    expect(isGameId("made-up")).toBe(false);
+  });
+});
+
+describe("Britain by the Numbers", () => {
+  it("builds 10 council questions from published figures only and scores them", async () => {
+    const { britainRound, scoreRound } = await import("./games");
+    const places = Array.from({ length: 30 }, (_, i) => ({ code: `E0${i}`, name: `Council ${i}`, nation: "England" as const, wellbeing: { lifeSatisfaction: 7 + i / 100, happiness: null, worthwhile: null, anxiety: null }, crimeRate: 50 + i, housePrice: 200000 + i * 1000, weeklyPay: 600 + i, over65Share: 15 + i / 10, goodSchoolsShare: null }));
+    const src = { name: "ONS", url: "https://www.ons.gov.uk", period: "2025" };
+    const qs = britainRound({ fetchedAt: "", places, sources: { wellbeing: src, crime: src, housePrice: src, pay: src, population: src, schools: src }, errors: [] }, "x");
+    expect(qs.length).toBe(10);
+    expect(qs.every((q) => q.src?.url === "https://www.ons.gov.uk")).toBe(true);
+    expect(scoreRound(qs, britainRound({ fetchedAt: "", places, sources: { wellbeing: src, crime: src, housePrice: src, pay: src, population: src, schools: src }, errors: [] }, "x").map(() => null))).toBe(0);
+  });
+});

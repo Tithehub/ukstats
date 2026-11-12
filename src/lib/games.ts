@@ -2,15 +2,19 @@
 // (the cached WDI payload) — nothing is invented. Same seed => same questions, so the
 // server can re-score a daily entry without trusting the browser.
 import { MAX_LAG_YEARS, fmtWorld, type WorldIndicator, type WorldPayload, WORLD_INDICATORS } from "./world";
+import type { PlacesPayload, SourceRef } from "./places";
+
+/** What a question measures. World questions use World Bank indicators; Britain questions use council figures. */
+export interface Measure { id: string; slug: string; label: string; unit: WorldIndicator["unit"] | "gbp" | "score" }
 
 export const GAME_INDICATOR_SLUGS = ["population", "gdp", "gdp-per-person", "life-expectancy", "urban", "co2-per-person"] as const;
 const MIN_POPULATION = 1_000_000; // keep to countries most players have heard of
 
 export interface Fact { iso3: string; iso2: string; name: string; value: number; year: number }
 export type Question =
-  | { kind: "hl"; ind: WorldIndicator; a: Fact; b: Fact }
-  | { kind: "guess"; ind: WorldIndicator; a: Fact }
-  | { kind: "rank"; ind: WorldIndicator; items: Fact[] };
+  | { kind: "hl"; ind: Measure; a: Fact; b: Fact; src?: SourceRef }
+  | { kind: "guess"; ind: Measure; a: Fact; src?: SourceRef }
+  | { kind: "rank"; ind: Measure; items: Fact[]; src?: SourceRef };
 export type Answer = number | string[] | null;
 
 export function rng(seed: string): () => number {
@@ -34,30 +38,63 @@ export function factsFor(p: WorldPayload, ind: WorldIndicator): Fact[] {
   return rows.filter((r) => newest - r.year <= MAX_LAG_YEARS);
 }
 
-function indicators(p: WorldPayload) {
-  return WORLD_INDICATORS.filter((i) => (GAME_INDICATOR_SLUGS as readonly string[]).includes(i.slug)).map((ind) => ({ ind, facts: factsFor(p, ind) })).filter((x) => x.facts.length >= 10);
-}
-
-export function makeQuestion(p: WorldPayload, kind: Question["kind"], r: () => number): Question | null {
-  const pool = indicators(p).filter((x) => kind !== "guess" || x.ind.slug === "population" || x.ind.slug === "life-expectancy");
-  if (!pool.length) return null;
-  const { ind, facts } = pick(r, pool);
-  if (kind === "guess") return { kind, ind, a: pick(r, facts) };
-  if (kind === "hl") {
-    for (let t = 0; t < 20; t++) { const [a, b] = sample(r, facts, 2); if (a && b && a.value !== b.value) return { kind, ind, a, b }; }
-    return null;
-  }
-  const items = sample(r, facts, 5);
-  return new Set(items.map((i) => i.value)).size === 5 ? { kind, ind, items } : null;
-}
-
-export function makeRound(p: WorldPayload, kinds: Question["kind"][], seed: string): Question[] {
-  const r = rng(seed); const out: Question[] = [];
-  for (const k of kinds) { for (let t = 0; t < 10; t++) { const q = makeQuestion(p, k, r); if (q) { out.push(q); break; } } }
-  return out;
+type Pool = { ind: Measure; facts: Fact[]; src?: SourceRef; guessable: boolean };
+function indicators(p: WorldPayload): Pool[] {
+  return WORLD_INDICATORS.filter((i) => (GAME_INDICATOR_SLUGS as readonly string[]).includes(i.slug)).map((ind) => ({ ind, facts: factsFor(p, ind), guessable: ind.slug === "population" || ind.slug === "life-expectancy" })).filter((x) => x.facts.length >= 10);
 }
 
 export const DAILY_KINDS: Question["kind"][] = ["hl", "guess", "rank", "hl", "guess"];
+
+// ---- Britain by the Numbers: council figures from the places payload (ONS, UK HPI, ASHE) ----
+const UK_MEASURES: { key: "housePrice" | "weeklyPay" | "crimeRate" | "over65Share" | "lifeSatisfaction"; src: "housePrice" | "pay" | "crime" | "population" | "wellbeing"; m: Measure; guessable: boolean }[] = [
+  { key: "housePrice", src: "housePrice", m: { id: "uk-house-price", slug: "house-price", label: "Average house price", unit: "gbp" }, guessable: true },
+  { key: "weeklyPay", src: "pay", m: { id: "uk-weekly-pay", slug: "weekly-pay", label: "Median full-time weekly pay", unit: "gbp" }, guessable: true },
+  { key: "crimeRate", src: "crime", m: { id: "uk-crime-rate", slug: "crime-rate", label: "Recorded crime (per 1,000 people)", unit: "rate" }, guessable: false },
+  { key: "over65Share", src: "population", m: { id: "uk-over-65", slug: "over-65", label: "Share of residents aged 65+", unit: "pct" }, guessable: false },
+  { key: "lifeSatisfaction", src: "wellbeing", m: { id: "uk-life-satisfaction", slug: "life-satisfaction", label: "Life satisfaction (out of 10)", unit: "score" }, guessable: false },
+];
+export function ukPools(p: PlacesPayload): Pool[] {
+  return UK_MEASURES.map(({ key, src, m, guessable }) => ({
+    ind: m, src: p.sources[src], guessable,
+    facts: p.places.flatMap((pl) => { const v = key === "lifeSatisfaction" ? pl.wellbeing?.lifeSatisfaction : pl[key]; return typeof v === "number" && Number.isFinite(v) ? [{ iso3: pl.code, iso2: "", name: pl.name, value: v, year: 0 }] : []; }),
+  })).filter((x) => x.facts.length >= 10);
+}
+
+export function questionFrom(pools: Pool[], kind: Question["kind"], r: () => number): Question | null {
+  const pool = pools.filter((x) => kind !== "guess" || x.guessable);
+  if (!pool.length) return null;
+  const { ind, facts, src } = pick(r, pool);
+  const extra = src ? { src } : {};
+  if (kind === "guess") return { kind, ind, a: pick(r, facts), ...extra };
+  if (kind === "hl") {
+    for (let t = 0; t < 20; t++) { const [a, b] = sample(r, facts, 2); if (a && b && a.value !== b.value) return { kind, ind, a, b, ...extra }; }
+    return null;
+  }
+  const items = sample(r, facts, 5);
+  return new Set(items.map((i) => i.value)).size === 5 ? { kind, ind, items, ...extra } : null;
+}
+export const makeQuestion = (p: WorldPayload, kind: Question["kind"], r: () => number) => questionFrom(indicators(p), kind, r);
+
+export function roundFrom(pools: Pool[], kinds: Question["kind"][], seed: string): Question[] {
+  const r = rng(seed); const out: Question[] = [];
+  for (const k of kinds) { for (let t = 0; t < 10; t++) { const q = questionFrom(pools, k, r); if (q) { out.push(q); break; } } }
+  return out;
+}
+export const makeRound = (p: WorldPayload, kinds: Question["kind"][], seed: string) => roundFrom(indicators(p), kinds, seed);
+export const BRITAIN_KINDS: Question["kind"][] = ["hl", "hl", "guess", "hl", "rank", "hl", "guess", "hl", "rank", "hl"];
+export const britainRound = (p: PlacesPayload, seed: string) => roundFrom(ukPools(p), BRITAIN_KINDS, `britain-by-the-numbers-${seed}`);
+
+/** Every scored game and the question kinds of one round. */
+export const GAME_DEFS = {
+  "daily-5": { title: "The Daily 5", kinds: DAILY_KINDS },
+  "higher-or-lower": { title: "Higher or Lower", kinds: Array<Question["kind"]>(10).fill("hl") },
+  "guess-the-number": { title: "Guess the Number", kinds: Array<Question["kind"]>(10).fill("guess") },
+  "rank-the-world": { title: "Rank the World", kinds: Array<Question["kind"]>(10).fill("rank") },
+  "britain-by-the-numbers": { title: "Britain by the Numbers", kinds: BRITAIN_KINDS },
+} as const;
+export type GameId = keyof typeof GAME_DEFS;
+export const isGameId = (g: string): g is GameId => g in GAME_DEFS;
+
 export const dailyRound = (p: WorldPayload, day: string) => makeRound(p, DAILY_KINDS, `daily-${day}`);
 
 /** Points for a numeric guess by percentage error. */
@@ -85,7 +122,11 @@ export function questionText(q: Question): string {
   if (q.kind === "guess") return `What is ${q.a.name}'s ${l}?`;
   return `Rank these from highest to lowest ${l}`;
 }
-export const fmtFact = (f: Fact, ind: WorldIndicator) => fmtWorld(f.value, ind.unit);
+export function fmtFact(f: Fact, ind: Measure): string {
+  if (ind.unit === "gbp") return `£${Math.round(f.value).toLocaleString("en-GB")}`;
+  if (ind.unit === "score") return f.value.toFixed(2);
+  return fmtWorld(f.value, ind.unit);
+}
 
 /** Emoji result line for sharing, e.g. 🟩🟨⬛ */
 export const shareBlocks = (points: number[]) => points.map((p) => (p >= 90 ? "🟩" : p >= 25 ? "🟨" : "⬛")).join("");

@@ -5,7 +5,7 @@ import { fmtFact, questionText, rankOrder, scoreQuestion, type Answer, type Fact
 import { WORLD_SOURCE } from "@/lib/world";
 
 const Flag = ({ f }: { f: Fact }) => f.iso2 ? <img src={`https://flagcdn.com/w80/${f.iso2.toLowerCase()}.png`} alt="" width={40} height={27} loading="lazy" className="h-[27px] w-10 rounded-sm object-cover ring-1 ring-night-line" /> : null;
-const Year = ({ f }: { f: Fact }) => <span className="font-mono text-[11px] text-night-muted">{f.year}</span>;
+const Year = ({ f }: { f: Fact }) => !f.year ? null : <span className="font-mono text-[11px] text-night-muted">{f.year}</span>;
 
 /** One question: player answers, then sees the real figure, its year and the source. */
 export function QuestionCard({ q, onDone }: { q: Question; onDone: (ans: Answer, points: number) => void }) {
@@ -39,7 +39,7 @@ export function QuestionCard({ q, onDone }: { q: Question; onDone: (ans: Answer,
       {q.kind === "guess" && (
         <form className="mt-4 flex flex-wrap items-center gap-3" onSubmit={(e) => { e.preventDefault(); const n = Number(guess.replace(/[,\s]/g, "")); if (Number.isFinite(n)) lock(n); }}>
           <Flag f={q.a} />
-          <input inputMode="decimal" value={guess} disabled={done} onChange={(e) => setGuess(e.target.value)} placeholder={q.ind.unit === "people" ? "e.g. 25000000" : "e.g. 75"} className="w-48 rounded-md border border-night-line bg-night px-3 py-2 font-mono" aria-label="Your guess" />
+          <input inputMode="decimal" value={guess} disabled={done} onChange={(e) => setGuess(e.target.value)} placeholder={q.ind.unit === "people" ? "e.g. 25000000" : q.ind.unit === "gbp" ? "e.g. 250000" : "e.g. 75"} className="w-48 rounded-md border border-night-line bg-night px-3 py-2 font-mono" aria-label="Your guess" />
           {!done && <Button type="submit" disabled={!guess.trim()}>Lock in</Button>}
           {done && <p className="w-full text-sm">Real figure: <span className="font-mono text-lg">{fmtFact(q.a, q.ind)}</span> <Year f={q.a} /> · you said {Number(ans).toLocaleString("en-GB")}</p>}
         </form>
@@ -65,7 +65,7 @@ export function QuestionCard({ q, onDone }: { q: Question; onDone: (ans: Answer,
       {done && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-night-line pt-4">
           <p className="flex items-center gap-2 font-semibold">{points >= 50 ? <Check className="text-fresh" /> : <X className="text-overdue" />}{points} points</p>
-          <p className="text-xs text-night-muted">Source: <a href={`https://data.worldbank.org/indicator/${q.ind.id}`} target="_blank" rel="noreferrer" className="underline">{WORLD_SOURCE.name}</a></p>
+          <p className="text-xs text-night-muted">Source: {q.src ? <><a href={q.src.url} target="_blank" rel="noreferrer" className="underline">{q.src.name}</a>{q.src.period ? ` · ${q.src.period}` : ""}</> : <a href={`https://data.worldbank.org/indicator/${q.ind.id}`} target="_blank" rel="noreferrer" className="underline">{WORLD_SOURCE.name}</a>}</p>
           <Button onClick={() => onDone(ans, points)}>Next</Button>
         </div>
       )}

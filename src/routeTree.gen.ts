@@ -82,6 +82,7 @@ import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesGameRouteImport } from './routes/games.$game'
+import { Route as GamesBritainByTheNumbersRouteImport } from './routes/games.britain-by-the-numbers'
 import { Route as GamesDailyRouteImport } from './routes/games.daily'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
 import { Route as GlobeStudioRouteImport } from './routes/globe_.studio'
@@ -491,6 +492,12 @@ const GamesGameRoute = GamesGameRouteImport.update({
   path: '/games/$game',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesBritainByTheNumbersRoute =
+  GamesBritainByTheNumbersRouteImport.update({
+    id: '/games/britain-by-the-numbers',
+    path: '/games/britain-by-the-numbers',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const GamesDailyRoute = GamesDailyRouteImport.update({
   id: '/games/daily',
   path: '/games/daily',
@@ -783,6 +790,7 @@ export interface FileRoutesByFullPath {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
+  '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/daily': typeof GamesDailyRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
@@ -898,6 +906,7 @@ export interface FileRoutesByTo {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
+  '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/daily': typeof GamesDailyRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
@@ -1017,6 +1026,7 @@ export interface FileRoutesById {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
+  '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/daily': typeof GamesDailyRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
   '/globe_/studio': typeof GlobeStudioRoute
@@ -1137,6 +1147,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/games/$game'
+    | '/games/britain-by-the-numbers'
     | '/games/daily'
     | '/globe/broadcast'
     | '/globe/studio'
@@ -1252,6 +1263,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/games/$game'
+    | '/games/britain-by-the-numbers'
     | '/games/daily'
     | '/globe/broadcast'
     | '/globe/studio'
@@ -1370,6 +1382,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/games/$game'
+    | '/games/britain-by-the-numbers'
     | '/games/daily'
     | '/globe_/broadcast'
     | '/globe_/studio'
@@ -1484,6 +1497,7 @@ export interface RootRouteChildren {
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   GamesGameRoute: typeof GamesGameRoute
+  GamesBritainByTheNumbersRoute: typeof GamesBritainByTheNumbersRoute
   GamesDailyRoute: typeof GamesDailyRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
   GlobeStudioRoute: typeof GlobeStudioRoute
@@ -2017,6 +2031,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesGameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/britain-by-the-numbers': {
+      id: '/games/britain-by-the-numbers'
+      path: '/games/britain-by-the-numbers'
+      fullPath: '/games/britain-by-the-numbers'
+      preLoaderRoute: typeof GamesBritainByTheNumbersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/daily': {
       id: '/games/daily'
       path: '/games/daily'
@@ -2507,6 +2528,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   GamesGameRoute: GamesGameRoute,
+  GamesBritainByTheNumbersRoute: GamesBritainByTheNumbersRoute,
   GamesDailyRoute: GamesDailyRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
   GlobeStudioRoute: GlobeStudioRoute,

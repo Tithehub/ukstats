@@ -50,6 +50,7 @@ const entries: SitemapEntry[] = [
   { path: "/education", changefreq: "weekly", priority: "0.8" },
   { path: "/games", changefreq: "daily", priority: "0.8" },
   { path: "/games/daily", changefreq: "daily", priority: "0.7" },
+  { path: "/games/britain-by-the-numbers", changefreq: "weekly", priority: "0.7" },
   { path: "/education/schools", changefreq: "daily", priority: "0.7" },
   { path: "/education/universities", changefreq: "weekly", priority: "0.6" },
   { path: "/spending", changefreq: "weekly", priority: "0.7" },
