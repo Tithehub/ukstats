@@ -94,7 +94,8 @@ export function step(s: State, dt: number, flap: boolean, punch = false): State 
     b.x = phase > 2.6 ? BOSS_X - Math.sin(((phase - 2.6) / 1.4) * Math.PI) * (BOSS_X - PLAYER_X - 40) : BOSS_X;
     // after each hit he runs away off the right edge, then comes back
     if (b.flee > 0) { b.x = PLAYER_X + 60 + Math.sin((1 - b.flee / FLEE_TIME) * Math.PI) * (W + 200 - PLAYER_X); b.t = 0; }
-    if (b.cooldown <= 0 && b.enter === 0 && b.flee === 0) {
+    // red tape only in the final boss fight (Manchester)
+    if (n.bossIndex === BOSS_AT.length && b.cooldown <= 0 && b.enter === 0 && b.flee === 0) {
       [n.seed, r] = rng(n.seed);
       n.tapes.push({ x: BOSS_X - 40, y: b.y, vy: (n.y - b.y) * 0.6 + (r - 0.5) * 80 });
       b.cooldown = (1.3 - n.bossIndex * 0.2) * L.tape;

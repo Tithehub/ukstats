@@ -85,3 +85,13 @@ describe("levels, poppies and power punch", () => {
     expect(maxPlausibleScore("normal", 120)).toBeGreaterThan(5000);
   });
 });
+
+describe("red tape", () => {
+  const fight = (bossIndex: number) => {
+    let s = { ...newGame(), y: 200, bossIndex, boss: { hp: 3, x: 670, y: 200, t: 0, cooldown: 0, invuln: 0, enter: 0, flee: 0 } };
+    for (let i = 0; i < 5; i++) s = { ...step(s, 0.01, false), y: 200, vy: 0 };
+    return s.tapes.length;
+  };
+  it("Burnham throws nothing in the first two fights", () => { expect(fight(1)).toBe(0); expect(fight(2)).toBe(0); });
+  it("Burnham throws red tape in the final fight", () => { expect(fight(3)).toBeGreaterThan(0); });
+});
