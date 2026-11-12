@@ -34,7 +34,7 @@ describe("game scoring", () => {
 describe("game registry", () => {
   it("every scored game is registered, Britain has 10 questions", async () => {
     const { GAME_DEFS, isGameId } = await import("./games");
-    expect(Object.keys(GAME_DEFS).sort()).toEqual(["britain-by-the-numbers", "daily-5", "guess-the-flag", "guess-the-number", "higher-or-lower", "rank-the-world"]);
+    expect(Object.keys(GAME_DEFS).sort()).toEqual(["britain-by-the-numbers", "daily-5", "english-history", "guess-the-flag", "guess-the-number", "higher-or-lower", "rank-the-world", "world-knowledge"]);
     expect(GAME_DEFS["britain-by-the-numbers"].kinds.length).toBe(10);
     expect(isGameId("made-up")).toBe(false);
   });
@@ -65,5 +65,25 @@ describe("Guess the Flag", () => {
     const q = _flagRound(p, "s2")[0]!; if (q.kind !== "flag") throw 0;
     const right = q.choices.findIndex((c) => c.iso3 === q.a.iso3);
     expect(_score(q, right)).toBe(100); expect(_score(q, (right + 1) % 4)).toBe(0);
+  });
+});
+
+describe("knowledge quizzes", () => {
+  it("every question has four distinct options and a reference", async () => {
+    const { ENGLISH_HISTORY, WORLD_KNOWLEDGE } = await import("./quiz.data");
+    for (const row of [...ENGLISH_HISTORY, ...WORLD_KNOWLEDGE]) {
+      expect(new Set(row.slice(1, 5)).size, row[0]).toBe(4);
+      expect(row[5].length && row[6].length).toBeTruthy();
+    }
+    expect(new Set(ENGLISH_HISTORY.map((r) => r[0])).size).toBe(ENGLISH_HISTORY.length);
+    expect(new Set(WORLD_KNOWLEDGE.map((r) => r[0])).size).toBe(WORLD_KNOWLEDGE.length);
+  });
+  it("same seed gives the same 10 unique questions, correct option scores 100", async () => {
+    const { quizRound } = await import("./games");
+    const a = quizRound("english-history", "x"), b = quizRound("english-history", "x");
+    expect(a).toEqual(b); expect(a.length).toBe(10);
+    const q = a[0]!; if (q.kind !== "quiz") throw new Error();
+    expect(new Set(a.map((x) => x.kind === "quiz" && x.q)).size).toBe(10);
+    expect(scoreQuestion(q, q.answer)).toBe(100); expect(scoreQuestion(q, (q.answer + 1) % 4)).toBe(0);
   });
 });

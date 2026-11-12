@@ -46,6 +46,17 @@ export function QuestionCard({ q, onDone }: { q: Question; onDone: (ans: Answer,
         </div>
       )}
 
+      {q.kind === "quiz" && (
+        <div className="mt-4">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {q.options.map((o, i) => (
+              <button key={o} disabled={done} onClick={() => lock(i)} className={`rounded-md border p-3 text-left font-medium transition ${done ? (i === q.answer ? "border-fresh bg-fresh/10" : ans === i ? "border-overdue" : "border-night-line opacity-70") : "border-night-line hover:border-electric-soft"}`}>{o}</button>
+            ))}
+          </div>
+          {done && <p className="mt-3 text-sm">{q.explain}</p>}
+        </div>
+      )}
+
       {q.kind === "guess" && (
         <div className="mt-4">
           <p className="flex items-center gap-2 font-medium"><Flag f={q.a} />{q.a.name}</p>

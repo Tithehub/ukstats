@@ -7,9 +7,11 @@ import guess from "@/assets/games/guess.jpg";
 import rank from "@/assets/games/rank.jpg";
 import britain from "@/assets/games/britain.jpg";
 import flag from "@/assets/games/flag.jpg";
+import history from "@/assets/games/english-history.jpg";
+import worldk from "@/assets/games/world-knowledge.jpg";
 
 const T = "Free stats games — Daily 5, Higher or Lower and more | UKStats";
-const D = "Free, quick statistics games built on real World Bank figures: the Daily 5 challenge, Britain by the Numbers, Higher or Lower, Guess the Number, Rank the World and Guess the Flag. Leaderboards and shareable scores.";
+const D = "Free, quick statistics games built on real World Bank figures: the Daily 5 challenge, Britain by the Numbers, Higher or Lower, Guess the Number, Rank the World, Guess the Flag, English History and World Knowledge. Leaderboards and shareable scores.";
 
 export const Route = createFileRoute("/games/")({
   head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }], links: [{ rel: "canonical", href: "https://ukstats.co.uk/games" }] }),
@@ -21,6 +23,8 @@ const GAMES = [
   { game: "guess-the-number", title: "Guess the Number", blurb: "Pick the right figure from four.", img: guess },
   { game: "rank-the-world", title: "Rank the World", blurb: "Spot the top country from four.", img: rank },
   { game: "guess-the-flag", title: "Guess the Flag", blurb: "Name the country from its real national flag.", img: flag },
+  { game: "english-history", title: "English History", blurb: "Monarchs, battles and turning points.", img: history },
+  { game: "world-knowledge", title: "World Knowledge & History", blurb: "Capitals, inventions and world events.", img: worldk },
 ] as const;
 
 function Hub() {

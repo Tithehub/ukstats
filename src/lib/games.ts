@@ -3,6 +3,7 @@
 // server can re-score a daily entry without trusting the browser.
 import { MAX_LAG_YEARS, fmtWorld, type WorldIndicator, type WorldPayload, WORLD_INDICATORS } from "./world";
 import type { PlacesPayload, SourceRef } from "./places";
+import { ENGLISH_HISTORY, WORLD_KNOWLEDGE } from "./quiz.data";
 
 /** What a question measures. World questions use World Bank indicators; Britain questions use council figures. */
 export interface Measure { id: string; slug: string; label: string; unit: WorldIndicator["unit"] | "gbp" | "score" }
@@ -15,7 +16,8 @@ export type Question =
   | { kind: "hl"; ind: Measure; a: Fact; b: Fact; src?: SourceRef }
   | { kind: "guess"; ind: Measure; a: Fact; choices: Fact[]; src?: SourceRef }
   | { kind: "rank"; ind: Measure; items: Fact[]; dir: "high" | "low"; src?: SourceRef }
-  | { kind: "flag"; ind: Measure; a: Fact; choices: Fact[]; src?: SourceRef };
+  | { kind: "flag"; ind: Measure; a: Fact; choices: Fact[]; src?: SourceRef }
+  | { kind: "quiz"; ind: Measure; q: string; options: string[]; answer: number; explain: string; src: SourceRef };
 export type Answer = number | string[] | null;
 
 export function rng(seed: string): () => number {
@@ -76,7 +78,7 @@ export function questionFrom(pools: Pool[], kind: Question["kind"], r: () => num
     for (let t = 0; t < 20; t++) { const [a, b] = sample(r, facts, 2); if (a && b && a.value !== b.value) return { kind, ind, a, b, ...extra }; }
     return null;
   }
-  if (kind === "flag") return null;
+  if (kind === "flag" || kind === "quiz") return null;
   const items = sample(r, facts, 4); const dir = r() < 0.5 ? "high" : "low";
   return new Set(items.map((i) => i.value)).size === 4 ? { kind, ind, items, dir, ...extra } : null;
 }
@@ -99,6 +101,8 @@ export const GAME_DEFS = {
   "rank-the-world": { title: "Rank the World", kinds: Array<Question["kind"]>(10).fill("rank") },
   "britain-by-the-numbers": { title: "Britain by the Numbers", kinds: BRITAIN_KINDS },
   "guess-the-flag": { title: "Guess the Flag", kinds: Array<Question["kind"]>(10).fill("flag") },
+  "english-history": { title: "English History", kinds: Array<Question["kind"]>(10).fill("quiz") },
+  "world-knowledge": { title: "World Knowledge & History", kinds: Array<Question["kind"]>(10).fill("quiz") },
 } as const;
 export type GameId = keyof typeof GAME_DEFS;
 export const isGameId = (g: string): g is GameId => g in GAME_DEFS;
@@ -113,6 +117,19 @@ export function flagRound(p: WorldPayload, seed: string): Question[] {
   return sample(r, facts, 10).map((a) => {
     const choices = [a, ...sample(r, facts.filter((f) => f.iso3 !== a.iso3), 3)];
     return { kind: "flag" as const, ind: FLAG_MEASURE, a, choices: sample(r, choices, 4) };
+  });
+}
+
+// ---- Knowledge quizzes: a fixed, referenced question bank (quiz.data.ts), seeded shuffle ----
+export type QuizGame = "english-history" | "world-knowledge";
+export function quizRound(game: QuizGame, seed: string): Question[] {
+  const bank = game === "english-history" ? ENGLISH_HISTORY : WORLD_KNOWLEDGE;
+  const r = rng(`${game}-${seed}`);
+  const ind: Measure = { id: game, slug: game, label: GAME_DEFS[game].title, unit: "score" };
+  return sample(r, bank, 10).map(([q, right, ...rest]) => {
+    const [w1, w2, w3, explain, ref] = rest;
+    const options = sample(r, [right, w1, w2, w3], 4);
+    return { kind: "quiz" as const, ind, q, options, answer: options.indexOf(right), explain, src: { name: "Encyclopaedia Britannica", url: `https://www.britannica.com/search?query=${encodeURIComponent(ref)}`, period: null } as SourceRef };
   });
 }
 
@@ -133,6 +150,7 @@ export function scoreQuestion(q: Question, ans: Answer): number {
   if (ans == null) return 0;
   if (q.kind === "hl") return typeof ans === "number" && (ans === 0 ? q.a.value > q.b.value : ans === 1 ? q.b.value > q.a.value : false) ? 100 : 0;
   if (q.kind === "guess") return typeof ans === "number" && q.choices[ans]?.iso3 === q.a.iso3 ? 100 : 0;
+  if (q.kind === "quiz") return ans === q.answer ? 100 : 0;
   if (q.kind === "flag") return typeof ans === "number" && q.choices[ans]?.iso3 === q.a.iso3 ? 100 : 0;
   return typeof ans === "number" && q.items[ans]?.iso3 === rankAnswer(q) ? 100 : 0;
 }
@@ -142,6 +160,7 @@ export function questionText(q: Question): string {
   const l = q.ind.label.replace(/ \(.*\)$/, "").toLowerCase();
   if (q.kind === "hl") return `Which has the higher ${l}?`;
   if (q.kind === "flag") return "Which country's flag is this?";
+  if (q.kind === "quiz") return q.q;
   if (q.kind === "guess") return `What is ${q.a.name}'s ${l}?`;
   return `Which has the ${q.dir === "high" ? "highest" : "lowest"} ${l}?`;
 }

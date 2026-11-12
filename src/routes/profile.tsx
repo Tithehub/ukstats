@@ -21,7 +21,7 @@ export const Route = createFileRoute("/profile")({
 
 const card = "rounded-lg border border-night-line bg-night-panel p-5";
 const input = "mt-2 min-h-11 w-full rounded-lg border border-night-line/70 bg-night px-3 py-2.5 text-sm outline-none focus-visible:border-electric";
-const GAME_LINK: Record<GameId, string> = { "daily-5": "/games/daily", "britain-by-the-numbers": "/games/britain-by-the-numbers", "higher-or-lower": "/games/higher-or-lower", "guess-the-number": "/games/guess-the-number", "rank-the-world": "/games/rank-the-world", "guess-the-flag": "/games/guess-the-flag" };
+const GAME_LINK: Record<GameId, string> = { "daily-5": "/games/daily", "britain-by-the-numbers": "/games/britain-by-the-numbers", "higher-or-lower": "/games/higher-or-lower", "guess-the-number": "/games/guess-the-number", "rank-the-world": "/games/rank-the-world", "guess-the-flag": "/games/guess-the-flag", "english-history": "/games/english-history", "world-knowledge": "/games/world-knowledge" };
 
 function Profile() {
   return <div className="min-h-screen bg-night text-foreground"><SiteHeader /><ProfileGate /><SiteFooter /></div>;

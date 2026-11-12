@@ -18,7 +18,9 @@ export const submitScore = createServerFn({ method: "POST" })
     const { londonDate } = await import("./daily");
     const day = londonDate();
     let qs: import("./games").Question[];
-    if (data.game === "britain-by-the-numbers") {
+    if (data.game === "english-history" || data.game === "world-knowledge") {
+      qs = g.quizRound(data.game, data.seed);
+    } else if (data.game === "britain-by-the-numbers") {
       const { loadPlaces } = await import("./places.server");
       const places = await loadPlaces();
       if (!places?.places.length) return { ok: false as const, error: "UK figures are unavailable right now." };
@@ -27,7 +29,7 @@ export const submitScore = createServerFn({ method: "POST" })
       const { loadWorld } = await import("./world.server");
       const world = await loadWorld();
       if (!world) return { ok: false as const, error: "World figures are unavailable right now." };
-      qs = data.game === "daily-5" ? g.dailyRound(world, day) : data.game === "guess-the-flag" ? g.flagRound(world, data.seed) : g.makeRound(world, [...g.GAME_DEFS[data.game].kinds], `${data.game}-${data.seed}`);
+      qs = data.game === "daily-5" ? g.dailyRound(world, day) : data.game === "guess-the-flag" ? g.flagRound(world, data.seed) : g.makeRound(world, [...g.GAME_DEFS[data.game as Exclude<typeof data.game, "english-history" | "world-knowledge">].kinds], `${data.game}-${data.seed}`);
     }
     if (qs.length !== data.answers.length) return { ok: false as const, error: "That round has changed — please play a new one." };
     const points = qs.map((q, i) => g.scoreQuestion(q, data.answers[i] ?? null));
