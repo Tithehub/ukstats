@@ -505,3 +505,9 @@ html.game-fullscreen body > *:not(:has(.game-fs-layer)) { display: none !importa
 html.game-fullscreen body *:not(:has(.game-fs-layer)):not(.game-fs-layer):not(.game-fs-layer *) { visibility: hidden; }
 html.game-fullscreen .game-fs-layer, html.game-fullscreen .game-fs-layer * { visibility: visible; }
 html.game-fullscreen, html.game-fullscreen body { overflow: hidden !important; overscroll-behavior: none; }
+
+@keyframes games-ribbon-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.games-ribbon { scrollbar-width: none; }
+.games-ribbon-track { animation: games-ribbon-scroll 45s linear infinite; }
+.games-ribbon:hover .games-ribbon-track, .games-ribbon:focus-within .games-ribbon-track, .games-ribbon:active .games-ribbon-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .games-ribbon-track { animation: none; } }

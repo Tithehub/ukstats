@@ -6,6 +6,7 @@ import { SLOGAN } from "@/lib/brand";
 import { Search, ArrowRight, ShieldCheck, Ship, CloudFog, Waves, ShoppingCart, Siren, Landmark, Building2, Home, Scale, Backpack, Globe2, Tv, Coins, BarChart3, FileText } from "lucide-react";
 import { ageLabel, dueLabel, freshnessOf, fmtDate, type Category, type Metric, type StatsPayload } from "@/lib/uk-stats";
 import { statusTone, type BlockTone } from "@/lib/status-tone";
+import { GamesRibbon } from "@/components/home/GamesRibbon";
 import { GlobeExplorer, type GlobeState } from "@/components/globe/GlobeExplorer";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -79,6 +80,7 @@ function HomeGlobe({ search, onSearchChange }: GlobeProps) {
   return <section id="new-home-globe" aria-label="World globe" className="mt-8 scroll-mt-20">
     <a href="#new-home-services" className="mb-2 inline-flex min-h-11 items-center text-sm text-primary underline sm:hidden">Skip the globe — go to the next section</a>
     <GlobeExplorer compact state={state} onChange={(p) => { setLayers((l) => ({ ...l, ...(["layer", "gov", "age", "cmp", "feed", "fk", "fa", "fl", "fp", "mg", "nw", "eq", "st", "cam", "dn", "wx"] as const).reduce((o, k) => (k in p ? { ...o, [k]: p[k] } : o), {}), ...("riots" in p ? { riots: p.riots } : {}), ...("protests" in p ? { protests: p.protests } : {}), ...("mil" in p ? { mil: p.mil } : {}), ...("m" in p ? { m: p.m } : "c" in p ? { m: undefined } : {}) })); onSearchChange({ ...search, c: "c" in p ? p.c || undefined : search.c, ind: p.ind ? (p.ind === "none" ? undefined : p.ind) : search.ind }); }} />
+    <GamesRibbon />
   </section>;
 }
 
