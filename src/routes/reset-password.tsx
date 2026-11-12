@@ -4,6 +4,7 @@ import { KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { PasswordInput } from "@/components/ui/password-input";
 import { btn } from "@/lib/ui";
 
 export const Route = createFileRoute("/reset-password")({
@@ -59,15 +60,13 @@ function ResetPassword() {
             <label htmlFor="new-password" className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
               New password
             </label>
-            <input
+            <PasswordInput
               id="new-password"
-              type="password"
               required
               minLength={8}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 min-h-11 w-full rounded-lg border border-night-line/70 bg-night-panel px-3 py-2.5 text-sm outline-none focus-visible:border-electric"
             />
           </div>
           {error ? <p className="font-mono text-[12px] text-overdue">{error}</p> : null}

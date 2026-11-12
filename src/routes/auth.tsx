@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth } from "@/lib/useAuth";
+import { PasswordInput } from "@/components/ui/password-input";
 import { btn, btnToggle } from "@/lib/ui";
 
 export const Route = createFileRoute("/auth")({
@@ -149,15 +150,13 @@ function AuthPage() {
             <label htmlFor="password" className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               required
               minLength={8}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 min-h-11 w-full rounded-lg border border-night-line/70 bg-night-panel px-3 py-2.5 text-sm outline-none focus-visible:border-electric"
             />
           </div>
 
