@@ -80,14 +80,14 @@ export function parseGlobeExtras(s: Record<string, unknown>): Pick<GlobeState, "
     feed: s["feed"] === "live" ? "live" : undefined,
     fk: s["fk"] === "official" || s["fk"] === "msm" || s["fk"] === "alt" ? s["fk"] : undefined,
     fa: fa === 1 || fa === 6 ? fa : undefined,
-    fl: s["fl"] === true || s["fl"] === "1" || s["fl"] === "true" ? true : undefined,
-    mg: s["mg"] === true || s["mg"] === "1" || s["mg"] === "true" ? true : undefined,
-    eq: s["eq"] === true || s["eq"] === "1" || s["eq"] === "true" ? true : undefined,
-    st: s["st"] === true || s["st"] === "1" || s["st"] === "true" ? true : undefined,
+    fl: s["fl"] === false || s["fl"] === "0" || s["fl"] === "false" ? false : true,
+    mg: s["mg"] === false || s["mg"] === "0" || s["mg"] === "false" ? false : true,
+    eq: s["eq"] === false || s["eq"] === "0" || s["eq"] === "false" ? false : true,
+    st: s["st"] === false || s["st"] === "0" || s["st"] === "false" ? false : true,
     dn: s["dn"] === false || s["dn"] === "0" || s["dn"] === "false" ? false : undefined,
-    cam: s["cam"] === true || s["cam"] === "1" || s["cam"] === "true" ? true : undefined,
-    nw: s["nw"] === true || s["nw"] === "1" || s["nw"] === "true" ? true : undefined,
-    wx: s["wx"] === true || s["wx"] === "1" || s["wx"] === "true" ? true : undefined,
+    cam: s["cam"] === false || s["cam"] === "0" || s["cam"] === "false" ? false : true,
+    nw: s["nw"] === false || s["nw"] === "0" || s["nw"] === "false" ? false : true,
+    wx: s["wx"] === false || s["wx"] === "0" || s["wx"] === "false" ? false : true,
     fp: typeof s["fp"] === "string" && /^[0-9a-z~]{4,8}$/i.test(s["fp"]) ? s["fp"] : undefined,
     cmp: typeof s["cmp"] === "string" && /^[A-Z]{3}$/.test(s["cmp"]) ? s["cmp"] : undefined,
   };
@@ -416,20 +416,20 @@ export function GlobeExplorer({ state: s, onChange, compact = false, broadcast =
         {s.layer && <p className="mt-1 text-night-muted">The two governments use different scales, so they are never merged.</p>}
         <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={s.official} onChange={(e) => onChange({ official: e.target.checked })} /> <span><b className="text-overdue">Red</b>: official warnings mentioning unrest (30 days)</span></label>
         <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={s.acled} onChange={(e) => onChange({ acled: e.target.checked })} /> <span><b className="text-ageing">Dots</b>: ACLED research — {unrest?.acled.connected ? (unrest.acled.error ?? `${events.length} events, 30 days`) : (unrest?.acled.error ?? "Not connected")}</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.fl} onChange={(e) => onChange({ fl: e.target.checked || undefined, fp: undefined })} /> <span><b>Flights</b>: live aircraft positions{s.fl && flights ? ` — ${flights.planes.length.toLocaleString("en-GB")} planes` : ""}
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.fl} onChange={(e) => onChange({ fl: e.target.checked, fp: undefined })} /> <span><b>Flights</b>: live aircraft positions{s.fl && flights ? ` — ${flights.planes.length.toLocaleString("en-GB")} planes` : ""}
           {s.fl && <span className="mt-1 block text-night-muted"><Swatch c="#3fcf7a" />Green: normal <Swatch c="#f0a020" />Amber: radio failure, or over a Level 3 / FCDO lower warning country <Swatch c="#ff4a3a" />Red: emergency or hijack code, or over a Level 4 / FCDO "all travel" country. Colours use the country the plane is over now, not where it is going (the feed has no destinations).</span>}</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.mg} onChange={(e) => onChange({ mg: e.target.checked || undefined })} /> <span><b>Migration</b>: small boats to the UK and irregular migration routes
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.mg} onChange={(e) => onChange({ mg: e.target.checked })} /> <span><b>Migration</b>: small boats to the UK and irregular migration routes
           {s.mg && <span className="mt-1 block text-night-muted"><Swatch c="#f05a28" />Boats: one per boat on the latest Home Office day <Swatch c="#f0a020" />EU illegal crossings (Frontex, 12 months) <Swatch c="#ff4a3a" />US southwest border encounters (CBP, latest month) <Swatch c="#7fb2ff" />Refugees and asylum seekers living abroad (UNHCR, yearly — not illegal crossings). Thicker = more people.</span>}</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.nw} onChange={(e) => onChange({ nw: e.target.checked || undefined })} /> <span><b>News &amp; police reports</b>: protests, riots and planes diverted, grounded or searched{s.nw && reports ? ` — ${reports.items.length} in 3 days` : ""}
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.nw} onChange={(e) => onChange({ nw: e.target.checked })} /> <span><b>News &amp; police reports</b>: protests, riots and planes diverted, grounded or searched{s.nw && reports ? ` — ${reports.items.length} in 3 days` : ""}
           {s.nw && <span className="mt-1 block text-night-muted">Headlines from BBC, Guardian, Sky News and other publishers found through Google News, plus Police Scotland notices, shown word for word. News reports are not official warnings.</span>}</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.wx} onChange={(e) => onChange({ wx: e.target.checked || undefined })} /> <span><b>Weather</b>: temperature, sky and wind in major cities{s.wx && wxData ? ` — ${wxData.items.length}` : ""}
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.wx} onChange={(e) => onChange({ wx: e.target.checked })} /> <span><b>Weather</b>: temperature, sky and wind in major cities{s.wx && wxData ? ` — ${wxData.items.length}` : ""}
           {s.wx && <span className="mt-1 block text-night-muted"><Swatch c="#7fe3c4" />Blue = cold, yellow = mild, red = hot. Model readings, not official observations. Source: <a className="underline" href={WX_SOURCE.url} target="_blank" rel="noreferrer noopener">{WX_SOURCE.name}</a>{wxData ? `, checked ${fmtStamp(new Date(wxData.at).toISOString())}` : " — not published"}.</span>}</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.eq} onChange={(e) => onChange({ eq: e.target.checked || undefined })} /> <span><b>Earthquakes</b>: magnitude 2.5+, past 24 hours{s.eq && quakeData ? ` — ${quakeData.items.length}` : ""}
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.eq} onChange={(e) => onChange({ eq: e.target.checked })} /> <span><b>Earthquakes</b>: magnitude 2.5+, past 24 hours{s.eq && quakeData ? ` — ${quakeData.items.length}` : ""}
           {s.eq && <span className="mt-1 block text-night-muted"><Swatch c="#c86bff" />Taller and wider = stronger. Source: <a className="underline" href={QUAKE_SOURCE.url} target="_blank" rel="noreferrer noopener">{QUAKE_SOURCE.name}</a>{quakeData ? `, checked ${fmtStamp(new Date(quakeData.at).toISOString())}` : ""}.</span>}</span></label>
         <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={s.dn !== false} onChange={(e) => onChange({ dn: e.target.checked ? undefined : false })} /> <span><b>Day and night</b>: shade the side of the Earth in darkness, with the sunrise and sunset line</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.cam} onChange={(e) => { onChange({ cam: e.target.checked || undefined }); if (!e.target.checked) setCamId(null); }} /> <span><b>Public cameras</b>: road cameras run by public transport authorities{s.cam && camData ? ` — ${camData.items.length.toLocaleString("en-GB")}` : ""}
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.cam} onChange={(e) => { onChange({ cam: e.target.checked }); if (!e.target.checked) setCamId(null); }} /> <span><b>Public cameras</b>: road cameras run by public transport authorities{s.cam && camData ? ` — ${camData.items.length.toLocaleString("en-GB")}` : ""}
           {s.cam && <span className="mt-1 block text-night-muted"><Swatch c="#ff3b3b" />Live video (Caltrans) <Swatch c="#4fd1ff" />Short loops (TfL) or still pictures. Click a dot, or use the Cameras list. Scene only — not a source of figures.</span>}</span></label>
-        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.st} onChange={(e) => onChange({ st: e.target.checked || undefined })} /> <span><b>Satellites</b>: space stations and Earth-watching satellites{s.st ? ` — ${globeSats.length}` : ""}
+        <label className="mt-2 flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={!!s.st} onChange={(e) => onChange({ st: e.target.checked })} /> <span><b>Satellites</b>: space stations and Earth-watching satellites{s.st ? ` — ${globeSats.length}` : ""}
           {s.st && <span className="mt-1 block text-night-muted"><Swatch c="#8cf0ff" />Positions worked out from <a className="underline" href={SAT_SOURCE.url} target="_blank" rel="noreferrer noopener">{SAT_SOURCE.name}</a> (refreshed twice a day); line shows the next 90 minutes.</span>}</span></label>
         <div className="mt-2 flex gap-3">
           <label className="flex items-center gap-1"><input type="checkbox" checked={showRiots} onChange={(e) => onChange({ riots: e.target.checked })} /> Riots</label>
