@@ -12,7 +12,7 @@ describe("Lowe's Mission", () => {
     expect(step({ ...newGame(), y: GROUND - 5 }, 0.05, false).over).toBe(true);
   });
   it("flying into an MP smashes them instead of ending the run", () => {
-    const s = step({ ...near(newGame()), flyers: [{ x: PLAYER_X, y: 200, who: "farage", vy: 0, smashed: 0 }] }, 0.001, false);
+    const s = step({ ...near(newGame()), flyers: [{ x: PLAYER_X, y: 200, who: "polanski", vy: 0, smashed: 0 }] }, 0.001, false);
     expect(s.over).toBe(false);
     expect(s.smashed).toBe(1);
   });
@@ -47,7 +47,7 @@ describe("Lowe's Mission", () => {
     expect(later.boss!.hp).toBe(2);
   });
   it("includes Mahmood, Rayner and Khan as smashable rivals", () => {
-    for (const who of ["mahmood", "rayner", "khan"] as const) {
+    for (const who of ["mahmood", "rayner", "khan", "polanski", "badenoch"] as const) {
       const s = step({ ...newGame(), y: 200, flyers: [{ x: PLAYER_X, y: 200, who, vy: 0, smashed: 0 }] }, 0.001, false);
       expect(s.smashed).toBe(1);
     }
@@ -92,6 +92,29 @@ describe("red tape", () => {
     for (let i = 0; i < 5; i++) s = { ...step(s, 0.01, false), y: 200, vy: 0 };
     return s.tapes.length;
   };
-  it("Burnham throws nothing in the first two fights", () => { expect(fight(1)).toBe(0); expect(fight(2)).toBe(0); });
-  it("Burnham throws red tape in the final fight", () => { expect(fight(3)).toBeGreaterThan(0); });
+  it("Birdman never throws anything", () => { expect(fight(1)).toBe(0); expect(fight(2)).toBe(0); expect(fight(3)).toBe(0); });
+  it("only MASTERMIND throws red tape", () => {
+    let s: State = { ...newGame(), y: 200, bossIndex: 3, boss: { hp: 3, x: 670, y: 200, t: 0, cooldown: 0, invuln: 0, enter: 0, flee: 0, mastermind: true } };
+    for (let i = 0; i < 5; i++) s = { ...step(s, 0.01, false), y: 200, vy: 0 };
+    expect(s.tapes.length).toBeGreaterThan(0);
+  });
+});
+
+import { RIVALS, RIVAL_NAMES } from "./lowes-mission";
+describe("cast", () => {
+  it("Farage is out; nicknames are used", () => {
+    expect(RIVALS).not.toContain("farage" as never);
+    expect(RIVAL_NAMES.polanski).toBe("ZACK BOOBANSKI");
+    expect(RIVAL_NAMES.khan).toBe("SADIQ CAN'T");
+  });
+  const beat = (bossIndex: number, mastermind = false) => {
+    const by = H / 2 - 40 + Math.sin(3.3 * 1.6) * 120;
+    return step({ ...newGame(), y: by, bossIndex, boss: { hp: 1, x: PLAYER_X, y: by, t: 3.3, cooldown: 9, invuln: 0, enter: 0, flee: 0, mastermind } }, 0.001, false);
+  };
+  it("MASTERMIND appears only after Birdman's third defeat", () => {
+    expect(beat(1).boss).toBeNull();
+    expect(beat(3).boss?.mastermind).toBe(true);
+    const done = beat(3, true);
+    expect(done.boss).toBeNull(); expect(done.bossesBeaten).toBe(1);
+  });
 });

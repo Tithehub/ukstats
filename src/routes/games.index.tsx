@@ -56,7 +56,7 @@ function Hub() {
         <div className="p-6">
           <p className="font-mono text-xs uppercase tracking-wider text-electric-soft">Arcade · parody</p>
           <h2 className="mt-1 text-2xl font-semibold">Aim High, Vote Lowe</h2>
-          <p className="mt-2 text-night-muted">Caped Rupert Lowe flies from 10 Downing Street to Manchester — collect votes, blast Farage, Badenoch, Mahmood, Rayner and Mayor Khan off the screen, and send boss Prime Minister Andy Burnham running.</p>
+          <p className="mt-2 text-night-muted">Caped RUPERT AIM HIGH VOTE LOWE flies from 10 Downing Street to Manchester — collect votes, blast Kemi Had Enough, Banana Mahmood, Angela Raver, Sadiq Can't and Zack Boobanski off the screen, send Andy Birdman running and defeat the MASTERMIND.</p>
         </div>
       </Link>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">

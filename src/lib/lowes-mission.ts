@@ -13,9 +13,10 @@ export const STAGES = [
 export const BOSS_AT = [0.15, 0.5, 0.85] as const;
 export const BOSS_HP = 3, BOSS_X = W - 130, BOSS_R = 55;
 export const HEADLINES = ["EXPENSES ROW", "U-TURN!", "LEAKED MEMO", "DONOR DINNER", "WHO PAID?", "SLEAZE PROBE", "PARTY-GATE 2"];
-export const RIVALS = ["farage", "badenoch", "mahmood", "rayner", "khan"] as const;
+export const RIVALS = ["badenoch", "mahmood", "rayner", "khan", "polanski"] as const;
 export type Rival = (typeof RIVALS)[number];
-export const RIVAL_NAMES: Record<Rival, string> = { farage: "Nigel Farage", badenoch: "Kemi Badenoch", mahmood: "Shabana Mahmood", rayner: "Angela Rayner", khan: "Sadiq Khan, Mayor of London" };
+export const RIVAL_NAMES: Record<Rival, string> = { badenoch: "KEMI HAD ENOUGH", mahmood: "BANANA MAHMOOD", rayner: "ANGELA RAVER", khan: "SADIQ CAN'T", polanski: "ZACK BOOBANSKI" };
+export const HERO_NAME = "RUPERT AIM HIGH VOTE LOWE", BOSS_NAME = "ANDY BIRDMAN", FINAL_BOSS_NAME = "MASTERMIND";
 
 export type Difficulty = "easy" | "normal" | "hard";
 export const DIFFICULTIES: Difficulty[] = ["easy", "normal", "hard"];
@@ -28,7 +29,7 @@ export const PUNCH_TIME = 0.35, PUNCH_COOLDOWN = 3, PUNCH_REACH = 26;
 /** Generous upper bound for a genuine run; anything higher is rejected by the leaderboard. */
 export function maxPlausibleScore(d: Difficulty, seconds: number) {
   const secs = Math.max(0, Math.min(seconds, 900));
-  return Math.floor(secs * (70 + LEVELS[d].speed * 20)) + 3 * 300 + 500 + 200;
+  return Math.floor(secs * (70 + LEVELS[d].speed * 20)) + 4 * 300 + 500 + 200;
 }
 export type Column = { x: number; gapY: number; gap: number; headline: string };
 export type Riot = { x: number; h: number };
@@ -36,8 +37,8 @@ export type Vote = { x: number; y: number; taken: boolean; poppy?: boolean };
 export type Flyer = { x: number; y: number; who: Rival; vy: number; smashed: number };
 export type Tape = { x: number; y: number; vy: number };
 export const FLEE_TIME = 2.2;
-export type Boss = { hp: number; x: number; y: number; t: number; cooldown: number; invuln: number; enter: number; flee: number };
-export type Runner = { x: number; y: number; t: number };
+export type Boss = { hp: number; x: number; y: number; t: number; cooldown: number; invuln: number; enter: number; flee: number; mastermind?: boolean };
+export type Runner = { x: number; y: number; t: number; mastermind?: boolean };
 export type State = {
   y: number; vy: number; dist: number; votes: number; poppies: number; smashed: number; power: number; bossesBeaten: number;
   difficulty: Difficulty; punch: number; punchCd: number;
@@ -94,11 +95,11 @@ export function step(s: State, dt: number, flap: boolean, punch = false): State 
     b.x = phase > 2.6 ? BOSS_X - Math.sin(((phase - 2.6) / 1.4) * Math.PI) * (BOSS_X - PLAYER_X - 40) : BOSS_X;
     // after each hit he runs away off the right edge, then comes back
     if (b.flee > 0) { b.x = PLAYER_X + 60 + Math.sin((1 - b.flee / FLEE_TIME) * Math.PI) * (W + 200 - PLAYER_X); b.t = 0; }
-    // red tape only in the final boss fight (Manchester)
-    if (n.bossIndex === BOSS_AT.length && b.cooldown <= 0 && b.enter === 0 && b.flee === 0) {
+    // red tape only in the very last fight (MASTERMIND)
+    if (b.mastermind && b.cooldown <= 0 && b.enter === 0 && b.flee === 0) {
       [n.seed, r] = rng(n.seed);
       n.tapes.push({ x: BOSS_X - 40, y: b.y, vy: (n.y - b.y) * 0.6 + (r - 0.5) * 80 });
-      b.cooldown = (1.3 - n.bossIndex * 0.2) * L.tape;
+      b.cooldown = 0.7 * L.tape;
     }
   } else {
     if (n.dist >= n.nextSpawn) {
@@ -117,7 +118,7 @@ export function step(s: State, dt: number, flap: boolean, punch = false): State 
     if (n.dist >= n.nextRival) {
       [n.seed, r] = rng(n.seed); const y = 60 + r * (GROUND - 140);
       [n.seed, r] = rng(n.seed);
-      n.flyers.push({ x: W + 60, y, who: RIVALS[Math.floor(r * RIVALS.length)] ?? "farage", vy: (r - 0.5) * 60, smashed: 0 });
+      n.flyers.push({ x: W + 60, y, who: RIVALS[Math.floor(r * RIVALS.length)] ?? "badenoch", vy: (r - 0.5) * 60, smashed: 0 });
       n.nextRival = n.dist + (1100 - t * 400) * L.rival;
     }
   }
@@ -140,14 +141,14 @@ export function step(s: State, dt: number, flap: boolean, punch = false): State 
     }
   }
   for (const rt of n.riots) if (hitsBox(PLAYER_X, n.y, PLAYER_R, rt.x, GROUND - rt.h, 60, rt.h)) { n.over = true; n.cause = "Tripped over a riot barricade"; return n; }
-  for (const p of n.tapes) if ((p.x - PLAYER_X) ** 2 + (p.y - n.y) ** 2 < (PLAYER_R + 12) ** 2) { n.over = true; n.cause = "Tied up in Burnham's red tape"; return n; }
+  for (const p of n.tapes) if ((p.x - PLAYER_X) ** 2 + (p.y - n.y) ** 2 < (PLAYER_R + 12) ** 2) { n.over = true; n.cause = "Tied up in MASTERMIND's red tape"; return n; }
   n.flyers = n.flyers.map((f) => {
     if (!f.smashed && (f.x - PLAYER_X) ** 2 + (f.y - n.y) ** 2 < (reach + 28) ** 2) { n.smashed++; if (n.punch > 0) n.power++; return { ...f, smashed: 0.001 }; }
     return f;
   });
   if (n.boss && n.boss.enter === 0 && n.boss.invuln === 0 && n.boss.flee === 0 && (n.boss.x - PLAYER_X) ** 2 + (n.boss.y - n.y) ** 2 < (BOSS_R + reach) ** 2) {
     n.boss.hp--; n.boss.invuln = FLEE_TIME; n.boss.flee = FLEE_TIME; n.vy = FLAP * 0.8; n.tapes = [];
-    if (n.boss.hp <= 0) { n.bossesBeaten++; n.runners.push({ x: n.boss.x, y: n.boss.y, t: 0 }); n.boss = null; }
+    if (n.boss.hp <= 0) { n.bossesBeaten++; const last = !n.boss.mastermind && n.bossIndex === BOSS_AT.length; n.runners.push({ x: n.boss.x, y: n.boss.y, t: 0, mastermind: n.boss.mastermind }); n.boss = last ? { hp: L.bossHp, x: BOSS_X, y: H / 2, t: 0, cooldown: 1.5, invuln: 0, enter: 1, flee: 0, mastermind: true } : null; }
   }
   n.voteList = n.voteList.map((c) => { if (!c.taken && (c.x - PLAYER_X) ** 2 + (c.y - n.y) ** 2 < (PLAYER_R + 14) ** 2) { if (c.poppy) n.poppies++; else n.votes++; return { ...c, taken: true }; } return c; });
   return n;

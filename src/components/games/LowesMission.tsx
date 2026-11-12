@@ -7,7 +7,8 @@ import { ArcadeLeaderboard } from "./ArcadeLeaderboard";
 import { SHARE_TARGETS, absoluteUrl } from "@/lib/share";
 import rbLogo from "@/assets/games/dash/restore-britain-logo.png.asset.json";
 import boss from "@/assets/games/dash/burnham-boss.png";
-import farage from "@/assets/games/dash/farage.png";
+import polanski from "@/assets/games/dash/polanski.png";
+import mastermind from "@/assets/games/dash/mastermind.png";
 import hero from "@/assets/games/dash/lowe-hero.png";
 import bossRun from "@/assets/games/dash/burnham-run.png";
 import mahmood from "@/assets/games/dash/mahmood.png";
@@ -82,7 +83,7 @@ export function LowesMission() {
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session)); }, []);
 
   useEffect(() => {
-    const imgs = { boss: load(boss), farage: load(farage), hero: load(hero), badenoch: load(badenoch), mahmood: load(mahmood), rayner: load(rayner), khan: load(khan), bossRun: load(bossRun), logo: load(rbLogo.url), bg: [load(bgLondon), load(bgMid), load(bgMan)] };
+    const imgs = { boss: load(boss), polanski: load(polanski), mastermind: load(mastermind), hero: load(hero), badenoch: load(badenoch), mahmood: load(mahmood), rayner: load(rayner), khan: load(khan), bossRun: load(bossRun), logo: load(rbLogo.url), bg: [load(bgLondon), load(bgMid), load(bgMan)] };
     const ctx = canvas.current!.getContext("2d")!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let s = newGame(Date.now() % 100000, levelRef.current);
@@ -153,8 +154,8 @@ export function LowesMission() {
       }
       for (const r of s.runners) {
         ctx.save(); ctx.translate(r.x, r.y - Math.abs(Math.sin(r.t * 18)) * 8); ctx.scale(-1, 1);
-        if (imgs.bossRun.complete) ctx.drawImage(imgs.bossRun, -45, -70, 90, 140); ctx.restore();
-        if (r.t < 1.5) { ctx.save(); ctx.fillStyle = "#f5c518"; ctx.strokeStyle = "#051D3F"; ctx.lineWidth = 4; ctx.font = "900 34px Archivo, sans-serif"; ctx.textAlign = "center"; ctx.strokeText("BURNHAM DEFEATED!", W / 2, H / 2 - 60); ctx.fillText("BURNHAM DEFEATED!", W / 2, H / 2 - 60); ctx.restore(); }
+        { const ri = r.mastermind ? imgs.mastermind : imgs.bossRun; if (ri.complete) ctx.drawImage(ri, -45, -70, 70, 140); } ctx.restore();
+        if (r.t < 1.5) { ctx.save(); ctx.fillStyle = "#f5c518"; ctx.strokeStyle = "#051D3F"; ctx.lineWidth = 4; ctx.font = "900 34px Archivo, sans-serif"; ctx.textAlign = "center"; { const msg = r.mastermind ? "MASTERMIND DEFEATED!" : "BIRDMAN DEFEATED!"; ctx.strokeText(msg, W / 2, H / 2 - 60); ctx.fillText(msg, W / 2, H / 2 - 60); } ctx.restore(); }
       }
       for (const p of s.tapes) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(t * 8); ctx.fillStyle = "#c8102e"; ctx.fillRect(-12, -6, 24, 12); ctx.fillStyle = "#efe9dc"; ctx.fillRect(-12, -2, 24, 4); ctx.restore(); }
       if (s.boss) {
@@ -163,11 +164,11 @@ export function LowesMission() {
         if (b.flee > 0) {
           const bob = Math.abs(Math.sin(t * 18)) * 8;
           ctx.translate(b.x, b.y - bob); ctx.scale(-1, 1);
-          if (imgs.bossRun.complete) ctx.drawImage(imgs.bossRun, -45, -70, 90, 140);
-        } else if (imgs.boss.complete) ctx.drawImage(imgs.boss, b.x - bw / 2, b.y - bh / 2 + b.enter * -300, bw, bh);
+          const ri = b.mastermind ? imgs.mastermind : imgs.bossRun; if (ri.complete) ctx.drawImage(ri, -45, -70, b.mastermind ? 70 : 90, 140);
+        } else { const bi = b.mastermind ? imgs.mastermind : imgs.boss; if (bi.complete) ctx.drawImage(bi, b.x - (b.mastermind ? 35 : bw / 2), b.y - bh / 2 + b.enter * -300, b.mastermind ? 70 : bw, bh); }
         ctx.restore();
         ctx.fillStyle = "rgba(5,29,63,0.85)"; ctx.fillRect(W / 2 - 160, 42, 320, 26);
-        ctx.fillStyle = "#fff"; ctx.font = "bold 12px Archivo, sans-serif"; ctx.textAlign = "center"; ctx.fillText("BOSS · PRIME MINISTER ANDY BURNHAM", W / 2, 54);
+        ctx.fillStyle = "#fff"; ctx.font = "bold 12px Archivo, sans-serif"; ctx.textAlign = "center"; ctx.fillText(b.mastermind ? "FINAL BOSS · MASTERMIND" : "BOSS · PRIME MINISTER ANDY BIRDMAN", W / 2, 54);
         ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.fillRect(W / 2 - 150, 58, 300, 6);
         ctx.fillStyle = "#c8102e"; ctx.fillRect(W / 2 - 150, 58, 300 * (b.hp / LEVELS[s.difficulty].bossHp), 6);
       }
@@ -262,7 +263,7 @@ export function LowesMission() {
             {phase === "ready" ? (
               <>
                 <h2 className="text-2xl font-semibold">London → Manchester</h2>
-                <p className="mt-2 text-sm text-night-muted">Tap, click or press space to fly. Collect votes, blast Farage, Badenoch, Mahmood, Rayner and Mayor Khan off the screen, grab poppies for bonus points, dodge scandals and riot barricades, and ram Prime Minister Burnham to send him running. Double-tap for a power punch that smashes through a scandal.</p>
+                <p className="mt-2 text-sm text-night-muted">Tap, click or press space to fly as RUPERT AIM HIGH VOTE LOWE. Collect votes, blast Kemi Had Enough, Banana Mahmood, Angela Raver, Sadiq Can't and Zack Boobanski off the screen, grab poppies for bonus points, dodge scandals and riot barricades, ram Prime Minister Andy Birdman to send him running, then take down the MASTERMIND behind it all. Double-tap for a power punch that smashes through a scandal.</p>
                 <div className="mt-3 flex justify-center gap-2" role="group" aria-label="Difficulty">
                   {DIFFICULTIES.map((d) => <button key={d} onClick={() => setLevel(d)} aria-pressed={level === d} className={`rounded-md px-3 py-1 text-sm ${level === d ? "bg-primary text-primary-foreground" : "border border-night-line"}`}>{LEVELS[d].label}</button>)}
                 </div>
