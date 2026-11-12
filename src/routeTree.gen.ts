@@ -83,6 +83,7 @@ import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesGameRouteImport } from './routes/games.$game'
+import { Route as GamesAimHighVoteLoweRouteImport } from './routes/games.aim-high-vote-lowe'
 import { Route as GamesBritainByTheNumbersRouteImport } from './routes/games.britain-by-the-numbers'
 import { Route as GamesBurnhamsDashRouteImport } from './routes/games.burnhams-dash'
 import { Route as GamesDailyRouteImport } from './routes/games.daily'
@@ -500,6 +501,11 @@ const GamesGameRoute = GamesGameRouteImport.update({
   path: '/games/$game',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesAimHighVoteLoweRoute = GamesAimHighVoteLoweRouteImport.update({
+  id: '/games/aim-high-vote-lowe',
+  path: '/games/aim-high-vote-lowe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesBritainByTheNumbersRoute =
   GamesBritainByTheNumbersRouteImport.update({
     id: '/games/britain-by-the-numbers',
@@ -809,6 +815,7 @@ export interface FileRoutesByFullPath {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
+  '/games/aim-high-vote-lowe': typeof GamesAimHighVoteLoweRoute
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
@@ -928,6 +935,7 @@ export interface FileRoutesByTo {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
+  '/games/aim-high-vote-lowe': typeof GamesAimHighVoteLoweRoute
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
@@ -1051,6 +1059,7 @@ export interface FileRoutesById {
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
+  '/games/aim-high-vote-lowe': typeof GamesAimHighVoteLoweRoute
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
@@ -1175,6 +1184,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/games/$game'
+    | '/games/aim-high-vote-lowe'
     | '/games/britain-by-the-numbers'
     | '/games/burnhams-dash'
     | '/games/daily'
@@ -1294,6 +1304,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/games/$game'
+    | '/games/aim-high-vote-lowe'
     | '/games/britain-by-the-numbers'
     | '/games/burnhams-dash'
     | '/games/daily'
@@ -1416,6 +1427,7 @@ export interface FileRouteTypes {
     | '/embed/$metric'
     | '/explained/$metricId'
     | '/games/$game'
+    | '/games/aim-high-vote-lowe'
     | '/games/britain-by-the-numbers'
     | '/games/burnhams-dash'
     | '/games/daily'
@@ -1534,6 +1546,7 @@ export interface RootRouteChildren {
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   GamesGameRoute: typeof GamesGameRoute
+  GamesAimHighVoteLoweRoute: typeof GamesAimHighVoteLoweRoute
   GamesBritainByTheNumbersRoute: typeof GamesBritainByTheNumbersRoute
   GamesBurnhamsDashRoute: typeof GamesBurnhamsDashRoute
   GamesDailyRoute: typeof GamesDailyRoute
@@ -2077,6 +2090,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesGameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/aim-high-vote-lowe': {
+      id: '/games/aim-high-vote-lowe'
+      path: '/games/aim-high-vote-lowe'
+      fullPath: '/games/aim-high-vote-lowe'
+      preLoaderRoute: typeof GamesAimHighVoteLoweRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/britain-by-the-numbers': {
       id: '/games/britain-by-the-numbers'
       path: '/games/britain-by-the-numbers'
@@ -2589,6 +2609,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   GamesGameRoute: GamesGameRoute,
+  GamesAimHighVoteLoweRoute: GamesAimHighVoteLoweRoute,
   GamesBritainByTheNumbersRoute: GamesBritainByTheNumbersRoute,
   GamesBurnhamsDashRoute: GamesBurnhamsDashRoute,
   GamesDailyRoute: GamesDailyRoute,
