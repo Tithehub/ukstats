@@ -114,6 +114,7 @@ export const NAV_GROUPS: { name: string; items: NavItem[] }[] = [
 
 /** Only shown to signed-in visitors — these pages need an account. */
 const ACCOUNT_ITEMS: NavItem[] = [
+  { to: "/profile", label: "My profile", icon: FileText },
   { to: "/create", label: "Create a live page", icon: PlusCircle },
   { to: "/my-pages", label: "My pages", icon: FileText },
   { to: "/rent/dashboard", label: "My branded stream", icon: FileText },

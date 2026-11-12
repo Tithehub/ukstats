@@ -15,12 +15,12 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-           "Marco Mead has donated the whole UKStats site to Restore Britain. Donations are paused and crypto addresses are hidden; the statistics remain free.",
+           "UKStats has been donated in full to Restore Britain. Donations are paused and crypto addresses are hidden; the statistics remain free.",
       },
       { property: "og:title", content: "Support UKStats" },
       {
         property: "og:description",
-        content: "Marco Mead has donated the whole UKStats site to Restore Britain. Donations are temporarily paused; the statistics remain free.",
+        content: "UKStats has been donated in full to Restore Britain. Donations are temporarily paused; the statistics remain free.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://ukstats.co.uk/support" },
@@ -179,7 +179,7 @@ function SupportPage() {
           {FUNDING_PAUSED ? (
             <div className="border-l-2 border-electric pl-4">
               <h2 className="text-lg font-semibold">This site has been donated to Restore Britain</h2>
-              <p className="mt-2 text-sm leading-relaxed text-night-muted">I have donated the whole UKStats site to Restore Britain, for Rupert Lowe, the team and the people, free of charge. — Marco Mead</p>
+              <p className="mt-2 text-sm leading-relaxed text-night-muted">The whole UKStats site has been donated to Restore Britain, for Rupert Lowe, the team and the people, free of charge.</p>
               <p role="status" className="mt-2 text-sm leading-relaxed text-night-muted">{FUNDING_PAUSE_MESSAGE}</p>
               <p className="mt-2 text-sm leading-relaxed text-night-muted">All crypto donation addresses, QR codes and donation buttons are hidden. Please do not send donations to previously shared wallet addresses.</p>
               <FundingLegalNotice tone="plain" className="mt-3 text-sm leading-relaxed text-night-muted" />

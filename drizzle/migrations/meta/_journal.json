@@ -197,6 +197,20 @@
       "when": 1794483985769,
       "tag": "0027_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794488684017,
+      "tag": "0028_profile_avatars",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794488701749,
+      "tag": "0029_signup_nickname_default",
+      "breakpoints": true
     }
   ]
 }

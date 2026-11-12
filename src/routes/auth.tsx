@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth } from "@/lib/useAuth";
 import { PasswordInput } from "@/components/ui/password-input";
+import { REAL_NAME_WARNING } from "@/lib/profile";
 import { btn, btnToggle } from "@/lib/ui";
 
 export const Route = createFileRoute("/auth")({
@@ -39,6 +40,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nickname, setNickname] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -57,7 +59,7 @@ function AuthPage() {
         const { error: err } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}${dest}` },
+          options: { emailRedirectTo: `${window.location.origin}${dest}`, data: nickname.trim() ? { nickname: nickname.trim().slice(0, 24) } : {} },
         });
         if (err) throw err;
         setNotice("Check your inbox — we've sent a confirmation link to finish creating your account.");
@@ -146,6 +148,13 @@ function AuthPage() {
               className="mt-2 min-h-11 w-full rounded-lg border border-night-line/70 bg-night-panel px-3 py-2.5 text-sm outline-none focus-visible:border-electric"
             />
           </div>
+          {mode === "signup" && (
+            <div>
+              <label htmlFor="nickname" className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">Leaderboard nickname (optional)</label>
+              <input id="nickname" maxLength={24} autoComplete="off" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="e.g. StatHunter" className="mt-2 min-h-11 w-full rounded-lg border border-night-line/70 bg-night-panel px-3 py-2.5 text-sm outline-none focus-visible:border-electric" />
+              <p className="mt-1.5 text-xs text-ageing">{REAL_NAME_WARNING}</p>
+            </div>
+          )}
           <div>
             <label htmlFor="password" className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-muted">
               Password

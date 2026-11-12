@@ -48,6 +48,7 @@ import { Route as PoliticsExplainedRouteImport } from './routes/politics-explain
 import { Route as PollingRouteImport } from './routes/polling'
 import { Route as PreparednessRouteImport } from './routes/preparedness'
 import { Route as PressRouteImport } from './routes/press'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RacingRouteImport } from './routes/racing'
 import { Route as RegionsRouteImport } from './routes/regions'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -320,6 +321,11 @@ const PreparednessRoute = PreparednessRouteImport.update({
 const PressRoute = PressRouteImport.update({
   id: '/press',
   path: '/press',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RacingRoute = RacingRouteImport.update({
@@ -759,6 +765,7 @@ export interface FileRoutesByFullPath {
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
+  '/profile': typeof ProfileRoute
   '/racing': typeof RacingRouteWithChildren
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -877,6 +884,7 @@ export interface FileRoutesByTo {
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/rent': typeof RentRoute
   '/reports': typeof ReportsRoute
@@ -995,6 +1003,7 @@ export interface FileRoutesById {
   '/polling': typeof PollingRoute
   '/preparedness': typeof PreparednessRoute
   '/press': typeof PressRoute
+  '/profile': typeof ProfileRoute
   '/racing': typeof RacingRouteWithChildren
   '/regions': typeof RegionsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -1116,6 +1125,7 @@ export interface FileRouteTypes {
     | '/polling'
     | '/preparedness'
     | '/press'
+    | '/profile'
     | '/racing'
     | '/regions'
     | '/register'
@@ -1234,6 +1244,7 @@ export interface FileRouteTypes {
     | '/polling'
     | '/preparedness'
     | '/press'
+    | '/profile'
     | '/register'
     | '/rent'
     | '/reports'
@@ -1351,6 +1362,7 @@ export interface FileRouteTypes {
     | '/polling'
     | '/preparedness'
     | '/press'
+    | '/profile'
     | '/racing'
     | '/regions'
     | '/register'
@@ -1471,6 +1483,7 @@ export interface RootRouteChildren {
   PollingRoute: typeof PollingRoute
   PreparednessRoute: typeof PreparednessRoute
   PressRoute: typeof PressRoute
+  ProfileRoute: typeof ProfileRoute
   RacingRoute: typeof RacingRouteWithChildren
   RegionsRoute: typeof RegionsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
@@ -1791,6 +1804,13 @@ declare module '@tanstack/react-router' {
       path: '/press'
       fullPath: '/press'
       preLoaderRoute: typeof PressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/racing': {
@@ -2502,6 +2522,7 @@ const rootRouteChildren: RootRouteChildren = {
   PollingRoute: PollingRoute,
   PreparednessRoute: PreparednessRoute,
   PressRoute: PressRoute,
+  ProfileRoute: ProfileRoute,
   RacingRoute: RacingRouteWithChildren,
   RegionsRoute: RegionsRouteWithChildren,
   RegisterRoute: RegisterRoute,
