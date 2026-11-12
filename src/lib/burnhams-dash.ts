@@ -53,7 +53,7 @@ export function step(s: State, dt: number, flap: boolean): State {
     let r: number; [n.seed, r] = rng(n.seed);
     const gap = 175 - t * 35, gapY = 90 + r * (GROUND - 180 - gap);
     [n.seed, r] = rng(n.seed);
-    n.columns.push({ x: W + 20, gapY, gap, headline: HEADLINES[Math.floor(r * HEADLINES.length)], passed: false });
+    n.columns.push({ x: W + 20, gapY, gap, headline: HEADLINES[Math.floor(r * HEADLINES.length)] ?? "SCANDAL", passed: false });
     n.coinList.push({ x: W + 20 + COL_W / 2, y: gapY + gap / 2, taken: false });
     [n.seed, r] = rng(n.seed);
     if (r < 0.55) n.riots.push({ x: W + 20 + COL_W + 110, h: 40 + r * 40 });
@@ -63,7 +63,7 @@ export function step(s: State, dt: number, flap: boolean): State {
   if (n.dist >= n.nextRival) {
     let r: number; [n.seed, r] = rng(n.seed); const y = 60 + r * (GROUND - 140);
     [n.seed, r] = rng(n.seed);
-    n.flyers.push({ x: W + 60, y, who: RIVALS[Math.floor(r * 3)], vy: (r - 0.5) * 60 });
+    n.flyers.push({ x: W + 60, y, who: RIVALS[Math.floor(r * 3)] ?? "farage", vy: (r - 0.5) * 60 });
     n.nextRival = n.dist + 1600 - t * 600;
   }
   n.columns = n.columns.map((c) => ({ ...c, x: c.x - dx })).filter((c) => c.x > -COL_W - 10);

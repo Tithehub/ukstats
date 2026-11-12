@@ -31,7 +31,7 @@ export function BurnhamsDash() {
 
     const draw = () => {
       const st = stageAt(s.dist);
-      const bg = imgs.bg[st.bg];
+      const bg = imgs.bg[st.bg]!;
       const off = (s.dist * (reduce ? 0.05 : 0.25)) % W;
       if (bg.complete && bg.naturalWidth) { ctx.drawImage(bg, -off, 0, W, H); ctx.drawImage(bg, W - off, 0, W, H); }
       else { ctx.fillStyle = "#051D3F"; ctx.fillRect(0, 0, W, H); }
