@@ -11,7 +11,7 @@
 
 ## New characters
 - **ZACK BOOBANSKI** (Zack Polanski): new rival who blasts off the screen when smashed, same as the others. New cartoon sprite in the same style, big head, green-party colours.
-- **DAVID LAMMY AS MASTERMIND**: new final boss. After Birdman runs away for good in Manchester, Lammy appears as the mastermind behind it all for one last fight; smashing him wins the run. He does not throw anything until that very last fight (keeping your "only hard at the end" rule).
+- **MASTERMIND** (David Lammy; shown in game only as "MASTERMIND"): new final boss. After Birdman runs away for good in Manchester, MASTERMIND appears as the mastermind behind it all for one last fight; smashing him wins the run. He does not throw anything until that very last fight (keeping your "only hard at the end" rule).
 
 ## Unchanged
 - Page address, scores, leaderboard, difficulty levels, poppies, power punch, full screen.
