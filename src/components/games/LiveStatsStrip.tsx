@@ -12,14 +12,14 @@ export function LiveStatsStrip({ compact = false, overlay = false, interactive =
   const tw = useQuery(taxWelfareQuery());
   const items = stripItems(s.data?.metrics ?? [], tw.data?.points ?? []);
   const row = (dup: boolean) => items.map((i) => (
-    <a key={i.key + (dup ? "-b" : "")} href={i.href} aria-hidden={dup || undefined} tabIndex={dup || !interactive ? -1 : undefined} className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap px-4">
-      <span className="font-semibold uppercase tracking-wide text-night-muted">{i.label}</span>
+    <a key={i.key + (dup ? "-b" : "")} href={i.href} aria-hidden={dup || undefined} tabIndex={dup || !interactive ? -1 : undefined} className={`flex shrink-0 items-baseline gap-1.5 whitespace-nowrap px-4 ${overlay ? "border-r-2 border-destructive" : ""}`}>
+      <span className={`font-semibold uppercase tracking-wide ${overlay ? "text-racing-gold" : "text-night-muted"}`}>{i.label}</span>
       <span className="font-mono font-semibold">{s.isPending ? "…" : i.value}</span>
       {i.note ? <span className="text-night-muted">({i.note})</span> : null}
     </a>
   ));
   return (
-    <div className={overlay ? `game-stats-strip absolute inset-x-0 bottom-0 z-10 overflow-hidden bg-night/45 py-0.5 text-[10px] opacity-75 ${interactive ? "" : "pointer-events-none"}` : `game-stats-strip overflow-hidden border-night-line bg-night-panel text-[12px] ${compact ? "border-b py-1" : "mt-4 rounded-lg border py-1.5"}`} aria-label="Latest published UK figures">
+    <div className={overlay ? `game-stats-strip absolute inset-x-0 bottom-0 z-10 overflow-hidden bg-night/85 py-1 font-bold text-[12px] sm:text-[14px] [&_.games-ribbon-track]:[animation-duration:70s] ${interactive ? "" : "pointer-events-none"}` : `game-stats-strip overflow-hidden border-night-line bg-night-panel text-[12px] ${compact ? "border-b py-1" : "mt-4 rounded-lg border py-1.5"}`} aria-label="Latest published UK figures">
       <div className="games-ribbon-track flex w-max">{row(false)}{row(true)}</div>
     </div>
   );
