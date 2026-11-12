@@ -18,12 +18,16 @@ describe("game scoring", () => {
     expect(scoreQuestion(q, 1)).toBe(100);
     expect(scoreQuestion(q, 0)).toBe(0);
   });
-  it("rank: 20 points per correct position", () => {
-    const items = [f("A", 1), f("B", 5), f("C", 3), f("D", 4), f("E", 2)];
-    const q: Question = { kind: "rank", ind, items };
-    expect(rankOrder(items)).toEqual(["B", "D", "C", "E", "A"]);
-    expect(scoreQuestion(q, ["B", "D", "C", "E", "A"])).toBe(100);
-    expect(scoreQuestion(q, ["B", "D", "A", "E", "C"])).toBe(60);
+  it("rank: picking the highest (or lowest) of four scores 100, else 0", () => {
+    const items = [f("A", 1), f("B", 5), f("C", 3), f("D", 4)];
+    expect(scoreQuestion({ kind: "rank", ind, items, dir: "high" }, 1)).toBe(100);
+    expect(scoreQuestion({ kind: "rank", ind, items, dir: "high" }, 3)).toBe(0);
+    expect(scoreQuestion({ kind: "rank", ind, items, dir: "low" }, 0)).toBe(100);
+  });
+  it("guess: only the real figure scores 100", () => {
+    const q: Question = { kind: "guess", ind, a: f("A", 7), choices: [f("B", 3), f("A", 7), f("C", 9), f("D", 1)] };
+    expect(scoreQuestion(q, 1)).toBe(100);
+    expect(scoreQuestion(q, 0)).toBe(0);
   });
 });
 

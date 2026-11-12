@@ -13,8 +13,8 @@ const MIN_POPULATION = 1_000_000; // keep to countries most players have heard o
 export interface Fact { iso3: string; iso2: string; name: string; value: number; year: number }
 export type Question =
   | { kind: "hl"; ind: Measure; a: Fact; b: Fact; src?: SourceRef }
-  | { kind: "guess"; ind: Measure; a: Fact; src?: SourceRef }
-  | { kind: "rank"; ind: Measure; items: Fact[]; src?: SourceRef }
+  | { kind: "guess"; ind: Measure; a: Fact; choices: Fact[]; src?: SourceRef }
+  | { kind: "rank"; ind: Measure; items: Fact[]; dir: "high" | "low"; src?: SourceRef }
   | { kind: "flag"; ind: Measure; a: Fact; choices: Fact[]; src?: SourceRef };
 export type Answer = number | string[] | null;
 
@@ -66,14 +66,19 @@ export function questionFrom(pools: Pool[], kind: Question["kind"], r: () => num
   if (!pool.length) return null;
   const { ind, facts, src } = pick(r, pool);
   const extra = src ? { src } : {};
-  if (kind === "guess") return { kind, ind, a: pick(r, facts), ...extra };
+  if (kind === "guess") {
+    // Wrong options are other places' real published figures for the same measure — never invented.
+    const a = pick(r, facts); const seen = new Set([a.value]); const others: Fact[] = [];
+    for (const f of sample(r, facts.filter((f) => f.iso3 !== a.iso3), facts.length)) { if (fmtFact(f, ind) !== fmtFact(a, ind) && !seen.has(f.value)) { seen.add(f.value); others.push(f); } if (others.length === 3) break; }
+    return others.length === 3 ? { kind, ind, a, choices: sample(r, [a, ...others], 4), ...extra } : null;
+  }
   if (kind === "hl") {
     for (let t = 0; t < 20; t++) { const [a, b] = sample(r, facts, 2); if (a && b && a.value !== b.value) return { kind, ind, a, b, ...extra }; }
     return null;
   }
   if (kind === "flag") return null;
-  const items = sample(r, facts, 5);
-  return new Set(items.map((i) => i.value)).size === 5 ? { kind, ind, items, ...extra } : null;
+  const items = sample(r, facts, 4); const dir = r() < 0.5 ? "high" : "low";
+  return new Set(items.map((i) => i.value)).size === 4 ? { kind, ind, items, dir, ...extra } : null;
 }
 export const makeQuestion = (p: WorldPayload, kind: Question["kind"], r: () => number) => questionFrom(indicators(p), kind, r);
 
@@ -121,15 +126,15 @@ export function guessPoints(guess: number, actual: number): number {
   return 0;
 }
 export const rankOrder = (items: Fact[]) => [...items].sort((x, y) => y.value - x.value).map((i) => i.iso3);
+/** The correct pick in a "which is highest/lowest" question. */
+export const rankAnswer = (q: Extract<Question, { kind: "rank" }>) => { const o = rankOrder(q.items); return q.dir === "high" ? o[0] : o[o.length - 1]; };
 
 export function scoreQuestion(q: Question, ans: Answer): number {
   if (ans == null) return 0;
   if (q.kind === "hl") return typeof ans === "number" && (ans === 0 ? q.a.value > q.b.value : ans === 1 ? q.b.value > q.a.value : false) ? 100 : 0;
-  if (q.kind === "guess") return typeof ans === "number" ? guessPoints(ans, q.a.value) : 0;
+  if (q.kind === "guess") return typeof ans === "number" && q.choices[ans]?.iso3 === q.a.iso3 ? 100 : 0;
   if (q.kind === "flag") return typeof ans === "number" && q.choices[ans]?.iso3 === q.a.iso3 ? 100 : 0;
-  if (!Array.isArray(ans)) return 0;
-  const right = rankOrder(q.items);
-  return right.reduce((s, iso, i) => s + (ans[i] === iso ? 20 : 0), 0);
+  return typeof ans === "number" && q.items[ans]?.iso3 === rankAnswer(q) ? 100 : 0;
 }
 export const scoreRound = (qs: Question[], answers: Answer[]) => qs.reduce((s, q, i) => s + scoreQuestion(q, answers[i] ?? null), 0);
 
@@ -138,7 +143,7 @@ export function questionText(q: Question): string {
   if (q.kind === "hl") return `Which has the higher ${l}?`;
   if (q.kind === "flag") return "Which country's flag is this?";
   if (q.kind === "guess") return `What is ${q.a.name}'s ${l}?`;
-  return `Rank these from highest to lowest ${l}`;
+  return `Which has the ${q.dir === "high" ? "highest" : "lowest"} ${l}?`;
 }
 export function fmtFact(f: Fact, ind: Measure): string {
   if (ind.unit === "gbp") return `£${Math.round(f.value).toLocaleString("en-GB")}`;

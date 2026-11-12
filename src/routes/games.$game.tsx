@@ -8,8 +8,8 @@ import { GAME_DEFS, flagRound, makeRound } from "@/lib/games";
 
 const META = {
   "higher-or-lower": "Two countries, one figure. Pick the higher one.",
-  "guess-the-number": "Estimate a real figure — the closer, the more points.",
-  "rank-the-world": "Put five countries in order, highest first.",
+  "guess-the-number": "Pick the right figure from four real published values.",
+  "rank-the-world": "Spot the highest or lowest of four countries.",
   "guess-the-flag": "Spot the country from its national flag — four choices each time.",
 } as const;
 type WorldGame = keyof typeof META;

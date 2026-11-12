@@ -18,8 +18,8 @@ export const Route = createFileRoute("/games/")({
 
 const GAMES = [
   { game: "higher-or-lower", title: "Higher or Lower", blurb: "Two countries, one figure — pick the higher.", img: hl },
-  { game: "guess-the-number", title: "Guess the Number", blurb: "Estimate populations and life expectancy.", img: guess },
-  { game: "rank-the-world", title: "Rank the World", blurb: "Order five countries, highest first.", img: rank },
+  { game: "guess-the-number", title: "Guess the Number", blurb: "Pick the right figure from four.", img: guess },
+  { game: "rank-the-world", title: "Rank the World", blurb: "Spot the top country from four.", img: rank },
   { game: "guess-the-flag", title: "Guess the Flag", blurb: "Name the country from its real national flag.", img: flag },
 ] as const;
 
