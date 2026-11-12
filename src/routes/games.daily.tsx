@@ -18,7 +18,7 @@ const D = "Five questions a day from real World Bank figures. Same questions for
 
 export const Route = createFileRoute("/games/daily")({
   loader: ({ context }) => context.queryClient.ensureQueryData(worldQuery()),
-  head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "https://ukstats.co.uk/og/games-daily.jpg" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/games-daily.jpg" }] }),
   component: Daily,
 });
 

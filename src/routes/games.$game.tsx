@@ -23,7 +23,7 @@ export const Route = createFileRoute("/games/$game")({
   head: ({ params }) => {
     const g = isWorldGame(params.game) ? params.game : null;
     const t = `${g ? GAME_DEFS[g].title : "Game"} — free stats game | UKStats`; const d = g ? META[g] : "Free statistics game.";
-    return { meta: [{ title: t }, { name: "description", content: d }, { property: "og:title", content: t }, { property: "og:description", content: d }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] };
+    return { meta: [{ title: t }, { name: "description", content: d }, { property: "og:title", content: t }, { property: "og:description", content: d }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: `https://ukstats.co.uk/og/games-${({"higher-or-lower":"higher-lower","guess-the-number":"guess","rank-the-world":"rank","guess-the-flag":"flag","english-history":"english-history","world-knowledge":"world-knowledge"} as Record<string,string>)[params.game] ?? "daily"}.jpg` }, { name: "twitter:image", content: `https://ukstats.co.uk/og/games-${({"higher-or-lower":"higher-lower","guess-the-number":"guess","rank-the-world":"rank","guess-the-flag":"flag","english-history":"english-history","world-knowledge":"world-knowledge"} as Record<string,string>)[params.game] ?? "daily"}.jpg` }] };
   },
   component: Page,
   notFoundComponent: () => <GameShell><p className="mt-6">That game doesn't exist.</p></GameShell>,

@@ -11,7 +11,7 @@ const D = "How well do you know Britain? Compare councils on house prices, pay, 
 
 export const Route = createFileRoute("/games/britain-by-the-numbers")({
   loader: ({ context }) => context.queryClient.ensureQueryData(placesQuery()),
-  head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({ meta: [{ title: T }, { name: "description", content: D }, { property: "og:title", content: T }, { property: "og:description", content: D }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "https://ukstats.co.uk/og/games-britain.jpg" }, { name: "twitter:image", content: "https://ukstats.co.uk/og/games-britain.jpg" }] }),
   component: Page,
 });
 
