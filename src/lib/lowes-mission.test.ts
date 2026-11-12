@@ -118,3 +118,13 @@ describe("cast", () => {
     expect(done.boss).toBeNull(); expect(done.bossesBeaten).toBe(1);
   });
 });
+
+import { shouldReplace } from "./arcade.functions";
+describe("arcade best per day", () => {
+  it("only a higher run replaces today's best", () => {
+    expect(shouldReplace(null, 5)).toBe(true);
+    expect(shouldReplace(692, 912)).toBe(true);
+    expect(shouldReplace(692, 692)).toBe(false);
+    expect(shouldReplace(692, 100)).toBe(false);
+  });
+});

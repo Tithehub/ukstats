@@ -2,9 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { DIFFICULTIES, maxPlausibleScore, type Difficulty } from "./lowes-mission";
 
-export const ARCADE_DAILY_LIMIT = 20;
+/** A new run replaces today's saved best only when it scores higher. */
+export function shouldReplace(existing: number | null, next: number): boolean {
+  return existing === null || next > existing;
+}
 
-/** Saves an arcade run. Reflex scores can't be re-played server-side, so they are capped and rate-limited instead. */
+/** Saves an arcade run. Reflex scores can't be re-played server-side, so they are capped and kept as one best per level per London day. */
 export const submitArcadeScore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { difficulty: Difficulty; score: number; seconds: number }) => {
@@ -18,8 +21,11 @@ export const submitArcadeScore = createServerFn({ method: "POST" })
     const { londonDate } = await import("./daily");
     const day = londonDate();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin.from("arcade_scores").select("id", { count: "exact", head: true }).eq("user_id", context.userId).eq("day", day);
-    if ((count ?? 0) >= ARCADE_DAILY_LIMIT) return { ok: false as const, error: `You've saved ${ARCADE_DAILY_LIMIT} runs today — come back tomorrow.` };
-    const { error } = await supabaseAdmin.from("arcade_scores").insert({ user_id: context.userId, game: "aim-high-vote-lowe", difficulty: data.difficulty, score: data.score, seconds: data.seconds, day });
-    return error ? { ok: false as const, error: "Couldn't save your score." } : { ok: true as const };
+    const { data: row } = await supabaseAdmin.from("arcade_scores").select("id, score").eq("user_id", context.userId).eq("game", "aim-high-vote-lowe").eq("difficulty", data.difficulty).eq("day", day).maybeSingle();
+    const prev = row ? (row.score as number) : null;
+    if (!shouldReplace(prev, data.score)) return { ok: true as const, improved: false, best: prev as number };
+    const { error } = row
+      ? await supabaseAdmin.from("arcade_scores").update({ score: data.score, seconds: data.seconds }).eq("id", row.id)
+      : await supabaseAdmin.from("arcade_scores").insert({ user_id: context.userId, game: "aim-high-vote-lowe", difficulty: data.difficulty, score: data.score, seconds: data.seconds, day });
+    return error ? { ok: false as const, error: "Couldn't save your score." } : { ok: true as const, improved: true, best: data.score };
   });

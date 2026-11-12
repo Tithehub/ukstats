@@ -217,7 +217,7 @@ export function LowesMission() {
           if (sc > prev) { localStorage.setItem(key, String(sc)); setBest(sc); }
           setSaveMsg("");
           if (signedRef.current && sc > 0) saveRef.current({ data: { difficulty: s.difficulty, score: sc, seconds: Math.ceil(runT) } })
-            .then((r) => { setSaveMsg(r.ok ? "Score saved to the leaderboard." : r.error); if (r.ok) setBoardTick((n) => n + 1); })
+            .then((r) => { setSaveMsg(r.ok ? (r.improved ? `New best saved: ${r.best}` : `Your best today is still ${r.best}`) : r.error); if (r.ok && r.improved) setBoardTick((n) => n + 1); })
             .catch(() => setSaveMsg("Couldn't save your score."));
           runT = 0;
           setResult(s); setPhase("over");

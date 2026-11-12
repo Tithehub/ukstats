@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS arcade_scores_best_per_day ON public.arcade_scores (user_id, game, difficulty, day);
