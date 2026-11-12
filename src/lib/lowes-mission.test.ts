@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { newGame, step, stageAt, JOURNEY, GROUND, score, PLAYER_X, BOSS_HP, H, BOSS_AT } from "./lowes-mission";
+import { newGame, step, stageAt, JOURNEY, GROUND, score, PLAYER_X, BOSS_HP, H, BOSS_AT, type State } from "./lowes-mission";
 
 const near = (s: ReturnType<typeof newGame>) => ({ ...s, y: 200 });
 
@@ -88,7 +88,7 @@ describe("levels, poppies and power punch", () => {
 
 describe("red tape", () => {
   const fight = (bossIndex: number) => {
-    let s = { ...newGame(), y: 200, bossIndex, boss: { hp: 3, x: 670, y: 200, t: 0, cooldown: 0, invuln: 0, enter: 0, flee: 0 } };
+    let s: State = { ...newGame(), y: 200, bossIndex, boss: { hp: 3, x: 670, y: 200, t: 0, cooldown: 0, invuln: 0, enter: 0, flee: 0 } };
     for (let i = 0; i < 5; i++) s = { ...step(s, 0.01, false), y: 200, vy: 0 };
     return s.tapes.length;
   };
