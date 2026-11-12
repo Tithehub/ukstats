@@ -8,23 +8,27 @@ import { GAME_DEFS, type GameId } from "@/lib/games";
 import { useAuth } from "@/lib/useAuth";
 
 const MEDAL = ["text-[oklch(0.82_0.15_85)]", "text-[oklch(0.8_0.01_250)]", "text-[oklch(0.65_0.12_50)]"];
+export type BoardId = GameId | "overall";
+/** Picker order: Overall first, then every scored game. */
+export const BOARD_IDS: BoardId[] = ["overall", ...(Object.keys(GAME_DEFS) as GameId[])];
+const boardTitle = (b: BoardId) => (b === "overall" ? "Overall" : GAME_DEFS[b].title);
 type Row = { player: string; total: number; games: number; best: number };
 
 /** Live leaderboard for any game; `choose` shows a game picker. Signed-in players can set their board name. */
-export function Leaderboard({ game: initial = "daily-5", choose = false }: { game?: GameId; choose?: boolean }) {
-  const [game, setGame] = useState<GameId>(initial);
+export function Leaderboard({ game: initial, choose = false }: { game?: GameId; choose?: boolean }) {
+  const [game, setGame] = useState<BoardId>(initial ?? (choose ? "overall" : "daily-5"));
   const [period, setPeriod] = useState<"day" | "week" | "all">("day");
   const { data, isLoading } = useQuery(leaderboardQuery(game, period));
-  const daily = game === "daily-5";
+  const daily = game === "daily-5"; const overall = game === "overall";
   return (
     <section className="rounded-lg border border-night-line bg-night-panel p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold">{GAME_DEFS[game].title} leaderboard</h2>
+        <h2 className="text-xl font-semibold">{boardTitle(game)} leaderboard</h2>
         <div className="flex gap-1">{(["day", "week", "all"] as const).map((p) => <Button key={p} size="sm" variant={p === period ? "default" : "outline"} onClick={() => setPeriod(p)}>{p === "day" ? "Today" : p === "week" ? "This week" : "All time"}</Button>)}</div>
       </div>
       {choose && (
         <div className="mt-3 flex flex-wrap gap-1">
-          {(Object.keys(GAME_DEFS) as GameId[]).map((g) => <Button key={g} size="sm" variant={g === game ? "secondary" : "ghost"} onClick={() => setGame(g)}>{GAME_DEFS[g].title}</Button>)}
+          {BOARD_IDS.map((g) => <Button key={g} size="sm" variant={g === game ? "secondary" : "ghost"} onClick={() => setGame(g)}>{boardTitle(g)}</Button>)}
         </div>
       )}
       {isLoading ? <p className="mt-4 text-sm text-night-muted">Loading…</p>
@@ -32,7 +36,7 @@ export function Leaderboard({ game: initial = "daily-5", choose = false }: { gam
         : !data?.rows.length ? <p className="mt-4 text-sm text-night-muted">No scores yet — be the first on the board.</p>
         : (
           <ol className="mt-4 divide-y divide-night-line">
-            <li className="flex gap-3 pb-1 font-mono text-[11px] uppercase tracking-wider text-night-muted"><span className="w-6">#</span><span className="flex-1">Player</span><span>{daily ? "Played" : "Days"}</span><span className="w-14 text-right">Best</span><span className="w-16 text-right">Points</span></li>
+            <li className="flex gap-3 pb-1 font-mono text-[11px] uppercase tracking-wider text-night-muted"><span className="w-6">#</span><span className="flex-1">Player</span><span>{overall ? "Games" : daily ? "Played" : "Days"}</span><span className="w-14 text-right">Best</span><span className="w-16 text-right">Points</span></li>
             {data.rows.map((r: Row, i: number) => (
               <li key={i} className="flex items-center gap-3 py-2">
                 <span className={`w-6 font-mono font-semibold ${MEDAL[i] ?? "text-night-muted"}`}>{i + 1}</span>
@@ -45,7 +49,8 @@ export function Leaderboard({ game: initial = "daily-5", choose = false }: { gam
           </ol>
         )}
       <PlayerName />
-      <p className="mt-3 text-xs text-night-muted">Real players only — scores are re-checked on our server. {daily ? "One go per day." : "Your best round each day counts."} Days reset at midnight UK time.</p>
+      {overall && <p className="mt-3 text-xs text-night-muted">Overall = total points across all games. Each game counts once per day (your best round).</p>}
+      <p className="mt-3 text-xs text-night-muted">Real players only — scores are re-checked on our server. {daily ? "One go per day." : overall ? "Daily 5 counts once; other games count your best round each day." : "Your best round each day counts."} Days reset at midnight UK time.</p>
     </section>
   );
 }

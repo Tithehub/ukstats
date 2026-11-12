@@ -211,6 +211,13 @@
       "when": 1794488701749,
       "tag": "0029_signup_nickname_default",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794489165954,
+      "tag": "0030_overall_leaderboard",
+      "breakpoints": true
     }
   ]
 }
