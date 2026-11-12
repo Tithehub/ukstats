@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { submitArcadeScore } from "@/lib/arcade.functions";
 import { ArcadeLeaderboard } from "./ArcadeLeaderboard";
+import { SHARE_TARGETS, absoluteUrl } from "@/lib/share";
 import rbLogo from "@/assets/games/dash/restore-britain-logo.png.asset.json";
 import boss from "@/assets/games/dash/burnham-boss.png";
 import farage from "@/assets/games/dash/farage.png";
@@ -201,10 +202,21 @@ export function LowesMission() {
     window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
   }, []);
 
-  const share = async () => {
-    if (!result) return;
-    const text = `I scored ${score(result)} in Aim High, Vote Lowe on UKStats — ${result.won ? "made it to Manchester!" : `reached ${stageAt(result.dist).name}`}. https://ukstats.co.uk/games/aim-high-vote-lowe`;
-    try { if (navigator.share) await navigator.share({ text }); else await navigator.clipboard.writeText(text); } catch { /* cancelled */ }
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  const shareText = result
+    ? `I scored ${score(result)} in Aim High, Vote Lowe on UKStats — ${result.won ? "made it to Manchester!" : `reached ${stageAt(result.dist).name}`}. Can you beat me?`
+    : "";
+  const shareUrl = absoluteUrl("/games/aim-high-vote-lowe");
+  const copyScore = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      setCopied(true);
+      setCopyError(false);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopyError(true);
+    }
   };
 
   return (
@@ -232,8 +244,17 @@ export function LowesMission() {
                 <p className="mt-2 text-xs text-night-muted">{signedIn ? saveMsg : <><a href="/auth" className="underline">Sign in</a> to save your score to the leaderboard.</>}</p>
                 <div className="mt-4 flex justify-center gap-2">
                   <button onClick={() => { setResult(null); setPhase("ready"); }} className="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground">Play again</button>
-                  <button onClick={share} className="rounded-md border border-night-line px-4 py-2">Share</button>
+                  <button onClick={copyScore} className="rounded-md border border-night-line px-4 py-2">{copied ? "Copied!" : "Copy score"}</button>
                 </div>
+                <div className="mt-3 flex flex-wrap justify-center gap-1.5" aria-label="Share your score">
+                  {SHARE_TARGETS.map((t) => (
+                    <a key={t.key} href={t.href(shareUrl, shareText)} target="_blank" rel="noreferrer noopener" title={`Share on ${t.label}`} aria-label={`Share on ${t.label}`} className="inline-flex items-center gap-1 rounded-md border border-night-line px-2 py-1 text-xs">
+                      <t.icon className="size-3.5" aria-hidden="true" />
+                      {t.label}
+                    </a>
+                  ))}
+                </div>
+                {copyError && <p role="alert" className="mt-2 break-all text-xs text-night-muted">Couldn't copy. Your score: {score(result)} — {shareUrl}</p>}
               </>
             )}
           </div>
