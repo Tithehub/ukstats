@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GameShell } from "@/components/games/GameShell";
 import { Leaderboard } from "@/components/games/Leaderboard";
+import { ArcadeLeaderboard } from "@/components/games/ArcadeLeaderboard";
 import daily from "@/assets/games/daily.jpg";
 import hl from "@/assets/games/higher-lower.jpg";
 import guess from "@/assets/games/guess.jpg";
@@ -67,6 +68,7 @@ function Hub() {
         ))}
       </div>
       <div className="mt-8"><Leaderboard choose /></div>
+      <div className="mt-6"><ArcadeLeaderboard /></div>
     </GameShell>
   );
 }

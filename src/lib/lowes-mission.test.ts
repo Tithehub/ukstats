@@ -56,3 +56,32 @@ describe("Lowe's Mission", () => {
     expect(score({ votes: 2, smashed: 1, bossesBeaten: 1, dist: 0, won: false })).toBe(370);
   });
 });
+
+import { LEVELS, maxPlausibleScore, PUNCH_COOLDOWN, COL_W as CW, GROUND as G } from "./lowes-mission";
+describe("levels, poppies and power punch", () => {
+  it("Burnham takes 2 hits on Easy, 3 on Normal, 4 on Hard", () => {
+    expect([LEVELS.easy.bossHp, LEVELS.normal.bossHp, LEVELS.hard.bossHp]).toEqual([2, 3, 4]);
+  });
+  it("Hard is faster than Normal, Easy slower", () => {
+    const d = (lv: "easy" | "normal" | "hard") => step({ ...newGame(1, lv), y: 200 }, 0.01, false).dist;
+    expect(d("easy")).toBeLessThan(d("normal")); expect(d("hard")).toBeGreaterThan(d("normal"));
+  });
+  it("poppies are worth 25, votes 10", () => {
+    expect(score({ votes: 1, poppies: 1, smashed: 0, bossesBeaten: 0, dist: 0, won: false })).toBe(35);
+    const s = step({ ...newGame(), y: 200, voteList: [{ x: PLAYER_X, y: 200, taken: false, poppy: true }] }, 0.001, false);
+    expect(s.poppies).toBe(1); expect(s.votes).toBe(0);
+  });
+  it("a power punch smashes through a scandal column instead of ending the run", () => {
+    const col = { x: PLAYER_X + 10, gapY: 0, gap: 10, headline: "X" };
+    const s = step({ ...newGame(), y: 200, columns: [col] }, 0.001, false, true);
+    expect(s.over).toBe(false); expect(s.columns).toHaveLength(0); expect(s.power).toBe(1);
+    expect(s.punchCd).toBeCloseTo(PUNCH_COOLDOWN, 2);
+    const again = step({ ...s, columns: [col] }, 0.001, false, true);
+    expect(again.over).toBe(true); // still recharging
+    void CW; void G;
+  });
+  it("rejects impossible scores", () => {
+    expect(maxPlausibleScore("normal", 0)).toBeLessThan(2000);
+    expect(maxPlausibleScore("normal", 120)).toBeGreaterThan(5000);
+  });
+});

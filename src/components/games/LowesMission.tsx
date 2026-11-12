@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { newGame, step, stageAt, progress, score, W, H, GROUND, PLAYER_X, COL_W, STAGES, BOSS_HP, type State } from "@/lib/lowes-mission";
+import { newGame, step, stageAt, progress, score, W, H, GROUND, PLAYER_X, COL_W, STAGES, LEVELS, DIFFICULTIES, PUNCH_COOLDOWN, type State, type Difficulty } from "@/lib/lowes-mission";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { submitArcadeScore } from "@/lib/arcade.functions";
+import { ArcadeLeaderboard } from "./ArcadeLeaderboard";
+import rbLogo from "@/assets/games/dash/restore-britain-logo.png.asset.json";
 import boss from "@/assets/games/dash/burnham-boss.png";
 import farage from "@/assets/games/dash/farage.png";
 import hero from "@/assets/games/dash/lowe-hero.png";
@@ -12,7 +17,15 @@ import bgLondon from "@/assets/games/dash/bg-london.jpg";
 import bgMid from "@/assets/games/dash/bg-midlands.jpg";
 import bgMan from "@/assets/games/dash/bg-manchester.jpg";
 
-const BEST_KEY = "lowes-mission-best";
+const bestKey = (d: Difficulty) => (d === "normal" ? "lowes-mission-best" : `lowes-mission-best-${d}`);
+const DOUBLE_TAP_MS = 280;
+function drawPoppy(ctx: CanvasRenderingContext2D, x: number, y: number, t: number) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(t * 2 + x / 50) * 0.2);
+  ctx.fillStyle = "#4d6b2e"; ctx.beginPath(); ctx.ellipse(10, -10, 5, 11, 0.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#d4111a";
+  for (const [px, py] of [[-6, -5], [6, -5], [-5, 6], [5, 6]] as const) { ctx.beginPath(); ctx.arc(px, py, 8.5, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+}
 function load(src: string) { const i = new Image(); i.src = src; return i; }
 
 export function LowesMission() {
@@ -20,17 +33,29 @@ export function LowesMission() {
   const [phase, setPhase] = useState<"ready" | "play" | "over">("ready");
   const [result, setResult] = useState<State | null>(null);
   const [best, setBest] = useState(0);
+  const [level, setLevel] = useState<Difficulty>("normal");
+  const levelRef = useRef(level); levelRef.current = level;
+  const [signedIn, setSignedIn] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+  const [boardTick, setBoardTick] = useState(0);
+  const save = useServerFn(submitArcadeScore);
+  const saveRef = useRef(save); saveRef.current = save;
+  const signedRef = useRef(false); signedRef.current = signedIn;
   const flapRef = useRef(false);
+  const punchRef = useRef(false);
+  const lastTap = useRef(0);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
-  useEffect(() => { setBest(Number(localStorage.getItem(BEST_KEY) ?? 0) || 0); }, []);
+  useEffect(() => { setBest(Number(localStorage.getItem(bestKey(level)) ?? 0) || 0); }, [level]);
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session)); }, []);
 
   useEffect(() => {
-    const imgs = { boss: load(boss), farage: load(farage), hero: load(hero), badenoch: load(badenoch), mahmood: load(mahmood), rayner: load(rayner), khan: load(khan), bossRun: load(bossRun), bg: [load(bgLondon), load(bgMid), load(bgMan)] };
+    const imgs = { boss: load(boss), farage: load(farage), hero: load(hero), badenoch: load(badenoch), mahmood: load(mahmood), rayner: load(rayner), khan: load(khan), bossRun: load(bossRun), logo: load(rbLogo.url), bg: [load(bgLondon), load(bgMid), load(bgMan)] };
     const ctx = canvas.current!.getContext("2d")!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let s = newGame(Date.now() % 100000);
+    let s = newGame(Date.now() % 100000, levelRef.current);
+    let runT = 0;
     let last = performance.now(), raf = 0, t = 0;
 
     const draw = () => {
@@ -44,20 +69,21 @@ export function LowesMission() {
       const span = 420, boff = (s.dist * 0.5) % span;
       for (let i = -1; i < W / span + 1; i++) {
         const bx = i * span - boff + 60;
-        ctx.fillStyle = "#cfd6e0"; ctx.fillRect(bx, GROUND - 230, 4, 230);
+        ctx.fillStyle = "#cfd6e0"; ctx.fillRect(bx, GROUND - 240, 4, 240);
         const wave = Math.sin(t * 3 + i) * 4;
-        ctx.fillStyle = "#051D3F"; ctx.beginPath(); ctx.moveTo(bx + 4, GROUND - 228);
-        ctx.quadraticCurveTo(bx + 50, GROUND - 236 + wave, bx + 104, GROUND - 228 + wave); ctx.lineTo(bx + 104, GROUND - 178 + wave);
-        ctx.quadraticCurveTo(bx + 50, GROUND - 186 + wave, bx + 4, GROUND - 178); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = "#c8102e"; ctx.fillRect(bx + 10, GROUND - 189 + wave * 0.6, 88, 3);
-        ctx.fillStyle = "#fff"; ctx.font = "800 11px Archivo, sans-serif"; ctx.textAlign = "center";
-        ctx.fillText("RESTORE", bx + 54, GROUND - 210 + wave * 0.6); ctx.fillText("BRITAIN", bx + 54, GROUND - 196 + wave * 0.6);
-        // hanging banner between poles
-        const hx = bx + 210;
-        ctx.strokeStyle = "#cfd6e0"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(hx - 6, GROUND - 160); ctx.lineTo(hx + 136, GROUND - 160); ctx.stroke(); ctx.lineWidth = 1;
-        ctx.fillStyle = "#fff"; ctx.fillRect(hx, GROUND - 160, 130, 30);
-        ctx.fillStyle = "#051D3F"; ctx.fillRect(hx + 3, GROUND - 157, 124, 24);
-        ctx.fillStyle = "#fff"; ctx.font = "800 12px Archivo, sans-serif"; ctx.fillText("RESTORE BRITAIN", hx + 65, GROUND - 141);
+        // white flag with the Restore Britain mark
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(bx + 4, GROUND - 238);
+        ctx.quadraticCurveTo(bx + 60, GROUND - 246 + wave, bx + 124, GROUND - 238 + wave); ctx.lineTo(bx + 124, GROUND - 176 + wave);
+        ctx.quadraticCurveTo(bx + 60, GROUND - 184 + wave, bx + 4, GROUND - 176); ctx.closePath(); ctx.fill();
+        if (imgs.logo.complete && imgs.logo.naturalWidth) ctx.drawImage(imgs.logo, bx + 10, GROUND - 232 + wave * 0.6, 108, 56);
+        // hanging banner
+        const hx = bx + 200;
+        ctx.strokeStyle = "#cfd6e0"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(hx - 6, GROUND - 160); ctx.lineTo(hx + 186, GROUND - 160); ctx.stroke(); ctx.lineWidth = 1;
+        ctx.fillStyle = "#fff"; ctx.fillRect(hx, GROUND - 160, 180, 34);
+        ctx.fillStyle = "#081F40"; ctx.fillRect(hx + 3, GROUND - 157, 174, 28);
+        ctx.fillStyle = "#c8102e"; ctx.fillRect(hx + 3, GROUND - 133, 174, 4);
+        ctx.fillStyle = "#fff"; ctx.font = "900 13px Georgia, 'Times New Roman', serif"; ctx.textAlign = "center";
+        ctx.fillText("AIM HIGH, VOTE LOWE", hx + 90, GROUND - 138);
       }
       // ground
       ctx.fillStyle = "#3a3a3a"; ctx.fillRect(0, GROUND, W, H - GROUND);
@@ -80,7 +106,8 @@ export function LowesMission() {
         ctx.fillStyle = "#111"; for (let x = r.x; x < r.x + 60; x += 12) ctx.fillRect(x, GROUND - r.h * 0.6, 6, 8);
       }
       // coins
-      for (const c of s.voteList) if (!c.taken) {
+      for (const c of s.voteList) if (!c.taken && c.poppy) drawPoppy(ctx, c.x, c.y, t);
+      for (const c of s.voteList) if (!c.taken && !c.poppy) {
         ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(Math.sin(t * 3 + c.x / 40) * 0.25);
         ctx.fillStyle = "#fff"; ctx.fillRect(-14, -10, 28, 20); ctx.strokeStyle = "#051D3F"; ctx.lineWidth = 2; ctx.strokeRect(-14, -10, 28, 20);
         ctx.fillStyle = "#051D3F"; ctx.font = "bold 8px Archivo, sans-serif"; ctx.textAlign = "center"; ctx.fillText("VOTE", 0, -1);
@@ -111,15 +138,22 @@ export function LowesMission() {
         ctx.fillStyle = "rgba(5,29,63,0.85)"; ctx.fillRect(W / 2 - 160, 42, 320, 26);
         ctx.fillStyle = "#fff"; ctx.font = "bold 12px Archivo, sans-serif"; ctx.textAlign = "center"; ctx.fillText("BOSS · PRIME MINISTER ANDY BURNHAM", W / 2, 54);
         ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.fillRect(W / 2 - 150, 58, 300, 6);
-        ctx.fillStyle = "#c8102e"; ctx.fillRect(W / 2 - 150, 58, 300 * (b.hp / BOSS_HP), 6);
+        ctx.fillStyle = "#c8102e"; ctx.fillRect(W / 2 - 150, 58, 300 * (b.hp / LEVELS[s.difficulty].bossHp), 6);
       }
       // player
       ctx.save(); ctx.translate(PLAYER_X, s.y); ctx.rotate(Math.max(-0.4, Math.min(0.6, s.vy / 900)));
-      if (imgs.hero.complete) ctx.drawImage(imgs.hero, -40, -40, 80, 80); ctx.restore();
+      const lunge = s.punch > 0 ? 26 : 0;
+      if (imgs.hero.complete) ctx.drawImage(imgs.hero, -40 + lunge, -40, 80, 80); ctx.restore();
+      if (s.punch > 0) { ctx.save(); ctx.fillStyle = "#f5c518"; ctx.strokeStyle = "#c8102e"; ctx.lineWidth = 3; ctx.font = "900 24px Archivo, sans-serif"; ctx.textAlign = "center"; ctx.strokeText("POW!", PLAYER_X + 70, s.y - 26); ctx.fillText("POW!", PLAYER_X + 70, s.y - 26); ctx.restore(); }
       // HUD
       ctx.fillStyle = "rgba(5,29,63,0.85)"; ctx.fillRect(0, 0, W, 34);
       ctx.fillStyle = "#fff"; ctx.font = "bold 14px Archivo, sans-serif"; ctx.textAlign = "left";
-      ctx.fillText(`🗳 ${s.votes}  💥 ${s.smashed}  Score ${score(s)}`, 12, 22);
+      ctx.fillText(`🗳 ${s.votes}  🌺 ${s.poppies}  💥 ${s.smashed}  Score ${score(s)}`, 12, 22);
+      // power punch meter
+      const ready = 1 - s.punchCd / PUNCH_COOLDOWN;
+      ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.fillRect(12, 40, 80, 6);
+      ctx.fillStyle = ready >= 1 ? "#f5c518" : "#9aa7b8"; ctx.fillRect(12, 40, 80 * ready, 6);
+      ctx.fillStyle = "#fff"; ctx.font = "bold 10px Archivo, sans-serif"; ctx.fillText(ready >= 1 ? "👊 PUNCH READY" : "👊 charging", 12, 58);
       ctx.textAlign = "right"; ctx.fillText(st.name, W - 12, 22);
       const p = progress(s.dist), bx = 260, bw = 330;
       ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.fillRect(bx, 14, bw, 8);
@@ -130,14 +164,21 @@ export function LowesMission() {
     const loop = (now: number) => {
       const dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
       if (phaseRef.current === "play") {
-        s = step(s, dt, flapRef.current); flapRef.current = false;
+        runT += dt;
+        s = step(s, dt, flapRef.current, punchRef.current); flapRef.current = false; punchRef.current = false;
         if (s.over) {
-          const sc = score(s);
-          const prev = Number(localStorage.getItem(BEST_KEY) ?? 0) || 0;
-          if (sc > prev) { localStorage.setItem(BEST_KEY, String(sc)); setBest(sc); }
+          const sc = score(s), key = bestKey(s.difficulty);
+          const prev = Number(localStorage.getItem(key) ?? 0) || 0;
+          if (sc > prev) { localStorage.setItem(key, String(sc)); setBest(sc); }
+          setSaveMsg("");
+          if (signedRef.current && sc > 0) saveRef.current({ data: { difficulty: s.difficulty, score: sc, seconds: Math.ceil(runT) } })
+            .then((r) => { setSaveMsg(r.ok ? "Score saved to the leaderboard." : r.error); if (r.ok) setBoardTick((n) => n + 1); })
+            .catch(() => setSaveMsg("Couldn't save your score."));
+          runT = 0;
           setResult(s); setPhase("over");
         }
-      } else if (phaseRef.current === "ready" && s.dist > 0) s = newGame(Date.now() % 100000);
+      } else if (phaseRef.current === "ready" && s.dist > 0) s = newGame(Date.now() % 100000, levelRef.current);
+      else if (phaseRef.current === "ready" && s.difficulty !== levelRef.current) s = newGame(Date.now() % 100000, levelRef.current);
       draw();
       raf = requestAnimationFrame(loop);
     };
@@ -148,7 +189,11 @@ export function LowesMission() {
   }, []);
 
   const flap = () => {
-    if (phaseRef.current === "play") flapRef.current = true;
+    const now = performance.now();
+    if (phaseRef.current === "play") {
+      flapRef.current = true;
+      if (now - lastTap.current < DOUBLE_TAP_MS) { punchRef.current = true; lastTap.current = 0; } else lastTap.current = now;
+    }
     else if (phaseRef.current === "ready") { setPhase("play"); flapRef.current = true; }
   };
   useEffect(() => {
@@ -163,6 +208,7 @@ export function LowesMission() {
   };
 
   return (
+    <>
     <div className="relative mt-4 select-none overflow-hidden rounded-lg border border-night-line">
       <canvas ref={canvas} width={W} height={H} onPointerDown={(e) => { e.preventDefault(); flap(); }} className="block aspect-[16/9] w-full touch-none bg-night" aria-label="Aim High, Vote Lowe game area. Press space or tap to fly." />
       {phase !== "play" && (
@@ -171,7 +217,10 @@ export function LowesMission() {
             {phase === "ready" ? (
               <>
                 <h2 className="text-2xl font-semibold">London → Manchester</h2>
-                <p className="mt-2 text-sm text-night-muted">Tap, click or press space to fly. Collect votes, blast Farage, Badenoch, Mahmood, Rayner and Mayor Khan off the screen, dodge scandals and riot barricades — and ram Prime Minister Burnham three times when he lunges at you.</p>
+                <p className="mt-2 text-sm text-night-muted">Tap, click or press space to fly. Collect votes, blast Farage, Badenoch, Mahmood, Rayner and Mayor Khan off the screen, grab poppies for bonus points, dodge scandals and riot barricades, and ram Prime Minister Burnham to send him running. Double-tap for a power punch that smashes through a scandal.</p>
+                <div className="mt-3 flex justify-center gap-2" role="group" aria-label="Difficulty">
+                  {DIFFICULTIES.map((d) => <button key={d} onClick={() => setLevel(d)} aria-pressed={level === d} className={`rounded-md px-3 py-1 text-sm ${level === d ? "bg-primary text-primary-foreground" : "border border-night-line"}`}>{LEVELS[d].label}</button>)}
+                </div>
                 <button onClick={flap} className="mt-4 rounded-md bg-primary px-5 py-2 font-medium text-primary-foreground">Start</button>
               </>
             ) : result && (
@@ -179,7 +228,8 @@ export function LowesMission() {
                 <h2 className="text-2xl font-semibold">{result.won ? "Mission complete!" : "Mission failed"}</h2>
                 <p className="mt-1 text-sm text-night-muted">{result.cause}</p>
                 <p className="mt-3 text-3xl font-semibold">{score(result)}</p>
-                <p className="text-sm text-night-muted">{result.votes} votes · {result.smashed} MPs smashed · {result.bossesBeaten} boss wins · {Math.round(progress(result.dist) * 100)}% of the way · Best {best}</p>
+                <p className="text-sm text-night-muted">{LEVELS[result.difficulty].label} · {result.votes} votes · {result.poppies} poppies · {result.smashed} MPs smashed · {result.bossesBeaten} boss wins · {Math.round(progress(result.dist) * 100)}% of the way · Best {best}</p>
+                <p className="mt-2 text-xs text-night-muted">{signedIn ? saveMsg : <><a href="/auth" className="underline">Sign in</a> to save your score to the leaderboard.</>}</p>
                 <div className="mt-4 flex justify-center gap-2">
                   <button onClick={() => { setResult(null); setPhase("ready"); }} className="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground">Play again</button>
                   <button onClick={share} className="rounded-md border border-night-line px-4 py-2">Share</button>
@@ -190,5 +240,7 @@ export function LowesMission() {
         </div>
       )}
     </div>
+    <div className="mt-6"><ArcadeLeaderboard refresh={boardTick} /></div>
+    </>
   );
 }

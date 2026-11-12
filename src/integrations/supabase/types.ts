@@ -128,6 +128,39 @@ export type Database = {
         }
         Relationships: []
       }
+      arcade_scores: {
+        Row: {
+          created_at: string
+          day: string
+          difficulty: string
+          game: string
+          id: string
+          score: number
+          seconds: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          difficulty: string
+          game?: string
+          id?: string
+          score: number
+          seconds: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          difficulty?: string
+          game?: string
+          id?: string
+          score?: number
+          seconds?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       citizen_journalists: {
         Row: {
           bio: string
@@ -1790,6 +1823,19 @@ export type Database = {
           slug: string
           status: string
           user_id: string
+        }[]
+      }
+      arcade_leaderboard: {
+        Args: {
+          _difficulty: string
+          _game: string
+          _since: string
+          max_rows?: number
+        }
+        Returns: {
+          best: number
+          player: string
+          runs: number
         }[]
       }
       game_leaderboard: {

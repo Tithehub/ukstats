@@ -218,6 +218,13 @@
       "when": 1794489165954,
       "tag": "0030_overall_leaderboard",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794495737978,
+      "tag": "0031_migration",
+      "breakpoints": true
     }
   ]
 }
