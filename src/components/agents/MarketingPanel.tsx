@@ -6,7 +6,7 @@ import { listAgentPosts, reviewAgentPost } from "@/lib/agents.functions";
 import { listSocialAccounts, postToSocialAccounts } from "@/lib/social.functions";
 
 const composer = (platform: string, body: string) =>
-  platform === "bluesky" ? `https://bsky.app/intent/compose?text=${encodeURIComponent(body)}` : `https://mastodon.social/share?text=${encodeURIComponent(body)}`;
+  platform === "all" ? `https://x.com/intent/post?text=${encodeURIComponent(body)}` : platform === "bluesky" ? `https://bsky.app/intent/compose?text=${encodeURIComponent(body)}` : `https://mastodon.social/share?text=${encodeURIComponent(body)}`;
 
 export function MarketingPanel() {
   const qc = useQueryClient();
@@ -30,7 +30,7 @@ export function MarketingPanel() {
       <div className="mt-3 space-y-3">
         {(q.data ?? []).map((p) => {
           const body = edits[p.id] ?? p.body;
-          const targets = Array.isArray(myAccounts) ? myAccounts.filter((a) => a.platform === p.platform) : [];
+          const targets = Array.isArray(myAccounts) ? myAccounts.filter((a) => (p.platform === "all" ? ["x", "mastodon", "bluesky"].includes(a.platform) : a.platform === p.platform)) : [];
           return (
             <article key={p.id} className="rounded-xl border border-night-line bg-night-panel p-4">
               <p className="font-mono text-[11px] uppercase text-night-muted">{p.platform} · {p.kind.replace("_", " ")} · {p.status}</p>
@@ -47,10 +47,10 @@ export function MarketingPanel() {
                       <button type="button" onClick={async () => {
                         const r = await post({ data: { accountIds: targets.map((t) => t.id), text: body, link: p.link } });
                         const ok = r.results.filter((x) => x.ok).length;
-                        setMsg(`Posted to ${ok} of ${r.results.length} account(s).`);
+                        setMsg(r.results.map((x) => `${x.label}: ${x.ok ? "posted" : `failed (${x.error})`}`).join(" · "));
                         if (ok) await review({ data: { id: p.id, status: "posted" } });
                         refresh();
-                      }} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-electric px-4 text-night"><Send className="h-4 w-4" aria-hidden /> Post to my {p.platform}</button>
+                      }} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-electric px-4 text-night"><Send className="h-4 w-4" aria-hidden /> {p.platform === "all" ? "Post to X, Mastodon & Bluesky" : `Post to my ${p.platform}`}</button>
                     ) : null}
                     <a href={composer(p.platform, body)} target="_blank" rel="noreferrer" onClick={() => review({ data: { id: p.id, status: "posted" } }).then(refresh)} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-night-line px-4"><ExternalLink className="h-4 w-4" aria-hidden /> Open composer</a>
                   </>

@@ -189,3 +189,35 @@ export const getSignupStats = createServerFn({ method: "POST" })
       series: bucketByLondonDay(times, now, 30),
     };
   });
+
+export const getGamesAdminStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { londonDay } = await import("@/lib/signup-stats");
+    const ga = await import("@/lib/games-admin");
+    const now = new Date();
+    const today = londonDay(now);
+    const weekStart = londonDay(new Date(now.getTime() - 6 * 86_400_000));
+    const [{ data: quiz }, { data: arcade }, { data: profs }] = await Promise.all([
+      supabaseAdmin.from("game_scores").select("user_id, game, score, day").limit(20000),
+      supabaseAdmin.from("arcade_scores").select("user_id, game, score, day, difficulty").limit(20000),
+      supabaseAdmin.from("profiles").select("id, display_name").limit(20000),
+    ]);
+    const names = new Map((profs ?? []).map((p) => [p.id as string, (p.display_name as string) ?? ""]));
+    const q = (quiz ?? []) as import("@/lib/games-admin").ScoreRow[];
+    const a = (arcade ?? []) as import("@/lib/games-admin").ScoreRow[];
+    const games = [...new Set(q.map((r) => r.game))].sort();
+    const week = q.filter((r) => r.day >= weekStart);
+    return {
+      weekStart,
+      stats: [
+        ...games.map((g) => ({ game: g, ...ga.playStats(q.filter((r) => r.game === g), today, weekStart) })),
+        ...["easy", "normal", "hard"].map((d) => ({ game: `aim-high-vote-lowe (${d})`, ...ga.playStats(a.filter((r) => r.difficulty === d), today, weekStart) })),
+      ],
+      overall: ga.topPlayers(week, names),
+      quizBoards: games.map((g) => ({ game: g, top: ga.topPlayers(week.filter((r) => r.game === g), names) })),
+      arcadeBoards: ["easy", "normal", "hard"].map((d) => ({ difficulty: d, top: ga.bestPlayers(a.filter((r) => r.difficulty === d && r.day >= weekStart), names) })),
+    };
+  });

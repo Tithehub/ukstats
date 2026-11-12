@@ -14,6 +14,7 @@ import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
 import { ImprovementPlanPanel } from "@/components/agents/ImprovementPlanPanel";
 import { LiveStreamLinkPanel } from "@/components/agents/LiveStreamLinkPanel";
 import { MorningReviewPanel } from "@/components/agents/MorningReviewPanel";
+import { GamesAdminPanels } from "@/components/agents/GamesAdminPanels";
 import { SignupStatsCard } from "@/components/agents/SignupStatsCard";
 
 export const Route = createFileRoute("/agents")({
@@ -131,6 +132,7 @@ function AgentsPage() {
           </div>
         </section>
         <StreamLaunchComposer />
+        <GamesAdminPanels />
         <MarketingPanel />
         <LaunchKit />
         <DomainsPanel />

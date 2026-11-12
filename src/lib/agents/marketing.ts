@@ -3,8 +3,14 @@ import type { Metric } from "@/lib/uk-stats";
 import type { CountryPayload } from "@/lib/countries";
 
 export const SITE = "https://ukstats.co.uk";
-export const PLATFORMS = ["bluesky", "mastodon"] as const;
-const LIMIT = { bluesky: 300, mastodon: 500 } as const;
+/** One draft per figure, posted to X, Mastodon and Bluesky together; sized for X, the shortest. */
+export const PLATFORMS = ["all"] as const;
+const LIMIT = { all: 280 } as const;
+
+/** Length as X counts it: every link is shortened to 23 characters. */
+export function xLength(text: string): number {
+  return text.replace(/https?:\/\/\S+/g, "x".repeat(23)).length;
+}
 
 export function tagLink(path: string, platform: string, campaign = "agent"): string {
   const u = new URL(path, SITE);
@@ -20,7 +26,7 @@ function compose(m: Metric, platform: (typeof PLATFORMS)[number], lead: string, 
   const link = tagLink(`/explained/${m.id}`, platform, campaign);
   const parts = [`${lead}${m.title}: ${m.value}${m.period ? ` (${m.period})` : ""}.`, `Source: ${m.source}.`, link];
   let body = parts.join("\n\n");
-  if (body.length > LIMIT[platform]) body = [parts[0]!, link].join("\n\n");
+  if (xLength(body) > LIMIT[platform]) body = [parts[0]!, link].join("\n\n");
   return { kind: campaign, metric_id: m.id, platform, body, link, source_url: m.sourceUrl };
 }
 
@@ -63,7 +69,7 @@ export function countryFigureOfDay(payload: CountryPayload, date = new Date()): 
     const link = tagLink(`/${payload.country.code}/explained/${m.id}`, p, "country_figure_of_day");
     const parts = [`${lead}${m.title}: ${m.value}${m.period ? ` (${m.period})` : ""}.`, `Source: ${m.source}.`, link];
     let body = parts.join("\n\n");
-    if (body.length > LIMIT[p]) body = [parts[0]!, link].join("\n\n");
+    if (xLength(body) > LIMIT[p]) body = [parts[0]!, link].join("\n\n");
     return { kind: "country_figure_of_day", metric_id: `${payload.country.code}:${m.id}`, platform: p, body, link, source_url: m.sourceUrl };
   });
 }

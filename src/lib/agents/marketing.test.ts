@@ -47,7 +47,7 @@ describe("marketing picks official figures only", () => {
     const due = { ...weather, nextDue: "2026-10-19T06:00:00Z" } as unknown as Metric;
     expect(releaseDay([due], now)).toEqual([]);
     const published = { ...official, nextDue: due.nextDue } as unknown as Metric;
-    expect(releaseDay([published], now)).toHaveLength(2);
+    expect(releaseDay([published], now)).toHaveLength(1);
   });
   it("drafts the Eurostat figure, never the weather model", () => {
     const posts = countryFigureOfDay(payload, new Date("2026-10-11T12:00:00Z"));
@@ -66,5 +66,12 @@ describe("marketing picks official figures only", () => {
 
   it("writes no UK post when only a model figure is live", () => {
     expect(figureOfDay([weather as unknown as Metric], new Date("2026-10-11T12:00:00Z"))).toEqual([]);
+  });
+});
+
+import { xLength } from "./marketing";
+describe("all-platform drafts", () => {
+  it("counts links as 23 characters like X does", () => {
+    expect(xLength("Hi https://ukstats.co.uk/explained/abc?utm_source=all")).toBe(26);
   });
 });
