@@ -410,6 +410,39 @@ export type Database = {
         }
         Relationships: []
       }
+      game_scores: {
+        Row: {
+          answers: Json
+          created_at: string
+          day: string
+          game: string
+          id: string
+          max_score: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          day: string
+          game: string
+          id?: string
+          max_score: number
+          score: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          day?: string
+          game?: string
+          id?: string
+          max_score?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       horse_aliases: {
         Row: {
           alias: string
@@ -1754,6 +1787,20 @@ export type Database = {
           slug: string
           status: string
           user_id: string
+        }[]
+      }
+      game_leaderboard: {
+        Args: {
+          _game: string
+          _since: string
+          _until: string
+          max_rows?: number
+        }
+        Returns: {
+          best: number
+          games: number
+          player: string
+          total: number
         }[]
       }
       get_approved_explainer: {

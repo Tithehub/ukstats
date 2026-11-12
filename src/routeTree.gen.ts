@@ -80,6 +80,9 @@ import { Route as EducationIndexRouteImport } from './routes/education.index'
 import { Route as EducationUniversitiesRouteImport } from './routes/education.universities'
 import { Route as EmbedMetricRouteImport } from './routes/embed.$metric'
 import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metricId'
+import { Route as GamesIndexRouteImport } from './routes/games.index'
+import { Route as GamesGameRouteImport } from './routes/games.$game'
+import { Route as GamesDailyRouteImport } from './routes/games.daily'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
 import { Route as GlobeStudioRouteImport } from './routes/globe_.studio'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
@@ -478,6 +481,21 @@ const ExplainedMetricIdRoute = ExplainedMetricIdRouteImport.update({
   path: '/explained/$metricId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesIndexRoute = GamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesGameRoute = GamesGameRouteImport.update({
+  id: '/games/$game',
+  path: '/games/$game',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesDailyRoute = GamesDailyRouteImport.update({
+  id: '/games/daily',
+  path: '/games/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GlobeBroadcastRoute = GlobeBroadcastRouteImport.update({
   id: '/globe_/broadcast',
   path: '/globe/broadcast',
@@ -764,6 +782,8 @@ export interface FileRoutesByFullPath {
   '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
+  '/games/$game': typeof GamesGameRoute
+  '/games/daily': typeof GamesDailyRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -781,6 +801,7 @@ export interface FileRoutesByFullPath {
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/education/': typeof EducationIndexRoute
+  '/games/': typeof GamesIndexRoute
   '/racing/': typeof RacingIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
@@ -876,6 +897,8 @@ export interface FileRoutesByTo {
   '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
+  '/games/$game': typeof GamesGameRoute
+  '/games/daily': typeof GamesDailyRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -893,6 +916,7 @@ export interface FileRoutesByTo {
   '/world/$iso': typeof WorldIsoRoute
   '/$country': typeof CountryIndexRoute
   '/education': typeof EducationIndexRoute
+  '/games': typeof GamesIndexRoute
   '/racing': typeof RacingIndexRoute
   '/regions': typeof RegionsIndexRoute
   '/spending': typeof SpendingIndexRoute
@@ -992,6 +1016,8 @@ export interface FileRoutesById {
   '/education/universities': typeof EducationUniversitiesRoute
   '/embed/$metric': typeof EmbedMetricRoute
   '/explained/$metricId': typeof ExplainedMetricIdRoute
+  '/games/$game': typeof GamesGameRoute
+  '/games/daily': typeof GamesDailyRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
   '/globe_/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -1009,6 +1035,7 @@ export interface FileRoutesById {
   '/world/$iso': typeof WorldIsoRoute
   '/$country/': typeof CountryIndexRoute
   '/education/': typeof EducationIndexRoute
+  '/games/': typeof GamesIndexRoute
   '/racing/': typeof RacingIndexRoute
   '/regions/': typeof RegionsIndexRoute
   '/spending/': typeof SpendingIndexRoute
@@ -1109,6 +1136,8 @@ export interface FileRouteTypes {
     | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
+    | '/games/$game'
+    | '/games/daily'
     | '/globe/broadcast'
     | '/globe/studio'
     | '/history/$metricId'
@@ -1126,6 +1155,7 @@ export interface FileRouteTypes {
     | '/world/$iso'
     | '/$country/'
     | '/education/'
+    | '/games/'
     | '/racing/'
     | '/regions/'
     | '/spending/'
@@ -1221,6 +1251,8 @@ export interface FileRouteTypes {
     | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
+    | '/games/$game'
+    | '/games/daily'
     | '/globe/broadcast'
     | '/globe/studio'
     | '/history/$metricId'
@@ -1238,6 +1270,7 @@ export interface FileRouteTypes {
     | '/world/$iso'
     | '/$country'
     | '/education'
+    | '/games'
     | '/racing'
     | '/regions'
     | '/spending'
@@ -1336,6 +1369,8 @@ export interface FileRouteTypes {
     | '/education/universities'
     | '/embed/$metric'
     | '/explained/$metricId'
+    | '/games/$game'
+    | '/games/daily'
     | '/globe_/broadcast'
     | '/globe_/studio'
     | '/history/$metricId'
@@ -1353,6 +1388,7 @@ export interface FileRouteTypes {
     | '/world/$iso'
     | '/$country/'
     | '/education/'
+    | '/games/'
     | '/racing/'
     | '/regions/'
     | '/spending/'
@@ -1447,6 +1483,8 @@ export interface RootRouteChildren {
   EducationUniversitiesRoute: typeof EducationUniversitiesRoute
   EmbedMetricRoute: typeof EmbedMetricRoute
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
+  GamesGameRoute: typeof GamesGameRoute
+  GamesDailyRoute: typeof GamesDailyRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -1457,6 +1495,7 @@ export interface RootRouteChildren {
   SpendingCouncilRoute: typeof SpendingCouncilRoute
   WorldIsoRoute: typeof WorldIsoRoute
   EducationIndexRoute: typeof EducationIndexRoute
+  GamesIndexRoute: typeof GamesIndexRoute
   SpendingIndexRoute: typeof SpendingIndexRoute
   WorldIndexRoute: typeof WorldIndexRoute
   EducationSchoolsUrnRoute: typeof EducationSchoolsUrnRoute
@@ -1964,6 +2003,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExplainedMetricIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/': {
+      id: '/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$game': {
+      id: '/games/$game'
+      path: '/games/$game'
+      fullPath: '/games/$game'
+      preLoaderRoute: typeof GamesGameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/daily': {
+      id: '/games/daily'
+      path: '/games/daily'
+      fullPath: '/games/daily'
+      preLoaderRoute: typeof GamesDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/globe_/broadcast': {
       id: '/globe_/broadcast'
       path: '/globe/broadcast'
@@ -2446,6 +2506,8 @@ const rootRouteChildren: RootRouteChildren = {
   EducationUniversitiesRoute: EducationUniversitiesRoute,
   EmbedMetricRoute: EmbedMetricRoute,
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
+  GamesGameRoute: GamesGameRoute,
+  GamesDailyRoute: GamesDailyRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,
@@ -2456,6 +2518,7 @@ const rootRouteChildren: RootRouteChildren = {
   SpendingCouncilRoute: SpendingCouncilRoute,
   WorldIsoRoute: WorldIsoRoute,
   EducationIndexRoute: EducationIndexRoute,
+  GamesIndexRoute: GamesIndexRoute,
   SpendingIndexRoute: SpendingIndexRoute,
   WorldIndexRoute: WorldIndexRoute,
   EducationSchoolsUrnRoute: EducationSchoolsUrnRoute,
