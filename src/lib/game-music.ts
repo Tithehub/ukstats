@@ -1,4 +1,4 @@
-/** Retro chiptune arrangement of "Rule, Britannia!" (Thomas Arne, 1740, public domain), synthesised with Web Audio — no samples.
+/** Retro chiptune arrangement of "Rule, Britannia!" (Thomas Arne, 1740, public domain), synthesised with Web Audio — no samples. */
 const N = (s: string) => { const m = /^([A-G])(#?)(\d)$/.exec(s)!; const i = "C D EF G A B".indexOf(m[1]!) + (m[2] ? 1 : 0); return 440 * 2 ** ((i - 9) / 12 + (Number(m[3]) - 4)); };
 const LEAD = "D5 . . . C5 B4 C5 D5 . G4 . . A4 B4 C5 . B4 . A4 G4 . . . . D5 D5 E5 D5 C5 B4 C5 B4 A4 G4 A4 B4 C5 A4 G4 . F#4 . G4 . . . . . . .".split(" ");
 const BASS = "G2 G3 G2 G3 G2 G3 G2 G3 C2 C3 G2 G3 G2 G3 G2 G3 D2 D3 D2 D3 C2 C3 G2 G3 G2 G3 G2 G3 D2 D3 G2 G3 D2 D3 D2 D3 C2 C3 G2 G3 D2 D3 C2 C3 D2 D3 G2 G3 G2 G3".split(" ");
