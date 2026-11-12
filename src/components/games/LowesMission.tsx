@@ -47,6 +47,36 @@ export function LowesMission() {
   const lastTap = useRef(0);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
+  const box = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(false);
+  const [native, setNative] = useState(false);
+  useEffect(() => {
+    const on = () => {
+      const el = document.fullscreenElement ?? (document as any).webkitFullscreenElement;
+      setNative(!!el); if (!el) setFull((f) => (f && native ? false : f));
+    };
+    document.addEventListener("fullscreenchange", on); document.addEventListener("webkitfullscreenchange", on);
+    return () => { document.removeEventListener("fullscreenchange", on); document.removeEventListener("webkitfullscreenchange", on); };
+  }, [native]);
+  useEffect(() => {
+    if (!full) return;
+    const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setFull(false); };
+    window.addEventListener("keydown", esc);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", esc); };
+  }, [full]);
+  const toggleFull = async () => {
+    const d = document as any;
+    if (full) {
+      setFull(false);
+      if (d.fullscreenElement || d.webkitFullscreenElement) await (d.exitFullscreen ?? d.webkitExitFullscreen)?.call(d).catch?.(() => {});
+      return;
+    }
+    setFull(true);
+    const el = box.current as any;
+    const req = el?.requestFullscreen ?? el?.webkitRequestFullscreen;
+    try { if (req) { await req.call(el); await (screen.orientation as any)?.lock?.("landscape").catch(() => {}); } } catch { /* CSS fallback stays on */ }
+  };
 
   useEffect(() => { setBest(Number(localStorage.getItem(bestKey(level)) ?? 0) || 0); }, [level]);
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session)); }, []);
@@ -221,8 +251,11 @@ export function LowesMission() {
 
   return (
     <>
-    <div className="relative mt-4 select-none overflow-hidden rounded-lg border border-night-line">
-      <canvas ref={canvas} width={W} height={H} onPointerDown={(e) => { e.preventDefault(); flap(); }} className="block aspect-[16/9] w-full touch-none bg-night" aria-label="Aim High, Vote Lowe game area. Press space or tap to fly." />
+    <div ref={box} className={full ? "fixed inset-0 z-[100] flex select-none items-center justify-center overflow-hidden bg-night touch-none" : "relative mt-4 select-none overflow-hidden rounded-lg border border-night-line"}>
+      <button type="button" onClick={toggleFull} aria-label={full ? "Exit full screen" : "Full screen"} className="absolute right-2 top-2 z-20 rounded-md border border-night-line bg-night-panel/80 px-2.5 py-1.5 text-xs font-medium backdrop-blur">
+        {full ? "✕ Exit" : "⛶ Full screen"}
+      </button>
+      <canvas ref={canvas} width={W} height={H} onPointerDown={(e) => { e.preventDefault(); flap(); }} className={full ? "block aspect-[16/9] max-h-full max-w-full w-auto h-auto touch-none bg-night" : "block aspect-[16/9] w-full touch-none bg-night"} style={full ? { width: "min(100vw, calc(100dvh * 16 / 9))" } : undefined} aria-label="Aim High, Vote Lowe game area. Press space or tap to fly." />
       {phase !== "play" && (
         <div className="absolute inset-0 flex items-center justify-center bg-night/70 p-4 text-center">
           <div className="max-w-sm rounded-lg bg-night-panel p-5">
