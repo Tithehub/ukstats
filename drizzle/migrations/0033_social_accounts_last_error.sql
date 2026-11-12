@@ -1,0 +1,1 @@
+ALTER TABLE public.social_accounts ADD COLUMN IF NOT EXISTS last_error text, ADD COLUMN IF NOT EXISTS last_error_at timestamptz;

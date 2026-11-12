@@ -1,9 +1,10 @@
+import { fmtDate } from "@/lib/uk-stats";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Copy, ExternalLink, Megaphone, Send, X } from "lucide-react";
 import { listAgentPosts, reviewAgentPost } from "@/lib/agents.functions";
-import { listSocialAccounts, postToSocialAccounts } from "@/lib/social.functions";
+import { checkSocialAccount, listSocialAccounts, postToSocialAccounts } from "@/lib/social.functions";
 
 const composer = (platform: string, body: string) =>
   platform === "all" ? `https://x.com/intent/post?text=${encodeURIComponent(body)}` : platform === "bluesky" ? `https://bsky.app/intent/compose?text=${encodeURIComponent(body)}` : `https://mastodon.social/share?text=${encodeURIComponent(body)}`;
@@ -20,12 +21,29 @@ export function MarketingPanel() {
   const [msg, setMsg] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["agent-posts"] });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const myAccounts = ((acc.data as any)?.accounts ?? acc.data ?? []) as { id: string; platform: string; label: string }[];
+  const myAccounts = ((acc.data as any)?.accounts ?? acc.data ?? []) as { id: string; platform: string; label: string; lastPostedAt?: string | null; lastError?: string | null; lastErrorAt?: string | null }[];
+  const check = useServerFn(checkSocialAccount);
+  const [checkMsg, setCheckMsg] = useState<Record<string, string>>({});
 
   return (
     <section className="mt-10">
       <h2 className="flex items-center gap-2 text-xl font-semibold"><Megaphone className="h-5 w-5 text-electric" aria-hidden /> Marketing drafts ({q.data?.length ?? 0})</h2>
       <p className="mt-1 text-[14px] text-night-muted">Written each night from published figures only. Nothing is posted until you approve it.</p>
+      <ul className="mt-3 space-y-1 text-[13px]">
+        {(Array.isArray(myAccounts) ? myAccounts : []).filter((a) => ["x", "mastodon", "bluesky"].includes(a.platform)).map((a) => (
+          <li key={a.id} className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold">{a.label}</span>
+            <span className="text-night-muted">{a.lastPostedAt ? `last posted ${fmtDate(a.lastPostedAt)}` : "never posted"}</span>
+            {a.lastError ? <span className="text-destructive">Last failed{a.lastErrorAt ? ` ${fmtDate(a.lastErrorAt)}` : ""}: {a.lastError}</span> : null}
+            <button type="button" className="underline" onClick={async () => {
+              setCheckMsg((m) => ({ ...m, [a.id]: "Checking…" }));
+              const r = await check({ data: { id: a.id } });
+              setCheckMsg((m) => ({ ...m, [a.id]: r.ok ? `Login works (${r.label})` : `Login problem: ${r.error}` }));
+            }}>Check login</button>
+            {checkMsg[a.id] ? <span className="text-electric-soft">{checkMsg[a.id]}</span> : null}
+          </li>
+        ))}
+      </ul>
       {msg ? <p className="mt-2 text-[13px] text-electric-soft">{msg}</p> : null}
       <div className="mt-3 space-y-3">
         {(q.data ?? []).map((p) => {
@@ -47,7 +65,7 @@ export function MarketingPanel() {
                       <button type="button" onClick={async () => {
                         const r = await post({ data: { accountIds: targets.map((t) => t.id), text: body, link: p.link } });
                         const ok = r.results.filter((x) => x.ok).length;
-                        setMsg(r.results.map((x) => `${x.label}: ${x.ok ? "posted" : `failed (${x.error})`}`).join(" · "));
+                        acc.refetch?.(); setMsg(r.results.map((x) => `${x.label}: ${x.ok ? "posted" : `failed (${x.error})`}`).join(" · "));
                         if (ok) await review({ data: { id: p.id, status: "posted" } });
                         refresh();
                       }} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-electric px-4 text-night"><Send className="h-4 w-4" aria-hidden /> {p.platform === "all" ? "Post to X, Mastodon & Bluesky" : `Post to my ${p.platform}`}</button>

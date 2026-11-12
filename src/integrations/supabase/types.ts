@@ -1537,6 +1537,8 @@ export type Database = {
           credentials: Json
           id: string
           label: string
+          last_error: string | null
+          last_error_at: string | null
           last_posted_at: string | null
           platform: string
           user_id: string
@@ -1546,6 +1548,8 @@ export type Database = {
           credentials: Json
           id?: string
           label: string
+          last_error?: string | null
+          last_error_at?: string | null
           last_posted_at?: string | null
           platform: string
           user_id: string
@@ -1555,6 +1559,8 @@ export type Database = {
           credentials?: Json
           id?: string
           label?: string
+          last_error?: string | null
+          last_error_at?: string | null
           last_posted_at?: string | null
           platform?: string
           user_id?: string

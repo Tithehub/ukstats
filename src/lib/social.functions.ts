@@ -52,6 +52,8 @@ export interface SocialAccount {
   label: string;
   createdAt: string;
   lastPostedAt: string | null;
+  lastError?: string | null;
+  lastErrorAt?: string | null;
 }
 
 type Creds = Record<string, string>;
@@ -311,7 +313,7 @@ export const listSocialAccounts = createServerFn({ method: "POST" })
     const db = await admin();
     const { data } = await db
       .from("social_accounts")
-      .select("id, platform, label, created_at, last_posted_at")
+      .select("id, platform, label, created_at, last_posted_at, last_error, last_error_at")
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false });
     return (data ?? []).map((r) => ({
@@ -320,7 +322,24 @@ export const listSocialAccounts = createServerFn({ method: "POST" })
       label: r.label as string,
       createdAt: r.created_at as string,
       lastPostedAt: (r.last_posted_at as string | null) ?? null,
+      lastError: (r.last_error as string | null) ?? null,
+      lastErrorAt: (r.last_error_at as string | null) ?? null,
     }));
+  });
+
+/** Harmless check: ask the platform who the saved account is. Posts nothing. */
+export const checkSocialAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await admin();
+    const { data: row } = await db.from("social_accounts").select("platform, credentials").eq("id", data.id).eq("user_id", context.userId).maybeSingle();
+    if (!row) throw new Error("Account not found.");
+    try {
+      return { ok: true, label: await verify(row.platform as SocialPlatform, clean(row.credentials)), error: null as string | null };
+    } catch (e) {
+      return { ok: false, label: null, error: e instanceof Error ? e.message : "Check failed." };
+    }
   });
 
 export const connectSocialAccount = createServerFn({ method: "POST" })
@@ -382,9 +401,10 @@ export const postToSocialAccounts = createServerFn({ method: "POST" })
       const platform = row.platform as SocialPlatform;
       try {
         const url = await send(platform, clean(row.credentials), text, link, thumb);
-        await db.from("social_accounts").update({ last_posted_at: new Date().toISOString() }).eq("id", row.id);
+        await db.from("social_accounts").update({ last_posted_at: new Date().toISOString(), last_error: null, last_error_at: null }).eq("id", row.id);
         results.push({ id: row.id as string, label: row.label as string, ok: true, url, error: null, picture });
       } catch (e) {
+        await db.from("social_accounts").update({ last_error: (e instanceof Error ? e.message : "Posting failed.").slice(0, 1000), last_error_at: new Date().toISOString() }).eq("id", row.id);
         results.push({
           id: row.id as string,
           label: row.label as string,

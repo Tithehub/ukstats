@@ -232,6 +232,13 @@
       "when": 1794511897531,
       "tag": "0032_arcade_best_per_day",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794515952231,
+      "tag": "0033_social_accounts_last_error",
+      "breakpoints": true
     }
   ]
 }
