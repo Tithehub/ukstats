@@ -84,6 +84,7 @@ import { Route as ExplainedMetricIdRouteImport } from './routes/explained.$metri
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesGameRouteImport } from './routes/games.$game'
 import { Route as GamesBritainByTheNumbersRouteImport } from './routes/games.britain-by-the-numbers'
+import { Route as GamesBurnhamsDashRouteImport } from './routes/games.burnhams-dash'
 import { Route as GamesDailyRouteImport } from './routes/games.daily'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
 import { Route as GlobeStudioRouteImport } from './routes/globe_.studio'
@@ -504,6 +505,11 @@ const GamesBritainByTheNumbersRoute =
     path: '/games/britain-by-the-numbers',
     getParentRoute: () => rootRouteImport,
   } as any)
+const GamesBurnhamsDashRoute = GamesBurnhamsDashRouteImport.update({
+  id: '/games/burnhams-dash',
+  path: '/games/burnhams-dash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesDailyRoute = GamesDailyRouteImport.update({
   id: '/games/daily',
   path: '/games/daily',
@@ -798,6 +804,7 @@ export interface FileRoutesByFullPath {
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
+  '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
@@ -915,6 +922,7 @@ export interface FileRoutesByTo {
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
+  '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
@@ -1036,6 +1044,7 @@ export interface FileRoutesById {
   '/explained/$metricId': typeof ExplainedMetricIdRoute
   '/games/$game': typeof GamesGameRoute
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
+  '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
   '/globe_/studio': typeof GlobeStudioRoute
@@ -1158,6 +1167,7 @@ export interface FileRouteTypes {
     | '/explained/$metricId'
     | '/games/$game'
     | '/games/britain-by-the-numbers'
+    | '/games/burnhams-dash'
     | '/games/daily'
     | '/globe/broadcast'
     | '/globe/studio'
@@ -1275,6 +1285,7 @@ export interface FileRouteTypes {
     | '/explained/$metricId'
     | '/games/$game'
     | '/games/britain-by-the-numbers'
+    | '/games/burnhams-dash'
     | '/games/daily'
     | '/globe/broadcast'
     | '/globe/studio'
@@ -1395,6 +1406,7 @@ export interface FileRouteTypes {
     | '/explained/$metricId'
     | '/games/$game'
     | '/games/britain-by-the-numbers'
+    | '/games/burnhams-dash'
     | '/games/daily'
     | '/globe_/broadcast'
     | '/globe_/studio'
@@ -1511,6 +1523,7 @@ export interface RootRouteChildren {
   ExplainedMetricIdRoute: typeof ExplainedMetricIdRoute
   GamesGameRoute: typeof GamesGameRoute
   GamesBritainByTheNumbersRoute: typeof GamesBritainByTheNumbersRoute
+  GamesBurnhamsDashRoute: typeof GamesBurnhamsDashRoute
   GamesDailyRoute: typeof GamesDailyRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
   GlobeStudioRoute: typeof GlobeStudioRoute
@@ -2058,6 +2071,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesBritainByTheNumbersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/burnhams-dash': {
+      id: '/games/burnhams-dash'
+      path: '/games/burnhams-dash'
+      fullPath: '/games/burnhams-dash'
+      preLoaderRoute: typeof GamesBurnhamsDashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/daily': {
       id: '/games/daily'
       path: '/games/daily'
@@ -2550,6 +2570,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExplainedMetricIdRoute: ExplainedMetricIdRoute,
   GamesGameRoute: GamesGameRoute,
   GamesBritainByTheNumbersRoute: GamesBritainByTheNumbersRoute,
+  GamesBurnhamsDashRoute: GamesBurnhamsDashRoute,
   GamesDailyRoute: GamesDailyRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
   GlobeStudioRoute: GlobeStudioRoute,
