@@ -499,3 +499,9 @@
 @keyframes orbit-slab { from { background-position: 0 0, 150% 0; } to { background-position: 0 0, -150% 0; } }
 @media (prefers-reduced-motion: reduce) { [data-variant="orbit"] .orbit-glass::after { animation: none; } }
 .orbit-sponsor-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in oklab, var(--night) 92%, transparent) 0%, color-mix(in oklab, var(--night) 70%, transparent) 35%, transparent 62%), linear-gradient(0deg, color-mix(in oklab, var(--night) 75%, transparent) 0%, transparent 40%); }
+
+/* Game full screen: hide every site bar/floating element so nothing covers the game. */
+html.game-fullscreen body > *:not(:has(.game-fs-layer)) { display: none !important; }
+html.game-fullscreen body *:not(:has(.game-fs-layer)):not(.game-fs-layer):not(.game-fs-layer *) { visibility: hidden; }
+html.game-fullscreen .game-fs-layer, html.game-fullscreen .game-fs-layer * { visibility: visible; }
+html.game-fullscreen, html.game-fullscreen body { overflow: hidden !important; overscroll-behavior: none; }
