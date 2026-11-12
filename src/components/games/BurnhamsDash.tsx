@@ -65,7 +65,7 @@ export function BurnhamsDash() {
       for (const f of s.flyers) { const im = imgs[f.who]; if (im.complete) ctx.drawImage(im, f.x - 34, f.y - 34, 68, 68); }
       // player
       ctx.save(); ctx.translate(PLAYER_X, s.y); ctx.rotate(Math.max(-0.4, Math.min(0.6, s.vy / 900)));
-      if (imgs.burnham.complete) ctx.drawImage(imgs.burnham, -32, -32, 64, 64); ctx.restore();
+      if (imgs.burnham.complete) ctx.drawImage(imgs.burnham, -42, -34, 84, 68); ctx.restore();
       // HUD
       ctx.fillStyle = "rgba(5,29,63,0.85)"; ctx.fillRect(0, 0, W, 34);
       ctx.fillStyle = "#fff"; ctx.font = "bold 14px Archivo, sans-serif"; ctx.textAlign = "left";
