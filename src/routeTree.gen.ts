@@ -86,6 +86,7 @@ import { Route as GamesGameRouteImport } from './routes/games.$game'
 import { Route as GamesBritainByTheNumbersRouteImport } from './routes/games.britain-by-the-numbers'
 import { Route as GamesBurnhamsDashRouteImport } from './routes/games.burnhams-dash'
 import { Route as GamesDailyRouteImport } from './routes/games.daily'
+import { Route as GamesLowesMissionRouteImport } from './routes/games.lowes-mission'
 import { Route as GlobeBroadcastRouteImport } from './routes/globe_.broadcast'
 import { Route as GlobeStudioRouteImport } from './routes/globe_.studio'
 import { Route as HistoryMetricIdRouteImport } from './routes/history.$metricId'
@@ -515,6 +516,11 @@ const GamesDailyRoute = GamesDailyRouteImport.update({
   path: '/games/daily',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesLowesMissionRoute = GamesLowesMissionRouteImport.update({
+  id: '/games/lowes-mission',
+  path: '/games/lowes-mission',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GlobeBroadcastRoute = GlobeBroadcastRouteImport.update({
   id: '/globe_/broadcast',
   path: '/globe/broadcast',
@@ -806,6 +812,7 @@ export interface FileRoutesByFullPath {
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
+  '/games/lowes-mission': typeof GamesLowesMissionRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -924,6 +931,7 @@ export interface FileRoutesByTo {
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
+  '/games/lowes-mission': typeof GamesLowesMissionRoute
   '/globe/broadcast': typeof GlobeBroadcastRoute
   '/globe/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -1046,6 +1054,7 @@ export interface FileRoutesById {
   '/games/britain-by-the-numbers': typeof GamesBritainByTheNumbersRoute
   '/games/burnhams-dash': typeof GamesBurnhamsDashRoute
   '/games/daily': typeof GamesDailyRoute
+  '/games/lowes-mission': typeof GamesLowesMissionRoute
   '/globe_/broadcast': typeof GlobeBroadcastRoute
   '/globe_/studio': typeof GlobeStudioRoute
   '/history/$metricId': typeof HistoryMetricIdRoute
@@ -1169,6 +1178,7 @@ export interface FileRouteTypes {
     | '/games/britain-by-the-numbers'
     | '/games/burnhams-dash'
     | '/games/daily'
+    | '/games/lowes-mission'
     | '/globe/broadcast'
     | '/globe/studio'
     | '/history/$metricId'
@@ -1287,6 +1297,7 @@ export interface FileRouteTypes {
     | '/games/britain-by-the-numbers'
     | '/games/burnhams-dash'
     | '/games/daily'
+    | '/games/lowes-mission'
     | '/globe/broadcast'
     | '/globe/studio'
     | '/history/$metricId'
@@ -1408,6 +1419,7 @@ export interface FileRouteTypes {
     | '/games/britain-by-the-numbers'
     | '/games/burnhams-dash'
     | '/games/daily'
+    | '/games/lowes-mission'
     | '/globe_/broadcast'
     | '/globe_/studio'
     | '/history/$metricId'
@@ -1525,6 +1537,7 @@ export interface RootRouteChildren {
   GamesBritainByTheNumbersRoute: typeof GamesBritainByTheNumbersRoute
   GamesBurnhamsDashRoute: typeof GamesBurnhamsDashRoute
   GamesDailyRoute: typeof GamesDailyRoute
+  GamesLowesMissionRoute: typeof GamesLowesMissionRoute
   GlobeBroadcastRoute: typeof GlobeBroadcastRoute
   GlobeStudioRoute: typeof GlobeStudioRoute
   HistoryMetricIdRoute: typeof HistoryMetricIdRoute
@@ -2085,6 +2098,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesDailyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/lowes-mission': {
+      id: '/games/lowes-mission'
+      path: '/games/lowes-mission'
+      fullPath: '/games/lowes-mission'
+      preLoaderRoute: typeof GamesLowesMissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/globe_/broadcast': {
       id: '/globe_/broadcast'
       path: '/globe/broadcast'
@@ -2572,6 +2592,7 @@ const rootRouteChildren: RootRouteChildren = {
   GamesBritainByTheNumbersRoute: GamesBritainByTheNumbersRoute,
   GamesBurnhamsDashRoute: GamesBurnhamsDashRoute,
   GamesDailyRoute: GamesDailyRoute,
+  GamesLowesMissionRoute: GamesLowesMissionRoute,
   GlobeBroadcastRoute: GlobeBroadcastRoute,
   GlobeStudioRoute: GlobeStudioRoute,
   HistoryMetricIdRoute: HistoryMetricIdRoute,

@@ -9,7 +9,7 @@ import britain from "@/assets/games/britain.jpg";
 import flag from "@/assets/games/flag.jpg";
 import history from "@/assets/games/english-history.jpg";
 import worldk from "@/assets/games/world-knowledge.jpg";
-import dash from "@/assets/games/burnhams-dash.jpg";
+import dash from "@/assets/games/lowes-mission.jpg";
 
 const T = "Free stats games — Daily 5, Higher or Lower and more | UKStats";
 const D = "Free, quick statistics games built on real World Bank figures: the Daily 5 challenge, Britain by the Numbers, Higher or Lower, Guess the Number, Rank the World, Guess the Flag, English History and World Knowledge. Leaderboards and shareable scores.";
@@ -50,12 +50,12 @@ function Hub() {
           <p className="mt-2 text-night-muted">Councils head to head on house prices, pay, crime, age and life satisfaction — real ONS and Land Registry figures.</p>
         </div>
       </Link>
-      <Link to="/games/burnhams-dash" className="mt-4 grid overflow-hidden rounded-lg border border-night-line bg-night-panel transition hover:border-electric-soft sm:grid-cols-2">
+      <Link to="/games/lowes-mission" className="mt-4 grid overflow-hidden rounded-lg border border-night-line bg-night-panel transition hover:border-electric-soft sm:grid-cols-2">
         <img src={dash} alt="" width={1200} height={800} loading="lazy" className="h-full w-full object-cover" />
         <div className="p-6">
           <p className="font-mono text-xs uppercase tracking-wider text-electric-soft">Arcade · parody</p>
-          <h2 className="mt-1 text-2xl font-semibold">Burnham's Dash</h2>
-          <p className="mt-2 text-night-muted">Fly from 10 Downing Street to Manchester. Grab coins, dodge scandals, jump riots and avoid Farage, Lowe and Badenoch.</p>
+          <h2 className="mt-1 text-2xl font-semibold">Lowe's Mission</h2>
+          <p className="mt-2 text-night-muted">Caped Rupert Lowe flies from 10 Downing Street to Manchester — collect votes, smash Farage and Badenoch, and defeat boss Prime Minister Andy Burnham.</p>
         </div>
       </Link>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">

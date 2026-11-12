@@ -51,7 +51,7 @@ const entries: SitemapEntry[] = [
   { path: "/games", changefreq: "daily", priority: "0.8" },
   { path: "/games/daily", changefreq: "daily", priority: "0.7" },
   { path: "/games/britain-by-the-numbers", changefreq: "weekly", priority: "0.7" },
-  { path: "/games/burnhams-dash", changefreq: "monthly", priority: "0.5" },
+  { path: "/games/lowes-mission", changefreq: "monthly", priority: "0.5" },
   ...["higher-or-lower", "guess-the-number", "rank-the-world", "guess-the-flag", "english-history", "world-knowledge"].map((g) => ({ path: `/games/${g}`, changefreq: "weekly" as const, priority: "0.6" })),
   { path: "/education/schools", changefreq: "daily", priority: "0.7" },
   { path: "/education/universities", changefreq: "weekly", priority: "0.6" },
