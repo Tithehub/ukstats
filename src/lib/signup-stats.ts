@@ -14,7 +14,7 @@ export function bucketByLondonDay(createdAt: string[], now: Date, days = 30): { 
   const idx = new Map(out.map((b, i) => [b.day, i]));
   for (const c of createdAt) {
     const i = idx.get(londonDay(new Date(c)));
-    if (i !== undefined) out[i].count++;
+    const b = i === undefined ? undefined : out[i]; if (b) b.count++;
   }
   return out;
 }
