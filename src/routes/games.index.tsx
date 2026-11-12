@@ -33,7 +33,7 @@ function Hub() {
   return (
     <GameShell back={false}>
       <h1 className="text-4xl font-semibold tracking-tight">Test your knowledge. Challenge the world.</h1>
-      <p className="mt-2 text-night-muted">Free, 1-minute games built on real published figures. Learn something every round.</p>
+      <p className="mt-2 text-night-muted">Free, 1-minute games built on real published figures. Learn something every round. Free sign-up needed to play.</p>
       <Link to="/games/daily" className="mt-6 grid overflow-hidden rounded-lg border border-electric-soft bg-night-panel sm:grid-cols-2">
         <img src={daily} alt="The Daily 5" width={1200} height={800} className="h-full w-full object-cover" />
         <div className="p-6">
