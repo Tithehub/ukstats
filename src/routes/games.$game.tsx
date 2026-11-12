@@ -4,12 +4,13 @@ import { useCallback } from "react";
 import { GameShell } from "@/components/games/GameShell";
 import { PracticeGame } from "@/components/games/PracticeGame";
 import { worldQuery } from "@/lib/world.functions";
-import { GAME_DEFS, makeRound } from "@/lib/games";
+import { GAME_DEFS, flagRound, makeRound } from "@/lib/games";
 
 const META = {
   "higher-or-lower": "Two countries, one figure. Pick the higher one.",
   "guess-the-number": "Estimate a real figure — the closer, the more points.",
   "rank-the-world": "Put five countries in order, highest first.",
+  "guess-the-flag": "Spot the country from its national flag — four choices each time.",
 } as const;
 type WorldGame = keyof typeof META;
 const isWorldGame = (g: string): g is WorldGame => g in META;
@@ -28,6 +29,6 @@ export const Route = createFileRoute("/games/$game")({
 function Page() {
   const game = Route.useParams().game as WorldGame;
   const { data } = useSuspenseQuery(worldQuery());
-  const build = useCallback((seed: string) => (data ? makeRound(data, [...GAME_DEFS[game].kinds], `${game}-${seed}`) : []), [data, game]);
+  const build = useCallback((seed: string) => (data ? game === "guess-the-flag" ? flagRound(data, seed) : makeRound(data, [...GAME_DEFS[game].kinds], `${game}-${seed}`) : []), [data, game]);
   return <GameShell><PracticeGame key={game} game={game} title={GAME_DEFS[game].title} blurb={`${META[game]} 10 questions`} build={build} unavailable={!data} /></GameShell>;
 }

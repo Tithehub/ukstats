@@ -30,7 +30,7 @@ describe("game scoring", () => {
 describe("game registry", () => {
   it("every scored game is registered, Britain has 10 questions", async () => {
     const { GAME_DEFS, isGameId } = await import("./games");
-    expect(Object.keys(GAME_DEFS).sort()).toEqual(["britain-by-the-numbers", "daily-5", "guess-the-number", "higher-or-lower", "rank-the-world"]);
+    expect(Object.keys(GAME_DEFS).sort()).toEqual(["britain-by-the-numbers", "daily-5", "guess-the-flag", "guess-the-number", "higher-or-lower", "rank-the-world"]);
     expect(GAME_DEFS["britain-by-the-numbers"].kinds.length).toBe(10);
     expect(isGameId("made-up")).toBe(false);
   });
@@ -45,5 +45,21 @@ describe("Britain by the Numbers", () => {
     expect(qs.length).toBe(10);
     expect(qs.every((q) => q.src?.url === "https://www.ons.gov.uk")).toBe(true);
     expect(scoreRound(qs, britainRound({ fetchedAt: "", places, sources: { wellbeing: src, crime: src, housePrice: src, pay: src, population: src, schools: src }, errors: [] }, "x").map(() => null))).toBe(0);
+  });
+});
+
+import { flagRound as _flagRound, scoreQuestion as _score } from "./games";
+describe("Guess the Flag", () => {
+  const countries = Array.from({ length: 12 }, (_, i) => ({ iso3: `C${String.fromCharCode(65 + i)}X`, iso2: `A${String.fromCharCode(65 + i)}`, name: `Country ${i}`, region: "", income: "", capital: "" }));
+  const p = { countries, values: { "SP.POP.TOTL": Object.fromEntries(countries.map((c, i) => [c.iso3, { value: 2_000_000 + i, year: 2024 }])) }, updated: {}, fetchedAt: "" } as never;
+  it("builds the same 10 questions from the same seed, each with 4 choices including the answer", () => {
+    const a = _flagRound(p, "s1"); const b = _flagRound(p, "s1");
+    expect(a).toEqual(b); expect(a).toHaveLength(10);
+    for (const q of a) { if (q.kind !== "flag") throw 0; expect(q.choices).toHaveLength(4); expect(q.choices.some((c) => c.iso3 === q.a.iso3)).toBe(true); }
+  });
+  it("scores 100 only for the right country", () => {
+    const q = _flagRound(p, "s2")[0]!; if (q.kind !== "flag") throw 0;
+    const right = q.choices.findIndex((c) => c.iso3 === q.a.iso3);
+    expect(_score(q, right)).toBe(100); expect(_score(q, (right + 1) % 4)).toBe(0);
   });
 });

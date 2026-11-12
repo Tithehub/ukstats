@@ -14,7 +14,8 @@ export interface Fact { iso3: string; iso2: string; name: string; value: number;
 export type Question =
   | { kind: "hl"; ind: Measure; a: Fact; b: Fact; src?: SourceRef }
   | { kind: "guess"; ind: Measure; a: Fact; src?: SourceRef }
-  | { kind: "rank"; ind: Measure; items: Fact[]; src?: SourceRef };
+  | { kind: "rank"; ind: Measure; items: Fact[]; src?: SourceRef }
+  | { kind: "flag"; ind: Measure; a: Fact; choices: Fact[]; src?: SourceRef };
 export type Answer = number | string[] | null;
 
 export function rng(seed: string): () => number {
@@ -70,6 +71,7 @@ export function questionFrom(pools: Pool[], kind: Question["kind"], r: () => num
     for (let t = 0; t < 20; t++) { const [a, b] = sample(r, facts, 2); if (a && b && a.value !== b.value) return { kind, ind, a, b, ...extra }; }
     return null;
   }
+  if (kind === "flag") return null;
   const items = sample(r, facts, 5);
   return new Set(items.map((i) => i.value)).size === 5 ? { kind, ind, items, ...extra } : null;
 }
@@ -91,9 +93,23 @@ export const GAME_DEFS = {
   "guess-the-number": { title: "Guess the Number", kinds: Array<Question["kind"]>(10).fill("guess") },
   "rank-the-world": { title: "Rank the World", kinds: Array<Question["kind"]>(10).fill("rank") },
   "britain-by-the-numbers": { title: "Britain by the Numbers", kinds: BRITAIN_KINDS },
+  "guess-the-flag": { title: "Guess the Flag", kinds: Array<Question["kind"]>(10).fill("flag") },
 } as const;
 export type GameId = keyof typeof GAME_DEFS;
 export const isGameId = (g: string): g is GameId => g in GAME_DEFS;
+
+// ---- Guess the Flag: countries in the World Bank register (1m+ people), shown by their national flag ----
+const FLAG_MEASURE: Measure = { id: "SP.POP.TOTL", slug: "population", label: "Guess the flag", unit: "people" };
+export function flagRound(p: WorldPayload, seed: string): Question[] {
+  const pop = WORLD_INDICATORS.find((i) => i.slug === "population");
+  const facts = pop ? factsFor(p, pop).filter((f) => /^[A-Z]{2}$/.test(f.iso2)) : [];
+  if (facts.length < 10) return [];
+  const r = rng(`guess-the-flag-${seed}`);
+  return sample(r, facts, 10).map((a) => {
+    const choices = [a, ...sample(r, facts.filter((f) => f.iso3 !== a.iso3), 3)];
+    return { kind: "flag" as const, ind: FLAG_MEASURE, a, choices: sample(r, choices, 4) };
+  });
+}
 
 export const dailyRound = (p: WorldPayload, day: string) => makeRound(p, DAILY_KINDS, `daily-${day}`);
 
@@ -110,6 +126,7 @@ export function scoreQuestion(q: Question, ans: Answer): number {
   if (ans == null) return 0;
   if (q.kind === "hl") return typeof ans === "number" && (ans === 0 ? q.a.value > q.b.value : ans === 1 ? q.b.value > q.a.value : false) ? 100 : 0;
   if (q.kind === "guess") return typeof ans === "number" ? guessPoints(ans, q.a.value) : 0;
+  if (q.kind === "flag") return typeof ans === "number" && q.choices[ans]?.iso3 === q.a.iso3 ? 100 : 0;
   if (!Array.isArray(ans)) return 0;
   const right = rankOrder(q.items);
   return right.reduce((s, iso, i) => s + (ans[i] === iso ? 20 : 0), 0);
@@ -119,6 +136,7 @@ export const scoreRound = (qs: Question[], answers: Answer[]) => qs.reduce((s, q
 export function questionText(q: Question): string {
   const l = q.ind.label.replace(/ \(.*\)$/, "").toLowerCase();
   if (q.kind === "hl") return `Which has the higher ${l}?`;
+  if (q.kind === "flag") return "Which country's flag is this?";
   if (q.kind === "guess") return `What is ${q.a.name}'s ${l}?`;
   return `Rank these from highest to lowest ${l}`;
 }

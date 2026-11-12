@@ -36,6 +36,19 @@ export function QuestionCard({ q, onDone }: { q: Question; onDone: (ans: Answer,
         </div>
       )}
 
+      {q.kind === "flag" && (
+        <div className="mt-4">
+          <img src={`https://flagcdn.com/w640/${q.a.iso2.toLowerCase()}.png`} alt="A national flag" width={320} height={213} className="mx-auto h-40 w-auto max-w-full rounded-md object-contain ring-1 ring-night-line sm:h-52" />
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {q.choices.map((f, i) => {
+              const right = f.iso3 === q.a.iso3;
+              return <button key={f.iso3} disabled={done} onClick={() => lock(i)} className={`rounded-md border p-3 text-left font-medium transition ${done ? (right ? "border-fresh bg-fresh/10" : ans === i ? "border-overdue" : "border-night-line opacity-70") : "border-night-line hover:border-electric-soft"}`}>{f.name}</button>;
+            })}
+          </div>
+          {done && <p className="mt-3 text-sm">{q.a.name} · population <span className="font-mono">{fmtFact(q.a, q.ind)}</span> <Year f={q.a} /></p>}
+        </div>
+      )}
+
       {q.kind === "guess" && (
         <form className="mt-4 flex flex-wrap items-center gap-3" onSubmit={(e) => { e.preventDefault(); const n = Number(guess.replace(/[,\s]/g, "")); if (Number.isFinite(n)) lock(n); }}>
           <Flag f={q.a} />
