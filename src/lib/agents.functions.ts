@@ -166,3 +166,26 @@ export const checkDomains = createServerFn({ method: "POST" })
     );
     return results;
   });
+
+export const getSignupStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { bucketByLondonDay } = await import("@/lib/signup-stats");
+    const { count: total } = await supabaseAdmin.from("profiles").select("id", { count: "exact", head: true });
+    const { data: first } = await supabaseAdmin.from("profiles").select("created_at").order("created_at").limit(1);
+    const now = new Date();
+    const since = new Date(now.getTime() - 31 * 86_400_000).toISOString();
+    const { data: recent } = await supabaseAdmin.from("profiles").select("created_at").gte("created_at", since).limit(10000);
+    const times = (recent ?? []).map((r) => r.created_at as string);
+    const within = (ms: number) => times.filter((t) => now.getTime() - new Date(t).getTime() <= ms).length;
+    return {
+      total: total ?? 0,
+      day: within(86_400_000),
+      week: within(7 * 86_400_000),
+      month: within(30 * 86_400_000),
+      first: (first?.[0]?.created_at as string | undefined) ?? null,
+      series: bucketByLondonDay(times, now, 30),
+    };
+  });

@@ -14,6 +14,7 @@ import { SponsorsPanel } from "@/components/agents/SponsorsPanel";
 import { ImprovementPlanPanel } from "@/components/agents/ImprovementPlanPanel";
 import { LiveStreamLinkPanel } from "@/components/agents/LiveStreamLinkPanel";
 import { MorningReviewPanel } from "@/components/agents/MorningReviewPanel";
+import { SignupStatsCard } from "@/components/agents/SignupStatsCard";
 
 export const Route = createFileRoute("/agents")({
   head: () => ({
@@ -62,6 +63,7 @@ function AgentsPage() {
     const open = findings.filter((f) => f.status === "open");
     body = (
       <>
+        <SignupStatsCard />
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
