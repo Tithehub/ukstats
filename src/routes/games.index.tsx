@@ -27,7 +27,7 @@ function Hub() {
       <h1 className="text-4xl font-semibold tracking-tight">Test your knowledge. Challenge the world.</h1>
       <p className="mt-2 text-night-muted">Free, 1-minute games built on real published figures. Learn something every round.</p>
       <Link to="/games/daily" className="mt-6 grid overflow-hidden rounded-lg border border-electric-soft bg-night-panel sm:grid-cols-2">
-        <img src={daily} alt="The Daily 5" width={992} height={672} className="h-full w-full object-cover" />
+        <img src={daily} alt="The Daily 5" width={1200} height={800} className="h-full w-full object-cover" />
         <div className="p-6">
           <p className="font-mono text-xs uppercase tracking-wider text-electric-soft">Today's challenge</p>
           <h2 className="mt-1 text-2xl font-semibold">The Daily 5</h2>
@@ -36,7 +36,7 @@ function Hub() {
         </div>
       </Link>
       <Link to="/games/britain-by-the-numbers" className="mt-4 grid overflow-hidden rounded-lg border border-night-line bg-night-panel transition hover:border-electric-soft sm:grid-cols-2">
-        <img src={britain} alt="" width={992} height={672} loading="lazy" className="h-full w-full object-cover" />
+        <img src={britain} alt="" width={1200} height={800} loading="lazy" className="h-full w-full object-cover" />
         <div className="p-6">
           <p className="font-mono text-xs uppercase tracking-wider text-electric-soft">UK only</p>
           <h2 className="mt-1 text-2xl font-semibold">Britain by the Numbers</h2>
@@ -46,7 +46,7 @@ function Hub() {
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {GAMES.map((g) => (
           <Link key={g.game} to="/games/$game" params={{ game: g.game }} className="overflow-hidden rounded-lg border border-night-line bg-night-panel transition hover:border-electric-soft">
-            <img src={g.img} alt="" width={992} height={672} loading="lazy" className="aspect-[3/2] w-full object-cover" />
+            <img src={g.img} alt="" width={1200} height={800} loading="lazy" className="aspect-[3/2] w-full object-cover" />
             <div className="p-4"><h3 className="font-semibold">{g.title}</h3><p className="mt-1 text-sm text-night-muted">{g.blurb}</p></div>
           </Link>
         ))}
