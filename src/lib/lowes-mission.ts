@@ -148,7 +148,7 @@ export function step(s: State, dt: number, flap: boolean, punch = false): State 
   });
   if (n.boss && n.boss.enter === 0 && n.boss.invuln === 0 && n.boss.flee === 0 && (n.boss.x - PLAYER_X) ** 2 + (n.boss.y - n.y) ** 2 < (BOSS_R + reach) ** 2) {
     n.boss.hp--; n.boss.invuln = FLEE_TIME; n.boss.flee = FLEE_TIME; n.vy = FLAP * 0.8; n.tapes = [];
-    if (n.boss.hp <= 0) { n.bossesBeaten++; const last = !n.boss.mastermind && n.bossIndex === BOSS_AT.length; n.runners.push({ x: n.boss.x, y: n.boss.y, t: 0, mastermind: n.boss.mastermind }); n.boss = last ? { hp: L.bossHp, x: BOSS_X, y: H / 2, t: 0, cooldown: 1.5, invuln: 0, enter: 1, flee: 0, mastermind: true } : null; }
+    if (n.boss.hp <= 0) { n.bossesBeaten++; const last = !n.boss.mastermind && n.bossIndex === BOSS_AT.length; n.runners.push({ x: n.boss.x, y: n.boss.y, t: 0, mastermind: !!n.boss.mastermind }); n.boss = last ? { hp: L.bossHp, x: BOSS_X, y: H / 2, t: 0, cooldown: 1.5, invuln: 0, enter: 1, flee: 0, mastermind: true } : null; }
   }
   n.voteList = n.voteList.map((c) => { if (!c.taken && (c.x - PLAYER_X) ** 2 + (c.y - n.y) ** 2 < (PLAYER_R + 14) ** 2) { if (c.poppy) n.poppies++; else n.votes++; return { ...c, taken: true }; } return c; });
   return n;
