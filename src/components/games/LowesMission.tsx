@@ -279,17 +279,16 @@ export function LowesMission() {
 
   return (
     <>
-    {!full && <LiveStatsStrip />}
     <div ref={box} className={full ? "game-fs-layer fixed inset-0 z-[2147483000] select-none overflow-hidden bg-night touch-none" : "relative mt-4 select-none overflow-hidden rounded-lg border border-night-line"}>
     <div style={rotated ? { position: "fixed", top: 0, left: 0, width: "100dvh", height: "100dvw", transform: "rotate(90deg) translateY(-100%)", transformOrigin: "top left" } : undefined} className={full ? "relative flex h-full w-full flex-col items-center justify-center" : "relative"}>
-      {full && <div className="game-fs-stats w-full shrink-0"><LiveStatsStrip compact /></div>}
       <button type="button" onClick={toggleMusic} aria-pressed={musicOn} aria-label={musicOn ? "Turn music off" : "Turn music on"} className={full ? "absolute right-[calc(max(0.5rem,env(safe-area-inset-right))+4rem)] top-[max(0.5rem,env(safe-area-inset-top))] z-20 rounded-full bg-night-panel/40 px-2 py-1 text-[11px] font-medium opacity-70 backdrop-blur hover:opacity-100" : "absolute right-[7.5rem] top-2 z-20 rounded-md border border-night-line bg-night-panel/80 px-2.5 py-1.5 text-xs font-medium backdrop-blur"}>
         {musicOn ? "♪ Music on" : "♪ Music off"}
       </button>
       <button type="button" onClick={toggleFull} aria-label={full ? "Exit full screen" : "Full screen"} className={full ? "absolute right-[max(0.5rem,env(safe-area-inset-right))] top-[max(0.5rem,env(safe-area-inset-top))] z-20 rounded-full bg-night-panel/40 px-2 py-1 text-[11px] font-medium opacity-70 backdrop-blur hover:opacity-100" : "absolute right-2 top-2 z-20 rounded-md border border-night-line bg-night-panel/80 px-2.5 py-1.5 text-xs font-medium backdrop-blur"}>
         {full ? "✕ Exit" : "⛶ Full screen"}
       </button>
-      <canvas ref={canvas} width={W} height={H} onPointerDown={(e) => { e.preventDefault(); flap(); }} className={full ? "block aspect-[16/9] max-h-full max-w-full w-auto h-auto touch-none bg-night" : "block aspect-[16/9] w-full touch-none bg-night"} style={full ? { width: rotated ? "min(100dvh, calc(100dvw * 16 / 9))" : "min(100vw, calc((100dvh - var(--game-strip-h, 0px)) * 16 / 9))" } : undefined} aria-label="Aim High, Vote Lowe game area. Press space or tap to fly." />
+      <canvas ref={canvas} width={W} height={H} onPointerDown={(e) => { e.preventDefault(); flap(); }} className={full ? "block aspect-[16/9] max-h-full max-w-full w-auto h-auto touch-none bg-night" : "block aspect-[16/9] w-full touch-none bg-night"} style={full ? { width: rotated ? "min(100dvh, calc(100dvw * 16 / 9))" : "min(100vw, calc(100dvh * 16 / 9))" } : undefined} aria-label="Aim High, Vote Lowe game area. Press space or tap to fly." />
+      <LiveStatsStrip overlay interactive={phase !== "play"} />
       {phase !== "play" && (
         <div className="absolute inset-0 flex items-center justify-center bg-night/70 p-4 text-center">
           <div className="max-h-full max-w-sm overflow-y-auto rounded-lg bg-night-panel p-5">

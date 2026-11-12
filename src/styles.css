@@ -512,9 +512,4 @@ html.game-fullscreen, html.game-fullscreen body { overflow: hidden !important; o
 .games-ribbon:hover .games-ribbon-track, .games-ribbon:focus-within .games-ribbon-track, .games-ribbon:active .games-ribbon-track { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .games-ribbon-track { animation: none; } }
 
-/* Game stats strip: thin bar above the game on desktop full screen, hidden on touch full screen. */
-html.game-fullscreen { --game-strip-h: 28px; }
-@media (pointer: coarse) {
-  html.game-fullscreen { --game-strip-h: 0px; }
-  html.game-fullscreen .game-fs-stats { display: none; }
-}
+
